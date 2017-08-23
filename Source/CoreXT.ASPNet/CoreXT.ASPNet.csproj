@@ -20,6 +20,7 @@
 
 This package holds some utility methods mainly around the ASP side of .Net Core (especially converting over older ASP 4 MVC projects), such as 'Render()' for IHtmlContent, 'GetService&lt;T&gt;()' and 'GetIPAddress()', etc., for HttpContext, 'MapPath()', and so on.</Description>
     <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

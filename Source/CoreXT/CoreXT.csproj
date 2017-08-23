@@ -24,6 +24,7 @@
 This package holds various basic utilities and extension methods for convenience.  For example, adds a '.Value(key, defaultValue)' method to easily pull out values from dictionaries, or '{string}.ND(defaultValue)' (null to default) for string values, async Task extensions, ObservableDictionary, WeakReferenceList, basic encryption, basic zip file support,, text parser,  'GetFullErrorMessage()' for writing out exceptions for debugging, and much more.</Description>
     <Version>1.0.1</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,5 +33,9 @@ This package holds various basic utilities and extension methods for convenience
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="REM xcopy /Y /D &quot;$(ProjectDir)bin\$(ConfigurationName)\*.nupkg&quot; &quot;$(SolutionDir)Nuget\$(ConfigurationName)\&quot;" />
+  </Target>
 
 </Project>

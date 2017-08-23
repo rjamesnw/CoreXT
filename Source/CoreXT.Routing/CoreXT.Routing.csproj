@@ -20,6 +20,7 @@
 
 Used by some other CoreXT packages to help deal with various routing aspects.</Description>
     <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

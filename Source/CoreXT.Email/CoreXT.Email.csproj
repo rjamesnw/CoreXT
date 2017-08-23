@@ -20,6 +20,7 @@
 
 This package provides support for creating and sending emails.</Description>
     <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
