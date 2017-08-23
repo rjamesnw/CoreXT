@@ -1,0 +1,6 @@
+﻿@model Link
+@{
+    var templateDetails = XT.GetTemplatePartDetails<Link>(td => GetControl<Link>().Configure(ViewBag.text ?? td.Text, td.Text));
+    var ctrl = templateDetails.Control;
+}
+<a @ctrl.GetElementAttributes(true, true)>@ctrl.InnerHtml</a>

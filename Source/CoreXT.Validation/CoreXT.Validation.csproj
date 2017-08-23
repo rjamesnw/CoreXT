@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <AssemblyName>CoreXT.Validation</AssemblyName>
+    <PackageId>CoreXT.Validation</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <Authors>Catmedis</Authors>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Copyright>Catmedis</Copyright>
+    <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>CoreXT AspNet WebApi MVC Validation</PackageTags>
+    <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
+
+This package will grow eventually with some common data/input validations.</Description>
+    <Version>1.0.1</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSBump" Version="2.3.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="1.1.3" />
+  </ItemGroup>
+
+</Project>

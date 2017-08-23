@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MessageTypes>
+    <Message>
+        <Type>ADT</Type>
+        <TriggerEvents>
+            <A01 Description="Admit/visit notification"/>
+            <A02 Description="Transfer a patient"/>
+            <A03 Description="Discharge/end visit"/>
+            <A04 Description="Register a patient"/>
+            <A05 Description="Pre-admit a patient"/>
+            <A06 Description="Change an outpatient to an inpatient"/>
+            <A07 Description="Change an inpatient to an outpatient"/>
+            <A08 Description="Update patient information"/>
+            <A09 Description="Patient departing - tracking"/>
+            <A10 Description="Patient arriving - tracking"/>
+            <A11 Description="Cancel admit/visit notification"/>
+            <A12 Description="Cancel transfer"/>
+            <A13 Description="Cancel discharge/end visit"/>
+            <A14 Description="Pending admit"/>
+            <A15 Description="Pending transfer"/>
+            <A16 Description="Pending discharge"/>
+            <A17 Description="Swap patients"/>
+            <A18 Description="Merge patient information"/>
+            <A20 Description="Bed status update"/>
+            <A21 Description="Patient goes on a &quot;leave of absence&quot;"/>
+            <A22 Description="Patient returns from a &quot;leave of absence&quot;"/>
+            <A23 Description="Delete a patient record"/>
+            <A24 Description="Link patient information"/>
+            <A25 Description="Cancel pending discharge"/>
+            <A26 Description="Cancel pending transfer"/>
+            <A27 Description="Cancel pending admit"/>
+            <A28 Description="Add person information"/>
+            <A29 Description="Delete person information"/>
+            <A30 Description="Merge person information"/>
+            <A31 Description="Update person information"/>
+            <A32 Description="Cancel patient arriving - tracking"/>
+            <A33 Description="Cancel patient departing - tracking"/>
+            <A34 Description="Merge patient information - patient ID only"/>
+            <A35 Description="Merge patient information - account number only"/>
+            <A36 Description="Merge patient information - patient ID and account number"/>
+            <A37 Description="Unlink patient information"/>
+            <A38 Description="Cancel pre-admit"/>
+            <A39 Description="Merge person - patient ID"/>
+            <A40 Description="Merge patient - patient IDentifier list"/>
+            <A41 Description="merge account - patient account number"/>
+            <A42 Description="Merge visit - visit number"/>
+            <A43 Description="Move patient information - patient IDentifier list"/>
+            <A44 Description="Move account information - patient account number"/>
+            <A45 Description="Move visit information - visit number"/>
+            <A46 Description="Change patient ID (for backward compatibility only)"/>
+            <A47 Description="Change patient IDentifier list"/>
+            <A48 Description="Change alternate patient ID"/>
+            <A49 Description="Change patient account number"/>
+            <A50 Description="Change visit number"/>
+            <A51 Description="Change alternate visit ID"/>
+            <A52 Description="Cancel leave of absence for a patient"/>
+            <A53 Description="Cancel patient returns from a leave of absence"/>
+            <A54 Description="Change attending doctor"/>
+            <A55 Description="Cancel change attending doctor"/>
+            <A60 Description="Update allergy information"/>
+            <A61 Description="Change consulting doctor"/>
+            <A62 Description="Cancel change consulting doctor"/>
+        </TriggerEvents>
+    </Message>
+    <Message>
+        <Type>ORU</Type>
+        <TriggerEvents>
+            <R01 Description="Unsolicited transmission of an observation message" />
+            <R30 Description="Unsolicited transmission of an observation message" />
+        </TriggerEvents>
+    </Message>
+    <Message>
+        <Type>ORM</Type>
+        <TriggerEvents>
+            <O01 Description="Order message" />
+        </TriggerEvents>
+    </Message>
+</MessageTypes>

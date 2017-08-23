@@ -1,0 +1,6 @@
+﻿module CoreXT {
+
+    module Modal {
+
+    }
+}

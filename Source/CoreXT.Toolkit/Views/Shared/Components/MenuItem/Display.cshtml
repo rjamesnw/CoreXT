@@ -1,0 +1,8 @@
+﻿@model MenuItem
+@{
+    var templateDetails = XT.GetTemplatePartDetails<MenuItem>(td => GetControl<MenuItem>().Configure(td.Text));
+    var ctrl = templateDetails.Control;
+}
+<li @ctrl.GetElementAttributes(true, true)>
+    <a asp-area="@ctrl.AreaName" asp-controller="@ctrl.ControllerName" asp-action="@ctrl.ActionName">@ctrl.InnerHtml</a>
+</li>

@@ -1,0 +1,19 @@
+﻿using(DreamSpace.Web);
+using(DreamSpace.Sockets);
+using(DreamSpace.Files);
+
+new Socket().Listen(80).$ = function(request, response) {
+	new File("path\to\file.html").$ = function(fileInfo) {
+		fileInfo.name;
+		fileInfo.length;
+
+	};
+};
+
+var event = new Socket().Listen(80);
+
+event.callback = ; // call-back function
+event.$; // special set-and-start property (sets 'callback' and calls 'start()' immediately)
+event.__func(); // blocking call
+event.start(); // run/schedule event.
+

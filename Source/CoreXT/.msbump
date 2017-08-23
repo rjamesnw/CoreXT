@@ -1,0 +1,15 @@
+﻿{
+  Configurations: {
+    "Debug": {
+      "BumpRevision": true,
+      "BumpLabel": "dev",
+      "LabelDigits": 4
+    },
+
+    "Release": {
+      "BumpMinor": true,
+      "ResetRevision": true,
+      "ResetLabel": "dev"
+    }
+  }
+}

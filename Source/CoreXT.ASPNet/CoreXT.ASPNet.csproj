@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <AssemblyName>CoreXT.ASPNet</AssemblyName>
+    <PackageId>CoreXT.ASPNet</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <Authors>Catmedis</Authors>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Copyright>Catmedis</Copyright>
+    <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>CoreXT AspNet WebApi MVC</PackageTags>
+    <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
+
+This package holds some utility methods mainly around the ASP side of .Net Core (especially converting over older ASP 4 MVC projects), such as 'Render()' for IHtmlContent, 'GetService&lt;T&gt;()' and 'GetIPAddress()', etc., for HttpContext, 'MapPath()', and so on.</Description>
+    <Version>1.0.1</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSBump" Version="2.3.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="1.1.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="1.1.3" />
+  </ItemGroup>
+
+</Project>

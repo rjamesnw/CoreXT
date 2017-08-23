@@ -1,0 +1,6 @@
+@model ActionLink
+@{
+    var templateDetails = XT.GetTemplatePartDetails<ActionLink>(td => GetControl<ActionLink>().Configure(ViewBag.text ?? td.Text, td.Text));
+    var ctrl = templateDetails.Control;
+}
+<a @ctrl.GetElementAttributes(true, true)>@ctrl.InnerHtml</a>

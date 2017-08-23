@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <AssemblyName>CoreXT.Entities</AssemblyName>
+    <PackageId>CoreXT.Entities</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <Authors>Catmedis</Authors>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Copyright>Catmedis</Copyright>
+    <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
+    <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>CoreXT AspNet WebApi MVC Entities</PackageTags>
+    <Description>
+      Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
+
+      This package holds some entities model utility methods.
+    </Description>
+    <Version>1.0.1</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSBump" Version="2.3.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
+  </ItemGroup>
+
+</Project>

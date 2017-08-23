@@ -1,0 +1,12 @@
+{
+  "globalDependencies": {
+    "add2home": "registry:dt/add2home#2.0.5+20160510002910",
+    "google.maps": "registry:dt/google.maps#3.25.0+20161208205818",
+    "jquery": "registry:dt/jquery#1.10.0+20170310222111",
+    "linq4js": "registry:dt/linq4js#2.1.0+20170324151803",
+    "moment": "registry:dt/moment#2.11.1+20161010105546"
+  },
+  "dependencies": {
+    "xregexp": "registry:dt/xregexp#3.0.0+20160428043022"
+  }
+}

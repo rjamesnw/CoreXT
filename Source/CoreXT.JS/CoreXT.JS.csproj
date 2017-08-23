@@ -1,0 +1,156 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TypeScriptToolsVersion>2.4</TypeScriptToolsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageTargetFallback>$(PackageTargetFallback);portable-net45+win8+wp8+wpa81;</PackageTargetFallback>
+    <PostBuildEvent />
+    <PreBuildEvent>
+      REM "C:\Program Files (x86)\Microsoft SDKs\TypeScript\$(TypeScriptToolsVersion)\tsc" -d --sourcemap -t ES5 --outFile "$(SolutionDir)Source\CoreXT.JS\wwwroot\js\manifest.js"
+    </PreBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot/js\CoreXT.VDom.Canvas.ts" />
+    <Content Remove="wwwroot/js\__references.ts" />
+    <Content Remove="wwwroot/lib\linq4js\linq4js.d.ts" />
+    <Content Remove="wwwroot/lib\linq4js\tsconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="wwwroot\js\CoreXT.Globals.ts" />
+    <Content Include="wwwroot\js\CoreXT.ts" />
+    <Content Include="wwwroot\js\CoreXT.Utilities.ts" />
+    <Content Include="wwwroot\js\HoldOn\manifest.ts">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\JQuery\jquery.js">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\JQuery\jquery.min.js">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\JQuery\jquery.min.map">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\Linq4JS\linq4js.js">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\Linq4JS\linq4js.min.js">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\Linq4JS\manifest.ts">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\System\CoreXT.System.Platform.Graph.ts" />
+    <Content Include="wwwroot\js\System\CoreXT.System.Platform.HTML.ts" />
+    <Content Include="wwwroot\js\System\CoreXT.System.Platform.Windows.ts" />
+    <Content Include="wwwroot\js\System\CoreXT.System.Storage.ts">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\System\CoreXT.System.Platform.HTML.Application.ts">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\System\CoreXT.System.Properties.ts">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="wwwroot\js\System\CoreXT.System.Events.ts" />
+    <Content Include="wwwroot\js\System\CoreXT.System.Serialization.ts" />
+    <Content Include="wwwroot\js\System\CoreXT.System.ts" />
+    <Content Include="wwwroot\js\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="1.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wwwroot\js\app.manifest.ts" />
+    <None Include="wwwroot\js\app.ts" />
+    <None Include="wwwroot\js\CoreXT.Browser.ts" />
+    <None Include="wwwroot\js\CoreXT.Globals.ts" />
+    <None Include="wwwroot\js\CoreXT.Scripts.ts" />
+    <None Include="wwwroot\js\CoreXT.ts" />
+    <None Include="wwwroot\js\CoreXT.VDom.Canvas.ts" />
+    <None Include="wwwroot\js\CoreXT.VDom.ts" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\.gitignore" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\custom-message\index.html" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\hash-trick\index.html" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-ipad.png" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-ipad2.png" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-iphone.png" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-iphone4.png" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\manual-startup\index.html" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\simple\index.html" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\suggested-config\index.html" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\examples\touch-icon\index.html" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\README.md" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home-tests.js" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home-tests.js.map" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home-tests.ts" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home.js" />
+    <None Include="wwwroot\js\Cubiq_org\AddToHomeScreen-2.0.11\style\add2home.css" />
+    <None Include="wwwroot\js\Cubiq_org\manifest.ts" />
+    <None Include="wwwroot\js\Eyecon_ro\datepicker\css\datepicker.css" />
+    <None Include="wwwroot\js\Eyecon_ro\datepicker\js\bootstrap-datepicker.js" />
+    <None Include="wwwroot\js\Eyecon_ro\datepicker\less\datepicker.less" />
+    <None Include="wwwroot\js\Eyecon_ro\datepicker\manifest.ts" />
+    <None Include="wwwroot\js\Github\Ilinsky\manifest.ts" />
+    <None Include="wwwroot\js\Github\Ilinsky\XMLHttpRequest-20130624.js" />
+    <None Include="wwwroot\js\Google\Maps\manifest.ts" />
+    <None Include="wwwroot\js\HostBridge.d.ts" />
+    <None Include="wwwroot\js\HostBridge.ICE.d.ts" />
+    <None Include="wwwroot\js\JQuery\manifest.ts" />
+    <None Include="wwwroot\js\manifest.ts" />
+    <None Include="wwwroot\js\Misc\soapclient.js" />
+    <None Include="wwwroot\js\MomentJS\manifest.ts" />
+    <None Include="wwwroot\js\MomentJS\moment-with-langs.js" />
+    <None Include="wwwroot\js\MomentJS\moment-with-langs.min.js" />
+    <None Include="wwwroot\js\MomentJS\moment.min.js" />
+    <None Include="wwwroot\js\Scirra\manifest.ts" />
+    <None Include="wwwroot\js\Scripting Symanics Ideas.txt" />
+    <None Include="wwwroot\js\System\CoreXT.System.AppDomain.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Collections.IndexedObjectCollection.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Collections.ObservableCollection.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Data.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Delegate.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Diagnostics.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Events.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Exception.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.IO.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Markup.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Platform.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.PrimitiveTypes.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Text.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Time.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.ts" />
+    <None Include="wwwroot\js\System\CoreXT.System.Users.ts" />
+    <None Include="wwwroot\js\Twitter\bootstrap\css\bootstrap-theme.css" />
+    <None Include="wwwroot\js\Twitter\bootstrap\css\bootstrap-theme.min.css" />
+    <None Include="wwwroot\js\Twitter\bootstrap\css\bootstrap.css" />
+    <None Include="wwwroot\js\Twitter\bootstrap\css\bootstrap.min.css" />
+    <None Include="wwwroot\js\Twitter\bootstrap\fonts\glyphicons-halflings-regular.eot" />
+    <None Include="wwwroot\js\Twitter\bootstrap\fonts\glyphicons-halflings-regular.svg" />
+    <None Include="wwwroot\js\Twitter\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
+    <None Include="wwwroot\js\Twitter\bootstrap\fonts\glyphicons-halflings-regular.woff" />
+    <None Include="wwwroot\js\Twitter\bootstrap\js\bootstrap.js" />
+    <None Include="wwwroot\js\Twitter\bootstrap\js\bootstrap.min.js" />
+    <None Include="wwwroot\js\Twitter\manifest.ts" />
+    <None Include="wwwroot\js\xregexp\manifest.ts" />
+    <None Include="wwwroot\js\xregexp\xregexp-min.js" />
+    <None Include="wwwroot\js\xregexp\xregexp.js" />
+    <None Include="wwwroot\js\xregexp\__xregexp_info.js" />
+    <None Include="wwwroot\js\xregexp\__xregexp_info.js.map" />
+    <None Include="wwwroot\js\xregexp\__xregexp_info.ts" />
+  </ItemGroup>
+
+</Project>

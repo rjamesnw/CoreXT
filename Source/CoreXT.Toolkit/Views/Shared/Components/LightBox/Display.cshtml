@@ -1,0 +1,8 @@
+﻿@model LightBox
+@{
+    var templateDetails = XT.GetTemplatePartDetails<LightBox>(td => GetControl<LightBox>().Configure());
+    var ctrl = templateDetails.Control;
+}
+<div @ctrl.GetElementAttributes(true, true)>
+    @ctrl.InnerHtml
+</div>

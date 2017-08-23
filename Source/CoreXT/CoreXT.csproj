@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <AssemblyName>CoreXT</AssemblyName>
+    <PackageId>CoreXT</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <Authors>Catmedis</Authors>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+    <Copyright>Catmedis</Copyright>
+    <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>CoreXT AspNet WebApi MVC</PackageTags>
+    <NeutralLanguage>en-CA</NeutralLanguage>
+    <PackageReleaseNotes />
+    <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
+    <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with. To see all assemblies in the framework, click the 'CoreXT' tag.
+
+This package holds various basic utilities and extension methods for convenience.  For example, adds a '.Value(key, defaultValue)' method to easily pull out values from dictionaries, or '{string}.ND(defaultValue)' (null to default) for string values, async Task extensions, ObservableDictionary, WeakReferenceList, basic encryption, basic zip file support,, text parser,  'GetFullErrorMessage()' for writing out exceptions for debugging, and much more.</Description>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSBump" Version="2.3.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.3" />
+    <PackageReference Include="System.Data.Common" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "traceResolution": true,
+    "listFiles": true,
+    "diagnostics": true,
+    "forceConsistentCasingInFileNames": false,
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "removeComments": true,
+    //"typeRoots": [ "typings" ],
+    "sourceMap": true,
+    "target": "es2015" // ES6
+  },
+  //"filesGlob": [
+  //  "./**/*.ts"
+  //  //"!./node_modules/**/*.ts"
+  //],
+  //"files": [
+  //  "wwwroot/js/hostbridge.d.ts",
+  //  "wwwroot/js/hostbridge.ICE.d.ts",
+
+  //  "wwwroot/js/corext.ts",
+  //  "wwwroot/js/corext.globals.ts",
+  //  "wwwroot/js/corext.scripts.ts",
+  //  "wwwroot/js/corext.browser.ts",
+
+  //  "wwwroot/js/system/corext.system.collections.indexedobjectcollection.ts",
+  //  "wwwroot/js/system/corext.system.collections.observablecollection.ts",
+  //  "wwwroot/js/system/corext.system.ts",
+  //  "wwwroot/js/system/corext.system.primitivetypes.ts",
+  //  "wwwroot/js/system/corext.system.text.ts",
+  //  "wwwroot/js/system/corext.system.time.ts",
+  //  "wwwroot/js/system/corext.system.io.ts",
+  //  "wwwroot/js/system/corext.system.data.ts",
+  //  "wwwroot/js/system/corext.system.diagnostics.ts",
+  //  "wwwroot/js/system/corext.system.exception.ts",
+  //  "wwwroot/js/system/corext.system.events.ts",
+  //  "wwwroot/js/system/corext.system.appdomain.ts",
+
+  //  "wwwroot/js/system/corext.system.utilities.ts",
+  //  "wwwroot/js/system/corext.system.delegate.ts",
+  //  "wwwroot/js/system/corext.system.markup.ts",
+  //  "wwwroot/js/system/corext.system.platform.ts",
+  //  "wwwroot/js/system/corext.system.serialization.ts",
+  //  "wwwroot/js/system/corext.system.users.ts",
+  //  "wwwroot/js/system/corext.system.windows.ts"
+  //],
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "wwwroot/lib/**/*.ts",
+    "wwwroot/js/CoreXT.VDom.Canvas.ts",
+    "wwwroot/js/CoreXT.VDom.ts"
+  ]
+}
