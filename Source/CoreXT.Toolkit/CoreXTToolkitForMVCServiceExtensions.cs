@@ -1,4 +1,5 @@
 ﻿using CoreXT.MVC;
+using CoreXT.Services.DI;
 using CoreXT.Toolkit.Controls;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Hosting;
@@ -25,7 +26,9 @@ namespace CoreXT.Toolkit
         /// <returns>An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services.</returns>
         public static IMvcBuilder AddToolkit(this IServiceCollection services, Action<MvcOptions> setupAction, IHostingEnvironment hostingEnvironment = null)
         {
-            // ... register CDS service objects ...
+            // ... register CoreXT service objects ...
+
+            services.TryAddSingleton<ICoreXTServiceProvider, CoreXTServiceProvider>();
 
             services.TryAddTransient(typeof(ViewHelper<>), typeof(ViewHelper<>));
             //? services.TryAddTransient<ViewHelper, ViewHelper>(); // not sure if this is needed...?
@@ -62,7 +65,7 @@ namespace CoreXT.Toolkit
         /// <returns>An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services.</returns>
         public static IMvcBuilder AddToolkit(this IServiceCollection services, IHostingEnvironment hostingEnvironment = null)
         {
-            // ... register CDS service objects ...
+            // ... register CoreXT service objects ...
 
             return services.AddToolkit(null, hostingEnvironment);
         }

@@ -1,4 +1,5 @@
 ﻿using CoreXT.ASPNet;
+using CoreXT.Services.DI;
 using CoreXT.Toolkit.Controls;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -9,6 +10,13 @@ namespace CoreXT.MVC
 {
     public class CoreXTController : CoreXTBaseController
     {
+        public ICoreXTServiceProvider ServiceProvider { get; private set; }
+
+        public CoreXTController(ICoreXTServiceProvider sp)
+        {
+            ServiceProvider = sp;
+        }
+
         /// <summary>
         /// Get a control with a dummy view context in order to be rendered directly from a controller.
         /// </summary>

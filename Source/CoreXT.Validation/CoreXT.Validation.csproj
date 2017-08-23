@@ -19,7 +19,7 @@
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 This package will grow eventually with some common data/input validations.</Description>
-    <Version>1.0.1</Version>
+    <Version>1.0.5</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
 

@@ -1,10 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CoreXT.Services.DI;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -15,6 +18,8 @@ namespace CoreXT.Entities
 
     public static class CoreXTDBContextExtensions
     {
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// A fix that checks for the 'Table' attribute on a class. If not found, the class name is assumed.
         /// </summary>
@@ -35,6 +40,8 @@ namespace CoreXT.Entities
             return _this.ToTable(name);
         }
 
+        // --------------------------------------------------------------------------------------------------------------------
+
         public static string PropertizeTableName(string name)
         {
             name = Regex.Replace(name, @"([a-zA-Z])(?=[A-Z])", "$1_").ToLower();
@@ -42,6 +49,64 @@ namespace CoreXT.Entities
             else if (!name.EndsWith("ings") && !name.EndsWith("es") && name.EndsWith("s")) name = name.Substring(0, name.Length - 1) + "es";
             else if (!name.EndsWith("s")) name += "s";
             return name;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Dynamically configures a CoreXT based DBContext object, and optionally tests that a connection can be made using the given connection string.
+        /// </summary>
+        /// <typeparam name="TContext"></typeparam>
+        /// <param name="sp"></param>
+        /// <param name="connectionString"></param>
+        /// <param name="testConnectingBeforeReturning"></param>
+        /// <returns></returns>
+        public static TContext ConfigureCoreXTDBContext<TContext>(this ICoreXTServiceProvider sp, string connectionString, bool testConnectingBeforeReturning = true)
+            where TContext : class, ICoreXTDBContext
+        {
+            var context = sp.GetService<TContext>();
+
+            if (context == null)
+                throw new InvalidOperationException("There is no " + typeof(TContext).Name + " service object registered.");
+
+            if (context.Database == null)
+                throw new InvalidOperationException("The 'Database' property is null for DBContext type " + typeof(TContext).Name + ".");
+
+            var logger = sp.GetService<ILogger>();
+
+            try
+            {
+                var dbConnection = context.Database.GetDbConnection();
+
+                if (string.IsNullOrWhiteSpace(dbConnection.ConnectionString) && string.IsNullOrWhiteSpace(connectionString))
+                    throw new IOException("Cannot connect to any database - the connection string is empty.");
+
+                if (!string.IsNullOrWhiteSpace(connectionString) && dbConnection.ConnectionString != connectionString && dbConnection.State != System.Data.ConnectionState.Closed)
+                    dbConnection.Close();
+
+                try
+                {
+                    dbConnection.ConnectionString = connectionString; //connectionString;
+
+                    if (testConnectingBeforeReturning)
+                        context.Database.OpenConnection(); // (test the connection now)
+
+                    return context;
+                }
+                catch (Exception ex)
+                {
+
+                    logger?.LogError(new EventId(-1, "CoreXT.Entities"), ex, "The database is not reachable.");
+                    throw;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(new EventId(-1, "CoreXT.Entities"), ex, "Error configuring the database context.");
+                throw;
+            }
+            // --------------------------------------------------------------------------------------------------------------------
         }
     }
 
@@ -57,9 +122,9 @@ namespace CoreXT.Entities
     /// <typeparam name="TMapItem">The mapping class type for the many-to-many relationship..</typeparam>
     /// <typeparam name="TOther">The other entity type that maps to the owning entity.</typeparam>
     public class EntityMap<TThis, TMapItem, TOther> : ICollection<TOther>
-        where TThis : class
-        where TMapItem : class, new()
-        where TOther : class
+    where TThis : class
+    where TMapItem : class, new()
+    where TOther : class
     {
         public int Count => _Collection.Count;
 
@@ -75,26 +140,34 @@ namespace CoreXT.Entities
         PropertyInfo _Map_ThisNavProp; // (used to get "this" entity related navigational property reference when enumerating the map items)
         PropertyInfo _Map_OtherNavProp; // (used to get the "other" navigational property reference when enumerating the map items)
 
-        public EntityMap(TThis owner, ICollection<TMapItem> collection, Action<TMapItem> onAdded = null)
+        /// <summary>
+        /// Create a new EntityMap instance for collections with a many-to-many relationship.
+        /// </summary>
+        /// <param name="owner">The instance this object is created on.</param>
+        /// <param name="collection">The entity map collection this EntityMap will manage.</param>
+        /// <param name="onAdded">An optional callback when new items are added.</param>
+        /// <param name="rightSideFKName">If there are multiple right-side mapping foreign keys representing navigational properties of the same type, a specific foreign key must be named here. This is usually null in the most basic cases.</param>
+        /// <param name="leftSideFKName">If there are multiple left-side mapping foreign keys representing navigational properties of the same type, a specific foreign key must be named here. This is usually null in the most basic cases.</param>
+        public EntityMap(TThis owner, ICollection<TMapItem> collection, Action<TMapItem> onAdded = null, string rightSideFKName = null, string leftSideFKName = null)
         {
             _Owner = owner ?? throw new ArgumentNullException("owner");
             _Collection = collection ?? throw new ArgumentNullException("collection", "Did you forget to set your mapping collection of type '" + typeof(TMapItem).Name + "' to a 'HashSet<T>' instance in your '" + typeof(TThis).Name + "' entity's default constructor?"); //? ImmutableHashSet<TMapItem>.Empty;
-            _DoReflect();
+            _DoReflect(leftSideFKName, rightSideFKName);
         }
 
         /// <summary>
         /// Process the types and connect the relationships.
         /// </summary>
-        void _DoReflect()
+        void _DoReflect(string leftSideFKName = null, string rightSideFKName = null)
         {
             _ThisKey = GetKey<TThis>();
             _OtherKey = GetKey<TOther>();
 
-            _Map_ThisFK = GetForeignKey<TMapItem, TThis>();
-            _Map_OtherFK = GetForeignKey<TMapItem, TOther>();
+            _Map_ThisFK = GetForeignKey<TMapItem, TThis>(leftSideFKName);
+            _Map_OtherFK = GetForeignKey<TMapItem, TOther>(rightSideFKName);
 
-            _Map_ThisNavProp = GetNavProperty<TMapItem, TThis>();
-            _Map_OtherNavProp = GetNavProperty<TMapItem, TOther>();
+            _Map_ThisNavProp = GetNavProperty<TMapItem, TThis>(leftSideFKName);
+            _Map_OtherNavProp = GetNavProperty<TMapItem, TOther>(rightSideFKName);
         }
 
         protected static PropertyInfo[] GetProperties<TClass>()
@@ -109,7 +182,7 @@ namespace CoreXT.Entities
                     select p).ToArray();
         }
 
-        protected static PropertyInfo GetNavProperty<TClass, TFKType>()
+        protected static PropertyInfo GetNavProperty<TClass, TFKType>(string specificName = null)
         {
             var props = GetProperties<TClass, ForeignKeyAttribute>();
 
@@ -117,12 +190,17 @@ namespace CoreXT.Entities
             {
                 // ... attributes found, so rely on them ...
                 props = props.Where(p => _SelectNavProp(p).PropertyType.Equals(typeof(TFKType))).ToArray(); // (TFKType is the navigational property type on the mapping class)
+
+                if (specificName != null) // (further break down to specific name on either side [FK or Nav])
+                    props = (from p in props
+                             where _SelectNavProp(p).Name == specificName || _SelectForeignKey(p).Name == specificName
+                             select p).ToArray();
             }
             else
             {
                 // ... no attributes found, look for any property matching the type ...
                 props = (from p in GetProperties<TClass>()
-                         where p.PropertyType.Equals(typeof(TFKType))
+                         where (specificName == null || specificName == p.Name) && p.PropertyType.Equals(typeof(TFKType))
                          select p).ToArray();
             }
 
@@ -139,12 +217,17 @@ namespace CoreXT.Entities
             return keys[0];
         }
 
-        protected static PropertyInfo GetForeignKey<TClass, TFKType>()
+        protected static PropertyInfo GetForeignKey<TClass, TFKType>(string specificName = null)
         {
             var props = GetProperties<TClass, ForeignKeyAttribute>();
             var fks = props.Where(p => _SelectNavProp(p).PropertyType.Equals(typeof(TFKType))).ToArray(); // (TFKType is the navigational property type on the mapping class)
+
+            if (specificName != null) // (further break down to specific name on either side [FK or Nav])
+                fks = fks.Where(p => _SelectNavProp(p).Name == specificName || _SelectForeignKey(p).Name == specificName).ToArray();
+
             if (fks.Length == 0) throw new InvalidOperationException("A foreign key is required - no 'ForeignKey' attribute detected on mapping type '" + typeof(TClass).Name + "' for type '" + typeof(TFKType).Name + "'.");
             if (fks.Length > 1) throw new InvalidOperationException("Multiple foreign keys of the same type not supported.");
+
             return _SelectForeignKey(fks[0]);
         }
 
