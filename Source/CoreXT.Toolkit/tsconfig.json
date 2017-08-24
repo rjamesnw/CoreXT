@@ -8,11 +8,11 @@
   },
   "include": [
     "typings",
-    "wwwroot"
+    "scripts"
   ],
   "exclude": [
     "node_modules",
-    "wwwroot/js/corext.ts",
-    "wwwroot/js/table.ts"
+    "scripts/corext.ts",
+    "scripts/table.ts"
   ]
 }

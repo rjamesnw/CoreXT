@@ -29,4 +29,8 @@ Used by some other CoreXT packages to help deal with various routing aspects.</D
     <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="1.1.2" />
   </ItemGroup>
 
+  <Target Name="PushPackage" AfterTargets="Pack">
+    <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />
+  </Target>
+
 </Project>

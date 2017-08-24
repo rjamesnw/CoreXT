@@ -37,4 +37,8 @@ This package holds some utility methods mainly around the ASP side of .Net Core 
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="1.1.3" />
   </ItemGroup>
 
+  <Target Name="PushPackage" AfterTargets="Pack">
+    <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />
+  </Target>
+
 </Project>

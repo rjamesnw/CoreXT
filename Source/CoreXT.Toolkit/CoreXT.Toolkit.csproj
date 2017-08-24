@@ -53,18 +53,23 @@ This package consists of various extensible types and controls for no-nonsense r
     <Compile Remove="Controls\TextBox.cs" />
     <Compile Remove="Controls\ValidationMessage.cs" />
     <Compile Remove="Controls\ValidationSummary.cs" />
-    <Compile Remove="Filters\CDSHandleErrorAttribute.cs" />
-    <Compile Remove="Filters\CDSPagePostProcessAttribute.cs" />
     <Compile Remove="Utility\MarkdownHelper.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="/**/*.*" />
+    <None Include="wwwroot\**\*.*" />
+    <None Include="scripts\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Views/**/*.cshtml" />
-    <EmbeddedResource Include="wwwroot\**\*.js" Exclude="\**\test*.*" />
+    <Content Remove="\**\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Views\**\*.cshtml" />
+    <EmbeddedResource Include="wwwroot\**\*.js" Exclude="wwwroot\**\test*.*" />
+    <EmbeddedResource Include="wwwroot\**\*.map" Exclude="wwwroot\**\test*.*" />
+    <EmbeddedResource Include="wwwroot\**\*.ts" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\**\*.css" />
     <EmbeddedResource Include="wwwroot\**\*.jpg" Exclude="\**\docs\*.*" />
     <EmbeddedResource Include="wwwroot\**\*.png" Exclude="\**\docs\*.*" />
@@ -72,25 +77,9 @@ This package consists of various extensible types and controls for no-nonsense r
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="bower.json" />
-    <Content Remove="Properties\launchSettings.json" />
-    <Content Remove="tsconfig.json" />
-    <Content Remove="typings.json" />
-    <Content Remove="Views\Shared\Components\ActionLink\Display.cshtml" />
-    <Content Remove="Views\Shared\Components\ActionLink\Editor.cshtml" />
-    <Content Remove="Views\Shared\Components\LightBox\Display.cshtml" />
-    <Content Remove="Views\Shared\Components\Link\Display.cshtml" />
-    <Content Remove="Views\Shared\Components\Link\Editor.cshtml" />
-    <Content Remove="Views\Shared\Components\MenuItem\Display.cshtml" />
-    <Content Remove="Views\Shared\Components\Menu\Display.cshtml" />
-    <Content Remove="Views\Shared\Components\Modal\Display.cshtml" />
-    <Content Remove="Views\Shared\Components\_ViewImports.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Remove="wwwroot\js\corext.js" />
-    <EmbeddedResource Remove="wwwroot\js\ModalDrag.js" />
-    <EmbeddedResource Remove="wwwroot\js\table.js" />
+    <EmbeddedResource Include="Scripts\corext.ts" />
+    <EmbeddedResource Include="Scripts\ModalDrag.ts" />
+    <EmbeddedResource Include="Scripts\table.ts" />
   </ItemGroup>
 
   <ItemGroup>
@@ -112,18 +101,8 @@ This package consists of various extensible types and controls for no-nonsense r
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.1.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Filters\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="bower.json" />
-    <None Include="Properties\launchSettings.json" />
-    <None Include="tsconfig.json" />
-    <None Include="typings.json" />
-    <None Include="wwwroot\js\corext.ts" />
-    <None Include="wwwroot\js\ModalDrag.ts" />
-    <None Include="wwwroot\js\table.ts" />
-  </ItemGroup>
+  <Target Name="PushPackage" AfterTargets="Pack">
+    <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />
+  </Target>
 
 </Project>
