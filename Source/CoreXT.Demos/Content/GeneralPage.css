@@ -1,0 +1,25 @@
+﻿.Legend
+{
+    width: 350px;
+    height: 30px;
+    margin: 10px 10px 10px 10px;
+    display:inline
+}
+
+.Legend img
+{
+    border: 1px solid black;
+}
+
+.Legend td
+{
+    padding-left:3px;
+    padding-right:3px;
+}
+
+.tab-content {
+    padding: 10px;
+    border-left: 1px solid #DDD;
+    border-bottom: 1px solid #DDD;
+    border-right: 1px solid #DDD;
+}

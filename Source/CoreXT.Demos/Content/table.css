@@ -1,0 +1,177 @@
+﻿.table {
+    border: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+.tableTitleRow {
+    border: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+.tableTitleBox {
+    margin: 0px !important;
+    padding: 0px !important;
+    width: 100% !important;
+    border: 4px solid white !important;
+    border-top-color: transparent !important;
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    border-bottom-color: #468dc2 !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: #334d72 !important;
+}
+
+.tableTitle {
+    margin: 0px !important;
+    padding: 4px !important;
+    width: 100%;
+    background-color: #99d5ff !important;
+    border: 2px solid #639cc7 !important;
+    border-bottom-width: 0px !important;
+}
+
+/*.controls {
+    width: 100%;
+}*/
+
+.message {
+    color: #70ff73;
+}
+
+.columnHeading {
+    border: 2px solid #639cc7;
+    background-color: #b2ddfe;
+    color: #37547d;
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 4px 8px;
+    align-content: center;
+}
+
+.calcColumnHeading {
+    border: 2px solid #639cc7;
+    background-color: #A4CBE9;
+    color: #37547d;
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 4px 8px;
+    align-content: center;
+    font-style: italic;
+}
+
+.tableRow {
+    background-color: #d1ebff;
+    color: #2e4668;
+    align-content: center;
+}
+
+.deletedTableRow {
+    background-color: #FFD0D0;
+    color: #485464;
+    align-content: center;
+}
+
+.deleteColumn {
+    width: 1%;
+}
+
+.tableCell {
+    padding: 4px 8px;
+    border: 2px solid #9ac4e4;
+}
+
+.calcTableCell {
+    padding: 4px 8px;
+    border: 2px solid #ECD400;
+    background-color: #feffef;
+}
+
+.tableCellError {
+    background-color: #FFFFD0DF;
+    color: #5b0000;
+}
+
+.cellErrorMessage {
+    position: relative;
+    /*display:inline-block;*/
+    width: 18px;
+    height: 28px;
+    overflow: hidden;
+    color: #dd0000;
+    padding: 2px 6px 2px 2px;
+    text-shadow: 1px 1px 4px #888;
+    background-color: white;
+    border: 4px solid;
+    border-top-color: rgba(255, 208, 208, 1.00);
+    border-top-left-radius: 1px;
+    border-left-color: white;
+    border-left-width: 4px;
+    border-right-color: #ebebeb;
+    border-right-width: 0px;
+    border-bottom-color: #ebebeb;
+    border-bottom-width: 0px;
+    font-style: italic;
+    font-weight: bold;
+    font-size: 10pt;
+    text-wrap: normal;
+    word-wrap: normal;
+    max-width: 200px;
+    opacity: 0.75;
+}
+
+    .cellErrorMessage:hover {
+        opacity: 1;
+    }
+
+.tableErrorMessage {
+    /*color: #dd0000;*/
+    font-style: italic;
+    font-size: 14pt;
+    font-weight: bold;
+    text-wrap: normal;
+    word-wrap: normal;
+    padding: 0px;
+    margin: 0px;
+}
+
+.tableSuccessMessage {
+    /*color: #00740c;*/
+    font-style: italic;
+    font-size: 14pt;
+    font-weight: bold;
+    text-wrap: normal;
+    word-wrap: normal;
+    padding: 0px;
+    margin: 0px;
+}
+
+.rowIndex {
+    width: 1%;
+    max-width: 64px;
+    min-width: 16px;
+}
+
+.cellPrompt {
+    color: #00740c;
+    font-style: italic;
+    font-size: 10pt;
+    font-weight: bold;
+}
+
+.searchResults { /* the table */
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.searchResultsHeader { /* the first table row */
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+    .searchResultsHeader th {
+    }

@@ -1,0 +1,33 @@
+﻿
+@{
+    ViewBag.Title = "CoreXT Toolkit Control Demos";
+    ControlBase ctrl;
+}
+
+<h2>@ViewBag.Title</h2>
+
+<hr/>
+
+Link: @@Link("Go home", "~/").AddClass("btn btn-default")<br />
+@Link("Go home", "~/").AddClass("btn btn-default")<br />
+
+<hr />
+
+Action Link: @@ActionLink("Go home", "Index", "Home", "http", null, "hashtagfragment")<br />
+@ActionLink("Go home", "Index", "Home", "http", null, "hashtagfragment")<br />
+
+<hr />
+
+Modal: @@Modal("Title", "This is the header area.", "This is the body of the modal window.")<br />
+@(ctrl = Modal("Title", "This is the header area.", "This is the body of the modal window."))<br />
+<a href="#@ctrl.ID" role="button" class="btn btn-default" data-toggle="modal">Open Modal</a>
+
+<hr />
+
+Modal: @@Modal(@("@<div>Title</div>, true, @<div>This is the header area.</div>, @<div>This is the body of the modal window.</div>)")<br />
+@Modal(@<div>Title</div>, true,
+    @<div>This is the header area.</div>,
+    @<div>This is the body of the modal window.</div>)<br />
+<a href="#@ctrl.ID" role="button" class="btn btn-default" data-toggle="modal">Open Modal</a>
+
+<hr />
