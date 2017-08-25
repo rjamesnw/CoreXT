@@ -38,4 +38,8 @@ This package holds various basic utilities and extension methods for convenience
     <Exec Command="REM xcopy /Y /D &quot;$(ProjectDir)bin\$(ConfigurationName)\*.nupkg&quot; &quot;$(SolutionDir)Nuget\$(ConfigurationName)\&quot;" />
   </Target>
 
+  <Target Name="PushPackage" AfterTargets="Pack">
+    <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />
+  </Target>
+
 </Project>
