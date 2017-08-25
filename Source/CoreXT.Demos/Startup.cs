@@ -1,6 +1,6 @@
-﻿using CDS;
-using CDS.MVC;
-using CoreXT.MVC;
+﻿using CoreXT.Demos.Models;
+using CoreXT.Demos.MVC;
+using CoreXT.Toolkit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -33,8 +33,6 @@ namespace OneCMS
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) // (note: 'env.EnvironmentName' above can also be used in "Configure{0}Services")
         {
-            string dbConnectionString = Configuration["AppSettings:Applications:CDS:ConnectionString"];
-
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             // ... register the CDS controls and their related views ...
@@ -51,13 +49,7 @@ namespace OneCMS
             services.AddOptions();
 
             //Automatically bind AppSettings
-            services.Configure<CDSAppSettings>(Configuration.GetSection("AppSettings"));
-            //Alternative way to configure appSettings (Manually)
-            //services.Configure<CDSAppSettings>(appSettings =>
-            //{
-            //    appSettings.ApplicationName = Configuration["AppSettings:ApplicationName"];
-            //    appSettings.ConnectionString = Configuration["AppSettings:ConnectionStrings:CDS"];
-            //});
+            services.Configure<CoreXTDemoAppSettings>(Configuration.GetSection("AppSettings"));
 
             // ... setup localization ...
 
@@ -75,7 +67,7 @@ namespace OneCMS
             //    });
 
             // ... add the CDS, CDS.Core, CDS.Web.Core, CoreXT.MVC, CoreXT.Toolkit, and MVC framework services ...
-            services.AddCDSWeb(Configuration, HostingEnvironment)
+            services.AddCoreXTDemos(Configuration, HostingEnvironment)
                 .AddJsonOptions(jsonOptions =>
                 {
                     jsonOptions.SerializerSettings.MissingMemberHandling = Newtonsoft.Json.MissingMemberHandling.Ignore;
@@ -118,7 +110,7 @@ namespace OneCMS
             app.UseStaticFiles();
             app.UseSession();
 
-            app.UseCDSWeb(routes => // (invokes app.UseRouter(routes.Build()); before returning, which adds a Microsoft.AspNetCore.Routing.RouteCollection [IRouter] instance)
+            app.UseCoreXTDemos(routes => // (invokes app.UseRouter(routes.Build()); before returning, which adds a Microsoft.AspNetCore.Routing.RouteCollection [IRouter] instance)
             {
                 // (areas route)
                 routes.MapRoute(

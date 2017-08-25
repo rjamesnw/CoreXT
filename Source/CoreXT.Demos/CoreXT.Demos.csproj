@@ -45,19 +45,24 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="1.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="1.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="1.1.1" />
-    <PackageReference Include="CoreXT" Version="1.0.5" />
-    <PackageReference Include="CoreXT.ASPNet" Version="1.0.5" />
-    <PackageReference Include="CoreXT.Email" Version="1.0.5" />
-    <PackageReference Include="CoreXT.MVC" Version="1.0.5" />
-    <PackageReference Include="CoreXT.Toolkit" Version="1.0.5" />
-    <PackageReference Include="CoreXT.Validation" Version="1.0.5" />
-    <PackageReference Include="CoreXT.Entities" Version="1.0.5" />
-    <PackageReference Include="CoreXT.Routing" Version="1.0.5" />
+    <PackageReference Include="MySql.Data" Version="7.0.7-m61" />
+    <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="7.0.7-m61" />
+    <PackageReference Include="MySql.Data.EntityFrameworkCore.Design" Version="6.10.1-beta" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <Folder Include="ViewModels\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoreXT.ASPNet\CoreXT.ASPNet.csproj" />
+    <ProjectReference Include="..\CoreXT.Email\CoreXT.Email.csproj" />
+    <ProjectReference Include="..\CoreXT.Entities\CoreXT.Entities.csproj" />
+    <ProjectReference Include="..\CoreXT.MVC\CoreXT.MVC.csproj" />
+    <ProjectReference Include="..\CoreXT.Routing\CoreXT.Routing.csproj" />
+    <ProjectReference Include="..\CoreXT.Toolkit\CoreXT.Toolkit.csproj" />
+    <ProjectReference Include="..\CoreXT.Validation\CoreXT.Validation.csproj" />
+    <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
   </ItemGroup>
 
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">

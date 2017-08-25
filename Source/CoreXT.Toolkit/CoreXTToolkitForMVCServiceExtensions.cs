@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
@@ -24,7 +25,7 @@ namespace CoreXT.Toolkit
         /// <param name="hostingEnvironment">If present, allows the embedded .cshtml content for the controls (view components) to be overridden
         /// by custom local files matching the same path.</param>
         /// <returns>An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services.</returns>
-        public static IMvcBuilder AddToolkit(this IServiceCollection services, Action<MvcOptions> setupAction, IHostingEnvironment hostingEnvironment = null)
+        public static IMvcBuilder AddToolkit(this IServiceCollection services, Action<MvcOptions> setupAction, IConfigurationRoot configuration, IHostingEnvironment hostingEnvironment = null)
         {
             // ... register CoreXT service objects ...
 
@@ -63,7 +64,7 @@ namespace CoreXT.Toolkit
         /// <param name="hostingEnvironment">If present, allows the embedded .cshtml content for the controls (view components) to be overridden
         /// by custom local files matching the same path.</param>
         /// <returns>An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services.</returns>
-        public static IMvcBuilder AddToolkit(this IServiceCollection services, IHostingEnvironment hostingEnvironment = null)
+        public static IMvcBuilder AddToolkit(this IServiceCollection services, IConfigurationRoot configuration, IHostingEnvironment hostingEnvironment = null)
         {
             // ... register CoreXT service objects ...
 
