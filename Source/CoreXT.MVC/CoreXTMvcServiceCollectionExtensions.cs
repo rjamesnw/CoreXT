@@ -60,7 +60,6 @@ namespace CoreXT.MVC
 
         private static void _AddServices(IServiceCollection services)
         {
-            //services.TryAddSingleton<IRazorViewEngine, CDSRazorViewEngine>(); // (this must get added first before MVC core types get added)
             services.TryAddSingleton<IRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
             services.TryAddSingleton<ICoreXTRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
             services.TryAddSingleton<ViewResultExecutor, CoreXTViewResultExecutor>();

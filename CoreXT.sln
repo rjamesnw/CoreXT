@@ -32,7 +32,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreXT.JS", "Source\CoreXT.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreXT.Entities", "Source\CoreXT.Entities\CoreXT.Entities.csproj", "{4BFA428F-4786-4158-858E-09E1B41FD23B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreXT.Demos", "Source\CoreXT.Demos\CoreXT.Demos.csproj", "{7C29766D-5F69-4864-BA75-BB7900FF73F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreXT.Demo", "Source\CoreXT.Demos\CoreXT.Demo.csproj", "{7C29766D-5F69-4864-BA75-BB7900FF73F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc.Razor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
-using System.Text.Encodings.Web;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Text.Encodings.Web;
 
 namespace CoreXT.MVC
 {
@@ -18,9 +16,9 @@ namespace CoreXT.MVC
         RazorViewEngine _RazorViewEngine;
 
         public CoreXTRazorViewEngine(IRazorPageFactoryProvider pageFactory, IRazorPageActivator pageActivator,
-            HtmlEncoder htmlEncoder, IOptions<RazorViewEngineOptions> optionsAccessor, ILoggerFactory loggerFactory)
+            HtmlEncoder htmlEncoder, IOptions<RazorViewEngineOptions> optionsAccessor, RazorProject razorProject, ILoggerFactory loggerFactory, DiagnosticSource diagnosticSource)
         {
-            _RazorViewEngine = new RazorViewEngine(pageFactory, pageActivator, htmlEncoder, optionsAccessor, loggerFactory);
+            _RazorViewEngine = new RazorViewEngine(pageFactory, pageActivator, htmlEncoder, optionsAccessor, razorProject, loggerFactory, diagnosticSource);
         }
 
         public virtual RazorPageResult FindPage(ActionContext context, string pageName)

@@ -58,38 +58,47 @@ namespace CoreXT.Services.DI
             var typeInfo = serviceType.GetTypeInfo();
             var classType = serviceType;
 
-            if (typeInfo.IsInterface)
+            try
             {
-                // ... try to get a type name from the interface name ...
-                var name = typeInfo.Name;
-                if (name.Length == 1 || name.ToUpper()[0] != 'I')
-                    throw new InvalidOperationException("Cannot create default instance from interface type '" + name + "' - unable to determine any similarly named type.");
-                name = name.Substring(1);
-                classType = typeInfo.Assembly.GetTypes().Where(a => a.Name == name).FirstOrDefault();
-                if (classType == null)
-                    throw new InvalidOperationException("Cannot create default instance from interface type '" + serviceType.Name + "' - could not find any type matching implementation type name '" + name + "'.");
-                typeInfo = classType.GetTypeInfo();
-            }
+                if (typeInfo.IsInterface)
+                {
+                    // ... try to get a type name from the interface name ...
+                    var name = typeInfo.Name;
+                    if (name.Length == 1 || name.ToUpper()[0] != 'I')
+                        throw new InvalidOperationException("Cannot create default instance from interface type '" + name + "' - unable to determine any similarly named type.");
+                    name = name.Substring(1);
+                    classType = typeInfo.Assembly.GetTypes().Where(a => a.Name == name).FirstOrDefault();
+                    if (classType == null)
+                        throw new InvalidOperationException("Cannot create default instance from interface type '" + serviceType.Name + "' - could not find any type matching implementation type name '" + name + "'.");
+                    typeInfo = classType.GetTypeInfo();
+                }
 
-            if (typeInfo.IsClass)
+                if (typeInfo.IsClass)
+                {
+                    if (typeInfo.ContainsGenericParameters)
+                        throw new InvalidOperationException("Cannot create default instance of type '" + classType.Name + "' - generic type parameters required.");
+                    var ctor = classType.GetConstructor(Type.EmptyTypes);
+                    if (ctor == null)
+                        throw new InvalidOperationException("Cannot create default instance of type '" + classType.Name + "' - no default constructor exists.");
+                    try
+                    {
+                        return (TService)Activator.CreateInstance(serviceType);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new TargetInvocationException("Failed to created an instance of type '" + classType.Name + "'.", ex);
+                    }
+                }
+                else
+                    throw new InvalidOperationException("Cannot create default instance of non-class type '" + typeInfo.Name + "'.");
+            }
+            catch (Exception ex)
             {
-                if (typeInfo.ContainsGenericParameters)
-                    throw new InvalidOperationException("Cannot create default instance of type '" + classType.Name + "' - generic type parameters required.");
-                var ctor = classType.GetConstructor(Type.EmptyTypes);
-                if (ctor == null)
-                    throw new InvalidOperationException("Cannot create default instance of type '" + classType.Name + "' - no default constructor exists.");
-                try
-                {
-                    return (TService)Activator.CreateInstance(serviceType);
-                }
-                catch (Exception ex)
-                {
-                    throw new TargetInvocationException("Failed to created an instance of type '" + classType.Name + "'.", ex);
-                }
+                if (_ServiceProvider != null)
+                    throw new InvalidOperationException("The service type '" + typeInfo.Name + "' could not be resolved on the 'System.IServiceProvider' instance, nor found in the related assembly.", ex);
+                else
+                    throw new InvalidOperationException("A 'System.IServiceProvider' instance was not supplied, and the type '" + typeInfo.Name + "' could not be resolved in the related assembly.", ex);
             }
-            else
-                throw new InvalidOperationException("Cannot create default instance of non-class type '" + typeInfo.Name + "'.");
-
             // TODO: Consider injecting from types within the current assembly as a pseudo DI container.
         }
     }
