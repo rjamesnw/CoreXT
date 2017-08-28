@@ -29,6 +29,7 @@ This package consists of various extensible types and controls for no-nonsense r
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
     <Version>1.0.5</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
   <ItemGroup>
