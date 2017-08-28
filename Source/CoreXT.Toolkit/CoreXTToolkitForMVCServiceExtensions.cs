@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Reflection;
 
@@ -41,6 +42,8 @@ namespace CoreXT.Toolkit
             services.TryAddSingleton<IViewComponentDescriptorLibrary, ViewComponentDescriptorLibrary>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            //services.TryAddSingleton<ILogger, logger>(); // TODO: Create customer logger.
 
             var currentAssembly = typeof(CoreXTToolkitForMVCServiceExtensions).GetTypeInfo().Assembly;
 

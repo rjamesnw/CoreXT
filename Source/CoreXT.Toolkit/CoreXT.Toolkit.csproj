@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>CoreXT.Toolkit</AssemblyName>
     <PackageId>CoreXT.Toolkit</PackageId>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <!--<NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>-->
     <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
@@ -22,6 +22,7 @@
 This package consists of various extensible types and controls for no-nonsense rapid ASP.Net Core MVC website development.</Description>
     <Copyright>Catmedis</Copyright>
     <Authors>Catmedis</Authors>
+    <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
@@ -29,6 +30,8 @@ This package consists of various extensible types and controls for no-nonsense r
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
     <Version>1.0.5</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <TypeScriptToolsVersion>2.4</TypeScriptToolsVersion>
+    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
   <ItemGroup>
@@ -93,12 +96,12 @@ This package consists of various extensible types and controls for no-nonsense r
 
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="1.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="1.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="1.1.3" />
-    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.0" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

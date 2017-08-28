@@ -24,18 +24,18 @@ namespace CoreXT.Entities
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public CoreXTDBContext(DbContextOptions options, ILogger logService) : base(options)
+        public CoreXTDBContext(DbContextOptions options, ILoggerFactory loggerFactory) : base(options)
         {
-            _LogService = logService;
+            _LogService = loggerFactory?.CreateLogger<CoreXTDBContext>();
         }
 
         public CoreXTDBContext(DbContextOptions options) : base(options)
         {
         }
 
-        public CoreXTDBContext(ILogger logService)
+        public CoreXTDBContext(ILoggerFactory loggerFactory)
         {
-            _LogService = logService;
+            _LogService = loggerFactory?.CreateLogger<CoreXTDBContext>();
         }
 
         public CoreXTDBContext()
@@ -130,7 +130,7 @@ namespace CoreXT.Entities
     {
         public override bool IsReadonly { get { return true; } }
 
-        public CoreXTReadonlyDBContext(DbContextOptions<CoreXTReadonlyDBContext> options, ILogger logService) : base(options, logService)
+        public CoreXTReadonlyDBContext(DbContextOptions<CoreXTReadonlyDBContext> options, ILoggerFactory loggerFactory) : base(options, loggerFactory)
         {
         }
     }
