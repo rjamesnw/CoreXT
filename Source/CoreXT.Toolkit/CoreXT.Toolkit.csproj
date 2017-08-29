@@ -17,9 +17,11 @@
     <ApplicationIcon />
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
-    <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
+    <Description>
+      Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
-This package consists of various extensible types and controls for no-nonsense rapid ASP.Net Core MVC website development.</Description>
+      This package consists of various extensible types and controls for no-nonsense rapid ASP.Net Core MVC website development.
+    </Description>
     <Copyright>Catmedis</Copyright>
     <Authors>Catmedis</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -29,6 +31,7 @@ This package consists of various extensible types and controls for no-nonsense r
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
     <Version>1.0.5</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
   <ItemGroup>

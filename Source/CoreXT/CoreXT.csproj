@@ -25,6 +25,7 @@ This package holds various basic utilities and extension methods for convenience
     <Version>1.0.5</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
   <ItemGroup>
