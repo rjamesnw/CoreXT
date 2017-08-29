@@ -27,15 +27,14 @@
     @RenderHeaderScripts()
 </head>
 <body>
-    @*@(await Menu("One CMS", "Index", "Home").Invert()
+    @(await Menu("One CMS", "Index", "Home").Invert()
         .SetItem("Home", "Index", "Home")
         .SetItem("Control Demos", "ControlDemos", "Home")
-        .SetItem("CDS Demos", "CDSDemos")
         .SetItem("About", "About", "Home")
         .SetItem("Contact", "Contact", "Home").AsAsync()
-    )*@
+    )
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    @*<div class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
                 @ActionLink("One CMS", "Index", "Home").AddClass("navbar-brand")
@@ -47,17 +46,8 @@
                     <li>@ActionLink("About", "About", "Home")</li>
                     <li>@ActionLink("Contact", "Contact", "Home")</li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">CDS Demos <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Control Demos <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            <li>@ActionLink("Organization", "Index", "Organization")</li>
-                            <li>@ActionLink("Users", "Index", "User")</li>
-                            <li>@ActionLink("Application", "Index", "Application")</li>
-                            <li>@ActionLink("Membership", "Index", "Membership")</li>
-                            <li>@ActionLink("Role", "Index", "Role")</li>
-                            <li>@ActionLink("Payment Processors", "Index", "PaymentProcessor")</li>
-                            <li>@ActionLink("Subscription Models", "Index", "SubscriptionModel")</li>
-                            <li>@ActionLink("Subscription Properties", "Index", "SubscriptionProperty")</li>
-                            <li>@ActionLink("Subscriptions", "Index", "SubscriptionPayment")</li>
                             <li>@ActionLink("Logs", "Index", "Log")</li>
                             <li>@Html.ActionLink("Settings", "Index", "Home", new { area = "UserAccountManagement" }, null)</li>
                         </ul>
@@ -65,7 +55,7 @@
                 </ul>
             </div>
         </div>
-    </div>
+    </div>*@
     <div class="container body-content">
         @RenderBody()
         <hr />

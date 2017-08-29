@@ -10,27 +10,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreXT.Toolkit.Controls;
 using CoreXT.ASPNet;
+using CoreXT.Demos.Models;
+using CoreXT.Models;
 
-namespace OneCMS.Controllers
+namespace CoreXT.Demos.Controllers
 {
-    interface ICdsController
-    {
-        //IActionResult GetConfirmView(string action_link, string message, string type, string data_target);
-        IActionResult GetEditView(int id, string data_target, string return_url);
-    }
-
     public class HomeController : CoreXTController
     {
-        CDSAppSettings _AppSettings;
+        CoreXTDemoAppSettings _AppSettings;
 
         public HomeController(ICoreXTServiceProvider sp) : base(sp)
         {
-            _AppSettings = ServiceProvider.GetCDSSettings();
+            _AppSettings = ServiceProvider.GetCoreXTDemoAppSettings();
         }
 
         public IActionResult Index()
         {
-            var context = ServiceProvider.GetCDSReadOnlyContext();
+            var context = ServiceProvider.GetCoreXTDemoReadOnlyContext();
             context.Database.EnsureCreated(); // (this is code-first related - if the database doesn't exist, the system will try to create it using the entity classes and configurations, along with the )
             return View();
         }
@@ -56,10 +52,8 @@ namespace OneCMS.Controllers
 
         public IActionResult ControlDemos()
         {
-            var context = GetService<ICDSContext>();
-            context.Database.EnsureCreated(); // (this is code-first related - if the database doesn't exist, the system will try to create it using the entity classes and the configurations I put on them)
-            var apps = context.Applications.Include("Subscription_Models_Applications_Maps.SubscriptionModel").ToArray();
-            var subMods = apps[0].SubscriptionModels.ToArray();
+            //var context = GetService<ICoreXTDemoContext>();
+            //context.Database.EnsureCreated(); // (this is code-first related - if the database doesn't exist, the system will try to create it using the entity classes and the configurations I put on them)
 
             return View();
         }

@@ -72,7 +72,7 @@ namespace CoreXT.Entities
             if (context.Database == null)
                 throw new InvalidOperationException("The 'Database' property is null for DBContext type " + typeof(TContext).Name + ".");
 
-            var logger = sp.GetService<ILogger>();
+            var logger = sp.GetService<ILoggerFactory>()?.CreateLogger<TContext>();
 
             try
             {
