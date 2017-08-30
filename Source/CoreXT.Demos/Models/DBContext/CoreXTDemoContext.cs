@@ -2,7 +2,6 @@
 using CoreXT.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using MySQL.Data.EntityFrameworkCore.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -23,11 +23,12 @@ namespace CoreXT.Entities
         /// <summary>
         /// A fix that checks for the 'Table' attribute on a class. If not found, the class name is assumed.
         /// </summary>
+        /// <param name="entityType">The entity type to check for a table attribute.</param>
         /// <param name="useTypeNamesAsIs">If false (default) the type names are parsed such that underscores precede uppercase letters, and the whole name is made lowercase and pluralized.
         /// If true, the types names are used as is with full casing intact.</param>
-        public static EntityTypeBuilder<TEntity> ToTable<TEntity>(this EntityTypeBuilder<TEntity> _this, bool useTypeNamesAsIs = false) where TEntity : class
+        public static EntityTypeBuilder ToTable(this EntityTypeBuilder _this, Type entityType, bool useTypeNamesAsIs = false)
         {
-            var typeInfo = typeof(TEntity).GetTypeInfo();
+            var typeInfo = entityType.GetTypeInfo();
             var attr = typeInfo.GetCustomAttribute<TableAttribute>();
             string name;
             if (attr != null)
@@ -38,6 +39,17 @@ namespace CoreXT.Entities
                 name = useTypeNamesAsIs ? typeInfo.Name : PropertizeTableName(typeInfo.Name);
             }
             return _this.ToTable(name);
+        }
+
+        /// <summary>
+        /// A fix that checks for the 'Table' attribute on a class. If not found, the class name is assumed.
+        /// </summary>
+        /// <param name="useTypeNamesAsIs">If false (default) the type names are parsed such that underscores precede uppercase letters, and the whole name is made lowercase and pluralized.
+        /// If true, the types names are used as is with full casing intact.</param>
+        public static EntityTypeBuilder<TEntity> ToTable<TEntity>(this EntityTypeBuilder<TEntity> _this, bool useTypeNamesAsIs = false) where TEntity : class
+        {
+             _this.ToTable(typeof(TEntity), useTypeNamesAsIs);
+            return _this;
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -61,7 +73,7 @@ namespace CoreXT.Entities
         /// <param name="connectionString"></param>
         /// <param name="testConnectingBeforeReturning"></param>
         /// <returns></returns>
-        public static TContext ConfigureCoreXTDBContext<TContext>(this ICoreXTServiceProvider sp, string connectionString, bool testConnectingBeforeReturning = true)
+        public static TContext ConfigureCoreXTDBContext<TContext>(this ICoreXTServiceProvider sp, Action<DbContextOptionsBuilder> onConfiguring = null, bool testConnectingBeforeReturning = true)
             where TContext : class, ICoreXTDBContext
         {
             var context = sp.GetService<TContext>();
@@ -76,18 +88,14 @@ namespace CoreXT.Entities
 
             try
             {
-                var dbConnection = context.Database.GetDbConnection();
+                if (onConfiguring != null)
+                    context.Configuring += onConfiguring;
 
-                if (string.IsNullOrWhiteSpace(dbConnection.ConnectionString) && string.IsNullOrWhiteSpace(connectionString))
+                if (string.IsNullOrWhiteSpace(context.ConnectionString))
                     throw new IOException("Cannot connect to any database - the connection string is empty.");
-
-                if (!string.IsNullOrWhiteSpace(connectionString) && dbConnection.ConnectionString != connectionString && dbConnection.State != System.Data.ConnectionState.Closed)
-                    dbConnection.Close();
 
                 try
                 {
-                    dbConnection.ConnectionString = connectionString; //connectionString;
-
                     if (testConnectingBeforeReturning)
                         context.Database.OpenConnection(); // (test the connection now)
 

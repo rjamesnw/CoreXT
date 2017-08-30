@@ -10,6 +10,7 @@ namespace CoreXT.Demos.Models
     {
         [Key]
         public int id { get; set; }
+        [MaxLength(80)]
         public string name { get; set; }
         public DateTime dob { get; set; }
     }

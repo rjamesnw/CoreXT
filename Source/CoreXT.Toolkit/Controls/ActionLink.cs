@@ -3,6 +3,7 @@ using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Routing;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CoreXT.Toolkit.Controls
 {
@@ -64,6 +65,11 @@ namespace CoreXT.Toolkit.Controls
         /// Creates a menu control.
         /// </summary>
         public ActionLink(IViewPageRenderStack pageRenderStack): base(pageRenderStack) { }
+
+        public override Task<IViewComponentResult> InvokeAsync()
+        {
+            return base.InvokeAsync();
+        }
 
         public ActionLink Configure(RazorTemplateDelegate<object> content, string actionName, string controllerName = null, string areaName = null,
             string fragment = null, string routeName = null)

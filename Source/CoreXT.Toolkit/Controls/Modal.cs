@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CoreXT.Toolkit.Controls
 {
@@ -56,6 +57,11 @@ namespace CoreXT.Toolkit.Controls
         /// </summary>
         /// <param name="pageRenderStack"></param>
         public Modal(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
+
+        public override Task<IViewComponentResult> InvokeAsync()
+        {
+            return base.InvokeAsync();
+        }
 
         public Modal Configure(RazorTemplateDelegate<object> title, bool allowClose,
             RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null)
