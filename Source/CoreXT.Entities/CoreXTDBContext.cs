@@ -80,11 +80,12 @@ namespace CoreXT.Entities
                 if (attr != null && !string.IsNullOrWhiteSpace(attr.Name)) dbInfo.TableName = attr.Name;
 
                 foreach (var property in entityType.GetProperties())
-                {
-                    var columnName = property.FieldInfo.Name; //? .SqlServer().ColumnName;
-                    if (columnName.Length > maxLength)
-                        return "Column name '" + columnName + "' is greater than " + maxLength + " characters.";
-                }
+                    if (property.FieldInfo != null)
+                    {
+                        var columnName = property.FieldInfo.Name; //? .SqlServer().ColumnName;
+                        if (columnName.Length > maxLength)
+                            return "Column name '" + columnName + "' is greater than " + maxLength + " characters.";
+                    }
             }
             return null;
         }
