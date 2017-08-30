@@ -22,7 +22,7 @@
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 This package holds various basic utilities and extension methods for convenience.  For example, adds a '.Value(key, defaultValue)' method to easily pull out values from dictionaries, or '{string}.ND(defaultValue)' (null to default) for string values, async Task extensions, ObservableDictionary, WeakReferenceList, basic encryption, basic zip file support,, text parser,  'GetFullErrorMessage()' for writing out exceptions for debugging, and much more.</Description>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <IncludeContentInPack>false</IncludeContentInPack>
@@ -36,7 +36,7 @@ This package holds various basic utilities and extension methods for convenience
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="REM xcopy /Y /D &quot;$(ProjectDir)bin\$(ConfigurationName)\*.nupkg&quot; &quot;$(SolutionDir)Nuget\$(ConfigurationName)\&quot;" />
+    <Exec Command="REM xcopy /Y /D &quot;$(ProjectDir)bin\$(ConfigurationName)\*.nupkg&quot; &quot;$(SolutionDir)Nuget\$(ConfigurationName)\&quot;&#xD;&#xA;set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
   </Target>
 
   <Target Name="PushPackage" AfterTargets="Pack">

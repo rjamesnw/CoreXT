@@ -1,4 +1,6 @@
-﻿using CoreXT.Toolkit.Web;
+﻿using System.Threading.Tasks;
+using CoreXT.Toolkit.Web;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CoreXT.Toolkit.Controls
 {
@@ -17,7 +19,12 @@ namespace CoreXT.Toolkit.Controls
 
         public Label(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
 
-		public Label Configure(string associatedControlID, string text)
+        public override Task<IViewComponentResult> InvokeAsync()
+        {
+            return base.InvokeAsync();
+        }
+
+        public Label Configure(string associatedControlID, string text)
 		{
 			AssociatedControlID = associatedControlID;
 			Text = text;

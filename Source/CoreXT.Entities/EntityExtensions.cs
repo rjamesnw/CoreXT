@@ -61,7 +61,7 @@ namespace CoreXT.Entities
         /// <param name="connectionString"></param>
         /// <param name="testConnectingBeforeReturning"></param>
         /// <returns></returns>
-        public static TContext ConfigureCoreXTDBContext<TContext>(this ICoreXTServiceProvider sp, string connectionString, bool testConnectingBeforeReturning = true)
+        public static TContext ConfigureCoreXTDBContext<TContext>(this ICoreXTServiceProvider sp, Action<DbContextOptionsBuilder> onConfiguring = null, bool testConnectingBeforeReturning = true)
             where TContext : class, ICoreXTDBContext
         {
             var context = sp.GetService<TContext>();
@@ -76,18 +76,14 @@ namespace CoreXT.Entities
 
             try
             {
-                var dbConnection = context.Database.GetDbConnection();
+                if (onConfiguring != null)
+                    context.Configuring += onConfiguring;
 
-                if (string.IsNullOrWhiteSpace(dbConnection.ConnectionString) && string.IsNullOrWhiteSpace(connectionString))
+                if (string.IsNullOrWhiteSpace(context.ConnectionString))
                     throw new IOException("Cannot connect to any database - the connection string is empty.");
-
-                if (!string.IsNullOrWhiteSpace(connectionString) && dbConnection.ConnectionString != connectionString && dbConnection.State != System.Data.ConnectionState.Closed)
-                    dbConnection.Close();
 
                 try
                 {
-                    dbConnection.ConnectionString = connectionString; //connectionString;
-
                     if (testConnectingBeforeReturning)
                         context.Database.OpenConnection(); // (test the connection now)
 

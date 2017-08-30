@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System;
+using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Controls
 {
@@ -18,6 +19,11 @@ namespace CoreXT.Toolkit.Controls
         /// </summary>
         public Link(IViewPageRenderStack pageRenderStack) : base(pageRenderStack)
         {
+        }
+
+        public override Task<IViewComponentResult> InvokeAsync()
+        {
+            return base.InvokeAsync();
         }
 
         /// <summary>

@@ -11,12 +11,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Reflection;
-using MySQL.Data.EntityFrameworkCore.Extensions;
-using MySQL.Data.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using CoreXT.Services.DI;
 using CoreXT.Demos.Models;
 using CoreXT.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoreXT.Demos.MVC
 {
@@ -44,12 +43,12 @@ namespace CoreXT.Demos.MVC
             services.Configure<CoreXTDemoAppSettings>(configuration.GetSection("AppSettings:CoreXT.Demos"));
 
             services.AddDbContext<CoreXTDemoContext>(
-                options => options.UseMySQL("Server=localhost", b => b.CommandTimeout(120)),
+                options => options.UseMySql("Server=localhost", b => b.CommandTimeout(120)),
                 ServiceLifetime.Transient
             );
 
             services.AddDbContext<CoreXTDemoReadonlyContext>(
-                options => options.UseMySQL("Server=localhost", b => b.CommandTimeout(120)),
+                options => options.UseMySql("Server=localhost", b => b.CommandTimeout(120)),
                 ServiceLifetime.Scoped
             );
 

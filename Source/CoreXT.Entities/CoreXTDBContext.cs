@@ -44,10 +44,26 @@ namespace CoreXT.Entities
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public ICoreXTDBContext SetConnectionString(string connectionString)
+        /// <summary>
+        /// Attempts to get or set the connection string for the underlying 'Database' object instance.
+        /// Note that this may not be reliable, and seems to be provider implementation dependent.
+        /// </summary>
+        /// <returns></returns>
+        public string ConnectionString
         {
-            Database.GetDbConnection().ConnectionString = connectionString;
-            return this;
+            get { return Database.GetDbConnection().ConnectionString; }
+            set { Database.GetDbConnection().ConnectionString = value; }
+        }
+
+        /// <summary>
+        /// Called when the DBContext is being configured.
+        /// </summary>
+        public event Action<DbContextOptionsBuilder> Configuring;
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            Configuring?.Invoke(optionsBuilder);
+            base.OnConfiguring(optionsBuilder);
         }
 
         // --------------------------------------------------------------------------------------------------------------------

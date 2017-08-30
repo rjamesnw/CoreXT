@@ -26,8 +26,8 @@ namespace CoreXT.Demos.Controllers
 
         public IActionResult Index()
         {
-            var context = ServiceProvider.GetCoreXTDemoReadOnlyContext();
-            context.Database.EnsureCreated(); // (this is code-first related - if the database doesn't exist, the system will try to create it using the entity classes and configurations, along with the )
+            //var context = ServiceProvider.GetCoreXTDemoReadOnlyContext();
+            //context.Database.EnsureCreated(); // (this is code-first related - if the database doesn't exist, the system will try to create it using the entity classes and configurations, along with the )
             return View();
         }
 

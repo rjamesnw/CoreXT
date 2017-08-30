@@ -1,7 +1,6 @@
 ﻿using CoreXT;
 using CoreXT.Entities;
 using Microsoft.EntityFrameworkCore;
-using MySQL.Data.EntityFrameworkCore.Extensions;
 using CoreXT.Services.DI;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -38,11 +37,11 @@ namespace CoreXT.Models
         /// This allows selecting a different database server; for example, based on debug, test, or release (go live) modes.
         /// </summary>
         internal CoreXTDemoContext(string nameOrConnectionString, ILoggerFactory loggerFactory = null)
-            : base(new DbContextOptionsBuilder().UseMySQL(nameOrConnectionString).Options, loggerFactory)
+            : base(new DbContextOptionsBuilder().UseMySql(nameOrConnectionString).Options, loggerFactory)
         {
         }
 
-        public CoreXTDemoContext(ILoggerFactory loggerFactory): base(loggerFactory)
+        public CoreXTDemoContext(ILoggerFactory loggerFactory) : base(loggerFactory)
         {
         }
 
@@ -116,11 +115,12 @@ namespace CoreXT.Models
         /// </summary>
         public static ICoreXTDemoContext GetCoreXTDemoContext(this ICoreXTServiceProvider sp, string connectionString = null, bool testConnectingBeforeReturning = true)
         {
-            if (connectionString == null) {
+            if (connectionString == null)
+            {
                 var settings = sp.GetCoreXTDemoAppSettings();
                 connectionString = settings.DefaultConnectionString;
             }
-            return sp.ConfigureCoreXTDBContext<ICoreXTDemoContext>(connectionString, testConnectingBeforeReturning);
+            return sp.ConfigureCoreXTDBContext<ICoreXTDemoContext>(options => options.UseMySql(connectionString), testConnectingBeforeReturning);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ namespace CoreXT.Models
                 var settings = sp.GetCoreXTDemoAppSettings();
                 connectionString = settings.DefaultConnectionString;
             }
-            return sp.ConfigureCoreXTDBContext<ICoreXTDemoReadonlyContext>(connectionString, testConnectingBeforeReturning);
+            return sp.ConfigureCoreXTDBContext<ICoreXTDemoReadonlyContext>(options => options.UseMySql(connectionString), testConnectingBeforeReturning);
         }
 
         // --------------------------------------------------------------------------------------------------------------------

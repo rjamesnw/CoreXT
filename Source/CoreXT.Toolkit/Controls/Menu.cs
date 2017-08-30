@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Controls
 {
@@ -37,6 +38,11 @@ namespace CoreXT.Toolkit.Controls
         /// Creates a menu control.
         /// </summary>
         public Menu(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
+
+        public override Task<IViewComponentResult> InvokeAsync()
+        {
+            return base.InvokeAsync();
+        }
 
         /// <summary>
         /// Creates a menu control (usually for the layout page).
