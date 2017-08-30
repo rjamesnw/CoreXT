@@ -64,12 +64,11 @@ namespace CoreXT.Toolkit.Controls
         /// <summary>
         /// Creates a menu control.
         /// </summary>
-        public ActionLink(IViewPageRenderStack pageRenderStack): base(pageRenderStack) { }
+        public ActionLink(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
 
-        public override Task<IViewComponentResult> InvokeAsync()
-        {
-            return base.InvokeAsync();
-        }
+        public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         public ActionLink Configure(RazorTemplateDelegate<object> content, string actionName, string controllerName = null, string areaName = null,
             string fragment = null, string routeName = null)

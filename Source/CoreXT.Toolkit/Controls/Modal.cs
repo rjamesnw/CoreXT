@@ -11,6 +11,8 @@ namespace CoreXT.Toolkit.Controls
 {
     public class Modal : ControlBase
     {
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// A razor template delegate used to render the header of the model window.
         /// </summary>
@@ -52,16 +54,17 @@ namespace CoreXT.Toolkit.Controls
 
         public bool AllowClose = true;
 
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
-        /// Creates an empty modal popup.
+        /// Creates an empty modal pop-up.
         /// </summary>
         /// <param name="pageRenderStack"></param>
         public Modal(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
 
-        public override Task<IViewComponentResult> InvokeAsync()
-        {
-            return base.InvokeAsync();
-        }
+        public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         public Modal Configure(RazorTemplateDelegate<object> title, bool allowClose,
             RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null)
@@ -115,6 +118,8 @@ namespace CoreXT.Toolkit.Controls
             Footer = footer;
             return this;
         }
+
+        // --------------------------------------------------------------------------------------------------------------------
     }
 }
 

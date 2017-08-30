@@ -10,19 +10,22 @@ namespace CoreXT.Toolkit.Controls
 {
     public class LightBox : ControlBase
     {
+        // --------------------------------------------------------------------------------------------------------------------
+
         public LightBox(IViewPageRenderStack pageRenderStack) : base(pageRenderStack)
         {
         }
+
+        public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         public LightBox Configure()
         {
             return this;
         }
-
-        public override Task<IViewComponentResult> InvokeAsync()
-        {
-            return base.InvokeAsync();
-        }
+       
+        // --------------------------------------------------------------------------------------------------------------------
     }
 }
 

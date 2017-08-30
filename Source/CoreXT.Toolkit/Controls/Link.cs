@@ -8,11 +8,15 @@ namespace CoreXT.Toolkit.Controls
 {
     public class Link : ControlBase
     {
+        // --------------------------------------------------------------------------------------------------------------------
+
         public string Href
         {
             get { return GetAttribute("href"); }
             set { SetAttribute("href", value); }
         }
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Creates an empty link control.
@@ -21,10 +25,9 @@ namespace CoreXT.Toolkit.Controls
         {
         }
 
-        public override Task<IViewComponentResult> InvokeAsync()
-        {
-            return base.InvokeAsync();
-        }
+        public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Creates a link control for rendering on a web view page.
@@ -43,5 +46,7 @@ namespace CoreXT.Toolkit.Controls
 
             return this;
         }
+
+        // --------------------------------------------------------------------------------------------------------------------
     }
 }

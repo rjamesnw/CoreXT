@@ -9,15 +9,16 @@ namespace CoreXT.Toolkit.Controls
 {
     public class MenuItem : ActionLink
     {
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// Creates a menu control.
         /// </summary>
         public MenuItem(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
 
-        public override Task<IViewComponentResult> InvokeAsync()
-        {
-            return base.InvokeAsync();
-        }
+        public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Creates a menu control (usually for the layout page).
@@ -36,5 +37,7 @@ namespace CoreXT.Toolkit.Controls
         {
             return Configure(item => content, actionName, controllerName);
         }
+
+        // --------------------------------------------------------------------------------------------------------------------
     }
 }

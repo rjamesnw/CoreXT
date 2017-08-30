@@ -9,6 +9,8 @@ namespace CoreXT.Toolkit.Controls
 {
     public class Menu : MenuItem
     {
+        // --------------------------------------------------------------------------------------------------------------------
+
         public List<object> Items { get; private set; } = new List<object>();
 
         /// <summary>
@@ -34,17 +36,18 @@ namespace CoreXT.Toolkit.Controls
             }
         }
 
-        /// <summary>
+        // --------------------------------------------------------------------------------------------------------------------
+  
+            /// <summary>
         /// Creates a menu control.
         /// </summary>
         public Menu(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
 
-        public override Task<IViewComponentResult> InvokeAsync()
-        {
-            return base.InvokeAsync();
-        }
+        public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
 
-        /// <summary>
+        // --------------------------------------------------------------------------------------------------------------------
+      
+            /// <summary>
         /// Creates a menu control (usually for the layout page).
         /// </summary>
         /// <param name="page"></param>
@@ -87,5 +90,7 @@ namespace CoreXT.Toolkit.Controls
         /// Toggles the 'Inverse' property.
         /// </summary>
         public Menu Invert() { Inverse = !Inverse; return this; }
+
+        // --------------------------------------------------------------------------------------------------------------------
     }
 }
