@@ -9,7 +9,6 @@
     <PackageId>OneCMS</PackageId>
     <RuntimeIdentifiers>win7-x64;win10-x64</RuntimeIdentifiers>
     <!--<RuntimeFrameworkVersion>1.1.2</RuntimeFrameworkVersion>-->
-    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;portable-net45+win8</PackageTargetFallback>
     <TypeScriptToolsVersion>2.4</TypeScriptToolsVersion>
     <RootNamespace>CoreXT.Demos</RootNamespace>
   </PropertyGroup>
