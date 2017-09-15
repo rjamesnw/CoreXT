@@ -14,6 +14,66 @@ using System.Text.RegularExpressions;
 
 namespace CoreXT.Entities
 {
+    // ========================================================================================================================
+
+    /// <summary>
+    /// The CoreXT context provider provides one place to construct entity database contexts on the fly.  
+    /// <para>NOTE: Derived context providers should be registered as "Scoped" so that a new instance is created on each request.</para>
+    /// </summary>
+    /// <typeparam name="TContext">A CoreXTDBContext type that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
+    /// <typeparam name="TReadonlyContext">A CoreXTDBContext that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
+    public class ContextProvider<TContext, TReadonlyContext> : IContextProvider<TContext, TReadonlyContext>, IContextProvider
+          where TContext : class, ICoreXTDBContext
+        where TReadonlyContext : class, ICoreXTDBContext
+    {
+        Dictionary<int, ICoreXTDBContext> _ReadonlyContextsPerThread = new Dictionary<int, ICoreXTDBContext>();
+        ICoreXTServiceProvider _ServiceProvider;
+
+        public ContextProvider(ICoreXTServiceProvider sp)
+        {
+            _ServiceProvider = sp;
+        }
+
+        public virtual TContext GetContext()
+        {
+            return _ServiceProvider.GetService<TContext>();
+        }
+
+        public virtual TReadonlyContext GetReadonlyContext()
+        {
+            lock (_ReadonlyContextsPerThread)
+            {
+                var threadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                var ctx = _ReadonlyContextsPerThread.Value(threadID) ?? (_ReadonlyContextsPerThread[threadID] = _ServiceProvider.GetService<TReadonlyContext>());
+                return (TReadonlyContext)ctx;
+            }
+        }
+
+        ICoreXTDBContext IContextProvider.GetContext()
+        {
+            return GetContext();
+        }
+
+        ICoreXTDBContext IContextProvider.GetReadonlyContext()
+        {
+            return GetReadonlyContext();
+        }
+    }
+
+    public interface IContextProvider<TContext, TReadonlyContext>
+        where TContext : class, ICoreXTDBContext
+        where TReadonlyContext : class, ICoreXTDBContext
+    {
+        TContext GetContext();
+        TReadonlyContext GetReadonlyContext();
+    }
+
+    public interface IContextProvider
+    {
+        ICoreXTDBContext GetContext();
+        ICoreXTDBContext GetReadonlyContext();
+    }
+
     // ########################################################################################################################
 
     public static class CoreXTDBContextExtensions
@@ -48,7 +108,7 @@ namespace CoreXT.Entities
         /// If true, the types names are used as is with full casing intact.</param>
         public static EntityTypeBuilder<TEntity> ToTable<TEntity>(this EntityTypeBuilder<TEntity> _this, bool useTypeNamesAsIs = false) where TEntity : class
         {
-             _this.ToTable(typeof(TEntity), useTypeNamesAsIs);
+            _this.ToTable(typeof(TEntity), useTypeNamesAsIs);
             return _this;
         }
 
@@ -68,23 +128,24 @@ namespace CoreXT.Entities
         /// <summary>
         /// Dynamically configures a CoreXT based DBContext object, and optionally tests that a connection can be made using the given connection string.
         /// </summary>
-        /// <typeparam name="TContext"></typeparam>
+        /// <typeparam name="TContextProvider">The type of provider to use to get the DBContext instances.</typeparam>
         /// <param name="sp"></param>
         /// <param name="connectionString"></param>
         /// <param name="testConnectingBeforeReturning"></param>
         /// <returns></returns>
-        public static TContext ConfigureCoreXTDBContext<TContext>(this ICoreXTServiceProvider sp, Action<DbContextOptionsBuilder> onConfiguring = null, bool testConnectingBeforeReturning = true)
-            where TContext : class, ICoreXTDBContext
+        public static ICoreXTDBContext ConfigureCoreXTDBContext<TContextProvider>(this ICoreXTServiceProvider sp, bool isReadonly, Action<DbContextOptionsBuilder> onConfiguring = null, bool testConnectingBeforeReturning = true)
+            where TContextProvider : class, IContextProvider
         {
-            var context = sp.GetService<TContext>();
+            var contextProvider = sp.GetService<TContextProvider>();
+            var context = isReadonly ? contextProvider.GetReadonlyContext() : contextProvider.GetContext();
 
             if (context == null)
-                throw new InvalidOperationException("There is no " + typeof(TContext).Name + " service object registered.");
+                throw new InvalidOperationException("There is no " + typeof(TContextProvider).Name + " service object registered.");
 
             if (context.Database == null)
-                throw new InvalidOperationException("The 'Database' property is null for DBContext type " + typeof(TContext).Name + ".");
+                throw new InvalidOperationException("The 'Database' property is null for DBContext type " + typeof(TContextProvider).Name + ".");
 
-            var logger = sp.GetService<ILoggerFactory>()?.CreateLogger<TContext>();
+            var logger = sp.GetService<ILoggerFactory>()?.CreateLogger<TContextProvider>();
 
             try
             {

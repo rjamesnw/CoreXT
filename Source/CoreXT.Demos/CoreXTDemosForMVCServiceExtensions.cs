@@ -16,6 +16,7 @@ using CoreXT.Services.DI;
 using CoreXT.Demos.Models;
 using CoreXT.Models;
 using Microsoft.EntityFrameworkCore;
+using CoreXT.Entities;
 
 namespace CoreXT.Demos.MVC
 {
@@ -36,7 +37,8 @@ namespace CoreXT.Demos.MVC
 
             services.TryAddTransient<IAppSettings, CoreXTDemoAppSettings>();
             services.TryAddTransient<ICoreXTDemoContext, CoreXTDemoContext>();
-            services.TryAddScoped<ICoreXTDemoReadonlyContext, CoreXTDemoReadonlyContext>();
+            services.TryAddTransient<ICoreXTDemoReadonlyContext, CoreXTDemoReadonlyContext>();
+            services.TryAddScoped<ICoreXTDemoContextProvider, CoreXTDemoContextProvider>();
 
             // ... configure the CoreXT.Demos services and settings ...
 

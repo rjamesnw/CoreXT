@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using CoreXT.Demos.Models;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace CoreXT.Models
 {
@@ -73,6 +74,8 @@ namespace CoreXT.Models
         // --------------------------------------------------------------------------------------------------------------------
     }
 
+    // ========================================================================================================================
+
     /// <summary>
     /// Provides a CoreXT.Demos DBContext implementation that is scoped to a request duration. This allows all methods during a single
     /// request to use a "cached" version, greatly reducing database hits.
@@ -103,6 +106,17 @@ namespace CoreXT.Models
         }
     }
 
+    // ========================================================================================================================
+
+    public interface ICoreXTDemoContextProvider: IContextProvider { }
+
+    public class CoreXTDemoContextProvider : ContextProvider<CoreXTDemoContext, CoreXTDemoReadonlyContext>, ICoreXTDemoContextProvider
+    {
+        public CoreXTDemoContextProvider(ICoreXTServiceProvider sp) : base(sp) { }
+    }
+
+    // ========================================================================================================================
+
     public static class CoreXTDemoContextExtensions
     {
         // --------------------------------------------------------------------------------------------------------------------
@@ -120,7 +134,7 @@ namespace CoreXT.Models
                 var settings = sp.GetCoreXTDemoAppSettings();
                 connectionString = settings.DefaultConnectionString;
             }
-            return sp.ConfigureCoreXTDBContext<ICoreXTDemoContext>(options => options.UseMySql(connectionString), testConnectingBeforeReturning);
+            return (ICoreXTDemoContext)sp.ConfigureCoreXTDBContext<ICoreXTDemoContextProvider>(false, options => options.UseMySql(connectionString), testConnectingBeforeReturning);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -137,7 +151,7 @@ namespace CoreXT.Models
                 var settings = sp.GetCoreXTDemoAppSettings();
                 connectionString = settings.DefaultConnectionString;
             }
-            return sp.ConfigureCoreXTDBContext<ICoreXTDemoReadonlyContext>(options => options.UseMySql(connectionString), testConnectingBeforeReturning);
+            return (ICoreXTDemoReadonlyContext)sp.ConfigureCoreXTDBContext<ICoreXTDemoContextProvider>(true, options => options.UseMySql(connectionString), testConnectingBeforeReturning);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
