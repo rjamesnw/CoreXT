@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Catmedis")]
-[assembly: AssemblyProduct("CoreXT.Email")]
+[assembly: AssemblyProduct("CoreXT Framework")]
 [assembly: AssemblyTrademark("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible

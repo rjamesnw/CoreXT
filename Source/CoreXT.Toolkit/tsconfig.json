@@ -4,15 +4,18 @@
     "noEmitOnError": true,
     "removeComments": false,
     "sourceMap": true,
-    "target": "es5"
+    "target": "es5",
+    "outDir": "wwwroot/js",
+    "rootDir": "Scripts"
   },
   "include": [
-    "typings",
-    "scripts"
+    "typings/**/*.ts",
+    "Scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "scripts/corext.ts",
-    "scripts/table.ts"
+    "wwwroot/**/*.ts",
+    "Scripts/corext.ts",
+    "Scripts/table.ts"
   ]
 }
