@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreXT.Entities
 {
@@ -22,8 +24,28 @@ namespace CoreXT.Entities
         /// </summary>
         event Action<DbContextOptionsBuilder> Configuring;
 
-        int ForceSaveChanges();
+        /// <summary>
+        /// Enforce that field names in the entity classes are within a maximum length.
+        /// </summary>
+        /// <param name="modelBuilder"></param>
+        /// <param name="maxLength"></param>
+        /// <returns></returns>
+        string ValidateMaxColumnNameLength(ModelBuilder modelBuilder, int maxLength);
+
+        /// <summary>
+        /// Updates the relational entity information with an associated table names specified using the 'Table()' attribute.
+        /// </summary>
+        /// <param name="modelBuilder"></param>
+        /// <returns></returns>
+        void UpdateTableNames(ModelBuilder modelBuilder);
+
         int SaveChanges();
+        Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken));
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
+
+        int ForceSaveChanges();
+        Task<int> ForceSaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken));
+        Task<int> ForceSaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
     }
 
     public interface ICoreXTReadonlyDBContext : ICoreXTDBContext
