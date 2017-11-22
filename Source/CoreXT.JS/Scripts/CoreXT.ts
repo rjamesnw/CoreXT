@@ -1,4 +1,4 @@
-ï»¿/*
+/*
  * CoreXT (CoreXT.com), (c) Twigate.com
  * License: http://creativecommons.org/licenses/by-nc/4.0/
  * License note: While the core OS (server side) is protected, the client side and modules will be open source to allow community
@@ -646,6 +646,7 @@ namespace CoreXT {
         }
 
         /** The most common mime types.  You can easily extend this enum with custom types, or force-cast strings to this type also. */
+        /* NOTE: The enums entries MUST be prefixed with '<any>' in order for this mapping to work with 'ResourceExtensions' as well implicitly. */
         export enum ResourceTypes { // (http://en.wikipedia.org/wiki/Internet_media_type)
             // Application
             Application_Script = <any>"application/javascript", // (note: 'text/javascript' is most common, but is obsolete)
@@ -695,6 +696,7 @@ namespace CoreXT {
           * Example 3: CoreXT.Loader.getResourceTypeFromExtension(ResourceExtensions.Application_Script);
           * Example 4: CoreXT.Loader.getResourceTypeFromExtension(".js");
           */
+        /* NOTE: The enums entries MUST be prefixed with '<any>' in order for this mapping to work with 'ResourceTypes' as well implicitly. */
         export enum ResourceExtensions { // (http://tools.ietf.org/html/rfc4329#page-12)
             Application_Script = <any>".js", // (note: 'text/javascript' is most common, but is obsolete)
             Application_ECMAScript = <any>".es",
@@ -1273,8 +1275,8 @@ namespace CoreXT {
                 // ... if this is reached, then there are no following error handlers, so throw the existing message ...
 
                 if (this.status == RequestStatuses.Error) {
-                    var msgs = this.messages.join("\r\nÂ· ");
-                    if (msgs) msgs = ":\r\nÂ· " + msgs; else msgs = ".";
+                    var msgs = this.messages.join("\r\n· ");
+                    if (msgs) msgs = ":\r\n· " + msgs; else msgs = ".";
                     throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
                 }
             }
@@ -1330,6 +1332,7 @@ namespace CoreXT {
 
                         $this.url = url;
                         $this.type = type;
+                        $this.async = async;
 
                         $this.$__index = _resourceRequests.length;
 
@@ -1368,7 +1371,7 @@ namespace CoreXT {
             if (type === void 0 || type === null) {
                 // (make sure it's a string)
                 // ... a valid type is required, but try to detect first ...
-                var ext = (url.match(/(?:.*\/.*?)(\.[A-Za-z0-9]+)(?:[\?\#]|$)/i) || []).pop();
+                var ext = (url.match(/(\.[A-Za-z0-9]+)(?:[\?\#]|$)/i) || []).pop();
                 type = getResourceTypeFromExtension(ext);
                 if (!type)
                     throw "The resource type is required.";

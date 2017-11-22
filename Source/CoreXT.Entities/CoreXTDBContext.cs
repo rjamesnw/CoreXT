@@ -6,6 +6,8 @@ using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreXT.Entities
 {
@@ -68,7 +70,31 @@ namespace CoreXT.Entities
 
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Enforce that field names in the entity classes are within a maximum length.
+        /// </summary>
+        /// <param name="modelBuilder"></param>
+        /// <param name="maxLength"></param>
+        /// <returns></returns>
         public string ValidateMaxColumnNameLength(ModelBuilder modelBuilder, int maxLength)
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+                foreach (var property in entityType.GetProperties())
+                    if (property.FieldInfo != null)
+                    {
+                        var columnName = property.FieldInfo.Name; //? .SqlServer().ColumnName;
+                        if (columnName.Length > maxLength)
+                            return "Column name '" + columnName + "' is greater than " + maxLength + " characters.";
+                    }
+            return null;
+        }
+
+        /// <summary>
+        /// Updates the relational entity information with an associated table names specified using the 'Table()' attribute.
+        /// </summary>
+        /// <param name="modelBuilder"></param>
+        /// <returns></returns>
+        public void UpdateTableNames(ModelBuilder modelBuilder)
         {
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
@@ -78,16 +104,7 @@ namespace CoreXT.Entities
 
                 var attr = entityType.ClrType.GetTypeInfo().GetCustomAttribute<TableAttribute>();
                 if (attr != null && !string.IsNullOrWhiteSpace(attr.Name)) dbInfo.TableName = attr.Name;
-
-                foreach (var property in entityType.GetProperties())
-                    if (property.FieldInfo != null)
-                    {
-                        var columnName = property.FieldInfo.Name; //? .SqlServer().ColumnName;
-                        if (columnName.Length > maxLength)
-                            return "Column name '" + columnName + "' is greater than " + maxLength + " characters.";
-                    }
             }
-            return null;
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -104,8 +121,38 @@ namespace CoreXT.Entities
             try
             {
                 if (IsReadonly)
-                    throw new InvalidOperationException("This context is readonly. Use 'CDSContext.GetContext()' to get a read/write context.");
+                    throw new InvalidOperationException("This context is flagged as readonly. Use 'ForceSaveChanges()' if required.");
                 return base.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                throw;
+            }
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                if (IsReadonly)
+                    throw new InvalidOperationException("This context is flagged as readonly. Use 'ForceSaveChangesAsync()' if required.");
+                return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                throw;
+            }
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                if (IsReadonly)
+                    throw new InvalidOperationException("This context is flagged as readonly. Use 'ForceSaveChangesAsync()' if required.");
+                return base.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)
             {
@@ -127,6 +174,32 @@ namespace CoreXT.Entities
             try
             {
                 return base.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                throw;
+            }
+        }
+
+        public Task<int> ForceSaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                throw;
+            }
+        }
+
+        public Task<int> ForceSaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                return base.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)
             {

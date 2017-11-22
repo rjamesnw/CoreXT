@@ -22,7 +22,7 @@
 
 This package holds some entities model utility methods.
 </Description>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
