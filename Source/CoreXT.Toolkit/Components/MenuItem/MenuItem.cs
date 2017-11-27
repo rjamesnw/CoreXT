@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
     public class MenuItem : ActionLink
     {

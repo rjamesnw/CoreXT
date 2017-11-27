@@ -1,6 +1,6 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.Services.DI;
-using CoreXT.Toolkit.Controls;
+using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -22,9 +22,9 @@ namespace CoreXT.MVC
         /// </summary>
         /// <typeparam name="T">The type of control to create.</typeparam>
         /// <param name="controller">The controller to create the control for.</param>
-        public T GetControl<T>() where T : class, IControlBase
+        public T GetControl<T>() where T : class, IWebComponent
         {
-            return ControlBaseExtensions.GetControl<T>(this);
+            return ComponentBaseExtensions.GetComponent<T>(this);
         }
     }
 }

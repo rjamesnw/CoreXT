@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CoreXT.Toolkit.Controls;
+using CoreXT.Toolkit.Components;
 using CoreXT.ASPNet;
 using CoreXT.Demos.Models;
 using CoreXT.Models;

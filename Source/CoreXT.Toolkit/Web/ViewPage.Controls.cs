@@ -1,6 +1,6 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC;
-using CoreXT.Toolkit.Controls;
+using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +21,7 @@ namespace CoreXT.Toolkit.Web
     {
         // --------------------------------------------------------------------------------------------------------------------
 
-        public T GetControl<T>() where T : class, IControlBase { return Context?.GetService<T>().SetPage(this); }
+        public T GetControl<T>() where T : class, IWebComponent { return Context?.GetService<T>().SetPage(this); }
 
         /// <summary>
         /// Returns a link element with the given text and URL (href).

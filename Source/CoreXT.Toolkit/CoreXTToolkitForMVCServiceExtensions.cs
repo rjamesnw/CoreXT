@@ -1,6 +1,6 @@
 ﻿using CoreXT.MVC;
 using CoreXT.Services.DI;
-using CoreXT.Toolkit.Controls;
+using CoreXT.Toolkit.Components;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -52,7 +52,7 @@ namespace CoreXT.Toolkit
                 options.FileProviders.Add(new CoreXTEmbeddedFileProvider(currentAssembly, hostingEnvironment));
             });
 
-            services.AddControls(currentAssembly);
+            services.AddComponents(currentAssembly);
 
             if (setupAction != null)
                 return services.AddMvcXT(setupAction);

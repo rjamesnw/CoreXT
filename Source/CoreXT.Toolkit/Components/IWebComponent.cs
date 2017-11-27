@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
-    public interface IControlBase : IHtmlContent, IActionResult
+    public interface IWebComponent : IHtmlContent, IActionResult
     {
         IDictionary<string, string> Attributes { get; }
         string Class { get; set; }
@@ -32,8 +32,8 @@ namespace CoreXT.Toolkit.Controls
         string UniqueName { get; }
         IUrlHelper UrlHelper { get; }
 
-        ControlBase AddClass(params string[] classNames);
-        ControlBase AddEventScript(string eventAttributeName, string script);
+        WebComponent AddClass(params string[] classNames);
+        WebComponent AddEventScript(string eventAttributeName, string script);
         void ApplyResourcesToRequestContext();
         Task<IHtmlContent> AsAsync();
         IViewComponentResult Content(object value);
@@ -45,22 +45,22 @@ namespace CoreXT.Toolkit.Controls
         int GetHashCode();
         bool HasClass(params string[] classNames);
         Task<IViewComponentResult> InvokeAsync();
-        ControlBase RemoveClass(params string[] classNames);
+        WebComponent RemoveClass(params string[] classNames);
         Task<IHtmlContent> Render();
         Task<IHtmlContent> Render(IViewComponentResult viewResult);
         IHtmlContent RenderFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression = null);
-        ControlBase RequireCSS(string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null);
-        ControlBase RequireCSS(string cssPath, RenderTargets renderTarget, Environments environment);
-        ControlBase RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null);
-        ControlBase RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment);
-        ControlBase RequireScript(string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null);
-        ControlBase RequireScript(string scriptPath, RenderTargets renderTarget, Environments environment);
-        ControlBase SetAttribute(string name, object value, bool replace = true);
-        ControlBase SetAttributes(IDictionary<string, object> attributes);
-        ControlBase SetAttributes(object attributes);
-        ControlBase SetRenderer(Func<ControlBase, IHtmlContent> renderer);
+        WebComponent RequireCSS(string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null);
+        WebComponent RequireCSS(string cssPath, RenderTargets renderTarget, Environments environment);
+        WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null);
+        WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment);
+        WebComponent RequireScript(string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null);
+        WebComponent RequireScript(string scriptPath, RenderTargets renderTarget, Environments environment);
+        WebComponent SetAttribute(string name, object value, bool replace = true);
+        WebComponent SetAttributes(IDictionary<string, object> attributes);
+        WebComponent SetAttributes(object attributes);
+        WebComponent SetRenderer(Func<WebComponent, IHtmlContent> renderer);
         string ToString();
-        Task<ControlBase> Update();
+        Task<WebComponent> Update();
         ViewViewComponentResult View();
         ViewViewComponentResult View(string viewName);
         ViewViewComponentResult View<TModel>(string viewName, TModel model);

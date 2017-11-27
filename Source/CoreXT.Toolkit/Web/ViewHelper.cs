@@ -1,5 +1,5 @@
 ﻿using CoreXT.ASPNet;
-using CoreXT.Toolkit.Controls;
+using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
@@ -196,7 +196,7 @@ namespace CoreXT.Toolkit.Web
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public class TemplatePartDetails<TControl> where TControl : ControlBase
+        public class TemplatePartDetails<TControl> where TControl : WebComponent
         {
             /// <summary>
             /// The property name for expressions used with template partial views.
@@ -217,28 +217,28 @@ namespace CoreXT.Toolkit.Web
         }
 
         /// <summary>
-        /// Returns details for use with ControlBase based template partial views.
+        /// Returns details for use with WebComponent based template partial views.
         /// </summary>
-        /// <typeparam name="TControl">The type of ControlBase the display or editor template partial view is for.</typeparam>
+        /// <typeparam name="TControl">The type of WebComponent the display or editor template partial view is for.</typeparam>
         /// <param name="constructor">If the model for the template part does not contain a control instance, this callback
         /// (usually a simple lambda expression) is called to create a new control instance within the context of the 
         /// calling template.</param>
-        /// <returns>An object that holds common details across all ControlBase type template views.</returns>
+        /// <returns>An object that holds common details across all WebComponent type template views.</returns>
         public TemplatePartDetails<TControl> GetTemplatePartDetails<TControl>(Func<TemplatePartDetails<TControl>, TControl> constructor)
-            where TControl : ControlBase
+            where TControl : WebComponent
         {
             if (constructor == null)
                 throw new ArgumentNullException("'constructor' is required in case a calling template does not have a control instance as a model.");
 
             var model = Page.Model;
 
-            if (model is ControlBase && !(model is TControl))
+            if (model is WebComponent && !(model is TControl))
                 throw new InvalidOperationException("A ControlBase was given as a template view's model, but it is not of the expected derived type.");
 
             var details = new TemplatePartDetails<TControl>();
 
-            var propertyIsControlBase = ViewData.TemplateInfo.FormattedModelValue is ControlBase;
-            // (note: if NO model property is given, 'ViewData.TemplateInfo.FormattedModelValue' will become the ControlBase
+            var propertyIsControlBase = ViewData.TemplateInfo.FormattedModelValue is WebComponent;
+            // (note: if NO model property is given, 'ViewData.TemplateInfo.FormattedModelValue' will become the WebComponent
             //  instance [in order to call this template], and the property name and values will be set to 'null')
 
             // ... determined the property name and value, in case an entity model is used ...

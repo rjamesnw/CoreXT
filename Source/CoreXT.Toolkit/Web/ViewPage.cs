@@ -1,6 +1,6 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC;
-using CoreXT.Toolkit.Controls;
+using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;

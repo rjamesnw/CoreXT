@@ -558,7 +558,7 @@ namespace CoreXT.Toolkit.Web
     // ########################################################################################################################
 }
 
-// (ControlBase is base on the ViewComponent concepts: https://www.youtube.com/watch?v=zxQBIfwqVoA)
+// (WebComponent is base on the ViewComponent concepts: https://www.youtube.com/watch?v=zxQBIfwqVoA)
 
 // Special thanks to the original source that helped jump start the controls section:
 // https://www.codeproject.com/Articles/32356/Custom-controls-in-ASP-NET-MVC

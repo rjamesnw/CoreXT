@@ -70,7 +70,6 @@ This package consists of various extensible types and controls for no-nonsense r
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Views\**\*.cshtml" />
     <EmbeddedResource Include="wwwroot\**\*.js" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\**\*.map" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\**\*.ts" Exclude="wwwroot\**\test*.*" />
@@ -81,6 +80,15 @@ This package consists of various extensible types and controls for no-nonsense r
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Components\ActionLink\Display.cshtml" />
+    <EmbeddedResource Include="Components\ActionLink\Editor.cshtml" />
+    <EmbeddedResource Include="Components\LightBox\Display.cshtml" />
+    <EmbeddedResource Include="Components\Link\Display.cshtml" />
+    <EmbeddedResource Include="Components\Link\Editor.cshtml" />
+    <EmbeddedResource Include="Components\MenuItem\Display.cshtml" />
+    <EmbeddedResource Include="Components\Menu\Display.cshtml" />
+    <EmbeddedResource Include="Components\Modal\Display.cshtml" />
+    <EmbeddedResource Include="Components\_ViewImports.cshtml" />
     <EmbeddedResource Include="Scripts\corext.ts" />
     <EmbeddedResource Include="Scripts\ModalDrag.ts" />
     <EmbeddedResource Include="Scripts\table.ts" />
@@ -103,6 +111,10 @@ This package consists of various extensible types and controls for no-nonsense r
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controls\" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

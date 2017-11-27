@@ -1,4 +1,4 @@
-﻿using CoreXT.Toolkit.Controls;
+﻿using CoreXT.Toolkit.Components;
 using CoreXT.ASPNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

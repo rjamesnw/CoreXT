@@ -1,6 +1,6 @@
 ﻿using CoreXT.MVC;
 using CoreXT.Toolkit;
-using CoreXT.Toolkit.Controls;
+using CoreXT.Toolkit.Components;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -56,7 +56,7 @@ namespace CoreXT.Demos.MVC
 
             var currentAssembly = typeof(CoreXTDemosForMVCServiceExtensions).GetTypeInfo().Assembly;
 
-            services.AddControls(currentAssembly); // (this scans CoreXT.Demos for controls [CoreXT ControlBase view components])
+            services.AddComponents(currentAssembly); // (this scans CoreXT.Demos for controls [CoreXT WebComponent view components])
 
             // ... continue on to add the CDS, CDS.Core, CDS.Web.Core, CoreXT.MVC, CoreXT.Toolkit, and MVC framework services ...
 

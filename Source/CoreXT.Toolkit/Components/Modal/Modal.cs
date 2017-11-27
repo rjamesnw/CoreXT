@@ -1,4 +1,4 @@
-﻿using CoreXT.Toolkit.Controls;
+﻿using CoreXT.Toolkit.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +7,9 @@ using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
-    public class Modal : ControlBase
+    public class Modal : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 

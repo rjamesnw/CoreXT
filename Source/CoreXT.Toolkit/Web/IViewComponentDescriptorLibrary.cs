@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
     // ########################################################################################################################
 

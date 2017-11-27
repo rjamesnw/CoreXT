@@ -1,4 +1,4 @@
-﻿using CoreXT.Toolkit.Controls;
+﻿using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;

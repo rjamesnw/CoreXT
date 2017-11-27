@@ -5,9 +5,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
-    public class ActionLink : ControlBase
+    public class ActionLink : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ namespace CoreXT.Toolkit.Controls
             Href = UrlHelper?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, HostName, Port, Fragment, RouteValues);
         }
 
-        public override async Task<ControlBase> Update()
+        public override async Task<WebComponent> Update()
         {
             await base.Update();
             _CalcHref();

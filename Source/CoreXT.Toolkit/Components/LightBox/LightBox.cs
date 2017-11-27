@@ -1,4 +1,4 @@
-﻿using CoreXT.Toolkit.Controls;
+﻿using CoreXT.Toolkit.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
-    public class LightBox : ControlBase
+    public class LightBox : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 

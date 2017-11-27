@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using System;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
-    public class Link : ControlBase
+    public class Link : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 

@@ -26,7 +26,7 @@ using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
     // ########################################################################################################################
 
@@ -35,19 +35,18 @@ namespace CoreXT.Toolkit.Controls
     // ########################################################################################################################
 
     /// <summary>
-    /// The base class for all CDS controls.  A view will auto convert a ControlBase instance to unescaped HTML text output, like an HtmlString.
-    /// <para>Most ControlBase methods return the underlying instance to allow for nesting other method calls. This helps to reduce
-    /// the need to overload helper methods for custom control modifications, such as adding attributes, CSS classes, or other control configurations.</para>
+    /// The base class for all CoreXT Toolkit components.  A view will auto convert a WebComponent instance to unescaped HTML text output, like an HtmlString.
+    /// <para>Most WebComponent methods return the underlying instance to allow for nesting other method calls. This helps to reduce the need to overload
+    /// helper methods for custom component modifications, such as adding attributes, CSS classes, or other component configurations.</para>
     /// </summary>
     // (https://docs.microsoft.com/en-us/aspnet/core/mvc/views/view-components)
-    public abstract class ControlBase : ViewComponent, IControlBase // ('IHtmlString' is the trick that allows the generated MVC views to render this control)
-
+    public abstract class WebComponent : ViewComponent, IWebComponent // ('IHtmlString' is the trick that allows the generated MVC views to render this component)
     {
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// The page that will render the control, if any.
-        /// If no page exists when the control is rendered, a temp page will be created.
+        /// The page that will render the component, if any.
+        /// If no page exists when the component is rendered, a temp page will be created.
         /// </summary>
         public IViewPage Page
         {
@@ -56,13 +55,13 @@ namespace CoreXT.Toolkit.Controls
             {
                 _Page = value;
                 if (_Page != null)
-                    RequiredResources = new ResourceList(_Page.ViewContext); // (this will get rendered out only when the control is rendered)
+                    RequiredResources = new ResourceList(_Page.ViewContext); // (this will get rendered out only when the component is rendered)
             }
         }
         IViewPage _Page;
 
         /// <summary>
-        /// The context for this control.  The context is used to get services and access other information about the current
+        /// The context for this component.  The context is used to get services and access other information about the current
         /// HTTP request.
         /// <para>By default, this reads from 'Page.Context', unless a different context is set. </para>
         /// </summary>
@@ -84,7 +83,7 @@ namespace CoreXT.Toolkit.Controls
         IUrlHelper _UrlHelper;
 
         /// <summary>
-        /// Controls display or edit modes for this control.
+        /// Controls display or edit modes for this component.
         /// </summary>
         public RenderModes RenderMode;
 
@@ -93,12 +92,12 @@ namespace CoreXT.Toolkit.Controls
         public IDictionary<string, string> Attributes { get; private set; }
 
         /// <summary>
-        /// A list of resource (such as JavaScript, CSS, etc.) required for this control.
+        /// A list of resource (such as JavaScript, CSS, etc.) required for this component.
         /// </summary>
         public IResourceList RequiredResources { get; private set; }
 
         /// <summary>
-        /// Gets or sets class names for this control.
+        /// Gets or sets class names for this component.
         /// <para>Note that setting this is a cumulative operation, in that each new value adds to an existing value.  To clear the class attribute pass in 'null'.</para>
         /// </summary>
         public string Class
@@ -108,7 +107,7 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// A unique ID for this control that identifies the source of any associated data value. This is usually an entity ID (primary key value).
+        /// A unique ID for this component that identifies the source of any associated data value. This is usually an entity ID (primary key value).
         /// <para>This is helpful when multiple entities or objects are being output to a page. 
         /// If a list of plain old CLR (POCO) objects are used without IDs, a simple numerical iteration index value may be sufficient.</para>
         /// <para>Note: If a value for "ID" exists, the EntityID value will be added as a suffix, delimited by an period.</para>
@@ -122,7 +121,7 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Return a unique ID for this control, usually used as the final ID attribute value to output on an element.
+        /// Return a unique ID for this component, usually used as the final ID attribute value to output on an element.
         /// </summary>
         public string UniqueID { get { return Strings.Append(ID, DataSourceID, "_"); } }
 
@@ -133,12 +132,12 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Return a unique ID for this control, usually used as the final ID attribute value to output on an element.
+        /// Return a unique ID for this component, usually used as the final ID attribute value to output on an element.
         /// </summary>
         public string UniqueName { get { return Strings.Append(Name, DataSourceID, "_"); } }
 
         /// <summary>
-        /// Sets the inline style for this control.
+        /// Sets the inline style for this component.
         /// </summary>
         public string Style
         {
@@ -147,7 +146,7 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Sets a title for this control (usually displays as a help tip).
+        /// Sets a title for this component (usually displays as a help tip).
         /// </summary>
         public string Title
         {
@@ -176,7 +175,7 @@ namespace CoreXT.Toolkit.Controls
         /// <summary>
         /// If set, this will be called to render the raw HTML result when 'Render()' is called.
         /// </summary>
-        Func<ControlBase, IHtmlContent> _Renderer;
+        Func<WebComponent, IHtmlContent> _Renderer;
 
         IViewPageRenderStack _ViewPageRenderStack;
 
@@ -232,13 +231,13 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// This method is called just before rendering the control to make sure all properties are up to date.
-        /// End users (developers) may also call this method before hand to refresh the control properties.
+        /// This method is called just before rendering the component to make sure all properties are up to date.
+        /// End users (developers) may also call this method before hand to refresh the component properties.
         /// This allows controls to be more efficient by only making updates when needed during a render request.
-        /// <para>Example: The CDSActionLink control has properties that configure the HREF URL. Calling 
+        /// <para>Example: The ActionLink component has properties that configure the HREF URL. Calling 
         /// Update() resets the HREF value to match the currently configured path values.</para>
         /// </summary>
-        public virtual async Task<ControlBase> Update()
+        public virtual async Task<WebComponent> Update()
         {
             if (ContentTemplate != null)
                 InnerHtml = (await GetContentFromTemplateDelegate(ContentTemplate)).Render();
@@ -267,27 +266,27 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Constructs a control for a web view page.
+        /// Constructs a component for a web view page.
         /// </summary>
         /// <remarks>'pageRenderStack' can be null, which is usually only for unit testing controls where applicable.</remarks>
-        /// <param name="pageRenderStack">The view page rendering stack to associate with this control. This is used as a hint
+        /// <param name="pageRenderStack">The view page rendering stack to associate with this component. This is used as a hint
         /// to default the 'Page' property to the currently rendering view. You can also use 'SetPage()' instead to be more explicit.</param>
-        public ControlBase(IViewPageRenderStack pageRenderStack)
+        public WebComponent(IViewPageRenderStack pageRenderStack)
         {
             _ViewPageRenderStack = pageRenderStack;
             Attributes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        //? public ControlBase Configure(IViewPageRenderStack pageRenderStack) { _ViewPageRenderStack = pageRenderStack; return this;  }
+        //? public WebComponent Configure(IViewPageRenderStack pageRenderStack) { _ViewPageRenderStack = pageRenderStack; return this;  }
 
         /// <summary>
         /// Sets a custom renderer to be called when 'Render()' is called.
-        /// This is normally used to return a rendered result when a control is used with a strongly typed 'WebViewPage'
+        /// This is normally used to return a rendered result when a component is used with a strongly typed 'WebViewPage'
         /// (since ControlBase is not a generic type).
         /// </summary>
         /// <param name="renderer">An optional render delegate used for custom rendering when 'Render()' is called.</param>
         /// <returns></returns>
-        public ControlBase SetRenderer(Func<ControlBase, IHtmlContent> renderer)
+        public WebComponent SetRenderer(Func<WebComponent, IHtmlContent> renderer)
         {
             _Renderer = renderer;
             return this;
@@ -340,11 +339,11 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Sets the given attributes on this control.
+        /// Sets the given attributes on this component.
         /// </summary>
         /// <param name="attributes">A dictionary list of attributes to set.</param>
-        /// <returns>This control instance.</returns>
-        public ControlBase SetAttributes(IDictionary<string, object> attributes)
+        /// <returns>this component instance.</returns>
+        public WebComponent SetAttributes(IDictionary<string, object> attributes)
         {
             if (attributes != null)
                 foreach (var item in attributes)
@@ -359,11 +358,11 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Sets the given attributes on this control.
+        /// Sets the given attributes on this component.
         /// </summary>
         /// <param name="attributes">A dictionary list of attributes to set.</param>
-        /// <returns>This control instance.</returns>
-        public ControlBase SetAttributes(object attributes)
+        /// <returns>this component instance.</returns>
+        public WebComponent SetAttributes(object attributes)
         {
             if (attributes != null)
             {
@@ -377,20 +376,20 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Sets the given attribute on this control.
+        /// Sets the given attribute on this component.
         /// </summary>
         /// <param name="name">The attribute name.</param>
         /// <param name="value">A value for this attribute.</param>
         /// <param name="replace">If true (default) adds a new entry or replaces an existing entry, otherwise the request is ignored.
         /// If this is false, nothing is removed, and any merge requests with existing keys will be ignored.</param>
-        public ControlBase SetAttribute(string name, object value, bool replace = true)
+        public WebComponent SetAttribute(string name, object value, bool replace = true)
         {
             Attributes.MergeString(name, value, replace);
             return this;
         }
 
         /// <summary>
-        /// Gets an attribute value on this control by name.
+        /// Gets an attribute value on this component by name.
         /// </summary>
         /// <param name="name">The attribute name.</param>
         public string GetAttribute(string name)
@@ -418,11 +417,11 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Adds one or more CSS class names to the control.
+        /// Adds one or more CSS class names to the component.
         /// </summary>
         /// <param name="classNames"></param>
         /// <returns></returns>
-        public ControlBase AddClass(params string[] classNames)
+        public WebComponent AddClass(params string[] classNames)
         {
             if (classNames.Length > 0)
             {
@@ -451,11 +450,11 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Removes one or more CSS class names to the control.
+        /// Removes one or more CSS class names to the component.
         /// </summary>
         /// <param name="classNames"></param>
         /// <returns></returns>
-        public ControlBase RemoveClass(params string[] classNames)
+        public WebComponent RemoveClass(params string[] classNames)
         {
             if (classNames.Length > 0)
             {
@@ -480,10 +479,10 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Returns true if the control has ALL the specified CSS class names set.
+        /// Returns true if the component has ALL the specified CSS class names set.
         /// </summary>
         /// <param name="classNames">A list of class names to test against.  If a single array item has spaces it will be parsed also as separate class names.</param>
-        /// <returns>True if the current control current has all the given class names, or false otherwise.</returns>
+        /// <returns>True if the current component current has all the given class names, or false otherwise.</returns>
         public bool HasClass(params string[] classNames)
         {
             if (classNames.Length > 0)
@@ -511,12 +510,12 @@ namespace CoreXT.Toolkit.Controls
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Inserts an inline script into a given event attribute for this control (i.e. "onclick").
+        /// Inserts an inline script into a given event attribute for this component (i.e. "onclick").
         /// If one or more scripts already exists for the event, this new script is appended.
         /// </summary>
-        /// <param name="eventAttributeName">The attribute event name for an event on this control.</param>
+        /// <param name="eventAttributeName">The attribute event name for an event on this component.</param>
         /// <param name="script">The inline script to set.  If a script is already set</param>
-        public ControlBase AddEventScript(string eventAttributeName, string script)
+        public WebComponent AddEventScript(string eventAttributeName, string script)
         {
             if (string.IsNullOrEmpty(script))
                 return this;
@@ -545,16 +544,16 @@ namespace CoreXT.Toolkit.Controls
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Adds a resource that is required for this control.
+        /// Adds a resource that is required for this component.
         /// If the resource is already added then the request is ignored.
         /// </summary>
         /// <param name="resourcePath">A URI to the script to add to the page.</param>
         /// <param name="resourceType">The type of the resource returned from the given resource path.</param>
         /// <param name="renderTarget">Where to render the resource.</param>
-        public ControlBase RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null)
+        public WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null)
         {
             if (RequiredResources == null)
-                throw new InvalidOperationException("No view page was supplied for this control.");
+                throw new InvalidOperationException("No view page was supplied for this component.");
 
             RequiredResources.Add(resourcePath, ResourceTypes.Script, renderTarget, sequence, environmentName);
 
@@ -562,16 +561,16 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Adds a resource that is required for this control.
+        /// Adds a resource that is required for this component.
         /// If the resource is already added then the request is ignored.
         /// </summary>
         /// <param name="resourcePath">A URI to the script to add to the page.</param>
         /// <param name="resourceType">The type of the resource returned from the given resource path.</param>
         /// <param name="renderTarget">Where to render the resource.</param>
-        public ControlBase RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment)
+        public WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment)
         {
             if (RequiredResources == null)
-                throw new InvalidOperationException("No view page was supplied for this control.");
+                throw new InvalidOperationException("No view page was supplied for this component.");
 
             RequiredResources.Add(resourcePath, ResourceTypes.Script, renderTarget, sequence, environment);
 
@@ -579,46 +578,46 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Adds a required script (usually JavaScript) to this control, if it has not been added already.
+        /// Adds a required script (usually JavaScript) to this component, if it has not been added already.
         /// </summary>
-        /// <param name="scriptPath">A URI to the script to associated with this control.</param>
-        public ControlBase RequireScript(string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
+        /// <param name="scriptPath">A URI to the script to associated with this component.</param>
+        public WebComponent RequireScript(string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
         {
             return RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environmentName);
         }
 
         /// <summary>
-        /// Adds a required script (usually JavaScript) to this control, if it has not been added already.
+        /// Adds a required script (usually JavaScript) to this component, if it has not been added already.
         /// </summary>
-        /// <param name="scriptPath">A URI to the script to associated with this control.</param>
+        /// <param name="scriptPath">A URI to the script to associated with this component.</param>
         /// <param name="renderTarget">Where to render the script on a page when 'Render()' is called.</param>
-        public ControlBase RequireScript(string scriptPath, RenderTargets renderTarget, Environments environment)
+        public WebComponent RequireScript(string scriptPath, RenderTargets renderTarget, Environments environment)
         {
             return RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environment);
         }
 
         /// <summary>
-        /// Adds a required CSS reference to this control, if it has not been added already.
+        /// Adds a required CSS reference to this component, if it has not been added already.
         /// </summary>
-        /// <param name="cssPath">A URI to the script to associated with this control.</param>
+        /// <param name="cssPath">A URI to the script to associated with this component.</param>
         /// <param name="renderTarget">Where to render the CSS on a page when 'Render()' is called.</param>
-        public ControlBase RequireCSS(string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
+        public WebComponent RequireCSS(string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
         {
             return RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environmentName);
         }
 
         /// <summary>
-        /// Adds a required CSS reference to this control, if it has not been added already.
+        /// Adds a required CSS reference to this component, if it has not been added already.
         /// </summary>
-        /// <param name="cssPath">A URI to the script to associated with this control.</param>
+        /// <param name="cssPath">A URI to the script to associated with this component.</param>
         /// <param name="renderTarget">Where to render the CSS on a page when 'Render()' is called.</param>
-        public ControlBase RequireCSS(string cssPath, RenderTargets renderTarget, Environments environment)
+        public WebComponent RequireCSS(string cssPath, RenderTargets renderTarget, Environments environment)
         {
             return RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environment);
         }
 
         /// <summary>
-        /// Adds the resources (JavaScript, CSS, etc.) required for this control to the view properties for deferred rendering.
+        /// Adds the resources (JavaScript, CSS, etc.) required for this component to the view properties for deferred rendering.
         /// These resources are rendered via a post process before the page is returned to the client.
         /// </summary>
         public void ApplyResourcesToRequestContext()
@@ -631,7 +630,7 @@ namespace CoreXT.Toolkit.Controls
         // --------------------------------------------------------------------------------------------------------------------
 
         ///// <summary>
-        ///// Renders the HTML for this control, assuming the 'Page' property references a simple 'Web.WebViewPage&lt;dynamic>' 
+        ///// Renders the HTML for this component, assuming the 'Page' property references a simple 'Web.WebViewPage&lt;dynamic>' 
         ///// type, or a renderer is supplied.
         ///// </summary>
         //? public virtual IHtmlContent Render()
@@ -644,13 +643,13 @@ namespace CoreXT.Toolkit.Controls
         //    {
         //        ViewData.Model = this;
         //        return this;
-        //        //? throw new InvalidOperationException("Cannot display control, page type is unknown.  If a specific model type was supplied, use the other 'Render()' method overload.");
+        //        //? throw new InvalidOperationException("Cannot display component, page type is unknown.  If a specific model type was supplied, use the other 'Render()' method overload.");
         //    }
         //}
 
         /// <summary>
         /// Supports rendering HTML model properties, represented by the given expression.
-        /// <para>Note: If a custom renderer delegate is supplied to the control's constructor, it is ignored by this method because the generic 'expression' parameter cannot be passed to it.</para>
+        /// <para>Note: If a custom renderer delegate is supplied to the component's constructor, it is ignored by this method because the generic 'expression' parameter cannot be passed to it.</para>
         /// </summary>
         /// <param name="expression">An expression that represents a value (usually a model property) to be sent to .</param>
         public virtual IHtmlContent RenderFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression = null) // TODO: May require more testing.
@@ -675,9 +674,9 @@ namespace CoreXT.Toolkit.Controls
         new virtual public ViewViewComponentResult View()
         {
             if (RenderMode == RenderModes.Edit)
-                return base.View("/Views/Shared/Components/" + GetType().Name + "/Editor.cshtml", this);
+                return base.View("Components/" + GetType().Name + "/Editor.cshtml", this);
             else
-                return base.View("/Views/Shared/Components/" + GetType().Name + "/Display.cshtml", this);
+                return base.View("Components/" + GetType().Name + "/Display.cshtml", this);
         }
 
         /// <summary>
@@ -697,9 +696,9 @@ namespace CoreXT.Toolkit.Controls
         new virtual public ViewViewComponentResult View<TModel>(TModel model)
         {
             if (RenderMode == RenderModes.Edit)
-                return base.View("/Views/Shared/Components/" + GetType().Name + "/Editor.cshtml", model);
+                return base.View("Components/" + GetType().Name + "/Editor.cshtml", model);
             else
-                return base.View("/Views/Shared/Components/" + GetType().Name + "/Display.cshtml", model);
+                return base.View("Components/" + GetType().Name + "/Display.cshtml", model);
         }
 
         /// <summary>
@@ -712,7 +711,7 @@ namespace CoreXT.Toolkit.Controls
         new virtual public ViewViewComponentResult View<TModel>(string viewName, TModel model) { return base.View(viewName, model); }
 
         /// <summary>
-        /// These virtual methods are used within the control to get a view, which allows implementers to override if needed.
+        /// These virtual methods are used within the component to get a view, which allows implementers to override if needed.
         /// </summary>
         protected virtual ViewViewComponentResult GetView()
         {
@@ -720,7 +719,7 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// These virtual methods are used within the control to get a view, which allows implementers to override if needed.
+        /// These virtual methods are used within the component to get a view, which allows implementers to override if needed.
         /// </summary>
         protected virtual ViewViewComponentResult GetView<TModel>(TModel model)
         {
@@ -800,9 +799,9 @@ namespace CoreXT.Toolkit.Controls
         }
 
         /// <summary>
-        /// Renders the current control and returns the result as an IHtmlContent based value, which can be written to an
+        /// Renders the current component and returns the result as an IHtmlContent based value, which can be written to an
         /// output stream via a 'TextWriter' instance.
-        /// <para>To render a control to a string value, just call the 'ToString()' method instead.</para>
+        /// <para>To render a component to a string value, just call the 'ToString()' method instead.</para>
         /// </summary>
         public virtual async Task<IHtmlContent> Render()
         {
@@ -812,7 +811,7 @@ namespace CoreXT.Toolkit.Controls
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public static implicit operator HtmlString(ControlBase ctrl)
+        public static implicit operator HtmlString(WebComponent ctrl)
         {
             return new HtmlString(ctrl.ToString());
         }
@@ -845,9 +844,9 @@ namespace CoreXT.Toolkit.Controls
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Renders this control for the purpose of output to a view.
+        /// Renders this component for the purpose of output to a view.
         /// <para>Note: Because this method is expected to be used in views, it implicitly calls 
-        /// 'ApplyResourcesToRequestContext()'. To render the control, use 'ToString()' instead.</para>
+        /// 'ApplyResourcesToRequestContext()'. To render the component, use 'ToString()' instead.</para>
         /// </summary>
         public void WriteTo(TextWriter writer, HtmlEncoder encoder) // (implementation for IHtmlContent)
         {
@@ -860,7 +859,7 @@ namespace CoreXT.Toolkit.Controls
 
         /// <summary>
         /// This is only here to support the documented '@await Component.InvokeAsync()' semantics of ViewComponent execution.
-        /// Please use the '@await {control}' or '@await {control}.Render()' format instead (both do the same thing).
+        /// Please use the '@await {component}' or '@await {component}.Render()' format instead (both do the same thing).
         /// </summary>
         public virtual async Task<IViewComponentResult> InvokeAsync()
         {
@@ -886,7 +885,7 @@ namespace CoreXT.Toolkit.Controls
         public async Task ExecuteResultAsync(ActionContext context)
         {
             if (Page == null && _Context == null)
-                Page = ControlBase.GetCurrentOrDefaultPage(context);
+                Page = WebComponent.GetCurrentOrDefaultPage(context);
             var output = await Render();
             if (string.IsNullOrWhiteSpace(context.HttpContext.Response.ContentType))
                 context.HttpContext.Response.ContentType = "text/html";
@@ -898,7 +897,7 @@ namespace CoreXT.Toolkit.Controls
 
         public static IViewPage GetCurrentOrDefaultPage(ActionContext context)
         {
-            // ... try to get the current view from the DI container (most likely this is null if the control is being returned as an action response ... 
+            // ... try to get the current view from the DI container (most likely this is null if the component is being returned as an action response ... 
             var pageRenderStack = context.HttpContext.GetService<IViewPageRenderStack>();
             return pageRenderStack?.Current ?? new _TempViewPage(context);
         }
@@ -919,7 +918,7 @@ namespace CoreXT.Toolkit.Controls
     // ########################################################################################################################
 
     /// <summary>
-    /// In most cases, this temp view page is only used once at the controller action level when a control is returned from a controller action (thus, without a parent view).
+    /// In most cases, this temp view page is only used once at the controller action level when a component is returned from a controller action (thus, without a parent view).
     /// </summary>
     class _TempViewPage : ViewPage<dynamic>
     {
@@ -947,35 +946,35 @@ namespace CoreXT.Toolkit.Controls
 
     // ########################################################################################################################
 
-    public static class ControlBaseExtensions
+    public static class ComponentBaseExtensions
     {
         /// <summary>
         /// Allows setting the 'Page' property using chained calls.
         /// </summary>
-        public static T SetPage<T>(this T control, IViewPage page) where T : IControlBase { control.Page = page; return (T)control; }
+        public static T SetPage<T>(this T component, IViewPage page) where T : IWebComponent { component.Page = page; return (T)component; }
 
         /// <summary>
-        /// Get a control with a dummy view context in order to be rendered directly from a controller.
+        /// Get a component with a dummy view context in order to be rendered directly from a controller.
         /// </summary>
-        /// <typeparam name="T">The type of control to create.</typeparam>
-        /// <param name="controller">The controller to create the control for.</param>
-        public static T GetControl<T>(this Controller controller) where T : class, IControlBase
+        /// <typeparam name="T">The type of component to create.</typeparam>
+        /// <param name="controller">The controller to create the component for.</param>
+        public static T GetComponent<T>(this Controller controller) where T : class, IWebComponent
         {
-            var control = controller?.HttpContext?.GetService<T>();
-            control.Page = ControlBase.GetCurrentOrDefaultPage(controller.ControllerContext);
-            return (T)control;
+            var component = controller?.HttpContext?.GetService<T>();
+            component.Page = WebComponent.GetCurrentOrDefaultPage(controller.ControllerContext);
+            return (T)component;
         }
 
         /// <summary>
-        /// Search for and add any public non-abstract class type that implements IControlBase to the services container.
-        /// <para>If any control of type 'ControlType' implements an interface named 'IControlType' (eg. 'class ControlType: IControlType {}'),
+        /// Search for and add any public non-abstract class type that implements IWebComponent to the services container.
+        /// <para>If any component of type 'ControlType' implements an interface named 'IControlType' (eg. 'class ControlType: IControlType {}'),
         /// the interface will be used as the registered service type instead of the implementation type.</para>
         /// <para>Note: 'TryAddTransient()' is used to register the controls to allow injecting custom types.</para>
         /// </summary>
-        /// <param name="assembly">The assembly that contains all the 'IControlBase' types to register with the services container.</param>
-        public static void AddControls(this IServiceCollection services, Assembly assembly)
+        /// <param name="assembly">The assembly that contains all the 'IWebComponent' types to register with the services container.</param>
+        public static void AddComponents(this IServiceCollection services, Assembly assembly)
         {
-            var types = from t in assembly.GetTypes() where typeof(IControlBase).IsAssignableFrom(t) select new { Type = t, Info = t.GetTypeInfo() };
+            var types = from t in assembly.GetTypes() where typeof(IWebComponent).IsAssignableFrom(t) select new { Type = t, Info = t.GetTypeInfo() };
             foreach (var type in types)
                 if (type.Info.IsClass && !type.Info.IsAbstract && type.Info.IsPublic)
                 {
@@ -991,10 +990,10 @@ namespace CoreXT.Toolkit.Controls
     // ########################################################################################################################
 }
 
-// (ControlBase is base on the ViewComponent concepts: https://www.youtube.com/watch?v=zxQBIfwqVoA)
+// (WebComponent is base on the ViewComponent concepts: https://www.youtube.com/watch?v=zxQBIfwqVoA)
 
 // Special thanks to the original source that helped jump start the controls section:
 // https://www.codeproject.com/Articles/32356/Custom-controls-in-ASP-NET-MVC
 // The final code, however, is a rewrite specific to CDS purposes (rather than retyping the same typical code). The rewrite
-// also focuses on using editor and display templates, rather than hard coding the control designs. This gives more design
+// also focuses on using editor and display templates, rather than hard coding the component designs. This gives more design
 // power to developers.

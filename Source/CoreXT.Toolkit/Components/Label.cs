@@ -2,9 +2,9 @@
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CoreXT.Toolkit.Controls
+namespace CoreXT.Toolkit.Components
 {
-    public class Label : ControlBase
+    public class Label : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
