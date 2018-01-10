@@ -131,9 +131,10 @@ namespace CoreXT.Entities
         /// <typeparam name="TContextProvider">The type of provider to use to get the DBContext instances.</typeparam>
         /// <param name="sp"></param>
         /// <param name="connectionString"></param>
+        /// <param name="commandTimeout">The number of seconds to wait before a command executed against the context times out. If not specified the system default is used, or whatever is specified via the connection string.</param>
         /// <param name="testConnectingBeforeReturning"></param>
         /// <returns></returns>
-        public static ICoreXTDBContext ConfigureCoreXTDBContext<TContextProvider>(this ICoreXTServiceProvider sp, bool isReadonly, Action<DbContextOptionsBuilder> onConfiguring = null, bool testConnectingBeforeReturning = true)
+        public static ICoreXTDBContext ConfigureCoreXTDBContext<TContextProvider>(this ICoreXTServiceProvider sp, bool isReadonly, Action<DbContextOptionsBuilder> onConfiguring = null, int? commandTimeout = null, bool testConnectingBeforeReturning = true)
             where TContextProvider : class, IContextProvider
         {
             var contextProvider = sp.GetService<TContextProvider>();
@@ -144,6 +145,9 @@ namespace CoreXT.Entities
 
             if (context.Database == null)
                 throw new InvalidOperationException("The 'Database' property is null for DBContext type " + typeof(TContextProvider).Name + ".");
+
+            if (commandTimeout != null)
+                context.Database.SetCommandTimeout(TimeSpan.FromSeconds(commandTimeout.Value));
 
             var logger = sp.GetService<ILoggerFactory>()?.CreateLogger<TContextProvider>();
 
@@ -158,7 +162,9 @@ namespace CoreXT.Entities
                 try
                 {
                     if (testConnectingBeforeReturning)
-                        context.Database.OpenConnection(); // (test the connection now)
+                    {
+                        context.Database.EnsureCreated(); // (test the connection now)
+                    }
 
                     return context;
                 }

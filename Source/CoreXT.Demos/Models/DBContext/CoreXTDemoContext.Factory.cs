@@ -127,14 +127,14 @@ namespace CoreXT.Models
         /// per-request-based cache.
         /// <para>Note that this method also tests the connection by default before returning the context.</para>
         /// </summary>
-        public static ICoreXTDemoContext GetCoreXTDemoContext(this ICoreXTServiceProvider sp, string connectionString = null, bool testConnectingBeforeReturning = true)
+        public static ICoreXTDemoContext GetCoreXTDemoContext(this ICoreXTServiceProvider sp, string connectionString = null, int? commandTimeout = null, bool testConnectingBeforeReturning = true)
         {
             if (connectionString == null)
             {
                 var settings = sp.GetCoreXTDemoAppSettings();
                 connectionString = settings.DefaultConnectionString;
             }
-            return (ICoreXTDemoContext)sp.ConfigureCoreXTDBContext<ICoreXTDemoContextProvider>(false, options => options.UseMySql(connectionString), testConnectingBeforeReturning);
+            return (ICoreXTDemoContext)sp.ConfigureCoreXTDBContext<ICoreXTDemoContextProvider>(false, options => options.UseMySql(connectionString), commandTimeout, testConnectingBeforeReturning);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -144,14 +144,14 @@ namespace CoreXT.Models
         /// which means a new instance on each request, but the same instance used across the request (for caching).
         /// This greatly helps to reduce database hits.
         /// </summary>
-        public static ICoreXTDemoReadonlyContext GetCoreXTDemoReadOnlyContext(this ICoreXTServiceProvider sp, string connectionString = null, bool testConnectingBeforeReturning = true)
+        public static ICoreXTDemoReadonlyContext GetCoreXTDemoReadOnlyContext(this ICoreXTServiceProvider sp, string connectionString = null, int? commandTimeout = null, bool testConnectingBeforeReturning = true)
         {
             if (connectionString == null)
             {
                 var settings = sp.GetCoreXTDemoAppSettings();
                 connectionString = settings.DefaultConnectionString;
             }
-            return (ICoreXTDemoReadonlyContext)sp.ConfigureCoreXTDBContext<ICoreXTDemoContextProvider>(true, options => options.UseMySql(connectionString), testConnectingBeforeReturning);
+            return (ICoreXTDemoReadonlyContext)sp.ConfigureCoreXTDBContext<ICoreXTDemoContextProvider>(true, options => options.UseMySql(connectionString), commandTimeout, testConnectingBeforeReturning);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
