@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Text;
@@ -31,6 +33,16 @@ namespace CoreXT.ASPNet
         //{
         //    return new UriBuilder(uriStr);
         //}
+
+        /// <summary>
+        /// Returns a Uri for the URL of the given request.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public static Uri GetUrl(this HttpRequest request)
+        {
+            return new Uri(request.GetDisplayUrl(), UriKind.Absolute);
+        }
 
         /// <summary>
         /// Returns a UriBuilder to work with the specified Uri.
@@ -76,6 +88,20 @@ namespace CoreXT.ASPNet
             nameValues.Add(name, (value is string) ? (string)value : value.ToString());
             uriBuilder.Query = nameValues.ToString();
             return uriBuilder;
+        }
+
+        /// <summary>
+        /// Add a "name=value" entry to a NameValueCollection.
+        /// </summary>
+        /// <param name="nameValueCollection"></param>
+        /// <param name="name">The name of the value to add.</param>
+        /// <param name="value">The value to add. If the value is null, and empty string will be added.</param>
+        /// <returns></returns>
+        public static NameValueCollection Add(this NameValueCollection nameValueCollection, string name, object value)
+        {
+            if (value == null) value = "";
+            nameValueCollection.Add(name, (value is string) ? (string)value : value.ToString());
+            return nameValueCollection;
         }
 
         /// <summary>
