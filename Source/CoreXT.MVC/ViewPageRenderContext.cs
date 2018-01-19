@@ -57,7 +57,8 @@ namespace CoreXT.MVC
                     var buffer = Encoding.UTF8.GetBytes(text);
                     _OriginalBodyStream.Write(buffer, 0, buffer.Length);
                 }
-            } // (else a redirect or other action may have killed the stream)
+            }
+            else _OriginalBodyStream.Dispose(); // (else a redirect or other action may have disposed the stream, so dispose the original one also)
             // TODO: Check if "bodyStream" is disposed, do we also need to dispose "_OriginalBodyStream"? 
         }
     }
