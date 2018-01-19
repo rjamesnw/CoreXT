@@ -30,14 +30,14 @@ namespace CoreXT.MVC
         /// <returns>Returns the original 'ActionContext.HttpContext.Response.Body' stream that was replaced.
         /// Once a view response is ready, the original 'Body' stream is restored and the filtered text written
         /// to it. In most cases the return value here is ignored.</returns>
-        public virtual Stream FilterOutput(Func<string, string> filter)
+        public virtual Stream FilterOutput(Func<string, string> filter) // (used with  CoreXT.Toolkit.Web.ViewPage<TModel>.OnBeforeRenderView())
         {
             if (filter == null)
                 throw new ArgumentNullException("filter");
             // ... hook into the body stream to intercept the "(TextWriter)WriterFactory.CreateWriter(response.Body,...)" writes (ViewExecutor.cs) ...
             _Filter = filter;
             _OriginalBodyStream = ActionContext.HttpContext.Response.Body;
-            ActionContext.HttpContext.Response.Body = new MemoryStream();
+            ActionContext.HttpContext.Response.Body = new MemoryStream(); // (this is the magic hook to buffer all writes instead of streaming to the client immediately [allows us to modify the contents])
             return _OriginalBodyStream;
         }
 
@@ -46,14 +46,19 @@ namespace CoreXT.MVC
         /// </summary>
         public virtual void OnApplyFilter()
         {
-            using (var reader = new StreamReader(ActionContext.HttpContext.Response.Body, Encoding.UTF8))
+            var bodyStream = ActionContext.HttpContext.Response.Body;
+            ActionContext.HttpContext.Response.Body = _OriginalBodyStream; // (put back the original body stream)
+            if (bodyStream.CanRead) // (can we read from it? [usually false is it was disposed somehow])
             {
-                reader.BaseStream.Seek(0, SeekOrigin.Begin);
-                ActionContext.HttpContext.Response.Body = _OriginalBodyStream;
-                var text = _Filter(reader.ReadToEnd());
-                var buffer = Encoding.UTF8.GetBytes(text);
-                _OriginalBodyStream.Write(buffer, 0, buffer.Length);
-            }
+                using (var reader = new StreamReader(bodyStream, Encoding.UTF8))
+                {
+                    reader.BaseStream.Seek(0, SeekOrigin.Begin);
+                    var text = _Filter(reader.ReadToEnd());
+                    var buffer = Encoding.UTF8.GetBytes(text);
+                    _OriginalBodyStream.Write(buffer, 0, buffer.Length);
+                }
+            } // (else a redirect or other action may have killed the stream)
+            // TODO: Check if "bodyStream" is disposed, do we also need to dispose "_OriginalBodyStream"? 
         }
     }
 }

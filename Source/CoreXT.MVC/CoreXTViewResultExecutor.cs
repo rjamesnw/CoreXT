@@ -16,6 +16,10 @@ using System.Threading.Tasks;
 
 namespace CoreXT.MVC
 {
+    /// <summary>
+    /// The  CoreXT implementation that locates and executes a Microsoft.AspNetCore.Mvc.ViewEngines.IView for a Microsoft.AspNetCore.Mvc.ViewResult.
+    /// 
+    /// </summary>
     public class CoreXTViewResultExecutor : ViewResultExecutor
     {
         public CoreXTViewResultExecutor(
