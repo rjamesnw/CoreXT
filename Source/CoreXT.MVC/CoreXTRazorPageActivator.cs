@@ -35,7 +35,7 @@ namespace CoreXT.MVC
         public virtual void Activate(IRazorPage page, ViewContext context)
         {
             _RazorPageActivator.Activate(page, context);
-            (page as IViewPageRenderEvents)?.OnViewActived(page, context);
+            (page as IViewPageRenderEvents)?.OnViewActivated(page, context);
         }
     }
 }

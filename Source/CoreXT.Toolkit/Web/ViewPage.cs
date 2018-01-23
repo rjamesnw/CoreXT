@@ -79,7 +79,7 @@ namespace CoreXT.Toolkit.Web
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        protected virtual void OnBeforeRenderView(ViewPageRenderContext renderContext)
+        protected virtual void OnBeforeRenderView(IViewPageRenderContext renderContext)
         {
             var httpcontext = renderContext.ActionContext.HttpContext;
 
@@ -91,10 +91,10 @@ namespace CoreXT.Toolkit.Web
 
             var TagProcessingService = httpcontext.GetService<IContentTagProcessingService>();
 
-            renderContext.FilterOutput(r => TagProcessingService.Process(r));
+            renderContext.BeginOutputFilter(r => TagProcessingService.Process(r));
         }
 
-        protected virtual IHtmlContent OnRenderException(ViewPageRenderContext renderContext, Exception ex)
+        protected virtual IHtmlContent OnRenderException(IViewPageRenderContext renderContext, Exception ex)
         {
             var typicalbscsspath = XT?.Page?.Href("~/lib/bootstrap/dist/css/bootstrap.css");
             var errorMsg = ex.GetFullErrorMessage().Replace("\r\n", "<br/>\r\n");
@@ -104,13 +104,13 @@ namespace CoreXT.Toolkit.Web
             return new HtmlString("<html><head><link rel='stylesheet' href='" + typicalbscsspath + "'/></head><body><div class='alert alert-danger'>" + msg + "</div></body></html>");
         }
 
-        protected virtual void OnAfterRenderView(ViewPageRenderContext renderContext)
+        protected virtual void OnAfterRenderView(IViewPageRenderContext renderContext)
         {
             if (ViewPageRenderStack != null)
                 Debug.Assert(ViewPageRenderStack.Pop() == this, "View page render stack not in sync.");
         }
 
-        protected virtual void OnViewActived(IRazorPage page, ViewContext context)
+        protected virtual void OnViewActivated(IRazorPage page, ViewContext context)
         {
             // ... the view page was just prepared for rendering, set any values needed for the views now ...
             var httpcontext = context.HttpContext;
@@ -157,22 +157,22 @@ namespace CoreXT.Toolkit.Web
             OnViewFound(actionContext, viewResult, searchResult);
         }
 
-        void IViewPageRenderEvents.OnBeforeRenderView(ViewPageRenderContext renderContext)
+        void IViewPageRenderEvents.OnBeforeRenderView(IViewPageRenderContext renderContext)
         {
             OnBeforeRenderView(renderContext);
         }
 
-        IHtmlContent IViewPageRenderEvents.OnRenderException(ViewPageRenderContext renderContext, Exception ex)
+        IHtmlContent IViewPageRenderEvents.OnRenderException(IViewPageRenderContext renderContext, Exception ex)
         {
             return OnRenderException(renderContext, ex);
         }
 
-        void IViewPageRenderEvents.OnViewActived(IRazorPage page, ViewContext context)
+        void IViewPageRenderEvents.OnViewActivated(IRazorPage page, ViewContext context)
         {
-            OnViewActived(page, context);
+            OnViewActivated(page, context);
         }
 
-        void IViewPageRenderEvents.OnAfterRenderView(ViewPageRenderContext renderContext)
+        void IViewPageRenderEvents.OnAfterRenderView(IViewPageRenderContext renderContext)
         {
             OnAfterRenderView(renderContext);
         }

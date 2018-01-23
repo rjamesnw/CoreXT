@@ -19,24 +19,24 @@ namespace CoreXT.MVC
         /// Returning 'null' will re-throw the exception passed in. If the event occurs, it is usually after
         /// the page is activated, during the rendering process.
         /// </summary>
-        IHtmlContent OnRenderException(ViewPageRenderContext renderContext, Exception ex);
+        IHtmlContent OnRenderException(IViewPageRenderContext renderContext, Exception ex);
 
         /// <summary>
         /// Executed after a view is found, but before it is activated and rendered.
         /// <para>Note: Many RazorPage properties are not set until 'OnViewActived()' is triggered.</para>
         /// </summary>
-        void OnBeforeRenderView(ViewPageRenderContext renderContext);
+        void OnBeforeRenderView(IViewPageRenderContext renderContext);
 
         /// <summary>
         /// Executed just after a view is activated for rendering.
         /// The 'RazorView' type uses a view activator to set some properties just before it is rendered.
         /// <para>If you have a custom view page, this is where you can "inject" property values (since constructor injection is not supported for razor pages).</para>
         /// </summary>
-        void OnViewActived(IRazorPage page, ViewContext context);
+        void OnViewActivated(IRazorPage page, ViewContext context);
 
         /// <summary>
         /// Executed just after a view is rendered.
         /// </summary>
-        void OnAfterRenderView(ViewPageRenderContext renderContext);
+        void OnAfterRenderView(IViewPageRenderContext renderContext);
     }
 }

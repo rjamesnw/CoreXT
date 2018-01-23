@@ -63,8 +63,9 @@ namespace CoreXT.MVC
             services.TryAddSingleton<IRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
             services.TryAddSingleton<ICoreXTRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
             services.TryAddSingleton<ViewResultExecutor, CoreXTViewResultExecutor>();
-            services.TryAddSingleton<ViewPageRenderContext, ViewPageRenderContext>();
             services.TryAddSingleton<IRazorPageActivator, CoreXTRazorPageActivator>();
+
+            services.TryAddScoped<IViewPageRenderContext, ViewPageRenderContext>(); // (MUST BE "Scoped", since it holds per-request data and requires it's own instance)
 
             services.AddRoutingXT();
 

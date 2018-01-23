@@ -45,7 +45,7 @@ namespace CoreXT.MVC
         public override async Task ExecuteAsync(ActionContext actionContext, IView view, ViewResult viewResult)
         {
             var viewPage = (view as RazorView)?.RazorPage as IViewPageRenderEvents;
-            var renderContext = viewPage == null ? null : actionContext.HttpContext.GetService<ViewPageRenderContext>();
+            var renderContext = viewPage == null ? null : actionContext.HttpContext.GetService<IViewPageRenderContext>();
 
             if (renderContext != null)
             {
@@ -66,8 +66,8 @@ namespace CoreXT.MVC
                 result.WriteTo(actionContext.HttpContext.Response.Body);
             }
 
-            if (renderContext?._Filter != null)
-                renderContext.OnApplyFilter();
+            if (renderContext?.HasFilter == true)
+                renderContext.ApplyOutputFilter();
 
             viewPage?.OnAfterRenderView(renderContext);
         }
