@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace CoreXT.Entities
 {
@@ -22,56 +23,133 @@ namespace CoreXT.Entities
     /// </summary>
     /// <typeparam name="TContext">A CoreXTDBContext type that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
     /// <typeparam name="TReadonlyContext">A CoreXTDBContext that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
-    public class ContextProvider<TContext, TReadonlyContext> : IContextProvider<TContext, TReadonlyContext>, IContextProvider
+    public class ContextProvider<TContext, TReadonlyContext> : IContextProvider<TContext, TReadonlyContext>, IDisposable
           where TContext : class, ICoreXTDBContext
         where TReadonlyContext : class, ICoreXTDBContext
     {
-        Dictionary<int, ICoreXTDBContext> _ReadonlyContextsPerThread = new Dictionary<int, ICoreXTDBContext>();
         ICoreXTServiceProvider _ServiceProvider;
+
+        List<ICoreXTDBContext> _Contexts = new List<ICoreXTDBContext>();
+        List<int> _EmptyContextIndexes = new List<int>();
+
+        AsyncLocal<int> _PerAsycControlFlowContexts = new AsyncLocal<int>();
+        AsyncLocal<int> _PerAsycControlFlowReadonlyContexts = new AsyncLocal<int>();
 
         public ContextProvider(ICoreXTServiceProvider sp)
         {
             _ServiceProvider = sp;
         }
 
-        public virtual TContext GetContext()
+        public void Dispose()
         {
-            return _ServiceProvider.GetService<TContext>();
+            foreach (var db in _Contexts)
+                try
+                {
+                    db?.Dispose();
+                }
+                catch (ObjectDisposedException) { }
         }
 
-        public virtual TReadonlyContext GetReadonlyContext()
+        private ICoreXTDBContext _GetContext()
         {
-            lock (_ReadonlyContextsPerThread)
+            var contextIndex = _PerAsycControlFlowContexts.Value - 1;
+            if (contextIndex < 0)
+            {
+                contextIndex = 0;
+            }
+            var ctx = _ServiceProvider.GetService<TContext>();
+        }
+
+        /// <summary>
+        /// Returns a read-write context for the current HTTP request.
+        /// </summary>
+        /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
+        public virtual TContext GetContext(bool createNew = false)
+        {
+            if (createNew)
+                return _ServiceProvider.GetService<TContext>();
+            else
+                lock (_PerAsycControlFlowReadonlyContexts)
+                {
+                    var threadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                    var ctx = _PerAsycControlFlowContexts.Value ?? (_PerAsycControlFlowContexts.Value = _ServiceProvider.GetService<TContext>());
+                    return (TContext)ctx;
+                }
+        }
+
+        /// <summary>
+        /// Returns a read-only context for the current HTTP request in order to protect modifying any data. It's a good place to cache lookup data that
+        /// should not be modified, or data which might be "sanitized" before sending it to the client, without worrying about it getting saved.
+        /// If querying AND updating is required, use 'GetContext()' instead.
+        /// </summary>
+        /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
+        public virtual TReadonlyContext GetReadonlyContext(bool createNew = false)
+        {
+            if (createNew)
+                return _ServiceProvider.GetService<TReadonlyContext>();
+            lock (_PerAsycControlFlowReadonlyContexts)
             {
                 var threadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                var ctx = _ReadonlyContextsPerThread.Value(threadID) ?? (_ReadonlyContextsPerThread[threadID] = _ServiceProvider.GetService<TReadonlyContext>());
+                var ctx = _PerAsycControlFlowReadonlyContexts.Value ?? (_PerAsycControlFlowReadonlyContexts.Value = _ServiceProvider.GetService<TReadonlyContext>());
                 return (TReadonlyContext)ctx;
             }
         }
 
-        ICoreXTDBContext IContextProvider.GetContext()
+        ICoreXTDBContext IContextProvider.GetContext(bool createNew)
         {
-            return GetContext();
+            return GetContext(createNew);
         }
 
-        ICoreXTDBContext IContextProvider.GetReadonlyContext()
+        ICoreXTDBContext IContextProvider.GetReadonlyContext(bool createNew)
         {
-            return GetReadonlyContext();
+            return GetReadonlyContext(createNew);
         }
     }
 
-    public interface IContextProvider<TContext, TReadonlyContext>
+    /// <summary>
+    /// The CoreXT context provider provides one place to construct entity database contexts on the fly.  
+    /// <para>NOTE: Derived context providers should be registered as "Scoped" so that a new instance is created on each request.</para>
+    /// </summary>
+    /// <typeparam name="TContext">A CoreXTDBContext type that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
+    /// <typeparam name="TReadonlyContext">A CoreXTDBContext that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
+    public interface IContextProvider<TContext, TReadonlyContext> : IContextProvider
         where TContext : class, ICoreXTDBContext
         where TReadonlyContext : class, ICoreXTDBContext
     {
-        TContext GetContext();
-        TReadonlyContext GetReadonlyContext();
+        /// <summary>
+        /// Returns a read-write context for the current HTTP request.
+        /// </summary>
+        /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
+        new TContext GetContext(bool createNew = false);
+
+        /// <summary>
+        /// Returns a read-only context for the current HTTP request in order to protect modifying any data. It's a good place to cache lookup data that
+        /// should not be modified, or data which might be "sanitized" before sending it to the client, without worrying about it getting saved.
+        /// If querying AND updating is required, use 'GetContext()' instead.
+        /// </summary>
+        /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
+        new TReadonlyContext GetReadonlyContext(bool createNew = false);
     }
 
+    /// <summary>
+    /// The CoreXT context provider provides one place to construct entity database contexts on the fly.  
+    /// <para>NOTE: Derived context providers should be registered as "Scoped" so that a new instance is created on each request.</para>
+    /// </summary>
     public interface IContextProvider
     {
-        ICoreXTDBContext GetContext();
-        ICoreXTDBContext GetReadonlyContext();
+        /// <summary>
+        /// Returns a read-write context for the current HTTP request.
+        /// </summary>
+        /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
+        ICoreXTDBContext GetContext(bool createNew = false);
+
+        /// <summary>
+        /// Returns a read-only context for the current HTTP request in order to protect modifying any data. It's a good place to cache lookup data that
+        /// should not be modified, or data which might be "sanitized" before sending it to the client, without worrying about it getting saved.
+        /// If querying AND updating is required, use 'GetContext()' instead.
+        /// </summary>
+        /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
+        ICoreXTDBContext GetReadonlyContext(bool createNew = false);
     }
 
     // ########################################################################################################################
@@ -129,16 +207,18 @@ namespace CoreXT.Entities
         /// Dynamically configures a CoreXT based DBContext object, and optionally tests that a connection can be made using the given connection string.
         /// </summary>
         /// <typeparam name="TContextProvider">The type of provider to use to get the DBContext instances.</typeparam>
-        /// <param name="sp"></param>
-        /// <param name="connectionString"></param>
+        /// <param name="sp">The CoreXT service provider.</param>
+        /// <param name="isReadonly">True of the context should be read-only.</param>
+        /// <param name="onConfiguring">An function expression to execute if a new context is created (in order to setup the context, such as setting a connection string).</param>
         /// <param name="commandTimeout">The number of seconds to wait before a command executed against the context times out. If not specified the system default is used, or whatever is specified via the connection string.</param>
-        /// <param name="testConnectingBeforeReturning"></param>
+        /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
+        /// <param name="testConnectingBeforeReturning">If true (default) calls 'ExecuteSqlCommand()' on the context to make sure the connection is valid.</param>
         /// <returns></returns>
-        public static ICoreXTDBContext ConfigureCoreXTDBContext<TContextProvider>(this ICoreXTServiceProvider sp, bool isReadonly, Action<DbContextOptionsBuilder> onConfiguring = null, int? commandTimeout = null, bool testConnectingBeforeReturning = true)
+        public static ICoreXTDBContext ConfigureCoreXTDBContext<TContextProvider>(this ICoreXTServiceProvider sp, bool isReadonly, Action<DbContextOptionsBuilder> onConfiguring = null, int? commandTimeout = null, bool createNew = false, bool testConnectingBeforeReturning = true)
             where TContextProvider : class, IContextProvider
         {
             var contextProvider = sp.GetService<TContextProvider>();
-            var context = isReadonly ? contextProvider.GetReadonlyContext() : contextProvider.GetContext();
+            var context = isReadonly ? contextProvider.GetReadonlyContext(createNew) : contextProvider.GetContext(createNew);
 
             if (context == null)
                 throw new InvalidOperationException("There is no " + typeof(TContextProvider).Name + " service object registered.");
@@ -163,7 +243,7 @@ namespace CoreXT.Entities
                 {
                     if (testConnectingBeforeReturning)
                     {
-                        context.Database.EnsureCreated(); // (test the connection now)
+                        context.Database.ExecuteSqlCommand("SELECT 1"); // (test the connection now)
                     }
 
                     return context;

@@ -44,6 +44,23 @@ namespace CoreXT.Entities
         {
         }
 
+        /// <summary>
+        /// DO NOT CALL 'Dispose()' DIRECTLY. Let the DI container handle it. To force disposal, type-case to 'DbContext' first, then call '{DbContext}.Dispose()'.';
+        /// </summary>
+        [Obsolete("You should not be calling this directly in ASP.Net Core.")]
+        void IDisposable.Dispose()
+        {
+            var caller = System.Reflection.Assembly.GetCallingAssembly().FullName;
+            var assemblyRootName = caller.Split('.')[0].ToUpper();
+            if (assemblyRootName != "SYSTEM" && assemblyRootName != "MICROSOFT")
+            {
+                var msg = "Disposing of a context manually can cause errors. It is recommended to let the DI container dispose of objects. To force disposing this object, type-case it to 'DbContext' first.\r\n The assembly that caused the error was '" + caller + "'. Review the exception stack trace for more details.";
+                System.Diagnostics.Debug.WriteLine("*** " + msg + " ***", "ERROR");
+                throw new InvalidOperationException(msg);
+            }
+            base.Dispose();
+        }
+
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
