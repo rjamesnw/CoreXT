@@ -30,7 +30,7 @@ namespace CoreXT.Toolkit
         {
             // ... register CoreXT service objects ...
 
-            services.TryAddSingleton<ICoreXTServiceProvider, CoreXTServiceProvider>();
+            services.TryAddTransient<ICoreXTServiceProvider, CoreXTServiceProvider>();
 
             services.TryAddTransient(typeof(ViewHelper<>), typeof(ViewHelper<>));
             //? services.TryAddTransient<ViewHelper, ViewHelper>(); // not sure if this is needed...?

@@ -8,7 +8,7 @@ namespace CoreXT.Services.DI
     /// Represents a simple generic service provider for the CoreXT platform to support dependency injection.
     /// This allows plugging the CoreXT system into any other DI based environment.
     /// </summary>
-    public interface ICoreXTServiceProvider
+    public interface ICoreXTServiceProvider: IDisposable
     {
         /// <summary>
         /// Attempts to create an instance of an implementation type based on the given service type using the underlying service provider.
@@ -100,6 +100,11 @@ namespace CoreXT.Services.DI
                     throw new InvalidOperationException("A 'System.IServiceProvider' instance was not supplied, and the type '" + typeInfo.Name + "' could not be resolved in the related assembly.", ex);
             }
             // TODO: Consider injecting from types within the current assembly as a pseudo DI container.
+        }
+
+        public void Dispose()
+        {
+            _ServiceProvider = null;
         }
     }
 }

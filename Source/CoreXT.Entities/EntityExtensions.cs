@@ -1,4 +1,5 @@
 ﻿using CoreXT.Services.DI;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
@@ -23,41 +24,70 @@ namespace CoreXT.Entities
     /// </summary>
     /// <typeparam name="TContext">A CoreXTDBContext type that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
     /// <typeparam name="TReadonlyContext">A CoreXTDBContext that should be registered as "Transient" in order to create a new instance on each request.</typeparam>
-    public class ContextProvider<TContext, TReadonlyContext> : IContextProvider<TContext, TReadonlyContext>, IDisposable
+    public class ContextProvider<TContext, TReadonlyContext> : IContextProvider<TContext, TReadonlyContext>
           where TContext : class, ICoreXTDBContext
         where TReadonlyContext : class, ICoreXTDBContext
     {
         ICoreXTServiceProvider _ServiceProvider;
+        HttpContext _HttpContext;
 
-        List<ICoreXTDBContext> _Contexts = new List<ICoreXTDBContext>();
-        List<int> _EmptyContextIndexes = new List<int>();
+        List<ICoreXTDBContext> _Contexts = new List<ICoreXTDBContext>(); // (only pre-HTTP-request scoped contexts are stored here)
 
         AsyncLocal<int> _PerAsycControlFlowContexts = new AsyncLocal<int>();
         AsyncLocal<int> _PerAsycControlFlowReadonlyContexts = new AsyncLocal<int>();
 
+        /// <summary>
+        /// Returns true while HttpContext is available.
+        /// </summary>
+        public bool IsInRequestScope => _HttpContext != null;
+
         public ContextProvider(ICoreXTServiceProvider sp)
         {
             _ServiceProvider = sp;
+            _HttpContext = _ServiceProvider.GetService<IHttpContextAccessor>().HttpContext; // (*** this is null if there is no current context, such as being called before and after a request ***)
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
-            foreach (var db in _Contexts)
-                try
-                {
-                    db?.Dispose();
-                }
-                catch (ObjectDisposedException) { }
-        }
-
-        private ICoreXTDBContext _GetContext()
-        {
-            var contextIndex = _PerAsycControlFlowContexts.Value - 1;
-            if (contextIndex < 0)
+            lock (_Contexts)
             {
-                contextIndex = 0;
+                foreach (var db in _Contexts)
+                    try
+                    {
+                        ((DbContext)db)?.Dispose();
+                    }
+                    catch (ObjectDisposedException) { }
+                _Contexts.Clear();
             }
-            var ctx = _ServiceProvider.GetService<TContext>();
+        }
+
+        private T _GetContext<T>(AsyncLocal<int> asyncLocal) where T : class, ICoreXTDBContext
+        {
+            lock (_Contexts)
+            {
+                var contextIndex = asyncLocal.Value - 1; // (since AsyncLocal defaults to 0, treat that as -1 [unset index])
+                if (contextIndex < 0)
+                {
+                    contextIndex = _Contexts.Count;
+                    asyncLocal.Value = 1 + contextIndex;
+                    _Contexts.Add(null);
+                }
+                var ctx = _Contexts[contextIndex];
+                if (ctx != null)
+                    try
+                    {
+                        // ... test if it was disposed ...
+                        var test = ctx.ConnectionString;
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // ... was disposed (normally the user should not be disposing these), so we need a new one ...
+                        ctx = null;
+                    }
+                if (ctx == null)
+                    _Contexts[contextIndex] = ctx = _ServiceProvider.GetService<T>();
+                return (T)ctx;
+            }
         }
 
         /// <summary>
@@ -66,15 +96,13 @@ namespace CoreXT.Entities
         /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
         public virtual TContext GetContext(bool createNew = false)
         {
-            if (createNew)
+            if (createNew || !IsInRequestScope)
                 return _ServiceProvider.GetService<TContext>();
             else
-                lock (_PerAsycControlFlowReadonlyContexts)
-                {
-                    var threadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                    var ctx = _PerAsycControlFlowContexts.Value ?? (_PerAsycControlFlowContexts.Value = _ServiceProvider.GetService<TContext>());
-                    return (TContext)ctx;
-                }
+            {
+                var ctx = _GetContext<TContext>(_PerAsycControlFlowContexts);
+                return ctx;
+            }
         }
 
         /// <summary>
@@ -85,13 +113,12 @@ namespace CoreXT.Entities
         /// <param name="createNew">If true, a new instance is returned and not the per-request cached instance. Default is false.</param>
         public virtual TReadonlyContext GetReadonlyContext(bool createNew = false)
         {
-            if (createNew)
+            if (createNew || !IsInRequestScope)
                 return _ServiceProvider.GetService<TReadonlyContext>();
-            lock (_PerAsycControlFlowReadonlyContexts)
+            else
             {
-                var threadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
-                var ctx = _PerAsycControlFlowReadonlyContexts.Value ?? (_PerAsycControlFlowReadonlyContexts.Value = _ServiceProvider.GetService<TReadonlyContext>());
-                return (TReadonlyContext)ctx;
+                var ctx = _GetContext<TReadonlyContext>(_PerAsycControlFlowContexts);
+                return ctx;
             }
         }
 
@@ -135,7 +162,7 @@ namespace CoreXT.Entities
     /// The CoreXT context provider provides one place to construct entity database contexts on the fly.  
     /// <para>NOTE: Derived context providers should be registered as "Scoped" so that a new instance is created on each request.</para>
     /// </summary>
-    public interface IContextProvider
+    public interface IContextProvider : IDisposable
     {
         /// <summary>
         /// Returns a read-write context for the current HTTP request.
