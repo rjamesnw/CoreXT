@@ -1,4 +1,5 @@
-﻿using CoreXT.Toolkit.Web;
+﻿using CoreXT.Services.DI;
+using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System;
@@ -14,7 +15,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// Creates a menu control.
         /// </summary>
-        public MenuItem(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
+        public MenuItem(ICoreXTServiceProvider sp) : base(sp) { }
 
         public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
 

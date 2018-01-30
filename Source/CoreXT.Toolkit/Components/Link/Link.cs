@@ -1,4 +1,5 @@
-﻿using CoreXT.Toolkit.Web;
+﻿using CoreXT.Services.DI;
+using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System;
@@ -21,7 +22,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// Creates an empty link control.
         /// </summary>
-        public Link(IViewPageRenderStack pageRenderStack) : base(pageRenderStack)
+        public Link(ICoreXTServiceProvider sp) : base(sp)
         {
         }
 

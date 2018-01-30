@@ -17,7 +17,7 @@ namespace CoreXT.Toolkit.Components
     {
         IDictionary<string, string> Attributes { get; }
         string Class { get; set; }
-        HttpContext Context { get; set; }
+        //??HttpContext Context { get; set; }
         string DataSourceID { get; set; }
         string EncodedInnerHtml { get; }
         string ID { get; set; }

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CoreXT.Services.DI;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +22,7 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public Label(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
+        public Label(ICoreXTServiceProvider sp) : base(sp) { }
 
         public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
 

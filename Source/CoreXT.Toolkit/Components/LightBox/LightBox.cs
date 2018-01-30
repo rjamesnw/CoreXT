@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
+using CoreXT.Services.DI;
 
 namespace CoreXT.Toolkit.Components
 {
@@ -12,7 +13,7 @@ namespace CoreXT.Toolkit.Components
     {
         // --------------------------------------------------------------------------------------------------------------------
 
-        public LightBox(IViewPageRenderStack pageRenderStack) : base(pageRenderStack)
+        public LightBox(ICoreXTServiceProvider sp) : base(sp)
         {
         }
 

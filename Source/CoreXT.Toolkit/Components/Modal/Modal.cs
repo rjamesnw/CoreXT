@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
+using CoreXT.Services.DI;
 
 namespace CoreXT.Toolkit.Components
 {
@@ -60,7 +61,7 @@ namespace CoreXT.Toolkit.Components
         /// Creates an empty modal pop-up.
         /// </summary>
         /// <param name="pageRenderStack"></param>
-        public Modal(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
+        public Modal(ICoreXTServiceProvider sp) : base(sp) { }
 
         public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
 

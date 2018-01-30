@@ -1,4 +1,5 @@
 ﻿using CoreXT.ASPNet;
+using CoreXT.Services.DI;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
@@ -60,13 +61,16 @@ namespace CoreXT.Toolkit.Components
         }
         IViewPage _Page;
 
-        /// <summary>
-        /// The context for this component.  The context is used to get services and access other information about the current
-        /// HTTP request.
-        /// <para>By default, this reads from 'Page.Context', unless a different context is set. </para>
-        /// </summary>
-        public Microsoft.AspNetCore.Http.HttpContext Context { get { return _Context ?? Page?.Context; } set { _Context = value; } }
-        Microsoft.AspNetCore.Http.HttpContext _Context;
+        public ICoreXTServiceProvider ServiceProvider => _CoreXTServiceProvider;
+        ICoreXTServiceProvider _CoreXTServiceProvider;
+
+        ///// <summary>
+        ///// The context for this component.  The context is used to get services and access other information about the current
+        ///// HTTP request.
+        ///// <para>By default, this reads from 'Page.Context', unless a different context is set. </para>
+        ///// </summary>
+        //public HttpContext HttpContext => _HttpContext ?? (_HttpContext = _CoreXTServiceProvider.GetService<HttpContextAccessor>().HttpContext);
+        //HttpContext _HttpContext;
 
         /// <summary>
         /// Derived types can use this convenience method to get services as required.
@@ -74,7 +78,7 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         /// <typeparam name="T">The type of service object to get.</typeparam>
         /// <returns>The service object if found, or 'null' otherwise.</returns>
-        protected T GetService<T>() where T : class { return Context.GetService<T>(); }
+        protected T GetService<T>() where T : class { return _CoreXTServiceProvider.GetService<T>(); }
 
         /// <summary>
         /// Gets a URL helper to build URLs for ASP.NET MVC within an application.
@@ -271,9 +275,10 @@ namespace CoreXT.Toolkit.Components
         /// <remarks>'pageRenderStack' can be null, which is usually only for unit testing controls where applicable.</remarks>
         /// <param name="pageRenderStack">The view page rendering stack to associate with this component. This is used as a hint
         /// to default the 'Page' property to the currently rendering view. You can also use 'SetPage()' instead to be more explicit.</param>
-        public WebComponent(IViewPageRenderStack pageRenderStack)
+        public WebComponent(ICoreXTServiceProvider sp)
         {
-            _ViewPageRenderStack = pageRenderStack;
+            _CoreXTServiceProvider = sp;
+            _ViewPageRenderStack = sp.GetService<IViewPageRenderStack>();
             Attributes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
@@ -884,7 +889,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="context">The action context from a controller.</param>
         public async Task ExecuteResultAsync(ActionContext context)
         {
-            if (Page == null && _Context == null)
+            if (Page == null)
                 Page = WebComponent.GetCurrentOrDefaultPage(context);
             var output = await Render();
             if (string.IsNullOrWhiteSpace(context.HttpContext.Response.ContentType))
@@ -895,9 +900,13 @@ namespace CoreXT.Toolkit.Components
             }
         }
 
+        /// <summary>
+        /// Try to get the current view from the DI container (most likely this is null if the component is being returned as an action response).
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static IViewPage GetCurrentOrDefaultPage(ActionContext context)
         {
-            // ... try to get the current view from the DI container (most likely this is null if the component is being returned as an action response ... 
             var pageRenderStack = context.HttpContext.GetService<IViewPageRenderStack>();
             return pageRenderStack?.Current ?? new _TempViewPage(context);
         }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using CoreXT.Services.DI;
 
 namespace CoreXT.Toolkit.Components
 {
@@ -64,7 +65,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// Creates a menu control.
         /// </summary>
-        public ActionLink(IViewPageRenderStack pageRenderStack) : base(pageRenderStack) { }
+        public ActionLink(ICoreXTServiceProvider sp) : base(sp) { }
 
         public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
 
