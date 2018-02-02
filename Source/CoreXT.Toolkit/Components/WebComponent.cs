@@ -1006,3 +1006,5 @@ namespace CoreXT.Toolkit.Components
 // The final code, however, is a rewrite specific to CDS purposes (rather than retyping the same typical code). The rewrite
 // also focuses on using editor and display templates, rather than hard coding the component designs. This gives more design
 // power to developers.
+//
+// Note: Support more of Templated Razor Delegates (https://haacked.com/archive/2011/02/27/templated-razor-delegates.aspx/).

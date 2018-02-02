@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CoreXT.Services.DI;
+using Microsoft.AspNetCore.Html;
 
 namespace CoreXT.Toolkit.Components
 {
@@ -58,6 +59,26 @@ namespace CoreXT.Toolkit.Components
         {
             get { return GetAttribute("href"); }
             set { SetAttribute("href", value); }
+        }
+
+        /// <summary>
+        /// Something to render immediately after the link start tag.
+        /// </summary>
+        public RazorTemplateDelegate<object> Prefix;
+
+        public Task<IHtmlContent> PrefixContent
+        {
+            get { return GetContentFromTemplateDelegate(Prefix); }
+        }
+
+        /// <summary>
+        /// Something to render immediately before the end tag.
+        /// </summary>
+        public RazorTemplateDelegate<object> Postfix;
+
+        public Task<IHtmlContent> PostfixContent
+        {
+            get { return GetContentFromTemplateDelegate(Postfix); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -204,6 +225,26 @@ namespace CoreXT.Toolkit.Components
 
             _CalcHref();
 
+            return this;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Something to render immediately after the link start tag.
+        /// </summary>
+        public ActionLink SetPrefix(RazorTemplateDelegate<object> content)
+        {
+            Prefix = content;
+            return this;
+        }
+
+        /// <summary>
+        /// Something to render immediately before the end tag.
+        /// </summary>
+        public ActionLink SetPostfix(RazorTemplateDelegate<object> content)
+        {
+            Postfix = content;
             return this;
         }
 

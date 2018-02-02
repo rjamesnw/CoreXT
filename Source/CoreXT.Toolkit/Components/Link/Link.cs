@@ -1,5 +1,6 @@
 ﻿using CoreXT.Services.DI;
 using CoreXT.Toolkit.Web;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System;
@@ -15,6 +16,26 @@ namespace CoreXT.Toolkit.Components
         {
             get { return GetAttribute("href"); }
             set { SetAttribute("href", value); }
+        }
+
+        /// <summary>
+        /// Something to render immediately after the link start tag.
+        /// </summary>
+        public RazorTemplateDelegate<object> Prefix;
+
+        public Task<IHtmlContent> PrefixContent
+        {
+            get { return GetContentFromTemplateDelegate(Prefix); }
+        }
+
+        /// <summary>
+        /// Something to render immediately before the end tag.
+        /// </summary>
+        public RazorTemplateDelegate<object> Postfix;
+
+        public Task<IHtmlContent> PostfixContent
+        {
+            get { return GetContentFromTemplateDelegate(Postfix); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -45,6 +66,26 @@ namespace CoreXT.Toolkit.Components
 
             Href = UrlHelper.Content(href);
 
+            return this;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Something to render immediately after the link start tag.
+        /// </summary>
+        public Link SetPrefix(RazorTemplateDelegate<object> content)
+        {
+            Prefix = content;
+            return this;
+        }
+
+        /// <summary>
+        /// Something to render immediately before the end tag.
+        /// </summary>
+        public Link SetPostfix(RazorTemplateDelegate<object> content)
+        {
+            Postfix = content;
             return this;
         }
 
