@@ -123,6 +123,23 @@ namespace CoreXT.Toolkit.Components
         }
 
         /// <summary>
+        /// Set route values for this link.
+        /// </summary>
+        /// <param name="values">
+        ///   An object to initialize the dictionary. The value can be of type System.Collections.Generic.IDictionary,
+        ///   System.Collections.Generic.IReadOnlyDictionary, or an object with public properties as key-value pairs.
+        /// </param>
+        public ActionLink SetRouteValues(object values)
+        {
+            if (RouteValues == null)
+                RouteValues = new RouteValueDictionary(values);
+            else
+                foreach (var item in new RouteValueDictionary(values))
+                    RouteValues[item.Key] = item.Value;
+            return this;
+        }
+
+        /// <summary>
         /// Clears a route value set for this link.
         /// </summary>
         /// <param name="name">The route value name.</param>

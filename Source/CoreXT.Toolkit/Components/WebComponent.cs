@@ -174,7 +174,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// Returns 'InnerHtml' as encoded HTML (usually used to output text for display purposes).
         /// </summary>
-        public string EncodedInnerHtml { get { return WebUtility.HtmlEncode(InnerHtml); } }
+        public HtmlString EncodedInnerHtml { get { return new HtmlString(InnerHtml); } } // WebUtility.HtmlEncode()
 
         /// <summary>
         /// If set, this will be called to render the raw HTML result when 'Render()' is called.
