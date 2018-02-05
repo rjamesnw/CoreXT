@@ -60,13 +60,17 @@ namespace CoreXT.Toolkit.Web
         /// <summary>
         /// Returns a reference to the controller for this view.
         /// </summary>
-        public Controller Controller
-        {
-            get
-            {
-                return Page?.ViewContext?.RouteData?.Values["controller"] as Controller;
-            }
-        }
+        public Controller Controller => Page?.ViewContext?.RouteData?.Values["controller"] as Controller;
+
+        /// <summary>
+        /// Get the name of the current controller.
+        /// </summary>
+        public string ControllerName => Controller?.ControllerContext?.ActionDescriptor?.ControllerName ?? "";
+
+        /// <summary>
+        /// Get the name of the current controller action.
+        /// </summary>
+        public string ActionName => Controller?.ControllerContext?.ActionDescriptor?.ActionName ?? "";
 
         // --------------------------------------------------------------------------------------------------------------------
 

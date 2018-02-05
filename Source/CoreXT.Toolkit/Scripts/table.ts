@@ -526,7 +526,7 @@ module CDS {
 
         // =====================================================================================================================
 
-        export function GetData(id: string, url: string) {
+        export function getData(id: string, url: string) {
             id = id.replace(/\./g, "\\.");
             $('#' + id).dataTable({
                 sPaginationType: "full_numbers",

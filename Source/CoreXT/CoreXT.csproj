@@ -36,7 +36,7 @@ This package holds various basic utilities and extension methods for convenience
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="REM xcopy /Y /D &quot;$(ProjectDir)bin\$(ConfigurationName)\*.nupkg&quot; &quot;$(SolutionDir)Nuget\$(ConfigurationName)\&quot;&#xD;&#xA;set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
+    <Exec Command="REM xcopy /Y /D &quot;$(ProjectDir)bin\$(ConfigurationName)\*.nupkg&quot; &quot;$(SolutionDir)Nuget\$(ConfigurationName)\&quot;&#xD;&#xA;if &quot;$(SolutionName)&quot;==&quot;CDS with CoreXT&quot; goto :EOF&#xD;&#xA;set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
   </Target>
 
   <Target Name="PushPackage" AfterTargets="Pack">

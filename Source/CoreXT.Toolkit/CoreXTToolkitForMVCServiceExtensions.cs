@@ -1,4 +1,5 @@
-﻿using CoreXT.MVC;
+﻿using CoreXT.Entities;
+using CoreXT.MVC;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Components;
 using CoreXT.Toolkit.Web;
@@ -54,9 +55,13 @@ namespace CoreXT.Toolkit
 
             services.AddComponents(currentAssembly);
 
-            if (setupAction != null)
-                return services.AddMvcXT(setupAction);
-            else
+            if (setupAction != null) {
+                return services.AddMvcXT(opts=>
+                {
+                    opts.ModelBinderProviders.Insert(0, new TableSetBinderProvider()); // (will automatically handle any Table<T> parameter types in controller actions that capture form posts)
+                    setupAction(opts);
+                });
+            }else
                 return services.AddMvcXT();
         }
 

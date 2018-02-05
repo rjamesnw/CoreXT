@@ -890,7 +890,7 @@ namespace CoreXT.Toolkit.Components
         public async Task ExecuteResultAsync(ActionContext context)
         {
             if (Page == null)
-                Page = WebComponent.GetCurrentOrDefaultPage(context);
+                Page = GetCurrentOrDefaultPage(context);
             var output = await Render();
             if (string.IsNullOrWhiteSpace(context.HttpContext.Response.ContentType))
                 context.HttpContext.Response.ContentType = "text/html";
@@ -948,7 +948,7 @@ namespace CoreXT.Toolkit.Components
             ViewContext.RouteData = context.RouteData;
             ViewContext.View = new _TempView();
             ViewContext.FormContext = new FormContext();
-            EnsureRequiredServicesSet(context.HttpContext);
+            ConfigureRequiredServices(context.HttpContext);
             //? ViewContext.Writer = new StreamWriter(context.Response.Body);
         }
     }

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <TypeScriptToolsVersion>2.4</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>CoreXT.JS</AssemblyName>
     <PackageId>CoreXT.JS</PackageId>

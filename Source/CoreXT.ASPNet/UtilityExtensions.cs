@@ -9,6 +9,7 @@ using System.IO;
 using System.Text.Encodings.Web;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace CoreXT.ASPNet
 {
@@ -86,6 +87,16 @@ namespace CoreXT.ASPNet
         {
             return context?.RequestServices?.GetService<T>();
         }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Returns zero/null, one, or many string values from a form collection for a given key.
+        /// </summary>
+        /// <param name="formCollection">The form collection to get values for.</param>
+        /// <param name="key">A key name in the form with the values to retrieve. If not found, then 'StringValues.Empty' is returned.</param>
+        /// <returns></returns>
+        public static StringValues GetValues(this IFormCollection formCollection, string key) => formCollection.TryGetValue(key, out var values) ? values : StringValues.Empty;
 
         // --------------------------------------------------------------------------------------------------------------------
     }

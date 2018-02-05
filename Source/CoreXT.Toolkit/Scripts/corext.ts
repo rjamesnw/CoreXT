@@ -44,7 +44,7 @@
          * @param source Source code file, if available.
          * @param sourceLineNumber Source code line number, if available.
          */
-        export function LogError(sender: string, eventOrMessage: any, source?: string, sourceLineNumber?: number) {
+        export function logError(sender: string, eventOrMessage: any, source?: string, sourceLineNumber?: number) {
             // ... format the error ...
 
             var msg = "";
@@ -87,7 +87,7 @@
         }
 
         window.onerror = function (eventOrMessage: any, source: string, fileno: number): any {
-            LogError("window.onerror", eventOrMessage, source, fileno);
+            logError("window.onerror", eventOrMessage, source, fileno);
         };
     }
 }
@@ -120,7 +120,7 @@ if (window.navigator && ("standalone" in window.navigator) && window.navigator["
 
 // ===================================================================================================================
 
-function IsPage(action: string, controller = "home") {
+function isPage(action: string, controller = "home") {
     return new RegExp("\/" + controller + "\/" + action + "(?:\/?[?&#]|$)", "gi").test(location.pathname);
 }
 

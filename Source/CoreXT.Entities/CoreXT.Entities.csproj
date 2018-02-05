@@ -34,7 +34,8 @@ This package holds some entities model utility methods.
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
+    <ProjectReference Include="..\CoreXT.ASPNet\CoreXT.ASPNet.csproj" />
+    <ProjectReference Include="..\CoreXT.Validation\CoreXT.Validation.csproj" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">
@@ -42,7 +43,7 @@ This package holds some entities model utility methods.
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
+    <Exec Command="if &quot;$(SolutionName)&quot;==&quot;CDS with CoreXT&quot; goto :EOF&#xD;&#xA;set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
   </Target>
 
 </Project>

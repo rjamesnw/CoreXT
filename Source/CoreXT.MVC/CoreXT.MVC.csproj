@@ -47,7 +47,7 @@ This package is the real meat of the whole system.  It injects it's own types in
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
+    <Exec Command="if &quot;$(SolutionName)&quot;==&quot;CDS with CoreXT&quot; goto :EOF&#xD;&#xA;set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
   </Target>
 
 </Project>

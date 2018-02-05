@@ -83,7 +83,7 @@ namespace CoreXT.Toolkit.Web
         {
             var httpcontext = renderContext.ActionContext.HttpContext;
 
-            EnsureRequiredServicesSet(httpcontext);
+            ConfigureRequiredServices(httpcontext);
 
             ViewPageRenderStack?.Push(this);
 
@@ -115,7 +115,7 @@ namespace CoreXT.Toolkit.Web
             // ... the view page was just prepared for rendering, set any values needed for the views now ...
             var httpcontext = context.HttpContext;
             var viewPage = page as ViewPage<TModel>;
-            viewPage?.EnsureRequiredServicesSet(httpcontext); // (this is here because 'OnBeforeRenderView()' is only called for normal views, and not '_{name}.cshtml' framework files)
+            viewPage?.ConfigureRequiredServices(httpcontext); // (this is here because 'OnBeforeRenderView()' is only called for normal views, and not '_{name}.cshtml' framework files)
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace CoreXT.Toolkit.Web
         /// This is usually done when the MVC system "activates" a page, just before rendering it.
         /// </summary>
         /// <param name="httpcontext"></param>
-        internal void EnsureRequiredServicesSet(HttpContext httpcontext)
+        internal void ConfigureRequiredServices(HttpContext httpcontext)
         {
             if (ViewContext != null && ViewContext.HttpContext == null)
                 ViewContext.HttpContext = httpcontext;
