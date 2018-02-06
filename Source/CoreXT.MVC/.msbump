@@ -1,0 +1,12 @@
+﻿{
+  Configurations: {
+    "Debug": {
+      "BumpRevision": true
+    },
+
+    "Release": {
+      "BumpMinor": true,
+      "ResetRevision": true
+    }
+  }
+}
