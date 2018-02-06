@@ -6,6 +6,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>CoreXT.Toolkit</AssemblyName>
     <PackageId>CoreXT.Toolkit</PackageId>
@@ -17,12 +18,13 @@
     <OutputTypeEx>library</OutputTypeEx>
     <IsPackable>true</IsPackable>
     <StartupObject />
-    <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
+    <Description>
+      Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 
 
-This package consists of various extensible types and controls for no-nonsense rapid ASP.Net Core MVC website development.
-</Description>
+      This package consists of various extensible types and controls for no-nonsense rapid ASP.Net Core MVC website development.
+    </Description>
     <Copyright>Catmedis</Copyright>
     <Authors>Catmedis</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -33,6 +35,7 @@ This package consists of various extensible types and controls for no-nonsense r
     <Version>1.0.7</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
+    <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -61,37 +64,49 @@ This package consists of various extensible types and controls for no-nonsense r
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\**\*.*" />
-    <None Include="Scripts\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <!--Default to remove all as context and set all to no action-->
     <Content Remove="\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Include="wwwroot\**\*.*" />
+    <None Include="Scripts\toolkit\**\*.*" />
+    <!--<None Include="tsconfig.json" />
+    <None Include="typings.json" />-->
+    <Folder Include="wwwroot\css\" />
+    <Folder Include="wwwroot\fonts\" />
+    <Folder Include="wwwroot\images\" />
+    <!--Embed some resources-->
+    <EmbeddedResource Include="Views/**/*.cshtml" />
     <EmbeddedResource Include="wwwroot\**\*.js" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\**\*.map" Exclude="wwwroot\**\test*.*" />
-    <EmbeddedResource Include="wwwroot\**\*.ts" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\**\*.css" />
     <EmbeddedResource Include="wwwroot\**\*.jpg" Exclude="\**\docs\*.*" />
     <EmbeddedResource Include="wwwroot\**\*.png" Exclude="\**\docs\*.*" />
     <EmbeddedResource Include="wwwroot\**\fonts\*.*" />
+    <EmbeddedResource Include="Scripts\*.*" />
+    <EmbeddedResource Include="Components\**\*.cs" />
+    <EmbeddedResource Include="Components\**\*.cshtml" />
+    <!--Include content using wildcards-->
+    <!--<None Include="Components\OrganizationUserApplicationMembershipTable\Display.cshtml" />-->
+    <!--<TypeScriptCompile Include="Scripts\**\*.ts" />
+    <TypeScriptCompile Include="typings\**\*.ts" Exclude="typings\cds\**\*.ts" />-->
+    <!--<None Remove="typings\cds\**\*.ts" />-->
+    <!--<Content Include="Scripts\*.ts" />-->
+    <!--<Content Include="wwwroot\js\*.js" />
+    <Content Include="wwwroot\js\*.js.map" />
+    <Content Include="typings\**\*.d.ts">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>-->
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Components\ActionLink\Display.cshtml" />
-    <EmbeddedResource Include="Components\ActionLink\Editor.cshtml" />
-    <EmbeddedResource Include="Components\LightBox\Display.cshtml" />
-    <EmbeddedResource Include="Components\Link\Display.cshtml" />
-    <EmbeddedResource Include="Components\Link\Editor.cshtml" />
-    <EmbeddedResource Include="Components\MenuItem\Display.cshtml" />
-    <EmbeddedResource Include="Components\Menu\Display.cshtml" />
-    <EmbeddedResource Include="Components\Modal\Display.cshtml" />
-    <EmbeddedResource Include="Components\_ViewImports.cshtml" />
-    <EmbeddedResource Include="Scripts\corext.ts" />
-    <EmbeddedResource Include="Scripts\ModalDrag.ts" />
-    <EmbeddedResource Include="Scripts\table.ts" />
+    <EmbeddedResource Remove="wwwroot\js\HoldOn.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="wwwroot\js\HoldOn.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="typings\datatables.net\typings.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -115,8 +130,22 @@ This package consists of various extensible types and controls for no-nonsense r
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controls\" />
+    <TypeScriptCompile Include="typings\bootstrap\index.d.ts" />
+    <TypeScriptCompile Include="typings\datatables.net\index.d.ts" />
+    <TypeScriptCompile Include="typings\jqueryui\jqueryui.d.ts" />
+    <TypeScriptCompile Include="typings\jquery\index.d.ts" />
+    <TypeScriptCompile Include="typings\selectize\selectize.d.ts" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="typings\bootstrap\typings.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="typings\jquery\typings.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 
   <Target Name="PushPackage" AfterTargets="Pack">
     <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />

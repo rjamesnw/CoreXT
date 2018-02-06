@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/443cbaad2cbc1fcfc949ff4801a659d4fd20904a/datatables.net/index.d.ts",
+    "raw": "registry:dt/datatables.net#1.10.9+20170310115247",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/443cbaad2cbc1fcfc949ff4801a659d4fd20904a/datatables.net/index.d.ts"
+  }
+}

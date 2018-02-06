@@ -4,18 +4,20 @@
     "noEmitOnError": true,
     "removeComments": false,
     "sourceMap": true,
+    "declaration": true,
+    "declarationDir": "typings/toolkit",
     "target": "es5",
     "outDir": "wwwroot/js",
     "rootDir": "Scripts"
   },
+  "compileOnSave": true,
   "include": [
-    "typings/**/*.ts",
+    "typings/index.d.ts",
     "Scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "wwwroot/**/*.ts",
-    "Scripts/corext.ts",
-    "Scripts/table.ts"
+    "Scripts/toolkit/**/*.ts"
   ]
 }
