@@ -1,4 +1,5 @@
 ﻿using CoreXT.ASPNet;
+using CoreXT.Entities;
 using CoreXT.MVC;
 using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Html;
@@ -105,6 +106,16 @@ namespace CoreXT.Toolkit.Web
         public Modal Modal(string title, string header, string body, string footer = null, bool allowClose = true)
         {
             return GetControl<Modal>().Configure(title, header, body, footer, allowClose);
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+     
+            /// <summary>
+        /// Returns a modal control to construct modal window elements.
+        /// </summary>
+        public Table Table(ITable<object> items)
+        {
+            return GetControl<Table>().Configure(items);
         }
 
         // --------------------------------------------------------------------------------------------------------------------

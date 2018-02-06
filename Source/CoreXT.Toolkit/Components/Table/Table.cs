@@ -30,17 +30,24 @@ namespace CoreXT.Toolkit.Components
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Creates a menu control (usually for the layout page).
+        /// Configure a table component with a data table instance.
         /// </summary>
-        /// <param name="page"></param>
-        /// <param name="caption">The menu title.</param>
-        /// <param name="actionName">The action for when the menu title is clicked.</param>
-        /// <param name="controllerName">The action for when the menu title is clicked.</param>
-        /// <param name="areaName">The area for when the menu title is clicked.</param>
-        public Menu Configure(string caption, string actionName = null, string controllerName = null, string areaName = null)
+        /// <param name="table">The data table to use.</param>
+        public Table Configure<TEntity>(ITable<TEntity> table) where TEntity: class, new()
         {
-            base.Configure(caption, actionName, controllerName, areaName);
-            Caption = caption;
+            DataTable = table;
+            return this;
+        }
+
+        /// <summary>
+        /// Configure a table component with a data table instance.
+        /// </summary>
+        /// <param name="table">The data table to use.</param>
+        public Table Configure<TEntity>(IEnumerable<TEntity> entities) where TEntity : class, new()
+        {
+            var table = new Table<TEntity>(ServiceProvider);
+            table.Entities = entities;
+            DataTable = table;
             return this;
         }
 

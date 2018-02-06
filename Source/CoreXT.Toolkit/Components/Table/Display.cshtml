@@ -1,6 +1,6 @@
 ﻿@model Table
 @{
-    var templateDetails = XT.GetTemplatePartDetails<Table>(td => GetControl<Table>().Configure(td.Text, true, null, null));
+    var templateDetails = XT.GetTemplatePartDetails<Table>(td => GetControl<Table>());
     var ctrl = templateDetails.Control;
 
     if (string.IsNullOrWhiteSpace(ctrl.ID))
@@ -64,7 +64,7 @@ else
     </table>
 </div>
 <script>
-    $CDS.Tables.getData("@tableIDPrefix", "@Url.Action("UserList", "Users")"); @*(in 'table.ts')*@
+    $CDS.Tables.getData("@tableIDPrefix", "@Url.RouteUrl("DefaultApi", new { httproute = "", controller = "Users" })"); @*(in 'table.ts')*@
 
     //$('.datepicker').datepicker();
 </script>
