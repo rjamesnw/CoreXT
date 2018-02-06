@@ -74,7 +74,7 @@
     <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\images\" />
     <!--Embed some resources-->
-    <EmbeddedResource Include="Views/**/*.cshtml" />
+    <EmbeddedResource Include="Features\**\*.cshtml" />
     <EmbeddedResource Include="wwwroot\**\*.js" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\**\*.map" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\**\*.css" />
@@ -105,11 +105,6 @@
   <ItemGroup>
     <EmbeddedResource Remove="Components\Table\Table.cs" />
     <EmbeddedResource Remove="Components\Table\_TableEditor.cshtml" />
-    <EmbeddedResource Remove="wwwroot\js\HoldOn.min.js" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="wwwroot\js\HoldOn.min.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -143,16 +138,6 @@
     <TypeScriptCompile Include="typings\jquery\index.d.ts" />
     <TypeScriptCompile Include="typings\selectize\selectize.d.ts" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="typings\bootstrap\typings.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Update="typings\jquery\typings.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
-
 
   <Target Name="PushPackage" AfterTargets="Pack">
     <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />
