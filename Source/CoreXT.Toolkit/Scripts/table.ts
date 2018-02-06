@@ -1,7 +1,7 @@
 ﻿declare var baseURL: string;
 
-module CDS {
-    export module Tables {
+namespace CDS {
+    export namespace Tables {
         // =====================================================================================================================
 
         export class TableRow {

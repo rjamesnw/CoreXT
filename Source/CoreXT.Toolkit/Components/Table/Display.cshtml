@@ -1,0 +1,70 @@
+﻿@model Table
+@{
+    var templateDetails = XT.GetTemplatePartDetails<Table>(td => GetControl<Table>().Configure(td.Text, true, null, null));
+    var ctrl = templateDetails.Control;
+
+    if (string.IsNullOrWhiteSpace(ctrl.ID))
+    {
+        ctrl.ID = Guid.NewGuid().ToString("N");
+    }
+
+    var table = ctrl.DataTable;
+    var tableIDPrefix = "Table." + table.ID;
+    var displayableColumns = table.DisplayableColumns.ToArray();
+}
+@if (IsEnvironment(Environments.Staging | Environments.Production))
+{
+    @Script("~/js/table.js", RenderTargets.Header).AppendVersion()
+}
+else
+{
+    @Script("~/js/table.js", RenderTargets.Header).AppendVersion()
+}
+<div class="table-responsive">
+    <table id="@tableIDPrefix" class="display table table-bordered table-hover jdatatable" style="width:100%">
+        <thead>
+            <tr class="table">
+                <th class="tableTitleRow" align="center" colspan="@(2 + table.DisplayableColumns.Count())">
+                    <div class="tableTitleBox">
+                        <div class="tableTitle">
+                            @table.TableTitle
+                            @if (table.ValidationResult == ValidationResults.Errors)
+                            {
+                                <br /><div id="@(tableIDPrefix).$error" class="alert alert-danger tableErrorMessage" style="width:100%">@Html.Raw(table.ErrorMessage != null ? table.ErrorMessage.Replace("\r\n", "<br/>\r\n").Replace(". ", ".<br/>\r\n") : "")NOT SAVED: Please correct errors and try again.</div>
+                                <script>edited = true;</script>
+                            }
+                            else if (table.ValidationResult == ValidationResults.Valid)
+                            {
+                                <br /><div id="@(tableIDPrefix).$error" class="alert alert-success tableSuccessMessage" style="width:100%">Saved.</div>
+                            }
+                        </div>
+                    </div>
+                </th>
+            </tr>
+            <tr>
+                <!-- HEADERS -->
+                @*<th class="columnHeading rowIndex"></th>*@
+                @foreach (ITableColumn<object> col in @table.DisplayableColumns)
+                {
+                    <th class="@(col.IsCalculated ? "calcColumnHeading" : "columnHeading")">
+                        <span title="@(col.Description ?? col.Prompt)">@col.Title</span>
+                        <input type="hidden" name="@(tableIDPrefix).Columns" id="@(tableIDPrefix).Column.@col.PropertyName" value="@col.PropertyName" />
+                        <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Type" value="@col.DataType.ToString()" />
+                        <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Required" value="@(col.IsRequired ? "true" : "")" />
+                        <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Prompt" value="@col.Prompt" />
+                        <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).MaxLength" value="@col.MaxLength" />
+                        <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Selections" value="{@(col.Selections != null ? string.Join(",",col.Selections.Select(s=>"\""+s.Value+"\":\""+s.Text+"\"")) : "")}" />
+                        <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Calculated" value="@(col.IsCalculated?"true":"false")" />
+                    </th>
+                }
+                @*<td class="columnHeading deleteColumn"></td>*@
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script>
+    $CDS.Tables.getData("@tableIDPrefix", "@Url.Action("UserList", "Users")"); @*(in 'table.ts')*@
+
+    //$('.datepicker').datepicker();
+</script>

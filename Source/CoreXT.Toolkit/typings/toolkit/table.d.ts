@@ -1,6 +1,6 @@
 declare var baseURL: string;
-declare module CDS {
-    module Tables {
+declare namespace CDS {
+    namespace Tables {
         class TableRow {
             _tableID: string;
             _rowID: string;

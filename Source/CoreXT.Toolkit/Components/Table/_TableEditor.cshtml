@@ -1,0 +1,216 @@
+﻿@model ITable<object>
+
+@{
+    CDS.RequireScript("~/Scripts/table.js");
+    CDS.RequireCSS("~/Content/table.css");
+
+    var controller = ViewContext.RouteData.GetRequiredString("controller");
+    var action = ViewContext.RouteData.GetRequiredString("action");
+
+    var table = Model;
+    var tableIDPrefix = "Table." + table.ID;
+    var rowIndex = 0;
+    var displayableColumns = table.DisplayableColumns.ToArray();
+    Int64 maxRowID = 0;
+}
+
+@helper RenderTableRow(ITable<object> table, ITableRow<object> row, int? rowIndex, string tableIDPrefix, string rowID = "{{rowID}}", string deleted = "{{Deleted}}", string isNew = "{{New}}")
+{
+var _rowIndex = rowIndex != null ? rowIndex.ToString() : "{{rowIndex}}";
+var rowPrefix = tableIDPrefix + "." + _rowIndex;
+var colIndex = 0;
+    <tr id="@rowPrefix" class="tableRow" style="@(row != null ? "" : "display:none;")">
+        <td class="tableCell rowIndex">
+            @_rowIndex
+            <input type="hidden" name="@(tableIDPrefix).RowIndex" value="@_rowIndex" />
+            <input type="hidden" name="@(rowPrefix).$rowIndex" id="@(rowPrefix).$rowIndex" value="@_rowIndex" />
+            <input type="hidden" name="@(rowPrefix).RowID" id="@(rowPrefix).RowID" value="@rowID" />
+            <input type="hidden" name="@(rowPrefix).Deleted" id="@(rowPrefix).Deleted" value="@deleted" />
+            <input type="hidden" name="@(rowPrefix).New" id="@(rowPrefix).New" value="@isNew" />
+            @foreach (ITableColumn<object> keyCol in @table.KeyColumns)
+            {
+                var propName = rowPrefix + ".Entity." + @keyCol.PropertyName;
+                <input type="hidden" name="@propName" id="@propName" value="@(row!=null?row.GetValue(keyCol):null)" />
+            }
+        </td>
+        @foreach (ITableColumn<object> col in table.DisplayableColumns)
+        {
+            if (col.Hidden)
+            {
+                // (skip hidden columns)
+                continue;
+            }
+            var propNamePrefix = rowPrefix + ".Entity." + col.PropertyName;
+            object value = row != null ? row.GetValue(col) : "{{" + col.PropertyName + "}}";
+            object translatedValue = value;
+            object displayText = row != null ? row.GetDisplayText(col) : "";
+            string errorMsg = null, fullErrorMsg = null;
+
+            if (value != null)
+            {
+                if (value.GetType() == typeof(DateTime) && ((DateTime)value).TimeOfDay.TotalMilliseconds == 0)
+                {
+                    value = ((DateTime)value).ToString("yyyy-MM-dd");
+                }
+            }
+
+            if (value == null) { value = ""; }
+
+            if (row != null && row.ValidationResult == ValidationResults.Errors)
+            {
+                // ... check posted data load errors ...
+                if (row.LoadErrors != null)
+                {
+                    var loadError = row.LoadErrors.Value(col.PropertyName) as RowColumnValueLoadException;
+                    if (loadError != null)
+                    {
+                        errorMsg = loadError.Message;
+                        fullErrorMsg = loadError.InnerException != null ? Exceptions.GetFullErrorMessage(loadError.InnerException) : "";
+                        value = loadError.Value; // (get the original user entered value to correct; these values could not be converted into the expected entity property value)
+                    }
+                }
+                else // ... check entity validation errors ...
+                if (row.EntityValidationResult != null)
+                {
+                    foreach (var error in row.EntityValidationResult.ValidationErrors)
+                    {
+                        if (error.PropertyName == col.PropertyName)
+                        {
+                            errorMsg = error.ErrorMessage;
+                            // (no need to set 'value', since at this point the posted values were already loaded into the underlying TableRow entities)
+                            break;
+                        }
+                    }
+                }
+            }
+
+            <td class="@(col.IsCalculated?"calcTableCell":"tableCell")@(errorMsg!=null?" tableCellError":"")" id="@propNamePrefix" title="@((errorMsg??"").Replace("\"", "&quot;"))" onclick="$CDS.Tables.onEditCell('@propNamePrefix')" style="max-width:200px; word-wrap:break-word;">
+                <input type="hidden" id="@(rowPrefix).@colIndex" value="@propNamePrefix" /><!--record column index for tabbing-->
+                @if (col.IsRequired)
+                {
+                    <font color="red">*&nbsp;</font>
+                }
+                @if (!col.IsCalculated)
+                {
+                    if (col.Selections != null)
+                    {
+                        <select id="@(propNamePrefix).input" value="@value" style="display:none; width:100%; min-width: 100px" onblur="$CDS.Tables.onLeaveCell('@(propNamePrefix)')" onkeydown="return $CDS.Tables.onCellInputKeyPress(event, '@propNamePrefix', '@rowPrefix', @colIndex)">
+                            @if (!col.IsRequired)
+                            {
+                                <option value=""></option>
+                            }
+                            @foreach (var selection in col.Selections)
+                            {
+                                <option value="@selection.Value" @(row != null && selection.Value == "" + row.GetValue(col) ? "selected" : "")>@selection.Text</option>
+                            }
+                        </select>
+                    }
+                    else if (col.DataType == typeof(DateTime) || col.DataType == typeof(DateTime?))
+                    {
+                        <input type="date" id="@(propNamePrefix).input" data-date-format="yyyy-mm-dd" value="@value" class="datepicker" style="display:none; width:100%; min-width: 100px" onblur="$CDS.Tables.onLeaveCell('@(propNamePrefix)')" onchange="$CDS.Tables.onCellChanged('@(propNamePrefix)')" maxlength="@col.MaxLength" onkeydown="return $CDS.Tables.onCellInputKeyPress(event, '@propNamePrefix', '@rowPrefix', @colIndex)" />
+                    }
+                    else if (col.DataType == typeof(bool) || col.DataType == typeof(bool?))
+                    {
+                        translatedValue = (Common.Utilities.ToBoolean(value, null) ?? false) ? "true" : "false";
+                        var _checked = (Common.Utilities.ToBoolean(value, null) ?? false) ? "checked" : "";
+                        <input type="checkbox" id="@(propNamePrefix).input" @_checked style="display:none; width:100%; min-width: 100px" onblur="$CDS.Tables.onLeaveCell('@(propNamePrefix)')" maxlength="@col.MaxLength" onkeydown="return $CDS.Tables.onCellInputKeyPress(event, '@propNamePrefix', '@rowPrefix', @colIndex)" />
+                    }
+                    else
+                    {
+                        // (use a textarea if the length is big)
+                        if (col.MaxLength > 40)
+                        {
+                          <textarea id="@(propNamePrefix).input" rows="4" style="display:none; width:100%; min-width: 160px" onblur="$CDS.Tables.onLeaveCell('@(propNamePrefix)')" maxlength="@col.MaxLength" onkeydown="return $CDS.Tables.onCellInputKeyPress(event, '@propNamePrefix', '@rowPrefix', @colIndex)">@value</textarea>
+                        }
+                        else
+                        {
+                            <input type="text" id="@(propNamePrefix).input" value="@value" style="display:none; width:100%; min-width: 100px" onblur="$CDS.Tables.onLeaveCell('@(propNamePrefix)')" maxlength="@col.MaxLength" onkeydown="return $CDS.Tables.onCellInputKeyPress(event, '@propNamePrefix', '@rowPrefix', @colIndex)" />
+                        }
+                    }
+                    <span id="@(propNamePrefix).prompt" class="cellPrompt" style="display:none; width:100%">@col.Prompt</span>
+                }
+                <input type="hidden" name="@propNamePrefix" id="@(propNamePrefix).value" value="@translatedValue" /><!--Input control values are copied here for posting after being validated after a cell edit.-->
+                <span id="@(propNamePrefix).display" onclick="@(col.IsCalculated?"$CDS.Tables.onEditCell('"+propNamePrefix+"')":"")" style="width:100%; white-space:pre; word-wrap:break-word;">@displayText</span>
+                @if (errorMsg != null)
+                {
+                    @*<span id="@(propName).$error" class="cellErrorMessage" style="width:100%">@errorMsg</span>*@
+                    <div id="@(propNamePrefix).$error" class="cellErrorMessage">!</div>
+                    if (fullErrorMsg != null)
+                    {
+                        <span style="display:none">Full error: @fullErrorMsg</span>
+                    }
+                }
+            </td>
+
+            ++colIndex;
+        }
+        <td class="tableCell deleteColumn"><input type="button" name="@(rowPrefix).delete" id="@(rowPrefix).delete" class="btn btn-danger btn-xs" value="Delete" onclick="$CDS.Tables.onDeleteRow('@rowPrefix')" /></td>
+    </tr>
+}
+
+<script type="text/javascript" src="~/Scripts/tableEditor.js"></script>
+
+<div>
+    @using (Html.BeginForm(action, controller, FormMethod.Post, new { onsubmit = "return $CDS.Tables.onValidateTable('" + tableIDPrefix + "')" }))
+    {
+        <input type="submit" class="btn btn-success" value="Save" style="float: right" /><br />
+        <input type="hidden" name="Table.ID" value="@table.ID" />
+        <input type="hidden" name="@(tableIDPrefix).TableTitle" value="@table.TableTitle" />
+        <input type="hidden" name="@(tableIDPrefix).KeyNames" value="@string.Join(",", table.KeyNames)" />
+        <table id="@tableIDPrefix">
+            <tr class="tableTitleBox">
+                <td align="center" colspan="@(2 + table.DisplayableColumns.Count())">
+                    <div >
+                        <div class="tableTitle">
+                            @table.TableTitle
+                            @if (table.ValidationResult == ValidationResults.Errors)
+                            {
+                                <br /><div id="@(tableIDPrefix).$error" class="alert alert-danger tableErrorMessage" style="width:100%">@Html.Raw(table.ErrorMessage != null ? table.ErrorMessage.Replace("\r\n", "<br/>\r\n").Replace(". ", ".<br/>\r\n") : "")NOT SAVED: Please correct errors and try again.</div>
+                                <script>edited = true;</script>
+                            }
+                            else if (table.ValidationResult == ValidationResults.Valid)
+                            {
+                                <br /><div id="@(tableIDPrefix).$error" class="alert alert-success tableSuccessMessage" style="width:100%">Saved.</div>
+                            }
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <!-- HEADERS -->
+                <td class="columnHeading rowIndex">#</td>
+
+                @foreach (ITableColumn<object> col in @table.DisplayableColumns)
+                {
+                    if (!col.Hidden)
+                    {
+                        <td class="@(col.IsCalculated ? "calcColumnHeading" : "columnHeading")">
+                            <span title="@(col.Description ?? col.Prompt)">@col.Title</span>
+                            <input type="hidden" name="@(tableIDPrefix).Columns" id="@(tableIDPrefix).Column.@col.PropertyName" value="@col.PropertyName" />
+                            <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Type" value="@col.DataType.ToString()" />
+                            <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Required" value="@(col.IsRequired ? "true" : "")" />
+                            <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Prompt" value="@col.Prompt" />
+                            <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).MaxLength" value="@col.MaxLength" />
+                            <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Selections" value="{@(col.Selections != null ? string.Join(",",col.Selections.Select(s=>"\""+s.Value+"\":\""+s.Text+"\"")) : "")}" />
+                            <input type="hidden" name="@(tableIDPrefix).Column.@(col.PropertyName)" id="@(tableIDPrefix).Column.@(col.PropertyName).Calculated" value="@(col.IsCalculated?"true":"false")" />
+                        </td>
+                    }
+                }
+                <td class="columnHeading deleteColumn"></td>
+            </tr>
+            @foreach (ITableRow<object> row in table.DisplayableRows)
+            {
+                if (row.ID > maxRowID) { maxRowID = row.ID; }
+                @RenderTableRow(table, row, ++rowIndex, tableIDPrefix, row.ID.ToString(), row.Deleted.ToString(), row.New.ToString());
+            }
+            @RenderTableRow(table, null, null, tableIDPrefix)
+        </table>
+        <input type="hidden" name="@(tableIDPrefix)._RowIDCounter" id="@(tableIDPrefix)._RowIDCounter" value="@maxRowID" />
+        <input type="hidden" name="@(tableIDPrefix).$rowIndex" id="@(tableIDPrefix).$rowIndex" value="@rowIndex" />
+        <br /><input type="button" name="@(tableIDPrefix).add" id="@(tableIDPrefix).add" class="btn btn-primary" value="Add" style="float: left" onclick="$CDS.Tables.onAddRow('@(tableIDPrefix)')" />
+        <input type="submit" class="btn btn-success" value="Save" style="float: right" />
+    }
+</div>
+<script>
+    $('.datepicker').datepicker();
+</script>

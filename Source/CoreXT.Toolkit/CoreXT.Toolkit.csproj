@@ -98,6 +98,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="Components\Table\Display.cshtml" />
+    <Content Remove="Components\Table\_TableEditor.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Components\Table\Table.cs" />
+    <EmbeddedResource Remove="Components\Table\_TableEditor.cshtml" />
     <EmbeddedResource Remove="wwwroot\js\HoldOn.min.js" />
   </ItemGroup>
 
