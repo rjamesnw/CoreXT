@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace CoreXT.Toolkit.Web
 {
@@ -53,6 +55,37 @@ namespace CoreXT.Toolkit.Web
         ViewDataDictionary IViewPage.ViewData { get { return ViewData; } set { ViewData = new ViewDataDictionary<TModel>(value); } }
 
         public IHostingEnvironment HostingEnvironment { get; private set; }
+
+        public IUrlHelper Url => _Url ?? (_Url = Context.GetService<IUrlHelperFactory>()?.GetUrlHelper(ViewContext));
+        IUrlHelper _Url;
+
+        public Uri RequestURL => _RequestURL ?? (_RequestURL = Context.Request.GetUrl());
+        Uri _RequestURL;
+
+        public string BaseURL => string.Format("{0}://{1}{2}", RequestURL.Scheme, RequestURL.Authority, Url.Content("~"));
+
+        //public string ControllerName => (ViewContext.RouteData.Values["controller"] as string) ?? "";
+
+        ////public string ActionName => (ViewContext.RouteData.Values["actions"] as string) ?? ""
+        ///// <summary>
+        ///// Returns a reference to the controller for this view.
+        ///// </summary>
+        //?? public Controller Controller => ViewContext?.RouteData?.Values["controller"] as Controller;
+
+        /// <summary>
+        /// The controller action descriptor for this view page.
+        /// </summary>
+        public ControllerActionDescriptor ControllerActionDescriptor => ViewContext.ActionDescriptor as ControllerActionDescriptor;
+
+        /// <summary>
+        /// Get the name of the current controller.
+        /// </summary>
+        public string ControllerName => ControllerActionDescriptor?.ControllerName ?? ViewContext.RouteData.Values["controller"] as string ?? "";
+
+        /// <summary>
+        /// Get the name of the current controller action.
+        /// </summary>
+        public string ActionName => ControllerActionDescriptor?.ActionName ?? ViewContext.RouteData.Values["action"] as string ?? "";
 
         /// <summary>
         /// The nesting level of this view within any other views during the rendering process.

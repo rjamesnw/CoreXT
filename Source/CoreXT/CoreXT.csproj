@@ -23,7 +23,7 @@
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 This package holds various basic utilities and extension methods for convenience.  For example, adds a '.Value(key, defaultValue)' method to easily pull out values from dictionaries, or '{string}.ND(defaultValue)' (null to default) for string values, async Task extensions, ObservableDictionary, WeakReferenceList, basic encryption, basic zip file support,, text parser,  'GetFullErrorMessage()' for writing out exceptions for debugging, and much more.</Description>
-    <Version>1.0.7.33</Version>
+    <Version>1.0.7.58</Version>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
@@ -41,6 +41,10 @@ This package holds various basic utilities and extension methods for convenience
 
   <Target Name="PushPackage" AfterTargets="Pack">
     <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />
+  </Target>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="if exist &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot; del /q &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)\CoreXT.*.nupkg&quot;" />
   </Target>
 
 </Project>

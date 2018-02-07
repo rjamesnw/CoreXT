@@ -30,7 +30,7 @@ namespace CoreXT.Toolkit.Components
         string Title { get; set; }
         string UniqueID { get; }
         string UniqueName { get; }
-        IUrlHelper UrlHelper { get; }
+        IUrlHelper Url { get; }
 
         WebComponent AddClass(params string[] classNames);
         WebComponent AddEventScript(string eventAttributeName, string script);

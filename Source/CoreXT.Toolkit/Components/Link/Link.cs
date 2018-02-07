@@ -64,7 +64,7 @@ namespace CoreXT.Toolkit.Components
 
             InnerHtml = text;
 
-            Href = UrlHelper.Content(href);
+            Href = Url.Content(href);
 
             return this;
         }

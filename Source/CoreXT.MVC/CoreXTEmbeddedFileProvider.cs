@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System.Collections;
+using System.Linq;
 
 namespace CoreXT.MVC
 {
@@ -17,30 +18,62 @@ namespace CoreXT.MVC
     /// </Summary>
     public class CoreXTEmbeddedFileProvider : IFileProvider
     {
-        EmbeddedFileProvider _EmbeddedFileProvider;
-        IHostingEnvironment _HostingEnvironment;
+        /// <summary>
+        /// The assembly associated with this file provider.
+        /// </summary>
+        public Assembly Assembly { get; }
 
         /// <summary>
-        ///     Initializes a new instance of the Microsoft.Extensions.FileProviders.EmbeddedFileProvider
-        ///     class using the specified assembly and empty base namespace.
+        /// The base namespace that was specified for this file provider.
+        /// </summary>
+        public string BaseNamespace => _BaseNamespace ?? Assembly.FullName;
+        string _BaseNamespace;
+
+        /// <summary>
+        /// The hosting environment which is the context in which to search for content files.
+        /// </summary>
+        public IHostingEnvironment HostingEnvironment { get; }
+
+        EmbeddedFileProvider _EmbeddedFileProvider;
+
+        public static Dictionary<Assembly, string[]> _AssemblyManifestNamesCache = new Dictionary<Assembly, string[]>(); // (mainly for debug purposes)
+
+        /// <summary>
+        /// Initializes a new instance of the CoreXT.MVC.CoreXTEmbeddedFileProvider
+        /// class using the specified assembly and empty base namespace.
         ///</summary>
         ///<param name="assembly">The assembly that contains the embedded hostingEnvresources.</param>
         public CoreXTEmbeddedFileProvider(Assembly assembly, IHostingEnvironment hostingEnvironment)
         {
-            _EmbeddedFileProvider = new EmbeddedFileProvider(assembly);
-            _HostingEnvironment = hostingEnvironment;
+            Assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
+            _EmbeddedFileProvider = new EmbeddedFileProvider(Assembly);
+            HostingEnvironment = hostingEnvironment;
+            lock (_AssemblyManifestNamesCache)
+            {
+                var cacheEntry = _AssemblyManifestNamesCache.Value(assembly);
+                if (cacheEntry == null)
+                    _AssemblyManifestNamesCache[Assembly] = Assembly.GetManifestResourceNames();
+            }
         }
 
         //
         /// <summary>
-        ///     Initializes a new instance of the Microsoft.Extensions.FileProviders.EmbeddedFileProvider
-        ///     class using the specified assembly and empty base namespace.
+        /// Initializes a new instance of the CoreXT.MVC.CoreXTEmbeddedFileProvider
+        /// class using the specified assembly and empty base namespace.
         ///</summary>
         ///<param name="assembly">The assembly that contains the embedded resources.</param>
         ///<param name="baseNamespace">The base namespace that contains the embedded resources.</param>
         public CoreXTEmbeddedFileProvider(Assembly assembly, string baseNamespace)
         {
-            _EmbeddedFileProvider = new EmbeddedFileProvider(assembly, baseNamespace);
+            Assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
+            _BaseNamespace = baseNamespace ?? assembly.FullName;
+            _EmbeddedFileProvider = new EmbeddedFileProvider(Assembly, BaseNamespace);
+            lock (_AssemblyManifestNamesCache)
+            {
+                var cacheEntry = _AssemblyManifestNamesCache.Value(assembly);
+                if (cacheEntry == null)
+                    _AssemblyManifestNamesCache[Assembly] = Assembly.GetManifestResourceNames();
+            }
         }
 
         public virtual IDirectoryContents GetDirectoryContents(string subpath)
@@ -52,15 +85,15 @@ namespace CoreXT.MVC
 
         public virtual IFileInfo GetFileInfo(string subpath)
         {
-            if (_HostingEnvironment != null) //? && Path.GetFileName(subpath) != "_ViewImports.cshtml")
+            if (HostingEnvironment != null) //? && Path.GetFileName(subpath) != "_ViewImports.cshtml")
             {
                 // ... if the file is found locally anywhere then abort to allow the user to load the local one instead as an override ...
 
-                var filepath = Path.Combine(_HostingEnvironment.ContentRootPath, subpath.TrimStart('/'));
+                var filepath = Path.Combine(HostingEnvironment.ContentRootPath, subpath.TrimStart('/'));
                 if (File.Exists(filepath))
                     return new NotFoundFileInfo(filepath);
 
-                filepath = Path.Combine(_HostingEnvironment.WebRootPath, subpath.TrimStart('/'));
+                filepath = Path.Combine(HostingEnvironment.WebRootPath, subpath.TrimStart('/'));
                 if (File.Exists(filepath))
                     return new NotFoundFileInfo(filepath);
             }
@@ -73,6 +106,20 @@ namespace CoreXT.MVC
 
             var result = _EmbeddedFileProvider.GetFileInfo(string.IsNullOrEmpty(dirPart) ? fileName : dirPart + "." + fileName);
             if (result.Exists) return result;
+
+#if DEBUG
+            // ... file does not exist, but warn if the file does exist at the end of any existing entry ...
+
+            var cacheEntry = _AssemblyManifestNamesCache.Value(Assembly);
+
+            if (cacheEntry != null && cacheEntry.Length > 0)
+            {
+                var similar = cacheEntry.Where(s => s == fileName || s.EndsWith("." + fileName) || s.EndsWith("\\" + fileName) || s.EndsWith("/" + fileName)).ToArray();
+                if (similar.Length > 0)
+                    System.Diagnostics.Debug.WriteLine(" You tried to find an embedded file '" + fileName + "' ('" + subpath + "') in '" + Assembly.FullName + "' using CoreXTEmbeddedFileProvider with base namespace '" + BaseNamespace + "' and the file was not found; however, there IS a similar file under these paths (is your base namespace correct?): "
+                        + string.Join(Environment.NewLine, similar), "WARNING");
+            }
+#endif
 
             return _EmbeddedFileProvider.GetFileInfo("wwwroot." + dirPart + "." + fileName);
         }

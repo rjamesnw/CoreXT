@@ -109,8 +109,8 @@ namespace CoreXT.Toolkit.Web
         }
 
         // --------------------------------------------------------------------------------------------------------------------
-     
-            /// <summary>
+
+        /// <summary>
         /// Returns a modal control to construct modal window elements.
         /// </summary>
         public Table Table(ITable<object> items)
@@ -119,6 +119,21 @@ namespace CoreXT.Toolkit.Web
         }
 
         // --------------------------------------------------------------------------------------------------------------------
+
+        public HtmlString RenderCoreXTBootstrap()
+        {
+            return new HtmlString(@"
+    <script>
+        var CoreXT = function (CoreXT) {
+            CoreXT.baseURL = """ + BaseURL + @""";
+            CoreXT.controllerName = """ + ControllerName + @""";
+            CoreXT.actionName = """ + ActionName + @""";
+            return CoreXT;
+        }
+        (CoreXT || {});
+    </script>
+");
+        }
     }
 
     // ########################################################################################################################

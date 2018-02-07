@@ -116,7 +116,7 @@ namespace CoreXT.Toolkit.Components
 
         void _CalcHref()
         {
-            Href = UrlHelper?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, HostName, Port, Fragment, RouteValues);
+            Href = Url?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, HostName, Port, Fragment, RouteValues);
         }
 
         public override async Task<WebComponent> Update()

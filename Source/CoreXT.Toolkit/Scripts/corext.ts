@@ -3,10 +3,12 @@
     close: () => void
 };
 
-module CoreXT {
+namespace CoreXT {
     //-------------------------------------------------------------------------------------------------------------------------
 
-    declare var baseURL: string;
+    export var baseURL: string;
+    export var controllerName: string;
+    export var actionName: string;
 
     //-------------------------------------------------------------------------------------------------------------------------
 

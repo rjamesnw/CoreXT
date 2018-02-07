@@ -83,8 +83,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// Gets a URL helper to build URLs for ASP.NET MVC within an application.
         /// </summary>
-        public IUrlHelper UrlHelper => _UrlHelper ?? (_UrlHelper = GetService<IUrlHelperFactory>()?.GetUrlHelper(Page.ViewContext));
-        IUrlHelper _UrlHelper;
+        new public IUrlHelper Url => base.Url ?? (Page != null ? (base.Url = GetService<IUrlHelperFactory>()?.GetUrlHelper(Page.ViewContext)) : throw new InvalidOperationException("Url helper not available. Make sure the 'IUrlHelperFactory' service is registered on startup."));
 
         /// <summary>
         /// Controls display or edit modes for this component.

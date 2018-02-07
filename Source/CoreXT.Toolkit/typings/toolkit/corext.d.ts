@@ -8,7 +8,10 @@ declare var HoldOn: {
     }) => void;
     close: () => void;
 };
-declare module CoreXT {
+declare namespace CoreXT {
+    var baseURL: string;
+    var controllerName: string;
+    var actionName: string;
     interface IDataClientOptions {
         [name: string]: any;
     }
