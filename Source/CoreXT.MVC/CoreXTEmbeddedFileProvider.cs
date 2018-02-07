@@ -26,7 +26,7 @@ namespace CoreXT.MVC
         /// <summary>
         /// The base namespace that was specified for this file provider.
         /// </summary>
-        public string BaseNamespace => _BaseNamespace ?? Assembly.FullName;
+        public string BaseNamespace => _BaseNamespace ?? Assembly.GetName().Name;
         string _BaseNamespace;
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace CoreXT.MVC
         public CoreXTEmbeddedFileProvider(Assembly assembly, string baseNamespace)
         {
             Assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
-            _BaseNamespace = baseNamespace ?? assembly.FullName;
+            _BaseNamespace = baseNamespace ?? assembly.GetName().Name;
             _EmbeddedFileProvider = new EmbeddedFileProvider(Assembly, BaseNamespace);
             lock (_AssemblyManifestNamesCache)
             {
