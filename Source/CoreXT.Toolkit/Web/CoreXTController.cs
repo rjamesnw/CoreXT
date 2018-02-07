@@ -22,7 +22,7 @@ namespace CoreXT.MVC
         /// </summary>
         /// <typeparam name="T">The type of control to create.</typeparam>
         /// <param name="controller">The controller to create the control for.</param>
-        public T GetControl<T>() where T : class, IWebComponent
+        protected T GetControl<T>() where T : class, IWebComponent
         {
             return ComponentBaseExtensions.GetComponent<T>(this);
         }

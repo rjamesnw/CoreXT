@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Reflection;
 
@@ -55,14 +56,25 @@ namespace CoreXT.Toolkit
 
             services.AddComponents(currentAssembly);
 
-            if (setupAction != null) {
-                return services.AddMvcXT(opts=>
+            IMvcBuilder mvcBuilder;
+
+            if (setupAction != null)
+            {
+                mvcBuilder = services.AddMvcXT(opts =>
                 {
                     opts.ModelBinderProviders.Insert(0, new TableSetBinderProvider()); // (will automatically handle any Table<T> parameter types in controller actions that capture form posts)
                     setupAction(opts);
                 });
-            }else
-                return services.AddMvcXT();
+            }
+            else
+                mvcBuilder = services.AddMvcXT();
+
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("CoreXT API v1", new Info { Version = "v1", Title = "CoreXT.Toolkit API", });
+            //});
+
+            return mvcBuilder;
         }
 
         /// <summary>

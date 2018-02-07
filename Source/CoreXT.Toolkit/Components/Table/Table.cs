@@ -33,8 +33,9 @@ namespace CoreXT.Toolkit.Components
         /// Configure a table component with a data table instance.
         /// </summary>
         /// <param name="table">The data table to use.</param>
-        public Table Configure<TEntity>(ITable<TEntity> table) where TEntity: class, new()
+        public Table Configure<TEntity>(string id, ITable<TEntity> table) where TEntity: class, new()
         {
+            ID = id;
             DataTable = table;
             return this;
         }
@@ -43,8 +44,9 @@ namespace CoreXT.Toolkit.Components
         /// Configure a table component with a data table instance.
         /// </summary>
         /// <param name="table">The data table to use.</param>
-        public Table Configure<TEntity>(IEnumerable<TEntity> entities) where TEntity : class, new()
+        public Table Configure<TEntity>(string id, IEnumerable<TEntity> entities) where TEntity : class, new()
         {
+            ID = id;
             var table = new Table<TEntity>(ServiceProvider);
             table.Entities = entities;
             DataTable = table;

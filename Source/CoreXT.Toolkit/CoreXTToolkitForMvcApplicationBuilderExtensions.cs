@@ -57,6 +57,13 @@ namespace CoreXT.MVC
             if (app == null)
                 throw new ArgumentNullException(nameof(app));
 
+            //app.UseSwagger();
+
+            //app.UseSwaggerUI(c =>
+            //{
+            //    c.SwaggerEndpoint("/corextapi/v1/main.json", "CoreXT.Toolkit API V1");
+            //});
+
             // ... need to add a static file provider for the default embedded content files for the controls ...
 
             app.UseStaticFiles(new StaticFileOptions(new SharedOptions

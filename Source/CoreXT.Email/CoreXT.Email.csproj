@@ -20,7 +20,7 @@
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 This package provides support for creating and sending emails.</Description>
-    <Version>1.0.7.47</Version>
+    <Version>1.0.7.49</Version>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 

@@ -60,7 +60,7 @@ namespace CoreXT.Toolkit.Web
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Returns a menu control to construct menu elements.
+        /// Returns a menu component to construct menu elements.
         /// </summary>
         public Menu Menu(string caption, string actionName = null, string controllerName = null, string areaName = null)
         {
@@ -70,9 +70,9 @@ namespace CoreXT.Toolkit.Web
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Returns a modal control to construct modal window elements.
+        /// Returns a modal component to construct modal window elements.
         /// Razor template delegates can be used for the title, header, and footer parameters (typically in the form
-        /// '<see cref="item=>@{text}{/text}"/>').
+        /// '<see cref="item=>&lt;text>&lt;/text>"/>').
         /// </summary>
         public Modal Modal(RazorTemplateDelegate<object> title, bool allowClose, RazorTemplateDelegate<object> header,
             RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null)
@@ -81,7 +81,7 @@ namespace CoreXT.Toolkit.Web
         }
 
         /// <summary>
-        /// Returns a modal control to construct modal window elements.
+        /// Returns a modal component to construct modal window elements.
         /// Razor template delegates can be used for the header and footer parameters.
         /// </summary>
         public Modal Modal(string title, bool allowClose, RazorTemplateDelegate<object> header,
@@ -91,7 +91,7 @@ namespace CoreXT.Toolkit.Web
         }
 
         /// <summary>
-        /// Returns a modal control to construct modal window elements.
+        /// Returns a modal component to construct modal window elements.
         /// Razor template delegates can be used for the header and footer parameters.
         /// </summary>
         public Modal Modal(string title, string header,
@@ -101,7 +101,7 @@ namespace CoreXT.Toolkit.Web
         }
 
         /// <summary>
-        /// Returns a modal control to construct modal window elements.
+        /// Returns a modal component to construct modal window elements.
         /// </summary>
         public Modal Modal(string title, string header, string body, string footer = null, bool allowClose = true)
         {
@@ -111,11 +111,19 @@ namespace CoreXT.Toolkit.Web
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Returns a modal control to construct modal window elements.
+        /// Returns a table component based on the specified table.
         /// </summary>
-        public Table Table(ITable<object> items)
+        public Table Table<TEntity>(string id, ITable<TEntity> table) where TEntity : class, new()
         {
-            return GetControl<Table>().Configure(items);
+            return GetControl<Table>().Configure(id, table);
+        }
+
+        /// <summary>
+        /// Returns a table component based on the specified entities.
+        /// </summary>
+        public Table Table<TEntity>(string id, IEnumerable<TEntity> items) where TEntity : class, new()
+        {
+            return GetControl<Table>().Configure(id, items);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
