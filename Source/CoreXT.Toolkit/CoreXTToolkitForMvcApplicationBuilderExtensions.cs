@@ -1,4 +1,5 @@
-﻿using CoreXT.Toolkit.Components;
+﻿using CoreXT.MVC;
+//using Glimpse;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.StaticFiles.Infrastructure;
 using System;
 using System.Reflection;
 
-namespace CoreXT.MVC
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for <see cref="IApplicationBuilder"/> to add the Core Extended (CoreXT) MVC framework 
@@ -70,6 +71,8 @@ namespace CoreXT.MVC
             {
                 FileProvider = new CoreXTEmbeddedFileProvider(typeof(CoreXTToolkitForMvcApplicationBuilderExtensions).GetTypeInfo().Assembly, hostingEnvironment)
             }));
+
+            //app.UseGlimpse();
         }
     }
 }

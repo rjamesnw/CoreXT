@@ -3,20 +3,20 @@ using CoreXT.MVC;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Components;
 using CoreXT.Toolkit.Web;
+//using Glimpse;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Reflection;
 
-namespace CoreXT.Toolkit
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class CoreXTToolkitForMVCServiceExtensions
     {
@@ -73,6 +73,8 @@ namespace CoreXT.Toolkit
             //{
             //    c.SwaggerDoc("CoreXT API v1", new Info { Version = "v1", Title = "CoreXT.Toolkit API", });
             //});
+
+            //services.AddGlimpse();
 
             return mvcBuilder;
         }

@@ -1,14 +1,11 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using CoreXT.MVC;
+using CoreXT.Routing;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.Extensions.DependencyInjection;
-using CoreXT.Routing;
 
-namespace CoreXT.MVC
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for <see cref="IApplicationBuilder"/> to add the Core Extended (CoreXT) MVC framework 
