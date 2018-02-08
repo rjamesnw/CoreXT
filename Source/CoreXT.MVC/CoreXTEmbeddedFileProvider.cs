@@ -107,21 +107,28 @@ namespace CoreXT.MVC
             var result = _EmbeddedFileProvider.GetFileInfo(string.IsNullOrEmpty(dirPart) ? fileName : dirPart + "." + fileName);
             if (result.Exists) return result;
 
-#if DEBUG
-            // ... file does not exist, but warn if the file does exist at the end of any existing entry ...
+            // ... try the "wwwroot" folder 1...
 
-            var cacheEntry = _AssemblyManifestNamesCache.Value(Assembly);
+            result = _EmbeddedFileProvider.GetFileInfo("wwwroot." + dirPart + "." + fileName);
 
-            if (cacheEntry != null && cacheEntry.Length > 0)
+            if (!result.Exists)
             {
-                var similar = cacheEntry.Where(s => s == fileName || s.EndsWith("." + fileName) || s.EndsWith("\\" + fileName) || s.EndsWith("/" + fileName)).ToArray();
-                if (similar.Length > 0)
-                    System.Diagnostics.Debug.WriteLine(" You tried to find an embedded file '" + fileName + "' ('" + subpath + "') in '" + Assembly.FullName + "' using CoreXTEmbeddedFileProvider with base namespace '" + BaseNamespace + "' and the file was not found; however, there IS a similar file under these paths (is your base namespace correct?): "
-                        + string.Join(Environment.NewLine, similar), "WARNING");
-            }
-#endif
+#if DEBUG
+                // ... file does not exist, but warn if the file does exist at the end of any existing entry ...
 
-            return _EmbeddedFileProvider.GetFileInfo("wwwroot." + dirPart + "." + fileName);
+                var cacheEntry = _AssemblyManifestNamesCache.Value(Assembly);
+
+                if (cacheEntry != null && cacheEntry.Length > 0)
+                {
+                    var similar = cacheEntry.Where(s => s == fileName || s.EndsWith("." + fileName) || s.EndsWith("\\" + fileName) || s.EndsWith("/" + fileName)).ToArray();
+                    if (similar.Length > 0)
+                        System.Diagnostics.Debug.WriteLine(" You tried to find an embedded file '" + fileName + "' ('" + subpath + "') in '" + Assembly.FullName + "' using CoreXTEmbeddedFileProvider with base namespace '" + BaseNamespace + "' and the file was not found; however, there IS a similar file under these paths (is your base namespace correct?): "
+                            + string.Join(Environment.NewLine, similar), "WARNING");
+                }
+#endif
+            }
+
+            return result;
         }
 
         public virtual IChangeToken Watch(string filter)
