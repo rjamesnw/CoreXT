@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -16,6 +17,8 @@ namespace CoreXT.MVC
         /// </summary>
         public static void UseAttributeRouting(this RouteBuilder routBuilder)
         {
+            //routBuilder.Routes.Insert(0, AttributeRouting.CreateAttributeMegaRoute(app.ApplicationServices));
+
             var services = routBuilder.ApplicationBuilder.ApplicationServices;
 
             // ... first, get all controller and action attributes ...

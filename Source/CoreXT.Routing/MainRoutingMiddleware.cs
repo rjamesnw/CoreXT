@@ -44,30 +44,32 @@ namespace CoreXT.Routing
         /// <returns>A task to handle this request.</returns>
         public async Task Invoke(HttpContext httpContext)
         {
-            // ... build a context for this request ...
+            await _RouterMiddleware.Invoke(httpContext);
 
-            var context = new RouteContext(httpContext);
-            context.RouteData.Routers.Add(_Router); // (add the root level RouteCollection router, which will cascade the request down other nested routers to find matches)
+            //// ... build a context for this request ...
 
-            // ... attempt to route using the context just created for this request; on failure to find a match, the handler will be null ...
+            //var context = new RouteContext(httpContext);
+            //context.RouteData.Routers.Add(_Router); // (add the root level RouteCollection router, which will cascade the request down other nested routers to find matches)
 
-            await _Router.RouteAsync(context);
+            //// ... attempt to route using the context just created for this request; on failure to find a match, the handler will be null ...
 
-            if (context.Handler == null)
-            {
-                _Logger.LogDebug(1, "Request did not match any routes on the main routing middleware.");
-                // ... did not find a match ... hand it off to the encapsulated standard MVC middleware ...
-                await _RouterMiddleware.Invoke(httpContext);
-            }
-            else
-            {
-                httpContext.Features[typeof(IRoutingFeature)] = new RoutingFeature()
-                {
-                    RouteData = context.RouteData,
-                };
+            //await _Router.RouteAsync(context);
 
-                await context.Handler(context.HttpContext);
-            }
+            //if (context.Handler == null)
+            //{
+            //    _Logger.LogDebug(1, "Request did not match any routes on the main routing middleware.");
+            //    // ... did not find a match ... hand it off to the encapsulated standard MVC middleware ...
+            //    await _RouterMiddleware.Invoke(httpContext);
+            //}
+            //else
+            //{
+            //    httpContext.Features[typeof(IRoutingFeature)] = new RoutingFeature()
+            //    {
+            //        RouteData = context.RouteData,
+            //    };
+
+            //    await context.Handler(context.HttpContext);
+            //}
         }
     }
 }

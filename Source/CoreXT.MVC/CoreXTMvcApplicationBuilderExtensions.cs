@@ -59,6 +59,9 @@ namespace Microsoft.Extensions.DependencyInjection
             if (app == null)
                 throw new ArgumentNullException(nameof(app));
 
+            if (configureRoutes == null)
+                throw new ArgumentNullException(nameof(configureRoutes));
+
             // ... verify if AddMvcXT was done before calling UseMvcXT;
             // MvcXTMarkerService is here to make sure if all the services were added ...
 
@@ -74,11 +77,10 @@ namespace Microsoft.Extensions.DependencyInjection
             var routes = new RouteBuilder(app, app.ApplicationServices.GetRequiredService<MvcRouteHandler>());
             // ('MvcRouteHandler' is the default handler for mapping routes [i.e. routes.MapRoute()]) 
 
-            configureRoutes?.Invoke(routes); // (note: if users call 'MapRoute()', it requires 'routes.DefaultHandler' to be set on the route builder)
+            configureRoutes.Invoke(routes); // (note: if users call 'MapRoute()', it requires 'routes.DefaultHandler' to be set on the route builder)
 
-            // routes.Routes.Insert(0, AttributeRouting.CreateAttributeMegaRoute(app.ApplicationServices));
-            // (this will be replaced by translating all attributes to the route collection instead)
-            routes.UseAttributeRouting();
+            routes.Routes.Insert(0, AttributeRouting.CreateAttributeMegaRoute(app.ApplicationServices));
+            //routes.UseAttributeRouting();
 
             return app.UseRouterXT(routes.Build());
         }

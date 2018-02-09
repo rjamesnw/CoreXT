@@ -56,7 +56,7 @@ namespace CoreXT.Toolkit.Web
 
         public IHostingEnvironment HostingEnvironment { get; private set; }
 
-        public IUrlHelper Url => _Url ?? (_Url = Context.GetService<IUrlHelperFactory>()?.GetUrlHelper(ViewContext));
+        public virtual IUrlHelper Url => _Url ?? (_Url = Context.GetService<IUrlHelperFactory>()?.GetUrlHelper(ViewContext));
         IUrlHelper _Url;
 
         public Uri RequestURL => _RequestURL ?? (_RequestURL = Context.Request.GetUrl());
