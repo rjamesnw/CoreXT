@@ -120,10 +120,11 @@ namespace CoreXT.MVC
 
                 if (cacheEntry != null && cacheEntry.Length > 0)
                 {
-                    var similar = cacheEntry.Where(s => s == fileName || s.EndsWith("." + fileName) || s.EndsWith("\\" + fileName) || s.EndsWith("/" + fileName)).ToArray();
+                    var fnlower = fileName.ToLower();
+                    var similar = cacheEntry.Select(s => s.ToLower()).Where(s => s == fnlower || s.EndsWith("." + fnlower) || s.EndsWith("\\" + fnlower) || s.EndsWith("/" + fnlower)).ToArray();
                     if (similar.Length > 0)
-                        System.Diagnostics.Debug.WriteLine(" You tried to find an embedded file '" + fileName + "' ('" + subpath + "') in '" + Assembly.FullName + "' using CoreXTEmbeddedFileProvider with base namespace '" + BaseNamespace + "' and the file was not found; however, there IS a similar file under these paths (is your base namespace correct?): "
-                            + string.Join(Environment.NewLine, similar), "WARNING");
+                        System.Diagnostics.Debug.WriteLine(" You tried to find an embedded file '" + fileName + "' ('" + subpath + "') in '" + Assembly.FullName + "' using CoreXTEmbeddedFileProvider with base namespace '" + BaseNamespace + "' and the file was not found; however, there IS a similar file under these paths: "
+                            + Environment.NewLine + "  > " + string.Join(Environment.NewLine + "  > ", similar) + Environment.NewLine + "  * Double check that your namespace is correct. Also, path and file names are case-sensitive.", "WARNING");
                 }
 #endif
             }

@@ -12,6 +12,8 @@ declare namespace CoreXT {
     var baseURL: string;
     var controllerName: string;
     var actionName: string;
+    function wait(msg?: string): void;
+    function closeWait(): void;
     interface IDataClientOptions {
         [name: string]: any;
     }

@@ -14,13 +14,13 @@ namespace CoreXT {
 
     var waitRequestCounter = 0; // (calls to 'HoldOn.open()' do not stack)
 
-    function wait(msg = "Please wait ...") {
+    export function wait(msg = "Please wait ...") {
         if (!HoldOn && !HoldOn.open) throw new Error("'HoldOn.js' or 'HoldOn.min.js' is required.");
         HoldOn.open({ message: msg, backgroundColor: "#FFFFFF", textColor: "#000000" });
         waitRequestCounter++;
     }
 
-    function closeWait() { if (waitRequestCounter > 0 && !--waitRequestCounter) HoldOn.close(); }
+    export function closeWait() { if (waitRequestCounter > 0 && !--waitRequestCounter) HoldOn.close(); }
 
     //-------------------------------------------------------------------------------------------------------------------------
 

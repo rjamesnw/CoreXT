@@ -71,16 +71,16 @@
   <ItemGroup>
     <!--Default to remove all as context and set all to no action-->
     <Content Remove="**\*.*" />
-    <!--<None Include="wwwroot\**\*.*" />-->
     <None Include="Scripts\cds\**\*.*" />
     <!--<None Include="tsconfig.json" />
     <None Include="typings.json" />-->
     <Folder Include="wwwroot\js\" />
-    <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\images\" />
     <!--Embed some resources-->
+    <None Include="app*.json" />
     <EmbeddedResource Include="app*.json" />
+    <None Include="wwwroot\**\*.*" />
     <EmbeddedResource Include="wwwroot\lib\**\*.js" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\lib\**\*.map" Exclude="wwwroot\**\test*.*" />
     <EmbeddedResource Include="wwwroot\lib\**\*.css" Exclude="wwwroot\**\test*.*" />

@@ -20,8 +20,10 @@ var CoreXT;
         HoldOn.open({ message: msg, backgroundColor: "#FFFFFF", textColor: "#000000" });
         waitRequestCounter++;
     }
+    CoreXT.wait = wait;
     function closeWait() { if (waitRequestCounter > 0 && !--waitRequestCounter)
         HoldOn.close(); }
+    CoreXT.closeWait = closeWait;
     /**
      * Provides low level communication to the web server.
      */
