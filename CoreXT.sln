@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ICE", "ICE", "{171CBD41-5451-450A-BB05-25759C3E16D8}"
 EndProject
@@ -140,5 +140,15 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {53C74C3B-7B94-4FDA-80A0-1D2EAB0321FC}
+	EndGlobalSection
+	GlobalSection(AutomaticVersions) = postSolution
+		UpdateAssemblyVersion = True
+		UpdateAssemblyFileVersion = True
+		UpdateAssemblyInfoVersion = True
+		AssemblyVersionSettings = None.None.IncrementOnDemand.Increment
+		AssemblyFileVersionSettings = None.None.IncrementOnDemand.Increment
+		UpdatePackageVersion = False
+		AssemblyInfoVersionSemVerSettings = AssemblyVersion.IncrementOnce.Beta
+		AssemblyInfoVersionType = SemVer1
 	EndGlobalSection
 EndGlobal

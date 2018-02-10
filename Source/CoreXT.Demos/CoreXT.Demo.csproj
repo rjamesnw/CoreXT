@@ -12,7 +12,7 @@
     <!--<RuntimeFrameworkVersion>1.1.2</RuntimeFrameworkVersion>-->
     <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
     <RootNamespace>CoreXT.Demos</RootNamespace>
-    <Version>1.0.7.33</Version>
+    <Version>1.0.7.42</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -51,10 +51,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ViewModels\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CoreXT.ASPNet\CoreXT.ASPNet.csproj" />
     <ProjectReference Include="..\CoreXT.Email\CoreXT.Email.csproj" />
     <ProjectReference Include="..\CoreXT.Entities\CoreXT.Entities.csproj" />
@@ -69,5 +65,9 @@
     <Exec Command="bower install" />
     <Exec Command="dotnet bundle" />
   </Target>
+
+  <!--<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />
+  </Target>-->
 
 </Project>

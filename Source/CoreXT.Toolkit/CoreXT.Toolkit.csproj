@@ -33,9 +33,10 @@
     <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
-    <Version>1.0.7.69</Version>
+    <Version>1.0.7-beta</Version>
+    <FileVersion>1.0.7.151</FileVersion>
+    <AssemblyVersion>1.0.7.151</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
-    <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -159,5 +160,9 @@
   </Target>
 
   <Target Name="PrecompileRazorViews" AfterTargets="Build" DependsOnTargets="MvcRazorPrecompile" />
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />
+  </Target>
 
 </Project>
