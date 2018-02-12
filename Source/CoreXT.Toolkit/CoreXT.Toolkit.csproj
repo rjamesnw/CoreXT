@@ -34,8 +34,8 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.151</FileVersion>
-    <AssemblyVersion>1.0.7.151</AssemblyVersion>
+    <FileVersion>1.0.7.154</FileVersion>
+    <AssemblyVersion>1.0.7.154</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 

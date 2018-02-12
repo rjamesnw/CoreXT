@@ -21,8 +21,8 @@
 
 This package provides support for creating and sending emails.</Description>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.149</FileVersion>
-    <AssemblyVersion>1.0.7.149</AssemblyVersion>
+    <FileVersion>1.0.7.151</FileVersion>
+    <AssemblyVersion>1.0.7.151</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
