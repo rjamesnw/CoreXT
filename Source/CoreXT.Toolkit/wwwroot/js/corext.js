@@ -80,7 +80,7 @@ var CoreXT;
     var ActionDataClient = /** @class */ (function (_super) {
         __extends(ActionDataClient, _super);
         function ActionDataClient(controllerName, actionName, options, area) {
-            var _this = _super.call(this, (area && area + "/" || "") + controllerName + "/" + actionName, options) || this;
+            var _this = _super.call(this, CoreXT.baseURL + "/" + (area && area + "/" || "") + controllerName + "/" + actionName, options) || this;
             _this.controllerName = controllerName;
             _this.actionName = actionName;
             return _this;

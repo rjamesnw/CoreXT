@@ -84,7 +84,7 @@ namespace CoreXT {
     export class ActionDataClient extends DataClient {
         constructor(public controllerName: string,
             public actionName: string, options?: IDataClientOptions, area?: string) {
-            super((area && area + "/" || "") + controllerName + "/" + actionName, options);
+            super(CoreXT.baseURL + "/" + (area && area + "/" || "") + controllerName + "/" + actionName, options);
         }
     }
 
