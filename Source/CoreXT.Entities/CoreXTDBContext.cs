@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,32 +17,76 @@ namespace CoreXT.Entities
     /// <summary>
     /// The CoreXT database context object.
     /// </summary>
-    public partial class CoreXTDBContext : DbContext, ICoreXTDBContext
+    public class CoreXTDBContext : DbContext, ICoreXTDBContext
     {
         // --------------------------------------------------------------------------------------------------------------------
 
         public virtual bool IsReadonly { get { return false; } }
 
+        protected ILogger LogService => _LogService ?? (_LogService = Services.GetService<ILoggerFactory>()?.CreateLogger<CoreXTDBContext>());
         ILogger _LogService;
+
+        /// <summary>
+        /// If this database context is pulled from the services container, or created manually via certain constructors, then
+        /// this will be populated with a service provider reference, otherwise this will be null.
+        /// </summary>
+        public ICoreXTServiceProvider Services { get; }
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public CoreXTDBContext(DbContextOptions options, ILoggerFactory loggerFactory) : base(options)
+        /// <summary>
+        /// Construct a new DBContext with options and services access.
+        /// Giving access to services allows custom LINQ extension methods to have access to application services via DbSetXT.
+        /// </summary>
+        /// <param name="options">The DbContext options.</param>
+        /// <param name="services">A reference to the application services.</param>
+        public CoreXTDBContext(DbContextOptions options, ICoreXTServiceProvider services) : base(options)
         {
-            _LogService = loggerFactory?.CreateLogger<CoreXTDBContext>();
+            Services = services ?? throw new ArgumentNullException(nameof(services));
+            _Populate();
         }
 
+        /// <summary>
+        /// Construct a new DBContext with options and NO services access.
+        /// The 'Services' property will not be set, and custom LINQ extensions will not have access to application services via DbSetXT.
+        /// </summary>
+        /// <param name="options">The DbContext options.</param>
         public CoreXTDBContext(DbContextOptions options) : base(options)
         {
+            _Populate();
         }
 
-        public CoreXTDBContext(ILoggerFactory loggerFactory)
+        /// <summary>
+        /// Construct a new DBContext with services access.
+        /// Giving access to services allows custom LINQ extension methods to have access to application services via DbSetXT.
+        /// <para>This method is usually the one called when the context is created from the DI container.</para>
+        /// </summary>
+        /// <param name="services">A reference to the application services.</param>
+        public CoreXTDBContext(ICoreXTServiceProvider services)
         {
-            _LogService = loggerFactory?.CreateLogger<CoreXTDBContext>();
+            Services = services ?? throw new ArgumentNullException(nameof(services));
+            _Populate();
         }
 
+        /// <summary>
+        /// Construct a new DBContext with default options.
+        /// The 'Services' property will not be set, and custom LINQ extensions will not have access to application services via DbSetXT.
+        /// </summary>
         public CoreXTDBContext()
         {
+            _Populate();
+        }
+
+        internal void _Populate()
+        {
+            // ... get all the runtime properties for this type ...
+            var props = GetType().GetRuntimeProperties();
+            // ... find the DbSetXT properties ...
+            var dbSetProps = props.Where(p => p.CanWrite && p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSetXT<>));
+            var dbSetType = typeof(DbSetXT<>);
+            // ... set each property with an instance of DbSetXT ...
+            foreach (var prop in dbSetProps)
+                prop.SetValue(this, Activator.CreateInstance(dbSetType.MakeGenericType(prop.PropertyType.GenericTypeArguments[0]), this, Services));
         }
 
         /// <summary>
@@ -143,7 +188,7 @@ namespace CoreXT.Entities
             }
             catch (Exception ex)
             {
-                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
                 throw;
             }
         }
@@ -158,7 +203,7 @@ namespace CoreXT.Entities
             }
             catch (Exception ex)
             {
-                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
                 throw;
             }
         }
@@ -173,7 +218,7 @@ namespace CoreXT.Entities
             }
             catch (Exception ex)
             {
-                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
                 throw;
             }
         }
@@ -194,7 +239,7 @@ namespace CoreXT.Entities
             }
             catch (Exception ex)
             {
-                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
                 throw;
             }
         }
@@ -207,7 +252,7 @@ namespace CoreXT.Entities
             }
             catch (Exception ex)
             {
-                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
                 throw;
             }
         }
@@ -220,7 +265,7 @@ namespace CoreXT.Entities
             }
             catch (Exception ex)
             {
-                _LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
+                LogService?.LogError(new EventId(-1, "CoreXT.Entities"), ex, null);
                 throw;
             }
         }
@@ -237,7 +282,7 @@ namespace CoreXT.Entities
     {
         public override bool IsReadonly { get { return true; } }
 
-        public CoreXTReadonlyDBContext(DbContextOptions<CoreXTReadonlyDBContext> options, ILoggerFactory loggerFactory) : base(options, loggerFactory)
+        public CoreXTReadonlyDBContext(DbContextOptions<CoreXTReadonlyDBContext> options, ICoreXTServiceProvider services) : base(options, services)
         {
         }
     }
