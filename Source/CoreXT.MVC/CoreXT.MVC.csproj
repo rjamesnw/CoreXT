@@ -21,8 +21,8 @@
 
 This package is the real meat of the whole system.  It injects it's own types into the core ASP.Net MVC system in order to "hook" into various processes in order to make it easier for people to extend existing types - such as the ability to inherit from the ViewPage type and hook into before and after a view renders (one could use this for post processing), or before a view gets activated, and much more.</Description>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.154</FileVersion>
-    <AssemblyVersion>1.0.7.154</AssemblyVersion>
+    <FileVersion>1.0.7.161</FileVersion>
+    <AssemblyVersion>1.0.7.161</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
