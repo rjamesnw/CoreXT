@@ -117,6 +117,12 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         public string DataSourceID { get; set; }
 
+        /// <summary>
+        /// If not null, this is a data source use by this component to construct it's view. Typically it's either a single entity
+        /// instance, or an array of entities. The usage is "user-defined" and depends on the derived implementation.
+        /// </summary>
+        public virtual object DataSource { get; set; }
+
         public string ID
         {
             get { return Attributes.Value("id"); }
