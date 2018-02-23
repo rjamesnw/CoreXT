@@ -118,6 +118,7 @@
     <EmbeddedResource Remove="Components\Panel\Panel.cs" />
     <EmbeddedResource Remove="Components\Table\Table.cs" />
     <EmbeddedResource Remove="Components\Table\_TableEditor.cshtml" />
+    <EmbeddedResource Remove="Components\WebComponentExtentions.cs" />
   </ItemGroup>
 
   <ItemGroup>

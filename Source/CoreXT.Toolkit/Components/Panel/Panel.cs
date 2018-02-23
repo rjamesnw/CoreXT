@@ -20,7 +20,7 @@ namespace CoreXT.Toolkit.Components
 
     /// <summary> A button component. </summary>
     /// <seealso cref="T:CoreXT.Toolkit.Components.WebComponent"/>
-    public class Panel : WebComponent
+    public class Panel : WebComponent, IComponentTitle,  IComponentHeader, IComponentBody
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ namespace CoreXT.Toolkit.Components
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary> A razor template delegate used to render the header of the panel. </summary>
-        public RazorTemplateDelegate<object> Header;
+        public RazorTemplateDelegate<object> Header { get; set; }
 
         /// <summary>
         /// Returns the header content for rendering in the component's view.
@@ -41,7 +41,7 @@ namespace CoreXT.Toolkit.Components
         }
 
         /// <summary> A razor template delegate used to render the footer of the panel. </summary>
-        public RazorTemplateDelegate<object> Footer;
+        public RazorTemplateDelegate<object> Footer { get; set; }
 
         /// <summary>
         /// Returns the footer content for rendering in the component's view.
@@ -53,7 +53,7 @@ namespace CoreXT.Toolkit.Components
 
         /// <summary> The panel title. </summary>
         /// <value> The panel title. </value>
-        new public RazorTemplateDelegate<object> Title;
+        new public RazorTemplateDelegate<object> Title { get; set; }
 
         /// <summary>
         /// Returns the title content for rendering in the component's view.

@@ -38,11 +38,14 @@ namespace CoreXT.Toolkit.Web
             // (uses a special renderer in order to invoke the strongly typed 'Render()' method to support model property expressions)
         }
 
-        /// <summary>
-        /// Returns a link element with the given text and URL (href).
-        /// </summary>
-        /// <param name="text">The text for the link.</param>
-        /// <param name="href">The URL for the link.</param>
+        /// <summary> Returns a link element with the given text and URL (href). </summary>
+        /// <param name="text"> The text for the link. </param>
+        /// <param name="actionName"> The URL for the link. </param>
+        /// <param name="controllerName"> (Optional) Name of the controller. </param>
+        /// <param name="areaName"> (Optional) Name of the area. </param>
+        /// <param name="fragment"> (Optional) The fragment. </param>
+        /// <param name="routeName"> (Optional) Name of the route. </param>
+        /// <returns> An ActionLink. </returns>
         public ActionLink ActionLink(string text, string actionName, string controllerName = null, string areaName = null,
             string fragment = null, string routeName = null)
         {
@@ -62,14 +65,13 @@ namespace CoreXT.Toolkit.Web
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Returns a modal component to construct modal window elements.
-        /// Razor template delegates can be used for the title, header, and footer parameters (typically in the form
-        /// '<see cref="item=>&lt;text>&lt;/text>"/>').
+        ///     Returns a modal component to construct modal window elements. Razor template delegates can be used for the title,
+        ///     header, and footer parameters (typically in the form '&lt;see cref="item=&gt;&lt;text&gt;&lt;/text&gt;"/&gt;').
         /// </summary>
-        public Modal Modal(RazorTemplateDelegate<object> title, bool allowClose, RazorTemplateDelegate<object> header,
-            RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null)
+        /// <returns> A Modal. </returns>
+        public Modal Modal()
         {
-            return GetControl<Modal>().Configure(title, allowClose, header, body, footer);
+            return GetControl<Modal>();
         }
 
         /// <summary>
