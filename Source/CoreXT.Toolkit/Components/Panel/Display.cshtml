@@ -1,0 +1,30 @@
+﻿@model Panel
+@{
+    var templateDetails = XT.GetTemplatePartDetails<Panel>(td => GetControl<Panel>().Configure(ViewBag.text ?? td.Text), null, null);
+    var ctrl = templateDetails.Control;
+
+    // (NOTICE: ALL attributes are dumped via ctrl.GetElementAttributes(), so we ONLY need to make sure the attributes and classes we need are set)
+
+    ctrl.AddClass("panel", "panel-" + ctrl.PanelStyle.ToString().ToLower());
+}
+<div @ctrl.GetElementAttributes(true, true)>
+    <div class="panel-heading">
+        @if (ctrl.Title != null)
+        {
+            <h3 id="label_@ctrl.ID">@await ctrl.TitleContent</h3>
+        }
+        @if (ctrl.Header != null)
+        {
+            @await ctrl.HeaderContent
+        }
+    </div>
+    <div class="panel-body">
+        @ctrl.EncodedInnerHtml
+    </div>
+    <div class="panel-footer">
+        @if (ctrl.Footer != null)
+        {
+            @await ctrl.FooterContent
+        }
+    </div>
+</div>

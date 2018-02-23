@@ -1,9 +1,6 @@
 ﻿using CoreXT.Entities;
 using CoreXT.Services.DI;
-using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -29,23 +26,27 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Configure a table component with a data table instance.
-        /// </summary>
-        /// <param name="table">The data table to use.</param>
-        public Table Configure<TEntity>(string id, ITable<TEntity> table) where TEntity: class, new()
+        /// <summary> Configure a table component with a data table instance. </summary>
+        /// <typeparam name="TEntity"> Type of the entity. </typeparam>
+        /// <param name="id">    The identifier. </param>
+        /// <param name="table"> The data table to use. </param>
+        /// <returns> A Table. </returns>
+        public Table Configure<TEntity>(string id, ITable<TEntity> table) where TEntity : class, new()
         {
+            EnableAutomaticID = true;
             ID = id;
             DataTable = table;
             return this;
         }
 
-        /// <summary>
-        /// Configure a table component with a data table instance.
-        /// </summary>
-        /// <param name="table">The data table to use.</param>
+        /// <summary> Configure a table component with a data table instance. </summary>
+        /// <typeparam name="TEntity"> Type of the entity. </typeparam>
+        /// <param name="id">       The data table to use. </param>
+        /// <param name="entities"> The entities. </param>
+        /// <returns> A Table. </returns>
         public Table Configure<TEntity>(string id, IEnumerable<TEntity> entities) where TEntity : class, new()
         {
+            EnableAutomaticID = true;
             ID = id;
             var table = new Table<TEntity>(ServiceProvider);
             table.Entities = entities;

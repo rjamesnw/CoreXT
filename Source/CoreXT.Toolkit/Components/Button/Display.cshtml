@@ -1,0 +1,16 @@
+﻿@model Button
+@{
+    var templateDetails = XT.GetTemplatePartDetails<Button>(td => GetControl<Button>().Configure(ViewBag.text ?? td.Text));
+    var ctrl = templateDetails.Control;
+
+    // (NOTICE: ALL attributes are dumped via ctrl.GetElementAttributes(), so we ONLY need to make sure the attributes we need are set)
+
+    if (string.IsNullOrWhiteSpace(ctrl.GetAttribute("type"))) // (allows user override)
+    {
+        ctrl.SetAttribute("type", ctrl.ButtonType.ToString().ToLower());
+    }
+
+    ctrl.AddClass("btn", "btn-" + ctrl.ButtonStyle.ToString().ToLower());
+}
+<button @ctrl.GetElementAttributes(true, true)>@ctrl.EncodedInnerHtml</button>
+@*Simple as that! ;)*@

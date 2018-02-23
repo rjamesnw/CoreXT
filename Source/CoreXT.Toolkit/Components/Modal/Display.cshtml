@@ -3,11 +3,6 @@
     var templateDetails = XT.GetTemplatePartDetails<Modal>(td => GetControl<Modal>().Configure(td.Text, true, null, null));
     var ctrl = templateDetails.Control;
 
-    if (string.IsNullOrWhiteSpace(ctrl.ID))
-    {
-        ctrl.ID = Guid.NewGuid().ToString("N");
-    }
-
     ctrl.SetAttributes(new { @class = "modal fade", tabindex = "-1", role = "dialog", ariaLabelledby = "label_" + ctrl.ID, ariaHidden = "true" });
 }
 @if (IsEnvironment(Environments.Staging | Environments.Production))
@@ -19,7 +14,7 @@ else
     @Script("multimodal.js", "~/lib/bootstrap-multimodal/js/multimodal.js", RenderTargets.Footer)
 }
 <div @ctrl.GetElementAttributes(true, true)>
-    <div class="modal-dialog">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 @if (ctrl.AllowClose)
@@ -43,8 +38,6 @@ else
                 {
                     @await ctrl.FooterContent
                 }
-                @*<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>*@
-                @*<button class="btn btn-primary" data-toggle="modal" data-target="#topModal">Open Modal</button>*@
             </div>
         </div>
     </div>

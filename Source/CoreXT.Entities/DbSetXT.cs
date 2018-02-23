@@ -17,6 +17,13 @@ using System.Threading.Tasks;
 
 namespace CoreXT.Entities
 {
+    public interface IDbSetXT
+    {
+        ICoreXTServiceProvider Services { get; }
+        DbContext DbContext { get; }
+        IQueryProvider QueryProvider { get; }
+    }
+
     /// <summary>
     /// This is a proxy to the original DbSet. This hook allows the 'IQueryable.Provider' reference on chaining queryable methods to reference the
     /// original 'DbSetXT' type, which also allows access to the DbContext, database, other DbSets, and the service provider for injection.  This
@@ -27,7 +34,7 @@ namespace CoreXT.Entities
     /// the DbSet types in order to build the internal relationship model required for queries.</para>
     /// </summary>
     /// <typeparam name="TEntity">The entity type represented by this entity set.</typeparam>
-    public class DbSetXT<TEntity> : DbSet<TEntity>, IQueryable<TEntity>, IEnumerable<TEntity>, IEnumerable, IQueryable,
+    public class DbSetXT<TEntity> : DbSet<TEntity>, IDbSetXT, IQueryable<TEntity>, IEnumerable<TEntity>, IEnumerable, IQueryable,
         IInfrastructure<IServiceProvider>, IListSource, IAsyncQueryProvider
         where TEntity : class
     {
@@ -144,18 +151,25 @@ namespace CoreXT.Entities
 
     // ########################################################################################################################################
 
+    public interface ICoreXTQueryBridge
+    {
+        IDbSetXT DbSet { get; }
+    }
+
     /// <summary>
     /// A bridge type used to allow the inclusion of DbContext and DbSet related information.
     /// </summary>
     /// <typeparam name="TDbSetEntity">The entity type of the original DbSet.</typeparam>
     /// <typeparam name="TEntity">The entity type as selected by the current query extension method.</typeparam>
-    public class CoreXTQueryBridge<TDbSetEntity, TEntity> : EntityQueryProvider, IIncludableQueryable<TEntity, object>, IAsyncEnumerable<TEntity>,
+    public class CoreXTQueryBridge<TDbSetEntity, TEntity> : EntityQueryProvider, ICoreXTQueryBridge, IIncludableQueryable<TEntity, object>, IAsyncEnumerable<TEntity>,
         IDetachableContext, IListSource, IOrderedQueryable<TEntity>, IQueryable<TEntity>
         where TDbSetEntity : class
     {
         //------------------------------------------------------------------------------------------------------------------------------------
 
-        DbSetXT<TDbSetEntity> DbSet { get; }
+        public DbSetXT<TDbSetEntity> DbSet { get; }
+
+        IDbSetXT ICoreXTQueryBridge.DbSet => DbSet;
 
         IQueryable _Query;
 
@@ -211,4 +225,25 @@ namespace CoreXT.Entities
     }
 
     // ########################################################################################################################################
+
+    public static class DbSetXTExtensions
+    {
+        /// <summary>
+        /// Get the services reference for a query bridge. The DbSet type that started the query must be of type DbSetXT, and the
+        /// containing DbContext class for the DbSet must be created from the DI container.
+        /// </summary>
+        /// <param name="bridge"></param>
+        /// <returns></returns>
+        public static ICoreXTServiceProvider GetServices(this ICoreXTQueryBridge bridge) => bridge.DbSet.Services;
+
+        /// <summary>
+        /// Get the services reference from a query. The DbSet type that started the query must be of type DbSetXT, and the
+        /// containing DbContext class for the DbSet must be created from the DI container.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="queryable"></param>
+        /// <returns></returns>
+        public static T GetService<T>(this IQueryable queryable) where T : class => (queryable.Provider as ICoreXTQueryBridge ?? throw new InvalidOperationException("Provider is not a 'ICoreXTQueryBridge' type. Make sure the \"entity set\" property in your DbContext is of type 'DbSetXT<T>'."))
+            .GetServices().GetService<T>();
+    }
 }

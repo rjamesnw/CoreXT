@@ -1,14 +1,14 @@
 ﻿using CoreXT.MVC;
-using CoreXT.Toolkit.Web;
-using Microsoft.AspNetCore.Routing;
-using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using CoreXT.Services.DI;
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Components
 {
+    /// <summary> An action link. </summary>
+    /// <seealso cref="T:CoreXT.Toolkit.Components.WebComponent"/>
     public class ActionLink : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
@@ -92,6 +92,14 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary> Configures the action link. </summary>
+        /// <param name="content">        The content. </param>
+        /// <param name="actionName">     Name of the action. </param>
+        /// <param name="controllerName"> (Optional) Name of the controller. </param>
+        /// <param name="areaName">       (Optional) Name of the area. </param>
+        /// <param name="fragment">       (Optional) The fragment. </param>
+        /// <param name="routeName">      (Optional) Name of the route. </param>
+        /// <returns> An ActionLink. </returns>
         public ActionLink Configure(RazorTemplateDelegate<object> content, string actionName, string controllerName = null, string areaName = null,
             string fragment = null, string routeName = null)
         {
@@ -103,6 +111,14 @@ namespace CoreXT.Toolkit.Components
             return this;
         }
 
+        /// <summary> Configures the action link. </summary>
+        /// <param name="text">           The text. </param>
+        /// <param name="actionName">     Name of the action. </param>
+        /// <param name="controllerName"> (Optional) Name of the controller. </param>
+        /// <param name="areaName">       (Optional) Name of the area. </param>
+        /// <param name="fragment">       (Optional) The fragment. </param>
+        /// <param name="routeName">      (Optional) Name of the route. </param>
+        /// <returns> An ActionLink. </returns>
         public ActionLink Configure(string text, string actionName, string controllerName = null, string areaName = null,
             string fragment = null, string routeName = null)
         {

@@ -1,17 +1,9 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.Entities;
-using CoreXT.MVC;
 using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq.Expressions;
 
 namespace CoreXT.Toolkit.Web
@@ -106,6 +98,93 @@ namespace CoreXT.Toolkit.Web
         public Modal Modal(string title, string header, string body, string footer = null, bool allowClose = true)
         {
             return GetControl<Modal>().Configure(title, header, body, footer, allowClose);
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Configures a button control for rendering on a web view page. </summary>
+        /// <param name="content">    The button content. </param>
+        /// <param name="buttonStyle"> (Optional) Style of the button. </param>
+        /// <param name="buttonType"> (Optional) Type of the button. </param>
+        /// <returns> The button instance. </returns>
+        public Button Button(RazorTemplateDelegate<object> content, ButtonStyles buttonStyle = ButtonStyles.Primary, ButtonTypes buttonType = ButtonTypes.Button)
+        {
+            return GetControl<Button>().Configure(content, buttonStyle, buttonType);
+        }
+
+        /// <summary> Configures a button control for rendering on a web view page. </summary>
+        /// <param name="content">    The button content. </param>
+        /// <param name="buttonStyle"> (Optional) Style of the button. </param>
+        /// <param name="buttonType"> (Optional) Type of the button. </param>
+        /// <returns> The button instance. </returns>
+        public Button Button(string content, ButtonStyles buttonStyle = ButtonStyles.Primary, ButtonTypes buttonType = ButtonTypes.Button)
+        {
+            return GetControl<Button>().Configure(content, buttonStyle, buttonType);
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Creates a panel component for rendering on a web view page. </summary>
+        /// <param name="title">      The panel title. </param>
+        /// <param name="header">     The header content. </param>
+        /// <param name="body">       The body content. </param>
+        /// <param name="footer">     (Optional) The footer content. </param>
+        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
+        /// <returns> The panel instance. </returns>
+        public Panel Panel(RazorTemplateDelegate<object> title,
+            RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null,
+            PanelStyles panelStyle = PanelStyles.Default)
+        {
+            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
+        }
+
+        /// <summary> Creates a panel component for rendering on a web view page. </summary>
+        /// <param name="title">      The panel title. </param>
+        /// <param name="header">     The header content. </param>
+        /// <param name="body">       The body content. </param>
+        /// <param name="footer">     (Optional) The footer content. </param>
+        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
+        /// <returns> The panel instance. </returns>
+        public Panel Panel(string title,
+            RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null,
+            PanelStyles panelStyle = PanelStyles.Default)
+        {
+            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
+        }
+
+        /// <summary> Creates a panel component for rendering on a web view page. </summary>
+        /// <param name="title">      The panel title. </param>
+        /// <param name="header">     The header content. </param>
+        /// <param name="body">       The body content. </param>
+        /// <param name="footer">     (Optional) The footer content. </param>
+        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
+        /// <returns> The panel instance. </returns>
+        public Panel Panel(string title, string header, RazorTemplateDelegate<object> body,
+            RazorTemplateDelegate<object> footer = null, PanelStyles panelStyle = PanelStyles.Default)
+        {
+            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
+        }
+
+        /// <summary> Creates a panel component for rendering on a web view page. </summary>
+        /// <param name="title">      The panel title. </param>
+        /// <param name="header">     The header content. </param>
+        /// <param name="body">       The body content. </param>
+        /// <param name="footer">     (Optional) The footer content. </param>
+        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
+        /// <returns> The panel instance. </returns>
+        public Panel Panel(string title, string header, string body, string footer = null, PanelStyles panelStyle = PanelStyles.Default)
+        {
+            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Creates a panel group component. </summary>
+        /// <param name="panels"> The panels for this panel group. </param>
+        /// <returns> The panel group instance. </returns>
+        public PanelGroup PanelGroup(params Panel[] panels)
+        {
+            return GetControl<PanelGroup>().Configure(panels);
         }
 
         // --------------------------------------------------------------------------------------------------------------------

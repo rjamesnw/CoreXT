@@ -1,7 +1,5 @@
 ﻿using CoreXT.Services.DI;
-using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -63,24 +61,42 @@ namespace CoreXT.Toolkit.Components
             return this;
         }
 
+        /// <summary> Sets a menu item. </summary>
+        /// <param name="item"> The item. </param>
+        /// <returns> A Menu. </returns>
         public Menu SetItem(MenuItem item)
         {
             Items.Add(item);
             return this;
         }
 
+        /// <summary> Sets a menu item. </summary>
+        /// <param name="content">        The content. </param>
+        /// <param name="actionName">     (Optional) Name of the action. </param>
+        /// <param name="controllerName"> (Optional) Name of the controller. </param>
+        /// <param name="areaName">       (Optional) Name of the area. </param>
+        /// <returns> A Menu. </returns>
         public Menu SetItem(object content, string actionName = null, string controllerName = null, string areaName = null)
         {
             Items.Add(GetService<MenuItem>().SetPage(Page).Configure(content, actionName, controllerName, areaName));
             return this;
         }
 
+        /// <summary> Sets a menu item. </summary>
+        /// <param name="content">        The content. </param>
+        /// <param name="actionName">     (Optional) Name of the action. </param>
+        /// <param name="controllerName"> (Optional) Name of the controller. </param>
+        /// <param name="areaName">       (Optional) Name of the area. </param>
+        /// <returns> A Menu. </returns>
         public Menu SetItem(Func<object, object> content, string actionName = null, string controllerName = null, string areaName = null)
         {
             Items.Add(GetService<MenuItem>().SetPage(Page).Configure(content, actionName, controllerName, areaName));
             return this;
         }
 
+        /// <summary> Sets the menu items. </summary>
+        /// <param name="items"> The items. </param>
+        /// <returns> A Menu. </returns>
         public Menu SetItems(IEnumerable<MenuItem> items)
         {
             Items.AddRange(items);

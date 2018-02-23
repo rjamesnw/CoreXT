@@ -1,12 +1,7 @@
-﻿using CoreXT.Toolkit.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CoreXT.Toolkit.Web;
+﻿using CoreXT.Services.DI;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
-using CoreXT.Services.DI;
+using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Components
 {
@@ -15,7 +10,7 @@ namespace CoreXT.Toolkit.Components
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// A razor template delegate used to render the header of the model window.
+        /// A razor template delegate used to render the header of the modal window.
         /// </summary>
         public RazorTemplateDelegate<object> Header;
 
@@ -28,7 +23,7 @@ namespace CoreXT.Toolkit.Components
         }
 
         /// <summary>
-        /// A razor template delegate used to render the footer of the model window.
+        /// A razor template delegate used to render the footer of the modal window.
         /// </summary>
         public RazorTemplateDelegate<object> Footer;
 
@@ -41,7 +36,7 @@ namespace CoreXT.Toolkit.Components
         }
 
         /// <summary>
-        /// The model window title.
+        /// The modal window title.
         /// </summary>
         new public RazorTemplateDelegate<object> Title;
 
@@ -60,8 +55,8 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// Creates an empty modal pop-up.
         /// </summary>
-        /// <param name="pageRenderStack"></param>
-        public Modal(ICoreXTServiceProvider sp) : base(sp) { }
+        /// <param name="services"></param>
+        public Modal(ICoreXTServiceProvider services) : base(services) { }
 
         public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
 
@@ -70,7 +65,7 @@ namespace CoreXT.Toolkit.Components
         public Modal Configure(RazorTemplateDelegate<object> title, bool allowClose,
             RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null)
         {
-            ID = Guid.NewGuid().ToString("N");
+            EnableAutomaticID = true;
             Title = title;
             AllowClose = allowClose;
             Header = header;
@@ -96,24 +91,38 @@ namespace CoreXT.Toolkit.Components
             return Configure(item => title, allowClose, item => header, item => body, item => footer);
         }
 
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Sets the modal's title. </summary>
+        /// <param name="title"> A razor template delegate used to render the title of the modal. </param>
+        /// <returns> A Modal. </returns>
         public Modal SetTitle(RazorTemplateDelegate<object> title)
         {
             Title = title;
             return this;
         }
 
+        /// <summary> Sets the modal's header. </summary>
+        /// <param name="header"> A razor template delegate used to render the header of the modal. </param>
+        /// <returns> A Modal. </returns>
         public Modal SetHeader(RazorTemplateDelegate<object> header)
         {
             Header = header;
             return this;
         }
 
+        /// <summary> Sets the modal's body content. </summary>
+        /// <param name="body"> A razor template delegate used to render the body of the modal. </param>
+        /// <returns> A Modal. </returns>
         public Modal SetBody(RazorTemplateDelegate<object> body)
         {
             ContentTemplate = body;
             return this;
         }
 
+        /// <summary> Sets the modal's footer. </summary>
+        /// <param name="footer"> A razor template delegate used to render the footer of the modal. </param>
+        /// <returns> A Modal. </returns>
         public Modal SetFooter(RazorTemplateDelegate<object> footer)
         {
             Footer = footer;
@@ -123,5 +132,3 @@ namespace CoreXT.Toolkit.Components
         // --------------------------------------------------------------------------------------------------------------------
     }
 }
-
-

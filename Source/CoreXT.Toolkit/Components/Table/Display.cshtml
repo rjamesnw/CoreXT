@@ -3,11 +3,6 @@
     var templateDetails = XT.GetTemplatePartDetails<Table>(td => GetControl<Table>());
     var ctrl = templateDetails.Control;
 
-    if (string.IsNullOrWhiteSpace(ctrl.ID))
-    {
-        ctrl.ID = Guid.NewGuid().ToString("N");
-    }
-
     var table = ctrl.DataTable;
     var tableIDPrefix = "Table." + table.ID;
     var displayableColumns = table.DisplayableColumns.ToArray();
