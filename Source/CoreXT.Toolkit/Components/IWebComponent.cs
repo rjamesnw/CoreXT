@@ -17,13 +17,25 @@ namespace CoreXT.Toolkit.Components
     {
         IDictionary<string, string> Attributes { get; }
         string Class { get; set; }
-        //??HttpContext Context { get; set; }
+        object Context { get; set; }
+
         string DataSourceID { get; set; }
-        HtmlString EncodedInnerHtml { get; }
+
+        Task<IHtmlContent> RenderContent();
+
         string ID { get; set; }
-        string InnerHtml { get; set; }
+
+        //xstring InnerHtml { get; set; }
+
+        /// <summary>
+        /// This delegate is used to set the 'InnerHtml' property when 'Update()' is called (usually just before rendering).
+        /// The delegate is usually set by derived controls that accept razor template delegates.
+        /// Setting this value will take precedence over any previously set 'InnerHtml' content.
+        /// </summary>
+        RazorTemplateDelegate<object> ContentTemplate { get; set; }
+
         string Name { get; set; }
-        IViewPage Page { get; set;  }
+        IViewPage Page { get; set; }
 
         IResourceList RequiredResources { get; }
         string Style { get; set; }
@@ -32,11 +44,9 @@ namespace CoreXT.Toolkit.Components
         string UniqueName { get; }
         IUrlHelper Url { get; }
 
-        WebComponent AddClass(params string[] classNames);
-        WebComponent AddEventScript(string eventAttributeName, string script);
         void ApplyResourcesToRequestContext();
         Task<IHtmlContent> AsAsync();
-        IViewComponentResult Content(object value);
+        IViewComponentResult ToViewResult(object value);
         bool Equals(object obj);
         string GetAttribute(string name);
         string[] GetClassNames();
@@ -45,19 +55,9 @@ namespace CoreXT.Toolkit.Components
         int GetHashCode();
         bool HasClass(params string[] classNames);
         Task<IViewComponentResult> InvokeAsync();
-        WebComponent RemoveClass(params string[] classNames);
         Task<IHtmlContent> Render();
         Task<IHtmlContent> Render(IViewComponentResult viewResult);
         IHtmlContent RenderFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression = null);
-        WebComponent RequireCSS(string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null);
-        WebComponent RequireCSS(string cssPath, RenderTargets renderTarget, Environments environment);
-        WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null);
-        WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment);
-        WebComponent RequireScript(string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null);
-        WebComponent RequireScript(string scriptPath, RenderTargets renderTarget, Environments environment);
-        WebComponent SetAttribute(string name, object value, bool replace = true);
-        WebComponent SetAttributes(IDictionary<string, object> attributes);
-        WebComponent SetAttributes(object attributes);
         WebComponent SetRenderer(Func<WebComponent, IHtmlContent> renderer);
         string ToString();
         Task<WebComponent> Update();

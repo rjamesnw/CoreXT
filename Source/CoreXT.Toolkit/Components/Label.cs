@@ -16,8 +16,8 @@ namespace CoreXT.Toolkit.Components
 
         protected string Text
         {
-            get { return InnerHtml; }
-            private set { InnerHtml = value; }
+            get { return Content; }
+            private set { Content = value; }
         }
 
         // --------------------------------------------------------------------------------------------------------------------

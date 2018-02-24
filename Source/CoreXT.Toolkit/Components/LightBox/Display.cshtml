@@ -4,5 +4,5 @@
     var ctrl = templateDetails.Control;
 }
 <div @ctrl.GetElementAttributes(true, true)>
-    @ctrl.EncodedInnerHtml
+    @await ctrl.RenderContent()
 </div>

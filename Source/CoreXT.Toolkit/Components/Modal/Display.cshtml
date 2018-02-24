@@ -31,7 +31,7 @@ else
                 }
             </div>
             <div class="modal-body">
-                @ctrl.EncodedInnerHtml
+                @await ctrl.RenderContent()
             </div>
             <div class="modal-footer">
                 @if (ctrl.Footer != null)

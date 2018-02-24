@@ -3,4 +3,4 @@
     var templateDetails = XT.GetTemplatePartDetails<Link>(td => GetControl<Link>().Configure(ViewBag.text ?? td.Text, td.Text));
     var ctrl = templateDetails.Control;
 }
-<a @ctrl.GetElementAttributes(true, true)>@await ctrl.PrefixContent@ctrl.EncodedInnerHtml@await ctrl.PostfixContent</a>
+<a @ctrl.GetElementAttributes(true, true)>@await ctrl.PrefixContent@await ctrl.RenderContent()@await ctrl.PostfixContent</a>

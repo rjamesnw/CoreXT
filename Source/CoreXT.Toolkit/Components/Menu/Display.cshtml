@@ -3,7 +3,7 @@
     var templateDetails = XT.GetTemplatePartDetails<Menu>(td => GetControl<Menu>().Configure(td.Text));
     var ctrl = templateDetails.Control;
 }
-@*<a >@ctrl.EncodedInnerHtml</a>*@
+@*<a >@await ctrl.RenderContent()</a>*@
 <div @ctrl.AddClass("navbar navbar-fixed-top").GetElementAttributes(true, true)>
     <div class="container">
         <div class="navbar-header">

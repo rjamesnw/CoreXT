@@ -20,7 +20,7 @@ namespace CoreXT.Toolkit.Components
 
     /// <summary> A button component. </summary>
     /// <seealso cref="T:CoreXT.Toolkit.Components.WebComponent"/>
-    public class Panel : WebComponent, IComponentTitle,  IComponentHeader, IComponentBody
+    public class Panel : WebComponent, IComponentTitle, IComponentHeader, IComponentFooter
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -40,6 +40,8 @@ namespace CoreXT.Toolkit.Components
             get { return GetContentFromTemplateDelegate(Header); }
         }
 
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary> A razor template delegate used to render the footer of the panel. </summary>
         public RazorTemplateDelegate<object> Footer { get; set; }
 
@@ -50,6 +52,8 @@ namespace CoreXT.Toolkit.Components
         {
             get { return GetContentFromTemplateDelegate(Footer); }
         }
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary> The panel title. </summary>
         /// <value> The panel title. </value>
@@ -76,102 +80,12 @@ namespace CoreXT.Toolkit.Components
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary> Configures a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
         /// <param name="panelStyle"> (Optional) Style of the panel. </param>
         /// <returns> The panel instance. </returns>
-        public Panel Configure(RazorTemplateDelegate<object> title,
-            RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null,
-            PanelStyles panelStyle = PanelStyles.Default)
+        public Panel Configure(PanelStyles panelStyle = PanelStyles.Default)
         {
             EnableAutomaticID = true;
-            Title = title;
-            Header = header;
-            ContentTemplate = body;
-            Footer = footer;
             PanelStyle = panelStyle;
-            return this;
-        }
-
-        /// <summary> Configures a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
-        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
-        /// <returns> The panel instance. </returns>
-        public Panel Configure(string title,
-            RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null,
-            PanelStyles panelStyle = PanelStyles.Default)
-        {
-            // (NOTICE: 'item => ???' are RAZOR template delegates that will return content, which is a string in this case)
-            return Configure(item => title, header, body, footer);
-        }
-
-        /// <summary> Configures a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
-        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
-        /// <returns> The panel instance. </returns>
-        public Panel Configure(string title, string header, RazorTemplateDelegate<object> body,
-            RazorTemplateDelegate<object> footer = null, PanelStyles panelStyle = PanelStyles.Default)
-        {
-            // (NOTICE: 'item => ???' are RAZOR template delegates that will return content, which are strings in this case)
-            return Configure(item => title, item => header, body, footer, panelStyle);
-        }
-
-        /// <summary> Configures a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
-        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
-        /// <returns> The panel instance. </returns>
-        public Panel Configure(string title, string header, string body, string footer = null, PanelStyles panelStyle = PanelStyles.Default)
-        {
-            // (NOTICE: 'item => ???' are RAZOR template delegates that will return content, which are strings in this case)
-            return Configure(item => title, item => header, item => body, item => footer, panelStyle);
-        }
-
-        // --------------------------------------------------------------------------------------------------------------------
-
-        /// <summary> Sets the panel title. </summary>
-        /// <param name="title"> A razor template delegate used to render the title of the panel. </param>
-        /// <returns> A Panel. </returns>
-        public Panel SetTitle(RazorTemplateDelegate<object> title)
-        {
-            Title = title;
-            return this;
-        }
-
-        /// <summary> Sets the panel header. </summary>
-        /// <param name="header"> A razor template delegate used to render the header of the panel. </param>
-        /// <returns> A Panel. </returns>
-        public Panel SetHeader(RazorTemplateDelegate<object> header)
-        {
-            Header = header;
-            return this;
-        }
-
-        /// <summary> Sets the panel body. </summary>
-        /// <param name="body"> A razor template delegate used to render the body of the panel. </param>
-        /// <returns> A Panel. </returns>
-        public Panel SetBody(RazorTemplateDelegate<object> body)
-        {
-            ContentTemplate = body;
-            return this;
-        }
-
-        /// <summary> Sets the panel footer. </summary>
-        /// <param name="footer"> A razor template delegate used to render the footer of the panel. </param>
-        /// <returns> A Panel. </returns>
-        public Panel SetFooter(RazorTemplateDelegate<object> footer)
-        {
-            Footer = footer;
             return this;
         }
 

@@ -165,26 +165,32 @@ namespace CoreXT.Toolkit.Components
         }
 
         /// <summary>
-        /// The raw internal HTML that will be placed between the start and end tags, if supported.
-        /// This should be overridden in derived classes to throw "NotSupportedException" if not supported.
+        /// The raw internal HTML that will be placed in the body of the components rendered HTML, if supported.
+        /// <para>This should be overridden in derived classes to throw "NotSupportedException" if content output is not supported.</para>
+        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'ToViewResult()' instead, which has better conversion support for more types.</para>
         /// </summary>
-        public virtual string InnerHtml { get { return _InnerHtml; } set { _InnerHtml = value ?? string.Empty; } }
-        string _InnerHtml = string.Empty;
+        new public virtual object Content { get { return _Content; } set { _Content = value; } }
+        object _Content;
 
         /// <summary>
         /// This delegate is used to set the 'InnerHtml' property when 'Update()' is called (usually just before rendering).
         /// The delegate is usually set by derived controls that accept razor template delegates.
+        /// Setting this value will take precedence over any previously set 'InnerHtml' content.
+        /// <para>This should be overridden in derived classes to throw "NotSupportedException" if not supported.</para>
+        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'ToViewResult()' instead, which has better conversion support for more types.</para>
         /// </summary>
-        public RazorTemplateDelegate<object> ContentTemplate { get; set; }
+        public virtual RazorTemplateDelegate<object> ContentTemplate { get; set; }
 
         /// <summary>
-        /// Returns 'InnerHtml' as encoded HTML (usually used to output text for display purposes).
+        /// Called within component views to render the content set in either the 'ContentTemplate' or 'Content' properties.
+        /// 'ContentTemplate' will always take precedence over setting the 'Content' property.
         /// </summary>
-        public HtmlString EncodedInnerHtml { get { return new HtmlString(InnerHtml); } } // WebUtility.HtmlEncode()
+        public virtual async Task<IHtmlContent> RenderContent()
+            => await (ContentTemplate != null ? GetContentFromTemplateDelegate(ContentTemplate) : Render(ToViewResult(Content))); //x WebUtility.HtmlEncode()
 
         /// <summary>
         /// If set, this will be called to render the raw HTML result when 'Render()' is called.
-        /// </summary>
+        /// </summary>up
         Func<WebComponent, IHtmlContent> _Renderer;
 
         IViewPageRenderStack _ViewPageRenderStack;
@@ -198,7 +204,7 @@ namespace CoreXT.Toolkit.Components
         /// The content must either be a string, implement IHtmlContent or IViewComponentResult, or override the 'Object.ToString()' method.
         /// <para>The precedence is IViewComponentResult, IHtmlContent, string, then Object.ToString().</para></param>
         /// <returns>Returns an IViewComponentResult result.</returns>
-        public IViewComponentResult Content(object value)
+        public virtual IViewComponentResult ToViewResult(object value)
         {
             return GetViewResultFromValue(value);
         }
@@ -227,7 +233,7 @@ namespace CoreXT.Toolkit.Components
                 {
                     var valueToStringDeclaringType = ((Func<string>)value.ToString).GetMethodInfo().DeclaringType;
                     if (valueToStringDeclaringType == typeof(object))
-                        throw new InvalidOperationException(string.Format("The specified content object cannot be rendered. The content must either be a {0}, implement {1} or {2}, or override the '{3}' method.",
+                        throw new InvalidOperationException(string.Format("The specified content object cannot be rendered. The content must either be a {0} or primitive type, implement {1} or {2}, or override the '{3}' method.",
                             typeof(string).Name,
                             nameof(IHtmlContent),
                             nameof(IViewComponentResult),
@@ -249,20 +255,17 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         public virtual async Task<WebComponent> Update()
         {
-            if (ContentTemplate != null)
-                InnerHtml = (await GetContentFromTemplateDelegate(ContentTemplate)).Render();
-
             if (EnableAutomaticID && string.IsNullOrWhiteSpace(ID))
                 this.GenerateID();
 
-            return this;
+            return await Task.FromResult(this);
         }
 
         /// <summary>
         /// An async method to return an IHtmlContent instance from the specified template delegate.
         /// This is used in controls to support rendering razor template delegates into the underlying views, where applicable.
         /// </summary>
-        public async Task<IHtmlContent> GetContentFromTemplateDelegate(RazorTemplateDelegate<object> templateDelegate)
+        public virtual async Task<IHtmlContent> GetContentFromTemplateDelegate(RazorTemplateDelegate<object> templateDelegate)
         {
             if (templateDelegate != null)
             {
@@ -272,7 +275,7 @@ namespace CoreXT.Toolkit.Components
                     return new HtmlString((string)contentResult);
                 else
                 {
-                    var viewResult = Content(contentResult); // (coerce the value to a view result if not already one)
+                    var viewResult = ToViewResult(contentResult); // (coerce the value to a view result if not already one)
                     return await Render(viewResult);
                 }
             }
@@ -319,7 +322,7 @@ namespace CoreXT.Toolkit.Components
         /// Giving ANY attribute to skip will bypass this default, so you'll have to explicitly name those to 
         /// If these are needed, simply pass in an empty string for an attribute name to ignore.</param>
         /// <returns></returns>
-        public IHtmlContent GetElementAttributes(bool includeID = false, bool includeName = false, params string[] attributesToIgnore)
+        public virtual IHtmlContent GetElementAttributes(bool includeID = false, bool includeName = false, params string[] attributesToIgnore)
         {
             if (Attributes.Count == 0)
                 return new HtmlString("");
@@ -353,7 +356,7 @@ namespace CoreXT.Toolkit.Components
                  select a.Key + "=\"" + WebUtility.HtmlEncode(a.Value) + "\"")));
         }
 
-        string _ObjectMemberNameToAttributeName(string name)
+        public static string ObjectMemberNameToAttributeName(string name)
         {
             // (converts "someMemberName" format to "some-member-name")
             return Regex.Replace(name, "([a-z])([A-Z])", m => m.Groups[1].Value + "-" + m.Groups[2].Value.ToLower());
@@ -363,14 +366,17 @@ namespace CoreXT.Toolkit.Components
         /// Gets an attribute value on this component by name.
         /// </summary>
         /// <param name="name">The attribute name.</param>
-        public string GetAttribute(string name)
+        public virtual string GetAttribute(string name)
         {
             return Attributes.Value(name);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        IEnumerable<string> _TrimNames(IEnumerable<string> classNames)
+        /// <summary> A simple method filter to trim the CSS class name strings. </summary>
+        /// <param name="classNames"> List of CSS class names. </param>
+        /// <returns> An enumerator that allows 'foreach' to be used to process trimmed CSS class names in this collection. </returns>
+        public static IEnumerable<string> TrimClassNames(IEnumerable<string> classNames)
         {
             return classNames.Select(c => c.Trim()).Where(c => !string.IsNullOrWhiteSpace(c));
         }
@@ -392,12 +398,12 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         /// <param name="classNames">A list of class names to test against.  If a single array item has spaces it will be parsed also as separate class names.</param>
         /// <returns>True if the current component current has all the given class names, or false otherwise.</returns>
-        public bool HasClass(params string[] classNames)
+        public virtual bool HasClass(params string[] classNames)
         {
             if (classNames.Length > 0)
             {
                 // (note: individual string items may already be space delimited, and will be parsed later using {string}.Split())
-                var classNamesStr = string.Join(" ", _TrimNames(classNames));
+                var classNamesStr = string.Join(" ", TrimClassNames(classNames));
 
                 if (!string.IsNullOrEmpty(classNamesStr))
                 {
@@ -414,115 +420,6 @@ namespace CoreXT.Toolkit.Components
                 }
             }
             return false;
-        }
-
-        // --------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Inserts an inline script into a given event attribute for this component (i.e. "onclick").
-        /// If one or more scripts already exists for the event, this new script is appended.
-        /// </summary>
-        /// <param name="eventAttributeName">The attribute event name for an event on this component.</param>
-        /// <param name="script">The inline script to set.  If a script is already set</param>
-        public WebComponent AddEventScript(string eventAttributeName, string script)
-        {
-            if (string.IsNullOrEmpty(script))
-                return this;
-
-            script = script.Trim();
-
-            if (!script.EndsWith("}") && !script.EndsWith(";"))
-                script += ";"; // (make sure the script is terminated correctly)
-
-            string currentScript = Attributes.Value(eventAttributeName);
-
-            if (!string.IsNullOrWhiteSpace(currentScript))
-            {
-                currentScript = currentScript.Trim();
-
-                if (!currentScript.EndsWith("}") && !currentScript.EndsWith(";"))
-                    currentScript += ";"; // (make sure the script is terminated correctly)
-
-                Attributes[eventAttributeName] = currentScript + " " + script;
-            }
-            else Attributes[eventAttributeName] = script;
-
-            return this;
-        }
-
-        // --------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Adds a resource that is required for this component.
-        /// If the resource is already added then the request is ignored.
-        /// </summary>
-        /// <param name="resourcePath">A URI to the script to add to the page.</param>
-        /// <param name="resourceType">The type of the resource returned from the given resource path.</param>
-        /// <param name="renderTarget">Where to render the resource.</param>
-        public WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null)
-        {
-            if (RequiredResources == null)
-                throw new InvalidOperationException("No view page was supplied for this component.");
-
-            RequiredResources.Add(resourcePath, ResourceTypes.Script, renderTarget, sequence, environmentName);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Adds a resource that is required for this component.
-        /// If the resource is already added then the request is ignored.
-        /// </summary>
-        /// <param name="resourcePath">A URI to the script to add to the page.</param>
-        /// <param name="resourceType">The type of the resource returned from the given resource path.</param>
-        /// <param name="renderTarget">Where to render the resource.</param>
-        public WebComponent RequireResource(string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment)
-        {
-            if (RequiredResources == null)
-                throw new InvalidOperationException("No view page was supplied for this component.");
-
-            RequiredResources.Add(resourcePath, ResourceTypes.Script, renderTarget, sequence, environment);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Adds a required script (usually JavaScript) to this component, if it has not been added already.
-        /// </summary>
-        /// <param name="scriptPath">A URI to the script to associated with this component.</param>
-        public WebComponent RequireScript(string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
-        {
-            return RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environmentName);
-        }
-
-        /// <summary>
-        /// Adds a required script (usually JavaScript) to this component, if it has not been added already.
-        /// </summary>
-        /// <param name="scriptPath">A URI to the script to associated with this component.</param>
-        /// <param name="renderTarget">Where to render the script on a page when 'Render()' is called.</param>
-        public WebComponent RequireScript(string scriptPath, RenderTargets renderTarget, Environments environment)
-        {
-            return RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environment);
-        }
-
-        /// <summary>
-        /// Adds a required CSS reference to this component, if it has not been added already.
-        /// </summary>
-        /// <param name="cssPath">A URI to the script to associated with this component.</param>
-        /// <param name="renderTarget">Where to render the CSS on a page when 'Render()' is called.</param>
-        public WebComponent RequireCSS(string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
-        {
-            return RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environmentName);
-        }
-
-        /// <summary>
-        /// Adds a required CSS reference to this component, if it has not been added already.
-        /// </summary>
-        /// <param name="cssPath">A URI to the script to associated with this component.</param>
-        /// <param name="renderTarget">Where to render the CSS on a page when 'Render()' is called.</param>
-        public WebComponent RequireCSS(string cssPath, RenderTargets renderTarget, Environments environment)
-        {
-            return RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environment);
         }
 
         /// <summary>

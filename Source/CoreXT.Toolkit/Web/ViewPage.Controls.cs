@@ -66,40 +66,14 @@ namespace CoreXT.Toolkit.Web
 
         /// <summary>
         ///     Returns a modal component to construct modal window elements. Razor template delegates can be used for the title,
-        ///     header, and footer parameters (typically in the form '&lt;see cref="item=&gt;&lt;text&gt;&lt;/text&gt;"/&gt;').
+        ///     header, and footer parameters (typically in the form '@&lt;element&gt;&lt;/element&gt;' such as '@&lt;div&gt;&lt;/div&gt;').
+        ///     <para>Use the fluent style API to build the modal component (using supported extension methods).</para>
         /// </summary>
+        /// <param name="allowClose"> If true, and "X" button is added to the modal window so it can be closed. </param>
         /// <returns> A Modal. </returns>
-        public Modal Modal()
+        public Modal Modal(bool allowClose)
         {
-            return GetControl<Modal>();
-        }
-
-        /// <summary>
-        /// Returns a modal component to construct modal window elements.
-        /// Razor template delegates can be used for the header and footer parameters.
-        /// </summary>
-        public Modal Modal(string title, bool allowClose, RazorTemplateDelegate<object> header,
-            RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null)
-        {
-            return GetControl<Modal>().Configure(title, allowClose, header, body, footer);
-        }
-
-        /// <summary>
-        /// Returns a modal component to construct modal window elements.
-        /// Razor template delegates can be used for the header and footer parameters.
-        /// </summary>
-        public Modal Modal(string title, string header,
-            RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null, bool allowClose = true)
-        {
-            return GetControl<Modal>().Configure(title, header, body, footer, allowClose);
-        }
-
-        /// <summary>
-        /// Returns a modal component to construct modal window elements.
-        /// </summary>
-        public Modal Modal(string title, string header, string body, string footer = null, bool allowClose = true)
-        {
-            return GetControl<Modal>().Configure(title, header, body, footer, allowClose);
+            return GetControl<Modal>().Configure(allowClose);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -126,57 +100,19 @@ namespace CoreXT.Toolkit.Web
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        /// <summary> Creates a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
+        /// <summary>
+        ///     Creates a panel component for rendering on a web view page.
+        ///     <para>Use the fluent style API to build the modal component (using supported extension methods).</para>
+        /// </summary>
+        /// <param name="title"> The panel title. </param>
+        /// <param name="header"> The header content. </param>
+        /// <param name="body"> The body content. </param>
+        /// <param name="footer"> (Optional) The footer content. </param>
         /// <param name="panelStyle"> (Optional) Style of the panel. </param>
         /// <returns> The panel instance. </returns>
-        public Panel Panel(RazorTemplateDelegate<object> title,
-            RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null,
-            PanelStyles panelStyle = PanelStyles.Default)
+        public Panel Panel(PanelStyles panelStyle = PanelStyles.Default)
         {
-            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
-        }
-
-        /// <summary> Creates a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
-        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
-        /// <returns> The panel instance. </returns>
-        public Panel Panel(string title,
-            RazorTemplateDelegate<object> header, RazorTemplateDelegate<object> body, RazorTemplateDelegate<object> footer = null,
-            PanelStyles panelStyle = PanelStyles.Default)
-        {
-            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
-        }
-
-        /// <summary> Creates a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
-        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
-        /// <returns> The panel instance. </returns>
-        public Panel Panel(string title, string header, RazorTemplateDelegate<object> body,
-            RazorTemplateDelegate<object> footer = null, PanelStyles panelStyle = PanelStyles.Default)
-        {
-            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
-        }
-
-        /// <summary> Creates a panel component for rendering on a web view page. </summary>
-        /// <param name="title">      The panel title. </param>
-        /// <param name="header">     The header content. </param>
-        /// <param name="body">       The body content. </param>
-        /// <param name="footer">     (Optional) The footer content. </param>
-        /// <param name="panelStyle"> (Optional) Style of the panel. </param>
-        /// <returns> The panel instance. </returns>
-        public Panel Panel(string title, string header, string body, string footer = null, PanelStyles panelStyle = PanelStyles.Default)
-        {
-            return GetControl<Panel>().Configure(title, header, body, footer, panelStyle);
+            return GetControl<Panel>().Configure(panelStyle);
         }
 
         // --------------------------------------------------------------------------------------------------------------------

@@ -12,5 +12,5 @@
 
     ctrl.AddClass("btn", "btn-" + ctrl.ButtonStyle.ToString().ToLower());
 }
-<button @ctrl.GetElementAttributes(true, true)>@ctrl.EncodedInnerHtml</button>
+<button @ctrl.GetElementAttributes(true, true)>@await ctrl.RenderContent()</button>
 @*Simple as that! ;)*@

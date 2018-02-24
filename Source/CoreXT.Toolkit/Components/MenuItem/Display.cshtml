@@ -4,5 +4,5 @@
     var ctrl = templateDetails.Control;
 }
 <li @ctrl.GetElementAttributes(true, true)>
-    <a asp-area="@ctrl.AreaName" asp-controller="@ctrl.ControllerName" asp-action="@ctrl.ActionName">@ctrl.EncodedInnerHtml</a>
+    <a asp-area="@ctrl.AreaName" asp-controller="@ctrl.ControllerName" asp-action="@ctrl.ActionName">@await ctrl.RenderContent()</a>
 </li>

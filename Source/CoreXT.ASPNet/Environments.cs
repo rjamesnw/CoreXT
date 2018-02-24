@@ -5,7 +5,8 @@ namespace CoreXT.ASPNet
     // ########################################################################################################################
 
     /// <summary>
-    /// A enumeration of some common development environments
+    /// Flags for some common development environments.
+    /// <para>Flags are used so that content rendering can be targeted to multiple environments.</para>
     /// </summary>
     [Flags]
     public enum Environments

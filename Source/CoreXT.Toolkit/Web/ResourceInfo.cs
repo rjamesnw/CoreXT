@@ -27,7 +27,7 @@ namespace CoreXT.Toolkit.Web
     }
 
     /// <summary>
-    /// Tells CDS where to render a resource.
+    /// Tells CoreXT where to render a resource.
     /// </summary>
     public enum RenderTargets
     {
@@ -194,7 +194,7 @@ namespace CoreXT.Toolkit.Web
         /// Resources are sorted by this sequence value. The sort is in descending order as the layout page is usually last to render, but first in the stack,
         /// and inner partial views are rendered first (this keeps scripts grouped in order added, and by view).
         /// </summary>
-        /// <remarks>When a script is added via the 'CDS' view helper, the view's 'NestedLevel' property is used to group the scripts by the nested level of the view.</remarks>
+        /// <remarks>When a script is added via the 'CoreXT' view helper, the view's 'NestedLevel' property is used to group the scripts by the nested level of the view.</remarks>
         public int Sequence;
 
         // -------------------------------------------------------------------------------------------------------------------
@@ -562,6 +562,5 @@ namespace CoreXT.Toolkit.Web
 
 // Special thanks to the original source that helped jump start the controls section:
 // https://www.codeproject.com/Articles/32356/Custom-controls-in-ASP-NET-MVC
-// The final code, however, is a rewrite specific to CDS purposes (rather than retyping the same typical code). The rewrite
-// also focuses on using editor and display templates, rather than hard coding the control designs. This gives more design
-// power to developers.
+// The final code, however, is an almost complete rewrite specific to CoreXT purposes (rather than retyping the same typical code). The rewrite
+// also focuses on using editor and display templates, rather than hard coding the control designs. This gives more better development flexibility.

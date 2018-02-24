@@ -104,10 +104,14 @@ namespace CoreXT.ASPNet
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Returns true if the given environment name matches the current environment setting in
-        /// '<seealso cref="IHostingEnvironment"/>.EnvironmentName' (usually set by passing in an argument to the web application,
-        /// or by setting the 'ASPNETCORE_ENVIRONMENT' environment variable).
+        ///     Returns true if the given environment name matches the current environment setting in
+        ///     '<seealso cref="IHostingEnvironment"/>.EnvironmentName' (usually set by passing in an argument to the web
+        ///     application, or by setting the 'ASPNETCORE_ENVIRONMENT' environment variable).
         /// </summary>
+        /// <param name="env"> The IHostingEnvironment to act on. </param>
+        /// <param name="environmentName"> Name of the environment. </param>
+        /// <param name="ignoreCase"> True to ignore case. </param>
+        /// <returns> True if environment, false if not. </returns>
         public static bool IsEnvironment(this IHostingEnvironment env, string environmentName, bool ignoreCase)
         {
             if (ignoreCase)
@@ -118,14 +122,22 @@ namespace CoreXT.ASPNet
         // (note: Microsoft already as a similar one: Microsoft.AspNetCore.Hosting.HostingEnvironmentExtensions)
 
         /// <summary>
-        /// Returns true if any of the given environment flags matches the current environment setting in
-        /// '<seealso cref="IHostingEnvironment"/>.EnvironmentName' (usually set by passing in an argument to the web application,
-        /// or by setting the 'ASPNETCORE_ENVIRONMENT' environment variable).
-        /// <para>Note that the value 'Environments.Any' (0) will match all environments.</para>
-        /// <para>This method requires that text matching the environment names in the enum type are used to set the hosting environment names.</para>
+        ///     Returns true if any of the given environment flags matches the current environment setting in
+        ///     '<seealso cref="IHostingEnvironment"/>.EnvironmentName' (usually set by passing in an argument to the web
+        ///     application, or by setting the 'ASPNETCORE_ENVIRONMENT' environment variable).
+        ///     <para>Note that the value 'Environments.Any' (0) will match all environments.</para>
+        ///     <para>This method requires that text matching the environment names in the enum type are used to set the hosting
+        ///     environment names.</para>
         /// </summary>
-        /// <param name="environment">Environment flags to test against. If any match, or if 'environment' is 0, 'true' is returned.</param>
-        /// <param name="ignoreCase">If true (default) case is ignored when comparing against the 'IHostingEnvironment.EnvironmentName' value.</param>
+        /// <param name="env"> The IHostingEnvironment to act on. </param>
+        /// <param name="environment">
+        ///     Environment flags to test against. If any match, or if 'environment' is 0, 'true' is returned.
+        ///     <para>Flags are used so that content rendering can be targeted to multiple environments.</para>
+        /// </param>
+        /// <param name="ignoreCase">
+        ///     (Optional) If true (default) case is ignored when comparing against the 'IHostingEnvironment.EnvironmentName' value.
+        /// </param>
+        /// <returns> True if environment, false if not. </returns>
         public static bool IsEnvironment(this IHostingEnvironment env, Environments environment, bool ignoreCase = true)
         {
             if (environment == Environments.Any) return true;

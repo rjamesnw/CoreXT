@@ -19,7 +19,7 @@
         }
     </div>
     <div class="panel-body">
-        @ctrl.EncodedInnerHtml
+        @await ctrl.RenderContent()
     </div>
     <div class="panel-footer">
         @if (ctrl.Footer != null)

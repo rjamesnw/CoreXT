@@ -62,7 +62,7 @@ namespace CoreXT.Toolkit.Components
             if (string.IsNullOrWhiteSpace(text))
                 throw new ArgumentException("Value cannot be null, empty, or whitespace.", "text");
 
-            InnerHtml = text;
+            Content = text;
 
             Href = Url.Content(href);
 
