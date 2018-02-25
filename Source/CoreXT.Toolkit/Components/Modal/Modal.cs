@@ -12,14 +12,14 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// A razor template delegate used to render the header of the modal window.
         /// </summary>
-        public RazorTemplateDelegate<object> Header { get; set; }
+        public object Header { get; set; }
 
         /// <summary>
         /// Returns the header content for rendering in the control's view.
         /// </summary>
         public Task<IHtmlContent> HeaderContent
         {
-            get { return GetContentFromTemplateDelegate(Header); }
+            get { return RenderContent(Header); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -27,14 +27,14 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// A razor template delegate used to render the footer of the modal window.
         /// </summary>
-        public RazorTemplateDelegate<object> Footer { get; set; }
+        public object Footer { get; set; }
 
         /// <summary>
         /// Returns the footer content for rendering in the control's view.
         /// </summary>
         public Task<IHtmlContent> FooterContent
         {
-            get { return GetContentFromTemplateDelegate(Footer); }
+            get { return RenderContent(Footer); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -42,14 +42,14 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// The modal window title.
         /// </summary>
-        new public RazorTemplateDelegate<object> Title { get; set; }
+        new public object Title { get; set; }
 
         /// <summary>
         /// Returns the title content for rendering in the control's view.
         /// </summary>
         public Task<IHtmlContent> TitleContent
         {
-            get { return GetContentFromTemplateDelegate(Title); }
+            get { return RenderContent(Title); }
         }
 
         public bool AllowClose = true;
@@ -66,7 +66,7 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public Modal Configure(bool allowClose)
+        public Modal Configure(bool allowClose = true)
         {
             EnableAutomaticID = true;
             AllowClose = allowClose;

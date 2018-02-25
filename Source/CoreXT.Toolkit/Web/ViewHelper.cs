@@ -185,7 +185,7 @@ namespace CoreXT.Toolkit.Web
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public class TemplatePartDetails<TControl> where TControl : WebComponent
+        public class TemplatePartDetails<TWebComponent> where TWebComponent : IWebComponent
         {
             /// <summary>
             /// The property name for expressions used with template partial views.
@@ -202,29 +202,29 @@ namespace CoreXT.Toolkit.Web
             /// <summary>
             /// The resulting control, either from the control being the view model itself, or by creating a transient control for rendering purposes only.
             /// </summary>
-            public TControl Control;
+            public TWebComponent Control;
         }
 
         /// <summary>
         /// Returns details for use with WebComponent based template partial views.
         /// </summary>
-        /// <typeparam name="TControl">The type of WebComponent the display or editor template partial view is for.</typeparam>
+        /// <typeparam name="TWebComponent">The type of WebComponent the display or editor template partial view is for.</typeparam>
         /// <param name="constructor">If the model for the template part does not contain a control instance, this callback
         /// (usually a simple lambda expression) is called to create a new control instance within the context of the 
         /// calling template.</param>
         /// <returns>An object that holds common details across all WebComponent type template views.</returns>
-        public TemplatePartDetails<TControl> GetTemplatePartDetails<TControl>(Func<TemplatePartDetails<TControl>, TControl> constructor)
-            where TControl : WebComponent
+        public TemplatePartDetails<TWebComponent> GetTemplatePartDetails<TWebComponent>(Func<TemplatePartDetails<TWebComponent>, TWebComponent> constructor)
+            where TWebComponent : class, IWebComponent
         {
             if (constructor == null)
                 throw new ArgumentNullException("'constructor' is required in case a calling template does not have a control instance as a model.");
 
             var model = Page.Model;
 
-            if (model is WebComponent && !(model is TControl))
-                throw new InvalidOperationException("A ControlBase was given as a template view's model, but it is not of the expected derived type.");
+            if (model is IWebComponent && !(model is TWebComponent))
+                throw new InvalidOperationException("An IWebComponent (" + model.GetType().Name + ") was given as the component's view's model, but it is not of type '" + typeof(TWebComponent).Name + "' expected by the component's view.");
 
-            var details = new TemplatePartDetails<TControl>();
+            var details = new TemplatePartDetails<TWebComponent>();
 
             var propertyIsControlBase = ViewData.TemplateInfo.FormattedModelValue is WebComponent;
             // (note: if NO model property is given, 'ViewData.TemplateInfo.FormattedModelValue' will become the WebComponent
@@ -238,7 +238,7 @@ namespace CoreXT.Toolkit.Web
 
             // ... get a control for this partial template ...
 
-            details.Control = model as TControl ?? constructor(details); // (if the mode is not a CDS control, then this will become null.
+            details.Control = model as TWebComponent ?? constructor(details); // (if the mode is not a CDS control, then this will become null.
 
             // (Note: At this point a control MUST exist.)
             if (details.Control == null)
@@ -246,7 +246,7 @@ namespace CoreXT.Toolkit.Web
 
             // ... now that we have a control, configure it with any ViewBag values from the partial template ...
 
-            details.Control.SetAttributes(Page.ViewBag); // TODO: Need to filter this?  Perhaps not all values are valid to output?
+            details.Control.SetAttributes((object)Page.ViewBag); // TODO: Need to filter this?  Perhaps not all values are valid to output?
 
             return details;
         }

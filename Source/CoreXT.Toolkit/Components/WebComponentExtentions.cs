@@ -15,36 +15,21 @@ namespace CoreXT.Toolkit.Components
     {
         /// <summary> The component title. </summary>
         /// <value> The component title. </value>
-        RazorTemplateDelegate<object> Title { get; set; }
-
-        /// <summary>
-        /// Returns the title content for rendering in the component's view.
-        /// </summary>
-        Task<IHtmlContent> TitleContent { get; }
+        object Title { get; set; }
     }
 
     /// <summary> Represents components that contain headers than can be set. </summary>
     public interface IComponentHeader
     {
         /// <summary> A razor template delegate used to render the header of the component. </summary>
-        RazorTemplateDelegate<object> Header { get; set; }
-
-        /// <summary>
-        /// Returns the header content for rendering in the component's view.
-        /// </summary>
-        Task<IHtmlContent> HeaderContent { get; }
+        object Header { get; set; }
     }
 
     /// <summary> Represents components that contain headers than can be set. </summary>
     public interface IComponentFooter
     {
         /// <summary> A razor template delegate used to render the footer of the component. </summary>
-        RazorTemplateDelegate<object> Footer { get; set; }
-
-        /// <summary>
-        /// Returns the footer content for rendering in the component's view.
-        /// </summary>
-        Task<IHtmlContent> FooterContent { get; }
+        object Footer { get; set; }
     }
 
     public static class WebComponentExtentions
@@ -56,7 +41,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="id"> The identifier name to set. </param>
         /// <returns> This WebComponent instance. </returns>
-        public static T SetID<T>(this T comp, string id) where T : IWebComponent { comp.ID = id; return comp; }
+        public static T SetID<T>(this T comp, string id) where T : class, IWebComponent { comp.ID = id; return comp; }
 
         /// <summary>
         ///     Generates a GUID for this component's 'id' attribute.  This is implementation dependent, and requires component designers to support setting this on the rendered component view.
@@ -65,14 +50,14 @@ namespace CoreXT.Toolkit.Components
         /// <typeparam name="T"> A component type. </typeparam>
         /// <param name="comp"> The comp to act on. </param>
         /// <returns> This web component instance. </returns>
-        public static T GenerateID<T>(this T comp) where T : IWebComponent { comp.ID = Guid.NewGuid().ToString("N"); return comp; }
+        public static T GenerateID<T>(this T comp) where T : class, IWebComponent { comp.ID = Guid.NewGuid().ToString("N"); return comp; }
 
         /// <summary> Sets the given attributes on this component. </summary>
         /// <typeparam name="T"> A component type. </typeparam>
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="attributes"> A dictionary list of attributes to set. </param>
         /// <returns> this component instance. </returns>
-        public static T SetAttributes<T>(this T comp, IDictionary<string, object> attributes) where T : IWebComponent
+        public static T SetAttributes<T>(this T comp, IDictionary<string, object> attributes) where T : class, IWebComponent
         {
             if (attributes != null)
                 foreach (var item in attributes)
@@ -87,7 +72,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The component to act on. </param>
         /// <param name="attributes"> A dictionary list of attributes to set. </param>
         /// <returns> this component instance. </returns>
-        public static T SetAttributes<T>(this T comp, object attributes) where T : IWebComponent
+        public static T SetAttributes<T>(this T comp, object attributes) where T : class, IWebComponent
         {
             if (attributes != null)
             {
@@ -110,7 +95,7 @@ namespace CoreXT.Toolkit.Components
         ///     this is false, nothing is removed, and any merge requests with existing keys will be ignored.
         /// </param>
         /// <returns> A T. </returns>
-        public static T SetAttribute<T>(this T comp, string name, object value, bool replace = true) where T : IWebComponent
+        public static T SetAttribute<T>(this T comp, string name, object value, bool replace = true) where T : class, IWebComponent
         {
             comp.Attributes.MergeString(name, value, replace);
             return comp;
@@ -124,7 +109,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="classNames"> . </param>
         /// <returns> A T. </returns>
-        public static T AddClass<T>(this T comp, params string[] classNames) where T : IWebComponent
+        public static T AddClass<T>(this T comp, params string[] classNames) where T : class, IWebComponent
         {
             if (classNames.Length > 0)
             {
@@ -157,7 +142,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="classNames"> . </param>
         /// <returns> A T. </returns>
-        public static T RemoveClass<T>(this T comp, params string[] classNames) where T : IWebComponent
+        public static T RemoveClass<T>(this T comp, params string[] classNames) where T : class, IWebComponent
         {
             if (classNames.Length > 0)
             {
@@ -236,9 +221,9 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="content"> A razor template delegate used to render the body of the component. </param>
         /// <returns> A component. </returns>
-        public static T SetContent<T>(this T comp, RazorTemplateDelegate<object> content) where T : IWebComponent
+        public static T SetContent<T>(this T comp, RazorTemplateDelegate<object> content) where T : class, IWebComponent
         {
-            if (!string.IsNullOrEmpty(comp.InnerHtml) && content != null)
+            if (content != null && content != null)
                 System.Diagnostics.Debug.WriteLine(typeof(T).Name + ".SetContent(): The component's 'InnerHtml' property has a non-empty value which will never render while 'ContentTemplate' is set.", "WARNING");
             comp.ContentTemplate = content;
             return comp;
@@ -249,11 +234,11 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="content"> A razor template delegate used to render the body of the component. </param>
         /// <returns> A component. </returns>
-        public static T SetContent<T>(this T comp, string content) where T : IWebComponent
+        public static T SetContent<T>(this T comp, object content) where T : class, IWebComponent
         {
-            if (comp.ContentTemplate != null && !string.IsNullOrEmpty(content))
+            if (comp.ContentTemplate != null && content != null)
                 System.Diagnostics.Debug.WriteLine(typeof(T).Name + ".SetContent(): The component's 'ContentTemplate' property references a template delegate which will override the 'InnerHtml' content string value that is being set.", "WARNING");
-            comp.InnerHtml = content;
+            comp.Content = content;
             return comp;
         }
 
@@ -276,7 +261,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="footer"> A razor template delegate used to render the footer of the component. </param>
         /// <returns> A component. </returns>
-        public static T SetFooter<T>(this T comp, string footer) where T : IComponentFooter
+        public static T SetFooter<T>(this T comp, object footer) where T : IComponentFooter
         {
             // (NOTICE: 'm => ???' are RAZOR template delegate signatures that will return content, which is a string in this case)
             return comp.SetFooter(m => footer);
@@ -297,7 +282,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environmentName"> (Optional) Name of the environment. </param>
         /// <returns> A T. </returns>
         public static T RequireResource<T>(this T comp, string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null)
-            where T : IWebComponent
+            where T : class, IWebComponent
         {
             if (comp.RequiredResources == null)
                 throw new InvalidOperationException("No view page was supplied for this component.");
@@ -320,7 +305,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environment"> The environment. </param>
         /// <returns> A T. </returns>
         public static T RequireResource<T>(this T comp, string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment)
-            where T : IWebComponent
+            where T : class, IWebComponent
         {
             if (comp.RequiredResources == null)
                 throw new InvalidOperationException("No view page was supplied for this component.");
@@ -338,7 +323,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environmentName"> (Optional) Name of the environment. </param>
         /// <returns> A T. </returns>
         public static T RequireScript<T>(this T comp, string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
-            where T : IWebComponent
+            where T : class, IWebComponent
         {
             return comp.RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environmentName);
         }
@@ -351,7 +336,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environment"> The environment. </param>
         /// <returns> A T. </returns>
         public static T RequireScript<T>(this T comp, string scriptPath, RenderTargets renderTarget, Environments environment)
-            where T : IWebComponent
+            where T : class, IWebComponent
         {
             return comp.RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environment);
         }
@@ -364,7 +349,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environmentName"> (Optional) Name of the environment. </param>
         /// <returns> A T. </returns>
         public static T RequireCSS<T>(this T comp, string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
-            where T : IWebComponent
+            where T : class, IWebComponent
         {
             return comp.RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environmentName);
         }
@@ -377,7 +362,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environment"> The environment. </param>
         /// <returns> A T. </returns>
         public static T RequireCSS<T>(this T comp, string cssPath, RenderTargets renderTarget, Environments environment)
-            where T : IWebComponent
+            where T : class, IWebComponent
         {
             return comp.RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environment);
         }
@@ -394,7 +379,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="script"> The inline script to set.  If a script is already set. </param>
         /// <returns> A T. </returns>
         public static T AddEventScript<T>(this T comp, string eventAttributeName, string script)
-            where T : IWebComponent
+            where T : class, IWebComponent
         {
             if (string.IsNullOrEmpty(script))
                 return comp;

@@ -37,7 +37,7 @@ namespace CoreXT.Toolkit.Components
     /// helper methods for custom component modifications, such as adding attributes, CSS classes, or other component configurations.</para>
     /// </summary>
     // (https://docs.microsoft.com/en-us/aspnet/core/mvc/views/view-components)
-    public abstract class WebComponent : ViewComponent, IWebComponent, IComponentContent // ('IHtmlString' is the trick that allows the generated MVC views to render this component)
+    public abstract class WebComponent : ViewComponent, IWebComponent // ('IHtmlString' is the trick that allows the generated MVC views to render this component)
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -116,8 +116,9 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// If not null, this is a data source use by this component to construct it's view. Typically it's either a single entity
         /// instance, or an array of entities. The usage is "user-defined" and depends on the derived implementation.
+        /// <para>Getting or setting this property also updates the underlying 'ViewData.Model' object.</para>
         /// </summary>
-        public virtual object DataSource { get; set; }
+        public virtual object DataSource { get => ViewData.Model; set => ViewData.Model = value; }
 
         /// <summary> Gets or sets the 'id' attribute. </summary>
         public string ID
@@ -167,7 +168,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// The raw internal HTML that will be placed in the body of the components rendered HTML, if supported.
         /// <para>This should be overridden in derived classes to throw "NotSupportedException" if content output is not supported.</para>
-        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'ToViewResult()' instead, which has better conversion support for more types.</para>
+        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'GetViewResult()' instead, which has better conversion support for more types.</para>
         /// </summary>
         new public virtual object Content { get { return _Content; } set { _Content = value; } }
         object _Content;
@@ -177,16 +178,25 @@ namespace CoreXT.Toolkit.Components
         /// The delegate is usually set by derived controls that accept razor template delegates.
         /// Setting this value will take precedence over any previously set 'InnerHtml' content.
         /// <para>This should be overridden in derived classes to throw "NotSupportedException" if not supported.</para>
-        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'ToViewResult()' instead, which has better conversion support for more types.</para>
+        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'GetViewResult()' instead, which has better conversion support for more types.</para>
         /// </summary>
         public virtual RazorTemplateDelegate<object> ContentTemplate { get; set; }
 
         /// <summary>
-        /// Called within component views to render the content set in either the 'ContentTemplate' or 'Content' properties.
+        /// Called within component views to render the content from either the 'ContentTemplate' or 'Content' properties.
         /// 'ContentTemplate' will always take precedence over setting the 'Content' property.
         /// </summary>
         public virtual async Task<IHtmlContent> RenderContent()
-            => await (ContentTemplate != null ? GetContentFromTemplateDelegate(ContentTemplate) : Render(ToViewResult(Content))); //x WebUtility.HtmlEncode()
+            => await (ContentTemplate != null ? RenderContent(GetViewResult(ContentTemplate)) : RenderContent(Content)); //x WebUtility.HtmlEncode()
+
+        /// <summary>
+        /// Typically called within derived component views to render content.
+        /// </summary>
+        public virtual async Task<IHtmlContent> RenderContent(object content)
+            => (content is IHtmlContent) ? (IHtmlContent)content
+            : (content is string) ? new HtmlString((string)content)
+            : (content is IViewComponentResult) ? await RenderView((IViewComponentResult)content)
+            : await RenderView(GetViewResult(content)); //x WebUtility.HtmlEncode()
 
         /// <summary>
         /// If set, this will be called to render the raw HTML result when 'Render()' is called.
@@ -197,41 +207,64 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Converts given content to an IViewComponentResult for rendering.
-        /// </summary>
-        /// <param name="value">A value that represents content to render as a view result.
-        /// The content must either be a string, implement IHtmlContent or IViewComponentResult, or override the 'Object.ToString()' method.
-        /// <para>The precedence is IViewComponentResult, IHtmlContent, string, then Object.ToString().</para></param>
-        /// <returns>Returns an IViewComponentResult result.</returns>
-        public virtual IViewComponentResult ToViewResult(object value)
+        /// <summary> Converts given content to an IViewComponentResult for rendering. </summary>
+        /// <param name="content">
+        ///     A value that represents content to render as a view result. The content must either be a string, implement
+        ///     IHtmlContent or IViewComponentResult, or override the 'Object.ToString()' method.
+        ///     <para>The precedence is IViewComponentResult, IHtmlContent, string, then Object.ToString().</para>
+        /// </param>
+        /// <returns> Returns an IViewComponentResult result. </returns>
+        public virtual IViewComponentResult GetViewResult(object content)
         {
-            return GetViewResultFromValue(value);
+            return GetViewResultFromContent(content);
         }
 
-        public static IViewComponentResult GetViewResultFromValue(object value)
+        /// <summary>
+        /// An async method to return an IHtmlContent instance from the specified template delegate.
+        /// This is used in controls to support rendering razor template delegates into the underlying views, where applicable.
+        /// </summary>
+        public virtual IViewComponentResult GetViewResult(RazorTemplateDelegate<object> templateDelegate)
         {
-            if (value == null)
+            if (templateDelegate != null)
+            {
+                var contentResult = templateDelegate(DataSource); // (note: this may be a razor template delegate)
+                // TODOTEST: Test that 'ViewData.Model' is the correct one to pass in above.
+                return GetViewResult(contentResult); // (coerce the value to a view result if not already one)
+            }
+            return GetViewResult(HtmlString.Empty);
+        }
+
+        /// <summary> Converts given content to an IViewComponentResult for rendering. </summary>
+        /// <exception cref="InvalidOperationException"> Thrown when the requested type . </exception>
+        /// <param name="content">
+        ///     A value that represents content to render as a view result. The content must either be a string, implement
+        ///     IHtmlContent or IViewComponentResult, or override the 'Object.ToString()' method.
+        ///     <para>The precedence is IViewComponentResult, IHtmlContent, string, then Object.ToString().</para>
+        /// </param>
+        /// <returns> Returns an IViewComponentResult result. </returns>
+        public static IViewComponentResult GetViewResultFromContent(object content)
+        {
+            if (content == null)
                 return new ContentViewComponentResult(string.Empty);
             else
             {
-                var componentResult = value as IViewComponentResult;
+                var componentResult = content as IViewComponentResult;
                 if (componentResult != null)
                     return componentResult;
 
-                var htmlContent = value as IHtmlContent;
+                var htmlContent = content as IHtmlContent;
                 if (htmlContent != null)
                     return new HtmlContentViewComponentResult(htmlContent);
 
-                var stringResult = value as string;
+                var stringResult = content as string;
                 if (stringResult != null)
                     return new ContentViewComponentResult(stringResult);
 
-                var valueType = value.GetType().GetTypeInfo();
+                var valueType = content.GetType().GetTypeInfo();
 
                 if (!valueType.IsPrimitive)
                 {
-                    var valueToStringDeclaringType = ((Func<string>)value.ToString).GetMethodInfo().DeclaringType;
+                    var valueToStringDeclaringType = ((Func<string>)content.ToString).GetMethodInfo().DeclaringType;
                     if (valueToStringDeclaringType == typeof(object))
                         throw new InvalidOperationException(string.Format("The specified content object cannot be rendered. The content must either be a {0} or primitive type, implement {1} or {2}, or override the '{3}' method.",
                             typeof(string).Name,
@@ -240,7 +273,7 @@ namespace CoreXT.Toolkit.Components
                             nameof(Object.ToString)));
                 }
 
-                stringResult = value.ToString();
+                stringResult = content.ToString();
 
                 return new ContentViewComponentResult(stringResult);
             }
@@ -259,27 +292,6 @@ namespace CoreXT.Toolkit.Components
                 this.GenerateID();
 
             return await Task.FromResult(this);
-        }
-
-        /// <summary>
-        /// An async method to return an IHtmlContent instance from the specified template delegate.
-        /// This is used in controls to support rendering razor template delegates into the underlying views, where applicable.
-        /// </summary>
-        public virtual async Task<IHtmlContent> GetContentFromTemplateDelegate(RazorTemplateDelegate<object> templateDelegate)
-        {
-            if (templateDelegate != null)
-            {
-                var contentResult = templateDelegate(ViewData.Model); // (note: this may be a razor template delegate)
-                // TODOTEST: Test that 'ViewData.Model' is the correct one to pass in above.
-                if (contentResult is string)
-                    return new HtmlString((string)contentResult);
-                else
-                {
-                    var viewResult = ToViewResult(contentResult); // (coerce the value to a view result if not already one)
-                    return await Render(viewResult);
-                }
-            }
-            return HtmlString.Empty;
         }
 
         /// <summary>
@@ -578,7 +590,7 @@ namespace CoreXT.Toolkit.Components
         /// output stream via a 'TextWriter' instance.
         /// <para>To render to a string value, just call the 'ToString()' method.</para>
         /// </summary>
-        public virtual async Task<IHtmlContent> Render(IViewComponentResult viewResult)
+        public virtual async Task<IHtmlContent> RenderView(IViewComponentResult viewResult)
         {
             try
             {
@@ -604,7 +616,9 @@ namespace CoreXT.Toolkit.Components
             }
         }
 
-        /// <summary>
+        // --------------------------------------------------------------------------------------------------------------------
+   
+            /// <summary>
         /// Renders the current component and returns the result as an IHtmlContent based value, which can be written to an
         /// output stream via a 'TextWriter' instance.
         /// <para>To render a component to a string value, just call the 'ToString()' method instead.</para>
@@ -612,7 +626,7 @@ namespace CoreXT.Toolkit.Components
         public virtual async Task<IHtmlContent> Render()
         {
             await Update();
-            return await Render(GetView(this));
+            return await RenderView(GetView(this));
         }
 
         // --------------------------------------------------------------------------------------------------------------------

@@ -11,7 +11,7 @@ namespace CoreXT.Toolkit.TagHelpers
     /// post context (opening up to spamming by bots).
     /// </summary>
     [HtmlTargetElement("a", Attributes = "href")]
-    public class NoFollowTagHelper : TagHelper
+    public class NoFollowTagHelper : CoreXTTagHelper
     {
         /// <summary>
         /// This is the pattern template for matching links in order to apply the 'rel=nofollow' attribute on external links.

@@ -114,6 +114,7 @@
 
   <ItemGroup>
     <EmbeddedResource Remove="Components\Button\Button.cs" />
+    <EmbeddedResource Remove="Components\Link\LinkTagHelper.cs" />
     <EmbeddedResource Remove="Components\PanelGroup\PanelGroup.cs" />
     <EmbeddedResource Remove="Components\Panel\Panel.cs" />
     <EmbeddedResource Remove="Components\Table\Table.cs" />

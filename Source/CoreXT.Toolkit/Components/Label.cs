@@ -16,7 +16,7 @@ namespace CoreXT.Toolkit.Components
 
         protected string Text
         {
-            get { return Content; }
+            get { return (Content as string) ?? Content?.ToString() ?? string.Empty; }
             private set { Content = value; }
         }
 

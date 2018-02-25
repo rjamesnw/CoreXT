@@ -17,15 +17,14 @@ namespace CoreXT.Toolkit.Components
     {
         IDictionary<string, string> Attributes { get; }
         string Class { get; set; }
-        object Context { get; set; }
 
         string DataSourceID { get; set; }
 
-        Task<IHtmlContent> RenderContent();
+        object DataSource { get; set; }
 
         string ID { get; set; }
 
-        //xstring InnerHtml { get; set; }
+        object Content { get; set; }
 
         /// <summary>
         /// This delegate is used to set the 'InnerHtml' property when 'Update()' is called (usually just before rendering).
@@ -46,17 +45,23 @@ namespace CoreXT.Toolkit.Components
 
         void ApplyResourcesToRequestContext();
         Task<IHtmlContent> AsAsync();
-        IViewComponentResult ToViewResult(object value);
+
+        Task<IHtmlContent> RenderContent();
+        Task<IHtmlContent> RenderContent(object content);
+
+        IViewComponentResult GetViewResult(object value);
+        IViewComponentResult GetViewResult(RazorTemplateDelegate<object> templateDelegate);
+
         bool Equals(object obj);
         string GetAttribute(string name);
         string[] GetClassNames();
-        Task<IHtmlContent> GetContentFromTemplateDelegate(RazorTemplateDelegate<object> templateDelegate);
         IHtmlContent GetElementAttributes(bool includeID = false, bool includeName = false, params string[] attributesToIgnore);
         int GetHashCode();
         bool HasClass(params string[] classNames);
         Task<IViewComponentResult> InvokeAsync();
+
         Task<IHtmlContent> Render();
-        Task<IHtmlContent> Render(IViewComponentResult viewResult);
+        Task<IHtmlContent> RenderView(IViewComponentResult viewResult);
         IHtmlContent RenderFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression = null);
         WebComponent SetRenderer(Func<WebComponent, IHtmlContent> renderer);
         string ToString();

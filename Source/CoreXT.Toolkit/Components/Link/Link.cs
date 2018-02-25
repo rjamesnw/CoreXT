@@ -15,7 +15,7 @@ namespace CoreXT.Toolkit.Components
         public string Href
         {
             get { return GetAttribute("href"); }
-            set { SetAttribute("href", value); }
+            set { this.SetAttribute("href", value); }
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace CoreXT.Toolkit.Components
 
         public Task<IHtmlContent> PrefixContent
         {
-            get { return GetContentFromTemplateDelegate(Prefix); }
+            get { return RenderContent(Prefix); }
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace CoreXT.Toolkit.Components
 
         public Task<IHtmlContent> PostfixContent
         {
-            get { return GetContentFromTemplateDelegate(Postfix); }
+            get { return RenderContent(Postfix); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------

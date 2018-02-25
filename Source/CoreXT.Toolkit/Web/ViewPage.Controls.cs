@@ -71,7 +71,7 @@ namespace CoreXT.Toolkit.Web
         /// </summary>
         /// <param name="allowClose"> If true, and "X" button is added to the modal window so it can be closed. </param>
         /// <returns> A Modal. </returns>
-        public Modal Modal(bool allowClose)
+        public Modal Modal(bool allowClose= true)
         {
             return GetControl<Modal>().Configure(allowClose);
         }

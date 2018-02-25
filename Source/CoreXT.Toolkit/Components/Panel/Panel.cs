@@ -30,41 +30,41 @@ namespace CoreXT.Toolkit.Components
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary> A razor template delegate used to render the header of the panel. </summary>
-        public RazorTemplateDelegate<object> Header { get; set; }
+        public object Header { get; set; }
 
         /// <summary>
         /// Returns the header content for rendering in the component's view.
         /// </summary>
         public Task<IHtmlContent> HeaderContent
         {
-            get { return GetContentFromTemplateDelegate(Header); }
+            get { return RenderContent(Header); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary> A razor template delegate used to render the footer of the panel. </summary>
-        public RazorTemplateDelegate<object> Footer { get; set; }
+        public object Footer { get; set; }
 
         /// <summary>
         /// Returns the footer content for rendering in the component's view.
         /// </summary>
         public Task<IHtmlContent> FooterContent
         {
-            get { return GetContentFromTemplateDelegate(Footer); }
+            get { return RenderContent(Footer); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary> The panel title. </summary>
         /// <value> The panel title. </value>
-        new public RazorTemplateDelegate<object> Title { get; set; }
+        new public object Title { get; set; }
 
         /// <summary>
         /// Returns the title content for rendering in the component's view.
         /// </summary>
         public Task<IHtmlContent> TitleContent
         {
-            get { return GetContentFromTemplateDelegate(Title); }
+            get { return RenderContent(Title); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------

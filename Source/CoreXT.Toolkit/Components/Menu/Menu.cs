@@ -29,9 +29,9 @@ namespace CoreXT.Toolkit.Components
             set
             {
                 if (value)
-                    AddClass("navbar-inverse");
+                    this.AddClass("navbar-inverse");
                 else
-                    RemoveClass("navbar-inverse");
+                    this.RemoveClass("navbar-inverse");
             }
         }
 
