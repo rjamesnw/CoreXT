@@ -1,0 +1,44 @@
+﻿@model Modal
+@{
+    var templateDetails = XT.GetTemplatePartDetails<Modal>(td => GetControl<Modal>().Configure(td.Text, true, null, null));
+    var ctrl = templateDetails.Control;
+
+    ctrl.SetAttributes(new { @class = "modal fade", tabindex = "-1", role = "dialog", ariaLabelledby = "label_" + ctrl.ID, ariaHidden = "true" });
+}
+@if (IsEnvironment(Environments.Staging | Environments.Production))
+{
+    @Script("multimodal.js", "~/lib/bootstrap-multimodal/js/multimodal.min.js", RenderTargets.Footer)
+}
+else
+{
+    @Script("multimodal.js", "~/lib/bootstrap-multimodal/js/multimodal.js", RenderTargets.Footer)
+}
+<div @ctrl.GetElementAttributes(true, true)>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (ctrl.AllowClose)
+                {
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                }
+                @if (ctrl.Title != null)
+                {
+                    <h3 id="label_@ctrl.ID">@await ctrl.TitleContent</h3>
+                }
+                @if (ctrl.Header != null)
+                {
+                    @await ctrl.HeaderContent
+                }
+            </div>
+            <div class="modal-body">
+                @await ctrl.RenderContent()
+            </div>
+            <div class="modal-footer">
+                @if (ctrl.Footer != null)
+                {
+                    @await ctrl.FooterContent
+                }
+            </div>
+        </div>
+    </div>
+</div>

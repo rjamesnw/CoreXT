@@ -17,9 +17,6 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
     {
         // --------------------------------------------------------------------------------------------------------------------
 
-        /// <summary> The ID for this input. </summary>
-        public string ID { get; set; }
-
         /// <summary> A name for this input. </summary>
         public string Name { get; set; }
 
@@ -45,11 +42,13 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+
+            var container = (InputContainerTagHelper)context.Items[typeof(InputContainerTagHelper)];
             output.TagName = "input";
-            output.Attributes.SetAttribute("id", ID);
+            output.Attributes.SetAttribute("id", container.InputID);
             output.Attributes.SetAttribute("name", Name);
             output.Attributes.SetAttribute("type", Type);
-            output.Attributes.SetAttribute("aria-describedby", ID + "Help");
+            output.Attributes.SetAttribute("aria-describedby", container.InputID + "Help");
             output.Attributes.SetAttribute("class", "form-control");
             output.Attributes.SetAttribute("placeholder", PlaceHolder);
             output.Attributes.SetAttribute("value", Value);

@@ -127,6 +127,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="TagHelpers\ModalTagHelper.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CoreXT.Entities\CoreXT.Entities.csproj" />
     <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
     <ProjectReference Include="..\CoreXT.ASPNet\CoreXT.ASPNet.csproj" />

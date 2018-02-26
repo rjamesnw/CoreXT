@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace CoreXT.Toolkit.TagHelpers
 {
@@ -9,12 +11,18 @@ namespace CoreXT.Toolkit.TagHelpers
     /// <seealso cref="T:Microsoft.AspNetCore.Razor.TagHelpers.TagHelper"/>
     public abstract class CoreXTTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
     {
-        protected IHttpContextAccessor ContextAccessor { get; private set; }
-        protected HttpContext Context { get { return ContextAccessor.HttpContext; } }
-        protected HttpRequest Request { get { return ContextAccessor.HttpContext.Request; } }
+        private IHttpContextAccessor _ContextAccessor;
+
+        protected HttpContext Context { get { return _ContextAccessor.HttpContext; } }
+
+        protected HttpRequest Request { get { return _ContextAccessor.HttpContext.Request; } }
+
+        [ViewContext]
+        public ViewContext ViewContext { get; set; }
+
         public CoreXTTagHelper(IHttpContextAccessor contextAccessor)
         {
-            ContextAccessor = contextAccessor;
+            _ContextAccessor = contextAccessor;
         }
     }
 }

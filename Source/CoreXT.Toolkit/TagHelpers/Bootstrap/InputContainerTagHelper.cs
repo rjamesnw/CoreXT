@@ -37,12 +37,17 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 
         private static string _Encode(string value) => HttpUtility.HtmlAttributeEncode(value);
 
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public async override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
+            context.Items[typeof(InputContainerTagHelper)] = this;
+
             output.TagName = "div";
-            
+
             if (Label != null)
                 output.PreContent.SetHtmlContent(new HtmlString("<label for=\"" + _Encode(InputID) + "\">" + Label + "</label>"));
+
+            var content = await output.GetChildContentAsync();
+            output.Content.SetHtmlContent(content);
 
             if (Tip != null)
                 output.PostContent.SetHtmlContent(new HtmlString("<small id=\"" + _Encode(InputID) + "Help\" class=\"form-text text-muted\">" + Tip + "</small>"));
