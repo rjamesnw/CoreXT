@@ -35,8 +35,6 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         {
         }
 
-        private static string _Encode(string value) => HttpUtility.HtmlAttributeEncode(value);
-
         public async override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             context.Items[typeof(InputContainerTagHelper)] = this;
@@ -44,13 +42,13 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
             output.TagName = "div";
 
             if (Label != null)
-                output.PreContent.SetHtmlContent(new HtmlString("<label for=\"" + _Encode(InputID) + "\">" + Label + "</label>"));
+                output.PreContent.SetHtmlContent(new HtmlString("<label for=\"" + EncodeAttribute(InputID) + "\">" + Label + "</label>"));
 
             var content = await output.GetChildContentAsync();
             output.Content.SetHtmlContent(content);
 
             if (Tip != null)
-                output.PostContent.SetHtmlContent(new HtmlString("<small id=\"" + _Encode(InputID) + "Help\" class=\"form-text text-muted\">" + Tip + "</small>"));
+                output.PostContent.SetHtmlContent(new HtmlString("<small id=\"" + EncodeAttribute(InputID) + "Help\" class=\"form-text text-muted\">" + Tip + "</small>"));
 
             output.Attributes.SetAttribute("class", "form-control");
             output.TagMode = TagMode.SelfClosing;

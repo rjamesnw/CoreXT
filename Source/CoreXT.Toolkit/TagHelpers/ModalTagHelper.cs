@@ -7,8 +7,14 @@ using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.TagHelpers
 {
-    [OutputElementHint("div")]
-    public class ModalTagHelper : CoreXTTagHelper, IComponentTitle, IComponentHeader, IComponentFooter
+    //[OutputElementHint("div")]
+
+    /// <summary> A modal tag helper. </summary>
+    /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.CoreXTTagHelper"/>
+    /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentTitle"/>
+    /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentHeader"/>
+    /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentFooter"/>
+    public class Modal : WebComponent, IComponentTitle, IComponentHeader, IComponentFooter
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -65,7 +71,23 @@ namespace CoreXT.Toolkit.TagHelpers
         /// Creates an empty modal pop-up.
         /// </summary>
         /// <param name="services"></param>
-        public ModalTagHelper(ICoreXTServiceProvider services) : base(services) { }
+        public Modal(ICoreXTServiceProvider services) : base(services) { }
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public void Test() { }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        public async override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+        {
+            // ... try rendering any view or explicitly set content first ...
+            if (!await ProcessContent(context, output))
+            {
+                // ... no view, and no content set, so assume finally that this is a normal tag component with possibly other nested tags ...
+                var content = await output.GetChildContentAsync();
+                output.Content.SetHtmlContent(content);
+            }
+        }
 
         // --------------------------------------------------------------------------------------------------------------------
     }

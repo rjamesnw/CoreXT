@@ -49,12 +49,19 @@ namespace CoreXT.Toolkit.Web
             _ServiceProvider = serviceProvider;
         }
 
-        /// <summary> Renders the specified view asynchronously. </summary>
+        /// <summary>
+        ///     Renders a view asynchronously.
+        ///     <para> Note: If 'required' is false, and the view cannot be found, a null string
+        ///     will be returned. </para>
+        /// </summary>
         /// <exception cref="ArgumentException"> Thrown when one or more arguments have unsupported or illegal values. </exception>
         /// <param name="basePath"> The base path to search under (without the filename). </param>
         /// <param name="name"> Name of the view. If no extension is added, then the default '.cshtml' extension is assumed.</param>
+        /// <param name="required">
+        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// </param>
         /// <returns> An asynchronous result that yields the rendered html. </returns>
-        public async Task<string> RenderAsync(string basePath, string name)
+        public async Task<string> RenderAsync(string basePath, string name, bool required = true)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Cannot be null or empty.", nameof(name));
@@ -62,20 +69,31 @@ namespace CoreXT.Toolkit.Web
             return await RenderAsync<string>(basePath, name, null);
         }
 
-        /// <summary> Renders the asynchronous. </summary>
+        /// <summary>
+        ///     Renders a view asynchronously.
+        ///     <para> Note: If 'required' is false, and the view cannot be found, a null string
+        ///     will be returned. </para>
+        /// </summary>
         /// <exception cref="ArgumentException"> Thrown when one or more arguments have unsupported or illegal values. </exception>
         /// <typeparam name="TModel"> Type of the model. </typeparam>
         /// <param name="basePath"> The base path to search under (without the filename). </param>
         /// <param name="name"> Name of the view. If no extension is added, then the default '.cshtml' extension is assumed. </param>
         /// <param name="model"> A model to pass to the view. </param>
-        /// <returns> An asynchronous result that yields the rendered html. </returns>
-        public async Task<string> RenderAsync<TModel>(string basePath, string name, TModel model)
+        /// <param name="required">
+        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// </param>
+        /// <returns>
+        ///     An asynchronous result that yields the rendered html, or null if required is true and the view cannot be found.
+        /// </returns>
+        /// <seealso cref="M:CoreXT.Toolkit.Web.IViewRenderer.RenderAsync{TModel}(string,string,TModel,bool)"/>
+        public async Task<string> RenderAsync<TModel>(string basePath, string name, TModel model, bool required = true)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Cannot be null or empty.", nameof(name));
 
             var actionContext = GetActionContext();
-            var viewEngineResult = _FindView(basePath, name);
+            var viewEngineResult = _FindView(basePath, name, required);
+            if (!viewEngineResult.Success) return null;
             var view = viewEngineResult.View;
 
             using (var output = new StringWriter())
@@ -125,8 +143,11 @@ namespace CoreXT.Toolkit.Web
         /// <exception cref="FileNotFoundException"> Thrown when the requested file is not present. </exception>
         /// <param name="basePath"> Full pathname of the base path to search under. </param>
         /// <param name="name"> Name of the type to find a nested view for. </param>
+        /// <param name="required">
+        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// </param>
         /// <returns> The found view. </returns>
-        private ViewEngineResult _FindView(string basePath, string name)
+        private ViewEngineResult _FindView(string basePath, string name, bool required = true)
         {
             List<string> filenames = new List<string>();
 
@@ -169,21 +190,35 @@ namespace CoreXT.Toolkit.Web
     /// <seealso cref="T:CoreXT.Toolkit.Web.ViewRenderer"/>
     public interface IViewRenderer
     {
-        /// <summary> Renders the specified view asynchronously. </summary>
+        /// <summary>
+        ///     Renders a view asynchronously.
+        ///     <para> Note: If 'required' is false, and the view cannot be found, a null string
+        ///     will be returned. </para>
+        /// </summary>
         /// <exception cref="ArgumentException"> Thrown when one or more arguments have unsupported or illegal values. </exception>
         /// <param name="basePath"> Full pathname of the base path to search under. </param>
         /// <param name="name"> Name of the view. If no extension is added, then the default '.cshtml' extension is assumed.</param>
+        /// <param name="required">
+        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// </param>
         /// <returns> An asynchronous result that yields the rendered html. </returns>
-        Task<string> RenderAsync(string basePath, string name);
+        Task<string> RenderAsync(string basePath, string name, bool required = true);
 
-        /// <summary> Renders the asynchronous. </summary>
+        /// <summary>
+        ///     Renders a view asynchronously.
+        ///     <para> Note: If 'required' is false, and the view cannot be found, a null string
+        ///     will be returned. </para>
+        /// </summary>
         /// <exception cref="ArgumentException"> Thrown when one or more arguments have unsupported or illegal values. </exception>
         /// <typeparam name="TModel"> Type of the model. </typeparam>
         /// <param name="basePath"> Full pathname of the base path to search under. </param>
         /// <param name="name"> Name of the view. If no extension is added, then the default '.cshtml' extension is assumed. </param>
         /// <param name="model"> A model to pass to the view. </param>
+        /// <param name="required">
+        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// </param>
         /// <returns> An asynchronous result that yields the rendered html. </returns>
-        Task<string> RenderAsync<TModel>(string basePath, string name, TModel model);
+        Task<string> RenderAsync<TModel>(string basePath, string name, TModel model, bool required = true);
     }
 }
 

@@ -16,12 +16,12 @@ namespace CoreXT.Toolkit.Web
     public enum RenderModes
     {
         /// <summary>
-        /// The control will be rendered for display only (using display templates).
+        /// The component will be rendered for display only (using display templates).
         /// </summary>
         Display,
 
         /// <summary>
-        /// The control will be rendered for editing (using editor templates).
+        /// The component will be rendered for editing (using editor templates).
         /// </summary>
         Edit
     }
