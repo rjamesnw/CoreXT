@@ -1,11 +1,14 @@
 ﻿using CoreXT.Services.DI;
+using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.Components
+namespace CoreXT.Toolkit.TagHelpers
 {
-    public class ModalTagHelper : WebComponent, IComponentTitle, IComponentHeader, IComponentFooter
+    [OutputElementHint("div")]
+    public class ModalTagHelper : CoreXTTagHelper, IComponentTitle, IComponentHeader, IComponentFooter
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -42,7 +45,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// The modal window title.
         /// </summary>
-        new public object Title { get; set; }
+        public object Title { get; set; }
 
         /// <summary>
         /// Returns the title content for rendering in the control's view.
@@ -52,7 +55,9 @@ namespace CoreXT.Toolkit.Components
             get { return RenderContent(Title); }
         }
 
-        public bool AllowClose = true;
+        // --------------------------------------------------------------------------------------------------------------------
+
+        public bool AllowClose { get; set; } = true;
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -61,17 +66,6 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         /// <param name="services"></param>
         public ModalTagHelper(ICoreXTServiceProvider services) : base(services) { }
-
-        public override Task<IViewComponentResult> InvokeAsync() => base.InvokeAsync();
-
-        // --------------------------------------------------------------------------------------------------------------------
-
-        public Modal Configure(bool allowClose = true)
-        {
-            EnableAutomaticID = true;
-            AllowClose = allowClose;
-            return this;
-        }
 
         // --------------------------------------------------------------------------------------------------------------------
     }

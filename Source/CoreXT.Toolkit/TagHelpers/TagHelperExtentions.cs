@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.Components
+namespace CoreXT.Toolkit.TagHelpers
 {
 
     /// <summary> Represents components that contain title content than can be set. </summary>
@@ -32,7 +32,7 @@ namespace CoreXT.Toolkit.Components
         object Footer { get; set; }
     }
 
-    public static class WebComponentExtentions
+    public static class TagHelperExtentions
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="id"> The identifier name to set. </param>
         /// <returns> This WebComponent instance. </returns>
-        public static T SetID<T>(this T comp, string id) where T : class, IWebComponent { comp.ID = id; return comp; }
+        public static T SetID<T>(this T comp, string id) where T : class, ICoreXTTagHelper { comp.ID = id; return comp; }
 
         /// <summary>
         ///     Generates a GUID for this component's 'id' attribute.  This is implementation dependent, and requires component designers to support setting this on the rendered component view.
@@ -50,14 +50,14 @@ namespace CoreXT.Toolkit.Components
         /// <typeparam name="T"> A component type. </typeparam>
         /// <param name="comp"> The comp to act on. </param>
         /// <returns> This web component instance. </returns>
-        public static T GenerateID<T>(this T comp) where T : class, IWebComponent { comp.ID = Guid.NewGuid().ToString("N"); return comp; }
+        public static T GenerateID<T>(this T comp) where T : class, ICoreXTTagHelper { comp.ID = Guid.NewGuid().ToString("N"); return comp; }
 
         /// <summary> Sets the given attributes on this component. </summary>
         /// <typeparam name="T"> A component type. </typeparam>
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="attributes"> A dictionary list of attributes to set. </param>
         /// <returns> this component instance. </returns>
-        public static T SetAttributes<T>(this T comp, IDictionary<string, object> attributes) where T : class, IWebComponent
+        public static T SetAttributes<T>(this T comp, IDictionary<string, object> attributes) where T : class, ICoreXTTagHelper
         {
             if (attributes != null)
                 foreach (var item in attributes)
@@ -72,15 +72,15 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The component to act on. </param>
         /// <param name="attributes"> A dictionary list of attributes to set. </param>
         /// <returns> this component instance. </returns>
-        public static T SetAttributes<T>(this T comp, object attributes) where T : class, IWebComponent
+        public static T SetAttributes<T>(this T comp, object attributes) where T : class, ICoreXTTagHelper
         {
             if (attributes != null)
             {
                 foreach (var prop in attributes.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                    comp.Attributes[WebComponent.ModelMemberNameToAttributeName(prop.Name)] = prop.GetValue(attributes).ND();
+                    comp.Attributes[CoreXTTagHelper.ModelMemberNameToAttributeName(prop.Name)] = prop.GetValue(attributes).ND();
 
                 foreach (var field in attributes.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
-                    comp.Attributes[WebComponent.ModelMemberNameToAttributeName(field.Name)] = field.GetValue(attributes).ND();
+                    comp.Attributes[CoreXTTagHelper.ModelMemberNameToAttributeName(field.Name)] = field.GetValue(attributes).ND();
             }
             return comp;
         }
@@ -95,7 +95,7 @@ namespace CoreXT.Toolkit.Components
         ///     this is false, nothing is removed, and any merge requests with existing keys will be ignored.
         /// </param>
         /// <returns> A T. </returns>
-        public static T SetAttribute<T>(this T comp, string name, object value, bool replace = true) where T : class, IWebComponent
+        public static T SetAttribute<T>(this T comp, string name, object value, bool replace = true) where T : class, ICoreXTTagHelper
         {
             comp.Attributes.MergeString(name, value, replace);
             return comp;
@@ -109,12 +109,12 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="classNames"> . </param>
         /// <returns> A T. </returns>
-        public static T AddClass<T>(this T comp, params string[] classNames) where T : class, IWebComponent
+        public static T AddClass<T>(this T comp, params string[] classNames) where T : class, ICoreXTTagHelper
         {
             if (classNames.Length > 0)
             {
                 // (note: individual string items may already be space delimited, and will be parsed later using {string}.Split())
-                var classNamesStr = string.Join(" ", WebComponent.TrimClassNames(classNames));
+                var classNamesStr = string.Join(" ", CoreXTTagHelper.TrimClassNames(classNames));
 
                 if (!string.IsNullOrEmpty(classNamesStr))
                 {
@@ -142,12 +142,12 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="classNames"> . </param>
         /// <returns> A T. </returns>
-        public static T RemoveClass<T>(this T comp, params string[] classNames) where T : class, IWebComponent
+        public static T RemoveClass<T>(this T comp, params string[] classNames) where T : class, ICoreXTTagHelper
         {
             if (classNames.Length > 0)
             {
                 // (note: individual string items may already be space delimited, and will be parsed later using {string}.Split())
-                var classNamesStr = string.Join(" ", WebComponent.TrimClassNames(classNames));
+                var classNamesStr = string.Join(" ", CoreXTTagHelper.TrimClassNames(classNames));
 
                 if (!string.IsNullOrEmpty(classNamesStr))
                 {
@@ -221,7 +221,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="content"> A razor template delegate used to render the body of the component. </param>
         /// <returns> A component. </returns>
-        public static T SetContent<T>(this T comp, RazorTemplateDelegate<object> content) where T : class, IWebComponent
+        public static T SetContent<T>(this T comp, RazorTemplateDelegate<object> content) where T : class, ICoreXTTagHelper
         {
             if (content != null && content != null)
                 System.Diagnostics.Debug.WriteLine(typeof(T).Name + ".SetContent(): The component's 'InnerHtml' property has a non-empty value which will never render while 'ContentTemplate' is set.", "WARNING");
@@ -234,7 +234,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="content"> A razor template delegate used to render the body of the component. </param>
         /// <returns> A component. </returns>
-        public static T SetContent<T>(this T comp, object content) where T : class, IWebComponent
+        public static T SetContent<T>(this T comp, object content) where T : class, ICoreXTTagHelper
         {
             if (comp.ContentTemplate != null && content != null)
                 System.Diagnostics.Debug.WriteLine(typeof(T).Name + ".SetContent(): The component's 'ContentTemplate' property references a template delegate which will override the 'InnerHtml' content string value that is being set.", "WARNING");
@@ -282,7 +282,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environmentName"> (Optional) Name of the environment. </param>
         /// <returns> A T. </returns>
         public static T RequireResource<T>(this T comp, string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget = RenderTargets.Header, int sequence = 0, string environmentName = null)
-            where T : class, IWebComponent
+            where T : class, ICoreXTTagHelper
         {
             if (comp.RequiredResources == null)
                 throw new InvalidOperationException("No view page was supplied for this component.");
@@ -305,7 +305,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environment"> The environment. </param>
         /// <returns> A T. </returns>
         public static T RequireResource<T>(this T comp, string resourcePath, ResourceTypes resourceType, RenderTargets renderTarget, int sequence, Environments environment)
-            where T : class, IWebComponent
+            where T : class, ICoreXTTagHelper
         {
             if (comp.RequiredResources == null)
                 throw new InvalidOperationException("No view page was supplied for this component.");
@@ -323,7 +323,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environmentName"> (Optional) Name of the environment. </param>
         /// <returns> A T. </returns>
         public static T RequireScript<T>(this T comp, string scriptPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
-            where T : class, IWebComponent
+            where T : class, ICoreXTTagHelper
         {
             return comp.RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environmentName);
         }
@@ -336,7 +336,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environment"> The environment. </param>
         /// <returns> A T. </returns>
         public static T RequireScript<T>(this T comp, string scriptPath, RenderTargets renderTarget, Environments environment)
-            where T : class, IWebComponent
+            where T : class, ICoreXTTagHelper
         {
             return comp.RequireResource(scriptPath, ResourceTypes.Script, renderTarget, 0, environment);
         }
@@ -349,7 +349,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environmentName"> (Optional) Name of the environment. </param>
         /// <returns> A T. </returns>
         public static T RequireCSS<T>(this T comp, string cssPath, RenderTargets renderTarget = RenderTargets.Header, string environmentName = null)
-            where T : class, IWebComponent
+            where T : class, ICoreXTTagHelper
         {
             return comp.RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environmentName);
         }
@@ -362,7 +362,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="environment"> The environment. </param>
         /// <returns> A T. </returns>
         public static T RequireCSS<T>(this T comp, string cssPath, RenderTargets renderTarget, Environments environment)
-            where T : class, IWebComponent
+            where T : class, ICoreXTTagHelper
         {
             return comp.RequireResource(cssPath, ResourceTypes.Script, renderTarget, 0, environment);
         }
@@ -379,7 +379,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="script"> The inline script to set.  If a script is already set. </param>
         /// <returns> A T. </returns>
         public static T AddEventScript<T>(this T comp, string eventAttributeName, string script)
-            where T : class, IWebComponent
+            where T : class, ICoreXTTagHelper
         {
             if (string.IsNullOrEmpty(script))
                 return comp;

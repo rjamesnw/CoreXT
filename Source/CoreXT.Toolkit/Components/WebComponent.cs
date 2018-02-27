@@ -368,7 +368,10 @@ namespace CoreXT.Toolkit.Components
                  select a.Key + "=\"" + WebUtility.HtmlEncode(a.Value) + "\"")));
         }
 
-        public static string ObjectMemberNameToAttributeName(string name)
+        /// <summary> Converts a model member name to a valid attribute name. </summary>
+        /// <param name="name"> A property name. </param>
+        /// <returns> A string. </returns>
+        public static string ModelMemberNameToAttributeName(string name)
         {
             // (converts "someMemberName" format to "some-member-name")
             return Regex.Replace(name, "([a-z])([A-Z])", m => m.Groups[1].Value + "-" + m.Groups[2].Value.ToLower());

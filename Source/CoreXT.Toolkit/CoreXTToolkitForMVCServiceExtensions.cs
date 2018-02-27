@@ -2,6 +2,7 @@
 using CoreXT.MVC;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Components;
+using CoreXT.Toolkit.TagHelpers;
 using CoreXT.Toolkit.Web;
 //using Glimpse;
 using Microsoft.AspNetCore.Hosting;
@@ -20,19 +21,24 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class CoreXTToolkitForMVCServiceExtensions
     {
-        /// <summary>
-        /// Adds CoreXT.Toolkit and MVC services to the specified <see cref="IServiceCollection" />.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-        /// <param name="setupAction">An <see cref="Action{MvcOptions}"/> to configure the provided <see cref="MvcOptions"/>.</param>
-        /// <param name="hostingEnvironment">If present, allows the embedded .cshtml content for the controls (view components) to be overridden
-        /// by custom local files matching the same path.</param>
-        /// <returns>An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services.</returns>
+        /// <summary> Adds CoreXT.Toolkit and MVC services to the specified <see cref="IServiceCollection" />. </summary>
+        /// <param name="services"> The <see cref="IServiceCollection" /> to add services to. </param>
+        /// <param name="setupAction">
+        ///     An <see cref="Action{MvcOptions}"/> to configure the provided <see cref="MvcOptions"/>.
+        /// </param>
+        /// <param name="configuration"> The configuration. </param>
+        /// <param name="hostingEnvironment">
+        ///     (Optional) If present, allows the embedded .cshtml content for the controls (view components) to be overridden by
+        ///     custom local files matching the same path.
+        /// </param>
+        /// <returns> An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services. </returns>
         public static IMvcBuilder AddToolkit(this IServiceCollection services, Action<MvcOptions> setupAction, IConfigurationRoot configuration, IHostingEnvironment hostingEnvironment = null)
         {
             // ... register CoreXT service objects ...
 
             services.TryAddTransient<ICoreXTServiceProvider, CoreXTServiceProvider>();
+
+            services.TryAddSingleton<IViewRenderer, ViewRenderer>(); // (IRazorViewEngine and ITempDataProvider are singletons also)
 
             services.TryAddTransient(typeof(ViewHelper<>), typeof(ViewHelper<>));
             //? services.TryAddTransient<ViewHelper, ViewHelper>(); // not sure if this is needed...?
@@ -79,13 +85,14 @@ namespace Microsoft.Extensions.DependencyInjection
             return mvcBuilder;
         }
 
-        /// <summary>
-        /// Adds CoreXT.Toolkit and MVC services to the specified <see cref="IServiceCollection" />.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-        /// <param name="hostingEnvironment">If present, allows the embedded .cshtml content for the controls (view components) to be overridden
-        /// by custom local files matching the same path.</param>
-        /// <returns>An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services.</returns>
+        /// <summary> Adds CoreXT.Toolkit and MVC services to the specified <see cref="IServiceCollection" />. </summary>
+        /// <param name="services"> The <see cref="IServiceCollection" /> to add services to. </param>
+        /// <param name="configuration"> The configuration. </param>
+        /// <param name="hostingEnvironment">
+        ///     (Optional) If present, allows the embedded .cshtml content for the controls (view components) to be overridden by
+        ///     custom local files matching the same path.
+        /// </param>
+        /// <returns> An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services. </returns>
         public static IMvcBuilder AddToolkit(this IServiceCollection services, IConfigurationRoot configuration, IHostingEnvironment hostingEnvironment = null)
         {
             // ... register CoreXT service objects ...

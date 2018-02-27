@@ -21,8 +21,8 @@
 
 This package will grow eventually with some common data/input validations.</Description>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.162</FileVersion>
-    <AssemblyVersion>1.0.7.162</AssemblyVersion>
+    <FileVersion>1.0.7.165</FileVersion>
+    <AssemblyVersion>1.0.7.165</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 

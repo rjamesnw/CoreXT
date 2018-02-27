@@ -31,7 +31,7 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         /// <summary>
         /// Renders a bootstrap form group.
         /// </summary>
-        public InputContainerTagHelper(IHttpContextAccessor contextAccessor) : base(contextAccessor)
+        public InputContainerTagHelper(ICoreXTServiceProvider services) : base(services)
         {
         }
 

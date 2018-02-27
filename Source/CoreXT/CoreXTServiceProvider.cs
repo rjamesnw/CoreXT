@@ -8,7 +8,7 @@ namespace CoreXT.Services.DI
     /// Represents a simple generic service provider for the CoreXT platform to support dependency injection.
     /// This allows plugging the CoreXT system into any other DI based environment.
     /// </summary>
-    public interface ICoreXTServiceProvider: IDisposable
+    public interface ICoreXTServiceProvider : IServiceProvider, IDisposable
     {
         /// <summary>
         /// Attempts to create an instance of an implementation type based on the given service type using the underlying service provider.
@@ -43,18 +43,34 @@ namespace CoreXT.Services.DI
         public CoreXTServiceProvider() { }
 
         /// <summary>
-        /// Get a service object.  If no 'IServiceProvider' was supplied when the 'CoreXTServiceProvider' was constructed,
-        /// this method will attempt to determine the implementation type from the service type, then return an
-        /// instance of the implementation type as long as a default constructor exists (without an 'IServiceProvider' instance,
-        /// only default constructors can be supported in such cases [at this time]).
+        ///     Get a service object.  If no 'IServiceProvider' was supplied when the 'CoreXTServiceProvider' was constructed, this
+        ///     method will attempt to determine the implementation type from the service type, then return an instance of the
+        ///     implementation type as long as a default constructor exists (without an 'IServiceProvider' instance, only default
+        ///     constructors can be supported in such cases [at this time]).
         /// </summary>
-        /// <typeparam name="TService">The service type (usually an interface type).</typeparam>
+        /// <typeparam name="TService"> The service type (usually an interface type). </typeparam>
+        /// <returns> The service. </returns>
+        /// <seealso cref="M:CoreXT.Services.DI.ICoreXTServiceProvider.GetService{TService}()"/>
         public TService GetService<TService>() where TService : class
         {
-            var instance = (TService)_ServiceProvider?.GetService(typeof(TService));
+            return (TService)GetService(typeof(TService));
+        }
+
+        /// <summary>
+        ///     Get a service object.  If no 'IServiceProvider' was supplied when the 'CoreXTServiceProvider' was constructed, this
+        ///     method will attempt to determine the implementation type from the service type, then return an instance of the
+        ///     implementation type as long as a default constructor exists (without an 'IServiceProvider' instance, only default
+        ///     constructors can be supported in such cases [at this time]).
+        /// </summary>
+        /// <exception cref="InvalidOperationException"> Thrown when the requested operation is invalid. </exception>
+        /// <exception cref="TargetInvocationException"> Thrown when a Target Invocation error condition occurs. </exception>
+        /// <param name="serviceType"> The service type (usually an interface type). </param>
+        /// <returns> The service. </returns>
+        public object GetService(Type serviceType)
+        {
+            var instance = _ServiceProvider?.GetService(serviceType);
             if (instance != null) return instance;
 
-            var serviceType = typeof(TService);
             var typeInfo = serviceType.GetTypeInfo();
             var classType = serviceType;
 
@@ -82,7 +98,7 @@ namespace CoreXT.Services.DI
                         throw new InvalidOperationException("Cannot create default instance of type '" + classType.Name + "' - no default constructor exists.");
                     try
                     {
-                        return (TService)Activator.CreateInstance(serviceType);
+                        return Activator.CreateInstance(serviceType);
                     }
                     catch (Exception ex)
                     {

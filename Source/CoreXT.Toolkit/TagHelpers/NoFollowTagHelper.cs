@@ -1,4 +1,5 @@
 ﻿using CoreXT;
+using CoreXT.Services.DI;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Text.RegularExpressions;
@@ -19,14 +20,14 @@ namespace CoreXT.Toolkit.TagHelpers
         /// </summary>
         public static string NoFollowMatchPattern = "^[A-Za-z]*?://.*\b{DOMAIN}\b|^/|^[^:]*$";
 
-        public NoFollowTagHelper(IHttpContextAccessor contextAccessor) : base(contextAccessor) { }
+        public NoFollowTagHelper(ICoreXTServiceProvider services) : base(services) { }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             var href = output.Attributes["href"]?.Value.ND().ToLower();
             if (!string.IsNullOrWhiteSpace(href))
             {
-                if (!Regex.IsMatch(href, NoFollowMatchPattern.Replace("{DOMAIN}", Request.Host.Host)))
+                if (!Regex.IsMatch(href, NoFollowMatchPattern.Replace("{DOMAIN}", Context.Request.Host.Host)))
                 {
                     output.Attributes.Add("rel", "nofollow"); // (this is not a local site link, so must be external)
                 }

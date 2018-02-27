@@ -29,7 +29,7 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         /// <summary>
         /// Creates an empty link control.
         /// </summary>
-        public CollapsePanelTagHelper(IHttpContextAccessor contextAccessor) : base(contextAccessor)
+        public CollapsePanelTagHelper(ICoreXTServiceProvider services) : base(services)
         {
         }
 

@@ -34,8 +34,8 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.163</FileVersion>
-    <AssemblyVersion>1.0.7.163</AssemblyVersion>
+    <FileVersion>1.0.7.167</FileVersion>
+    <AssemblyVersion>1.0.7.167</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
@@ -66,6 +66,7 @@
     <Compile Remove="Controls\TextBox.cs" />
     <Compile Remove="Controls\ValidationMessage.cs" />
     <Compile Remove="Controls\ValidationSummary.cs" />
+    <Compile Remove="TagHelpers\TagViewRenderer - Copy.cs" />
     <Compile Remove="Utility\MarkdownHelper.cs" />
   </ItemGroup>
 
@@ -127,7 +128,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="TagHelpers\ModalTagHelper.cshtml" />
+    <EmbeddedResource Include="TagHelpers\_ViewImports.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TagHelpers\ModalTagHelper.cs.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -148,7 +153,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.ViewCompilation" Version="2.0.2" PrivateAssets="All" />
   </ItemGroup>
 
