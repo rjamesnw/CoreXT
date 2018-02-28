@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.TagHelpers
+namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 {
     //[OutputElementHint("div")]
 
@@ -24,45 +24,17 @@ namespace CoreXT.Toolkit.TagHelpers
         public object Header { get; set; }
 
         /// <summary>
-        /// Returns the header content for rendering in the control's view.
-        /// </summary>
-        public Task<IHtmlContent> HeaderContent
-        {
-            get { return RenderContent(Header); }
-        }
-
-        // --------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
         /// A razor template delegate used to render the footer of the modal window.
         /// </summary>
         public object Footer { get; set; }
-
-        /// <summary>
-        /// Returns the footer content for rendering in the control's view.
-        /// </summary>
-        public Task<IHtmlContent> FooterContent
-        {
-            get { return RenderContent(Footer); }
-        }
-
-        // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// The modal window title.
         /// </summary>
         public object Title { get; set; }
 
-        /// <summary>
-        /// Returns the title content for rendering in the control's view.
-        /// </summary>
-        public Task<IHtmlContent> TitleContent
-        {
-            get { return RenderContent(Title); }
-        }
-
-        // --------------------------------------------------------------------------------------------------------------------
-
+        /// <summary> Gets or sets a value indicating whether to allow closing the modal pop-up. </summary>
+        /// <value> True (default) to show a close ('x') button, and false not to display it. </value>
         public bool AllowClose { get; set; } = true;
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -73,15 +45,15 @@ namespace CoreXT.Toolkit.TagHelpers
         /// <param name="services"></param>
         public Modal(ICoreXTServiceProvider services) : base(services) { }
 
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public void Test() { }
-
         // --------------------------------------------------------------------------------------------------------------------
 
         public async override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             // ... try rendering any view or explicitly set content first ...
-            if (!await ProcessContent(context, output))
+            if (!await ProcessContent(context, output, (vc, cc) =>
+            {
+                // ... anything here just before the view is rendered ...
+            }))
             {
                 // ... no view, and no content set, so assume finally that this is a normal tag component with possibly other nested tags ...
                 var content = await output.GetChildContentAsync();

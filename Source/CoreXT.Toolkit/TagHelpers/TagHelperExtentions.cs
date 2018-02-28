@@ -1,6 +1,7 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,63 @@ namespace CoreXT.Toolkit.TagHelpers
     {
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        ///     A TagHelperAttributeList extension method that returns an attribute by name, or a default value or null if not found.
+        /// </summary>
+        /// <param name="list"> The list to act on. </param>
+        /// <param name="name"> The name. </param>
+        /// <param name="defaultIfEmpty"> (Optional) The default if empty. </param>
+        /// <returns> A TagHelperAttribute. </returns>
+        public static TagHelperAttribute Value(this TagHelperAttributeList list, string name, TagHelperAttribute defaultIfEmpty = null)
+        {
+            return list.TryGetAttribute(name, out var value) ? value : defaultIfEmpty;
+        }
+
+        /// <summary>
+        ///     A TagHelperAttributeList extension method that returns an attribute by name, or a default value or null if not found.
+        /// </summary>
+        /// <param name="list"> The list to act on. </param>
+        /// <param name="name"> The name. </param>
+        /// <param name="defaultIfEmpty"> The default if empty. </param>
+        /// <returns> A string. </returns>
+        public static string Value(this TagHelperAttributeList list, string name, string defaultIfEmpty)
+        {
+            return list.TryGetAttribute(name, out var value) ? value.Render() : defaultIfEmpty;
+        }
+
+        /// <summary>
+        ///     Sets an attribute value by name to 'value.ToString()'. If 'replace' is false, the attribute is only set if not
+        ///     already set. If 'value' is null, the entry is removed from the list instead.
+        /// </summary>
+        /// <exception cref="ArgumentException"> Thrown when one or more arguments have unsupported or illegal values. </exception>
+        /// <param name="list"> The TagHelperAttributeList to merge an attribute value with. </param>
+        /// <param name="name"> The key to set a value for. </param>
+        /// <param name="value">
+        ///     The value to set for the specified key, which will be converted to a string first. If null, any existing entry is
+        ///     removed instead (if 'replace' is true).
+        /// </param>
+        /// <param name="replace">
+        ///     (Optional) If true (default) adds a new entry or replaces an existing entry, otherwise the request is ignored. If
+        ///     this is false, nothing is removed, and any merge requests with existing keys will be ignored.
+        /// </param>
+        ///
+        /// ### <typeparam name="TKey"> Type of the key. </typeparam>
+        public static void MergeAttribute(this TagHelperAttributeList list, string name, object value, bool replace = true)
+        {
+            if (name == null)
+                throw new ArgumentException("Value cannot be null.", "key");
+            else if (name is string && string.IsNullOrEmpty((string)(object)name))
+                throw new ArgumentException("Value cannot be null or empty.", "key");
+
+            if (replace || value != null && !list.ContainsName(name))
+                if (value == null)
+                    list.Remove(list.Value(name));
+                else
+                    list.Add(name, value.ToString());
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary> Sets the 'id' attribute on a web component. </summary>
         /// <typeparam name="T"> A component type. </typeparam>
         /// <param name="comp"> The comp to act on. </param>
@@ -61,7 +119,7 @@ namespace CoreXT.Toolkit.TagHelpers
         {
             if (attributes != null)
                 foreach (var item in attributes)
-                    comp.Attributes[item.Key] = item.Value.ND();
+                    comp.Attributes.SetAttribute(item.Key, item.Value.ND());
             return comp;
         }
 
@@ -77,10 +135,10 @@ namespace CoreXT.Toolkit.TagHelpers
             if (attributes != null)
             {
                 foreach (var prop in attributes.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                    comp.Attributes[CoreXTTagHelper.ModelMemberNameToAttributeName(prop.Name)] = prop.GetValue(attributes).ND();
+                    comp.Attributes.SetAttribute(WebComponent.ModelMemberNameToAttributeName(prop.Name), prop.GetValue(attributes).ND());
 
                 foreach (var field in attributes.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public))
-                    comp.Attributes[CoreXTTagHelper.ModelMemberNameToAttributeName(field.Name)] = field.GetValue(attributes).ND();
+                    comp.Attributes.SetAttribute(WebComponent.ModelMemberNameToAttributeName(field.Name), field.GetValue(attributes).ND());
             }
             return comp;
         }
@@ -97,7 +155,7 @@ namespace CoreXT.Toolkit.TagHelpers
         /// <returns> A T. </returns>
         public static T SetAttribute<T>(this T comp, string name, object value, bool replace = true) where T : class, ICoreXTTagHelper
         {
-            comp.Attributes.MergeString(name, value, replace);
+            comp.Attributes.MergeAttribute(name, value, replace);
             return comp;
         }
 
@@ -126,11 +184,11 @@ namespace CoreXT.Toolkit.TagHelpers
 
                         var itemsToAdd = classNamesStr.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.ToLower());
 
-                        comp.Attributes["class"] = string.Join(" ", currentClasses.Union(itemsToAdd));
+                        comp.Attributes.SetAttribute("class", string.Join(" ", currentClasses.Union(itemsToAdd)));
                     }
                     else
                     {
-                        comp.Attributes["class"] = classNamesStr; // (there is no existing class to merge with, so just set the values now)
+                        comp.Attributes.SetAttribute("class", classNamesStr); // (there is no existing class to merge with, so just set the values now)
                     }
                 }
             }
@@ -159,7 +217,7 @@ namespace CoreXT.Toolkit.TagHelpers
 
                         var itemsToRemove = classNamesStr.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.ToLower());
 
-                        comp.Attributes["class"] = string.Join(" ", currentClasses.Where(c => !itemsToRemove.Contains(c)));
+                        comp.Attributes.SetAttribute("class", string.Join(" ", currentClasses.Where(c => !itemsToRemove.Contains(c))));
                     }
                 }
             }
@@ -221,7 +279,7 @@ namespace CoreXT.Toolkit.TagHelpers
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="content"> A razor template delegate used to render the body of the component. </param>
         /// <returns> A component. </returns>
-        public static T SetContent<T>(this T comp, RazorTemplateDelegate<object> content) where T : class, ICoreXTTagHelper
+        public static T SetContent<T>(this T comp, RazorTemplateDelegate<object> content) where T : class, IWebComponent
         {
             if (content != null && content != null)
                 System.Diagnostics.Debug.WriteLine(typeof(T).Name + ".SetContent(): The component's 'InnerHtml' property has a non-empty value which will never render while 'ContentTemplate' is set.", "WARNING");
@@ -234,7 +292,7 @@ namespace CoreXT.Toolkit.TagHelpers
         /// <param name="comp"> The comp to act on. </param>
         /// <param name="content"> A razor template delegate used to render the body of the component. </param>
         /// <returns> A component. </returns>
-        public static T SetContent<T>(this T comp, object content) where T : class, ICoreXTTagHelper
+        public static T SetContent<T>(this T comp, object content) where T : class, IWebComponent
         {
             if (comp.ContentTemplate != null && content != null)
                 System.Diagnostics.Debug.WriteLine(typeof(T).Name + ".SetContent(): The component's 'ContentTemplate' property references a template delegate which will override the 'InnerHtml' content string value that is being set.", "WARNING");
@@ -389,7 +447,7 @@ namespace CoreXT.Toolkit.TagHelpers
             if (!script.EndsWith("}") && !script.EndsWith(";"))
                 script += ";"; // (make sure the script is terminated correctly)
 
-            string currentScript = comp.Attributes.Value(eventAttributeName);
+            string currentScript = comp.Attributes.Value(eventAttributeName).Render();
 
             if (!string.IsNullOrWhiteSpace(currentScript))
             {
@@ -398,9 +456,9 @@ namespace CoreXT.Toolkit.TagHelpers
                 if (!currentScript.EndsWith("}") && !currentScript.EndsWith(";"))
                     currentScript += ";"; // (make sure the script is terminated correctly)
 
-                comp.Attributes[eventAttributeName] = currentScript + " " + script;
+                comp.Attributes.SetAttribute(eventAttributeName, currentScript + " " + script);
             }
-            else comp.Attributes[eventAttributeName] = script;
+            else comp.Attributes.SetAttribute(eventAttributeName, script);
 
             return comp;
         }

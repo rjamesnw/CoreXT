@@ -4,10 +4,12 @@ using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System;
 using System.Collections.Generic;
@@ -40,13 +42,21 @@ namespace CoreXT.Toolkit.TagHelpers
 
         protected ICoreXTServiceProvider ServiceProvider { get; }
 
-        protected IHttpContextAccessor ContextAccessor => _ContextAccessor ?? (_ContextAccessor = ServiceProvider.GetService<IHttpContextAccessor>());
+        protected IHttpContextAccessor ContextAccessor => _ContextAccessor ?? (_ContextAccessor = GetService<IHttpContextAccessor>());
         IHttpContextAccessor _ContextAccessor;
 
         protected HttpContext Context { get { return ContextAccessor.HttpContext; } }
 
-        protected IViewPageRenderStack ViewPageRenderStack => _ViewPageRenderStack ?? (_ViewPageRenderStack = ServiceProvider.GetService<IViewPageRenderStack>());
+        protected IViewPageRenderStack ViewPageRenderStack => _ViewPageRenderStack ?? (_ViewPageRenderStack = GetService<IViewPageRenderStack>());
         protected IViewPageRenderStack _ViewPageRenderStack;
+
+        /// <summary>
+        /// Derived types can use this convenience method to get services as required.
+        /// <para>The 'Page' property </para>
+        /// </summary>
+        /// <typeparam name="T">The type of service object to get.</typeparam>
+        /// <returns>The service object if found, or 'null' otherwise.</returns>
+        protected T GetService<T>() where T : class { return ServiceProvider.GetService<T>(); }
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -78,7 +88,7 @@ namespace CoreXT.Toolkit.TagHelpers
         ///     '???ProcessAsync()' methods are invoked in the specified order. Lower values are executed first.
         /// </summary>
         /// <value> The order. </value>
-        public int Order { get; set; }
+        public virtual int Order { get; set; }
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -88,40 +98,40 @@ namespace CoreXT.Toolkit.TagHelpers
         /// </summary>
         public virtual string Class
         {
-            get { return Attributes.Value("class"); }
-            set { if (value != null) this.AddClass(value); else Attributes.MergeString("class", null); }
+            get { return Attributes.Value("class", string.Empty); }
+            set { if (value != null) this.AddClass(value); else Attributes.MergeAttribute("class", null); }
         }
 
         /// <summary> Gets or sets the 'id' attribute. </summary>
         /// <value> The identifier. </value>
         public virtual string ID
         {
-            get { return Attributes.Value("id"); }
-            set { Attributes.MergeString("id", value); }
+            get { return Attributes.Value("id", string.Empty); }
+            set { Attributes.MergeAttribute("id", value); }
         }
 
         /// <summary> Gets or sets the name. </summary>
         /// <value> The name. </value>
         public virtual string Name
         {
-            get { return Attributes.Value("name"); }
-            set { Attributes.MergeString("name", value); }
+            get { return Attributes.Value("name", string.Empty); }
+            set { Attributes.MergeAttribute("name", value); }
         }
 
         /// <summary> Gets or sets the inline style for this component. </summary>
         /// <value> The style. </value>
         public virtual string Style
         {
-            set { Attributes.MergeString("style", value); }
-            get { return Attributes.Value("style"); }
+            get { return Attributes.Value("style", string.Empty); }
+            set { Attributes.MergeAttribute("style", value); }
         }
 
         /// <summary> Gets or sets the 'title' attribute, which is usually used to display help tips). </summary>
         /// <value> The 'title' attribute. </value>
         public virtual string HelpTip
         {
-            set { Attributes.MergeString("title", value); }
-            get { return Attributes.Value("title"); }
+            get { return Attributes.Value("title", string.Empty); }
+            set { Attributes.MergeAttribute("title", value); }
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -203,7 +213,7 @@ namespace CoreXT.Toolkit.TagHelpers
         /// Gets an attribute value on this component by name.
         /// </summary>
         /// <param name="name">The attribute name.</param>
-        public virtual string GetAttribute(string name)
+        public virtual TagHelperAttribute GetAttribute(string name)
         {
             return Attributes.Value(name);
         }
@@ -223,9 +233,8 @@ namespace CoreXT.Toolkit.TagHelpers
         /// </summary>
         public string[] GetClassNames()
         {
-            string currentClassNames;
-            if (Attributes.TryGetValue("class", out currentClassNames))
-                return currentClassNames.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.ToLower()).ToArray();
+            if (Attributes.TryGetAttribute("class", out var currentClassNames))
+                return currentClassNames.Render().Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.ToLower()).ToArray();
             else
                 return new string[0];
         }
@@ -275,7 +284,7 @@ namespace CoreXT.Toolkit.TagHelpers
         void ITagHelperComponent.Init(TagHelperContext context)
         {
             foreach (var attr in context.AllAttributes)
-                Attributes[attr.Name] = attr.ValueStyle
+                Attributes.Add(attr);
             Initialize(context);
         }
 
@@ -297,6 +306,7 @@ namespace CoreXT.Toolkit.TagHelpers
 
         async Task ITagHelperComponent.ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
+            _Init(context, output); // (allow internal initialization for derived components before anything else)
             await PreProcessAsync(context, output);
             await ProcessAsync(context, output);
             await PostProcessAsync(context, output);
@@ -434,30 +444,114 @@ namespace CoreXT.Toolkit.TagHelpers
 
     // ########################################################################################################################
 
+    /// <summary> Executes the before view render action for a web component. </summary>
+    /// <param name="viewContext"> Context for the view. </param>
+    /// <param name="childContent"> The child content that was rendered just prior to rendering the view. </param>
+    public delegate void OnBeforeViewRender(ViewContext viewContext, TagHelperContent childContent);
+
     public abstract class WebComponent : CoreXTTagHelper, IWebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
-        protected IViewRenderer ViewRenderer => _ViewRenderer ?? (_ViewRenderer = ServiceProvider.GetService<IViewRenderer>());
+        protected IViewRenderer ViewRenderer => _ViewRenderer ?? (_ViewRenderer = GetService<IViewRenderer>());
         protected IViewRenderer _ViewRenderer;
 
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Return a unique ID for this component, usually used as the final ID attribute value to output on an element.
+        ///     Gets the search locations (paths) used to locate this component's view (.cshtml files). This defaults to
+        ///     "/TagHelpers", and some others based on the type's namespace, but derived types can add other paths.
+        ///     <para>Reading this property builds the list only once per new instance and returns the same list on subsequent
+        ///     reads. Developers can override this property and return a fixed path for best efficiency if needed. Having a list
+        ///     that can be modified introduces an ability to provide dynamic search locations based on internal states (such as
+        ///     display mode vs edit mode using the base 'RenderMode' property)</para>
         /// </summary>
-        public string UniqueID { get { return Strings.Append(ID, ModelID, "_"); } }
+        /// <value> The view search locations. </value>
+        public virtual List<string> ViewSearchLocations
+        {
+            get
+            {
+                if (_ViewSearchLocations != null) return _ViewSearchLocations;
+                var thisType = GetType();
+                _ViewSearchLocations = new List<string> { "/TagHelpers", "/" + DottedNamesToPath(thisType.Namespace) };
+                var searchNameSpaces = new List<string[]> {
+                    Assembly.GetExecutingAssembly().GetName().Name.Split('.'),
+                    Assembly.GetEntryAssembly().GetName().Name.Split('.')
+                };
+                var thisTypeNSParts = thisType.Namespace.Split('.');
+                var searchPaths = searchNameSpaces.Select(s => TrimMatchingStartNames(thisTypeNSParts.ToList(), s));
+                foreach (var pathParts in searchPaths)
+                {
+                    var path = "/" + JoinURLPathNames(pathParts);
+                    if (!_ViewSearchLocations.Contains(path))
+                        _ViewSearchLocations.Add(path);
+                }
+                return _ViewSearchLocations;
+            }
+        }
+        List<string> _ViewSearchLocations;
+
+        /// <summary> Join URL path names (i.e. into "A/B/C"). Any null/empty strings are skipped. </summary>
+        /// <param name="names"> The path names to join. </param>
+        /// <returns> A string. </returns>
+        public static string JoinURLPathNames(IEnumerable<string> names) => string.Join("/", names.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()));
+
+        /// <summary> Converts '.' to '/'. </summary>
+        /// <param name="name"> Dot delimited names. </param>
+        /// <returns> A string. </returns>
+        public static string DottedNamesToPath(string name) => JoinURLPathNames(name.Split('.'));
+
+        /// <summary> Trim all matching names from the start until difference is found, then return the remainder. </summary>
+        /// <param name="namesToTrim"> The names to trim. </param>
+        /// <param name="namesToMatch"> Names to match with. </param>
+        /// <returns> A List&lt;string&gt; </returns>
+        public static List<string> TrimMatchingStartNames(List<string> namesToTrim, IList<string> namesToMatch) // TODO: Match this into a LINQ extension.
+        {
+            int i = 0, n1 = namesToTrim.Count, n2 = namesToMatch.Count;
+            do
+            {
+                if (i >= n1 || i >= n2 || namesToTrim[i] != namesToMatch[i])
+                    break;
+                ++i;
+            } while (true);
+            return namesToTrim.GetRange(i, namesToTrim.Count - i);
+        }
+
+        /// <summary> Return all matching names from the start until difference is found, trimming the remainder. </summary>
+        /// <param name="namesToTrim"> The names to trim. </param>
+        /// <param name="namesToMatch"> Names to match with. </param>
+        /// <returns> A List&lt;string&gt; </returns>
+        public static List<string> TrimNonMatchingEndNames(List<string> namesToTrim, IList<string> namesToMatch) // TODO: Match this into a LINQ extension.
+        {
+            for (int i = 0, n1 = namesToTrim.Count, n2 = namesToMatch.Count; i < n1 && i < n2; ++i)
+                if (namesToTrim[i] != namesToMatch[i])
+                    return namesToTrim.GetRange(0, i);
+            return namesToTrim;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         ///     A unique ID for this component that identifies the source of any associated data value. This is usually an entity ID
         ///     (primary key value).
         ///     <para>This is helpful when multiple entities or objects are being output to a page.
         ///     If a list of plain old CLR (POCO) objects are used without IDs, a simple numerical iteration index value may be
-        ///     sufficient.</para>
+        ///     sufficient.  This value is used when return 'UniqueID' and 'UniqueName', along with any set 'id' attribute. </para>
         ///     <para>Note: If a value for "ID" exists, the EntityID value will be added as a suffix, delimited by an period.</para>
         /// </summary>
         /// <value> The identifier of the data source. </value>
         public string ModelID { get; set; }
+
+        /// <summary>
+        /// Returns a unique ID for this component, usually used as the "final" ID attribute value rendered to the output.
+        /// <para>An "id" attribute, 'ModelID', or both, should exist.</para>
+        /// </summary>
+        public string UniqueID { get { return Strings.Append(ID, ModelID, "_"); } }
+
+        /// <summary>
+        /// Returns a unique ID for this component, usually used as the "final" NAME attribute value rendered to the output.
+        /// </summary>
+        public string UniqueName { get { return Strings.Append(Name, ModelID, "_"); } }
 
         /// <summary>
         ///     If not null, this is a data source use by this tag helper to construct it's view. Typically it's either a single
@@ -514,11 +608,17 @@ namespace CoreXT.Toolkit.TagHelpers
         /// </summary>
         /// <param name="context"> The context. </param>
         /// <param name="output"> The output. </param>
+        /// <param name="onBeforeViewRender">
+        ///     (Optional) A callback to trigger just before the view is rendered, and just after the child content is pulled. If no
+        ///     view was found, the callback will not trigger. This allows components to perform some setup just prior to the view
+        ///     getting rendered (such as getting references to the child components from 'context.Items[]' to configure special
+        ///     content).
+        /// </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
-        public async Task<bool> ProcessContent(TagHelperContext context, TagHelperOutput output)
+        public async Task<bool> ProcessContent(TagHelperContext context, TagHelperOutput output, OnBeforeViewRender onBeforeViewRender = null)
         {
             // ... try rendering the view first, if one exists (otherwise null is returned) ...
-            var viewContent = await RenderView(false);
+            var viewContent = await RenderView(false, onBeforeRender: async viewContext => { var childContent = await output.GetChildContentAsync(); Content = childContent; onBeforeViewRender?.Invoke(viewContext, childContent); }); // (if a view is found, set the 
             if (viewContent != null)
             {
                 output.Content.SetHtmlContent(viewContent); // (view was found; the view is now responsible to render the inner content, if supported)
@@ -526,7 +626,7 @@ namespace CoreXT.Toolkit.TagHelpers
             else if (Content != null || ContentTemplate != null)
             {
                 // ... no view exists; however, there IS content explicitly set, so render that as the inner HTML ...
-                var result = await RenderContent();
+                var result = RenderContent();
                 output.Content.SetHtmlContent(result);
             }
             else return false;
@@ -544,31 +644,145 @@ namespace CoreXT.Toolkit.TagHelpers
         ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
         /// </param>
         /// <param name="name"> (Optional) A view name to override the default name. </param>
+        /// <param name="onBeforeRender"> (Optional) A callback to trigger just before the view is rendered. </param>
         /// <returns> An asynchronous result that yields HTML. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.TagHelpers.ICoreXTTagHelper.RenderView(string,bool)"/>
-        public async Task<HtmlString> RenderView(bool required = true, string name = null)
+        public async Task<HtmlString> RenderView(bool required = true, string name = null, Action<ViewContext> onBeforeRender = null)
         {
-            var result = await ViewRenderer.RenderAsync("/TagHelpers/", name ?? GetType().Name, Model, required);
+            var result = await ViewRenderer.RenderAsync(ViewSearchLocations, name ?? GetType().Name, this, required, onBeforeRender);
             return new HtmlString(result);
         }
 
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
-        ///     Renders the underlying view for this tag helper.
-        ///     <para> Note: If 'required' is false, and the view cannot be found, a null value
-        ///     will be returned. </para>
+        ///     Gets a view component descriptor for use with calling 'RenderViewComponent()' to render view components.
         /// </summary>
-        /// <param name="model"> A model to pass to the view. </param>
-        /// <param name="required">
-        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
+        /// <exception cref="MissingMethodException"> Thrown when a Missing Method error condition occurs. </exception>
+        /// <param name="componentType"> Type of the component to render. </param>
+        /// <param name="actionMethodName">
+        ///     (Optional) The name of the action method to execute on the view component (the default is "InvokeAsync").
         /// </param>
-        /// <param name="name"> (Optional) A view name to override the default name. </param>
-        /// <returns> An asynchronous result that yields HTML. </returns>
-        /// <seealso cref="M:CoreXT.Toolkit.TagHelpers.ICoreXTTagHelper.RenderView(object,string,bool)"/>
-        public async Task<HtmlString> RenderView(object model, bool required = true, string name = null)
+        /// <returns> The component descriptor. </returns>
+        public virtual ViewComponentDescriptor GetViewComponentDescriptor(Type componentType, string actionMethodName = null)
         {
-            var result = await ViewRenderer.RenderAsync("/TagHelpers/", name ?? GetType().Name, model, required);
-            return new HtmlString(result);
+            if (componentType == null)
+                throw new ArgumentNullException(nameof(componentType));
+
+            if (string.IsNullOrWhiteSpace(actionMethodName))
+                actionMethodName = "InvokeAsync";
+
+            // ... the value is not valid, so set it now; first get a service to look it up in case this has been created already before ..
+
+            var descriptorLibrary = GetService<Components.IViewComponentDescriptorLibrary>();
+            ViewComponentDescriptor descriptor;
+
+            if (descriptorLibrary != null)
+            {
+                lock (descriptorLibrary)
+                {
+                    descriptor = descriptorLibrary.Value(componentType);
+                    if (descriptor != null) return descriptor;
+                }
+            }
+
+            var actionMethod = componentType.GetMethod(actionMethodName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+                ?? throw new MissingMethodException(componentType.Name, actionMethodName);
+
+            descriptor = new ViewComponentDescriptor
+            {
+                DisplayName = componentType.Name,
+                FullName = componentType.FullName,
+                Id = componentType.FullName,
+                MethodInfo = actionMethod,
+                Parameters = null,
+                ShortName = componentType.Name,
+                TypeInfo = componentType.GetTypeInfo()
+            };
+
+            if (descriptorLibrary != null)
+                lock (descriptorLibrary)
+                    descriptorLibrary[componentType] = descriptor;
+
+            return descriptor;
         }
+
+        /// <summary>
+        ///     Renders a given view result and return it as an IHtmlContent based value, which can be written to an output stream
+        ///     via a 'TextWriter' instance, or placed directly on a razor view using '@'.
+        ///     <para>To render to a string value, just call either 'ToString()' or 'Render()' methods.</para>
+        /// </summary>
+        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
+        /// <param name="viewResult"> The view component result to render. </param>
+        /// <param name="descriptor"> The descriptor. </param>
+        /// <returns> An asynchronous result that yields an IHtmlContent. </returns>
+        public virtual async Task<IHtmlContent> RenderViewComponent(IViewComponentResult viewResult, ViewComponentDescriptor descriptor)
+        {
+            if (viewResult == null)
+                throw new ArgumentNullException(nameof(viewResult));
+
+            if (descriptor == null)
+                throw new ArgumentNullException(nameof(descriptor));
+
+            try
+            {
+                var viewBufferScope = GetService<IViewBufferScope>();
+                var htmlEncoder = GetService<HtmlEncoder>();
+                var viewContext = Page?.ViewContext;// ?? GetService<ViewContext>();
+                var invokerFactory = GetService<IViewComponentInvokerFactory>();
+
+                var viewBuffer = new ViewBuffer(viewBufferScope, descriptor.FullName, ViewBuffer.ViewComponentPageSize);
+
+                using (var writer = new ViewBufferTextWriter(viewBuffer, viewContext?.Writer?.Encoding ?? Encoding.UTF8))
+                {
+                    var context = new ViewComponentContext(descriptor, new Dictionary<string, object>(), htmlEncoder, viewContext, writer);
+                    await viewResult.ExecuteAsync(context);
+                    return viewBuffer;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new HtmlString("<div class='alert alert-danger'>" + ex.GetFullErrorMessage().Replace("\r\n", "<br/>\r\n") + "</div>");
+            }
+        }
+
+        /// <summary>
+        ///     Renders a given view result and return it as an IHtmlContent based value, which can be written to an output stream
+        ///     via a 'TextWriter' instance, or placed directly on a razor view using '@'.
+        ///     <para>To render to a string value, just call either 'ToString()' or 'Render()' methods.</para>
+        /// </summary>
+        /// <typeparam name="T"> The view component type. </typeparam>
+        /// <param name="viewResult">
+        ///     The view component result to render. This is usually obtain by calling one of the 'View()' methods on the view
+        ///     component.
+        /// </param>
+        /// <param name="viewComponent"> The descriptor. </param>
+        /// <param name="actionMethodName">
+        ///     (Optional) The name of the action method to execute on the view component (the default is "InvokeAsync").
+        /// </param>
+        /// <returns> An asynchronous result that yields an IHtmlContent. </returns>
+        public virtual async Task<IHtmlContent> RenderViewComponent<T>(IViewComponentResult viewResult, T viewComponent, string actionMethodName = null)
+            where T : ViewComponent
+            => await RenderViewComponent(viewResult, GetViewComponentDescriptor(viewComponent?.GetType(), actionMethodName));
+
+        /// <summary>
+        ///     Renders a given view result and return it as an IHtmlContent based value, which can be written to an output stream
+        ///     via a 'TextWriter' instance, or placed directly on a razor view using '@'.
+        ///     <para>To render to a string value, just call either 'ToString()' or 'Render()' methods.</para>
+        /// </summary>
+        /// <typeparam name="T"> The view component type. </typeparam>
+        /// <param name="viewResult">
+        ///     The view component result to render. This is usually obtain by calling one of the 'View()' methods on the view
+        ///     component.
+        /// </param>
+        /// <param name="actionMethodName">
+        ///     (Optional) The name of the action method to execute on the view component (the default is "InvokeAsync").
+        /// </param>
+        /// <returns> An asynchronous result that yields an IHtmlContent. </returns>
+        public virtual async Task<IHtmlContent> RenderViewComponent<T>(IViewComponentResult viewResult, string actionMethodName = null)
+            where T : ViewComponent
+            => await RenderViewComponent(viewResult, GetViewComponentDescriptor(typeof(T), actionMethodName));
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -576,17 +790,71 @@ namespace CoreXT.Toolkit.TagHelpers
         /// Called within component views to render the content from either the 'ContentTemplate' or 'Content' properties.
         /// 'ContentTemplate' will always take precedence over setting the 'Content' property.
         /// </summary>
-        public virtual async Task<IHtmlContent> RenderContent()
-            => await (ContentTemplate != null ? RenderContent(GetViewResult(ContentTemplate)) : RenderContent(Content)); //x WebUtility.HtmlEncode()
+        public virtual IHtmlContent RenderContent()
+            => ContentTemplate != null ? RenderContent(GetViewResult(ContentTemplate)) : RenderContent(Content); //x WebUtility.HtmlEncode()
 
         /// <summary>
         /// Typically called within derived component views to render content.
         /// </summary>
-        public virtual async Task<IHtmlContent> RenderContent(object content)
+        public virtual IHtmlContent RenderContent(object content)
             => (content is IHtmlContent) ? (IHtmlContent)content
             : (content is string) ? new HtmlString((string)content)
-            : (content is IViewComponentResult) ? await RenderView((IViewComponentResult)content)
-            : await RenderView(GetViewResult(content)); //x WebUtility.HtmlEncode()
+            : new HtmlString(content?.ND());
+        //? : (content is IViewComponentResult) ? await RenderView((IViewComponentResult)content)
+        //? : await RenderView(GetViewResult(content)); //x WebUtility.HtmlEncode()
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Renders the attributes for this component.
+        /// </summary>
+        /// <param name="includeID">If true, the ID attribute is included (default is false).</param> 
+        /// <param name="includeName">If true, the NAME attribute is included (default is false).</param> 
+        /// <param name="attributesToIgnore">Attributes not to include in the output. 
+        /// By default, if nothing is specified, the ID and NAME attributes are skipped, since these are usually set another way in the templates.
+        /// Giving ANY attribute to skip will bypass this default, so you'll have to explicitly name those to 
+        /// If these are needed, simply pass in an empty string for an attribute name to ignore.</param>
+        /// <returns></returns>
+        public virtual IHtmlContent RenderAttributes(bool includeID = false, bool includeName = false, params string[] attributesToIgnore)
+        {
+            if (Attributes.Count == 0)
+                return new HtmlString("");
+
+            // ... render the attributes ...
+
+            var renderedAttributes = Attributes.Select(a => new KeyValuePair<string, string>(a.Name.ToLower(), a.Render().Trim()));
+
+            // ... filter out empty attributes ...
+
+            var attributes = renderedAttributes.Where(a => !string.IsNullOrEmpty(a.Value)).ToDictionary(a => a.Key, a => a.Value);
+
+            // ... get the attributes to skip ...
+
+            var ignored = new List<string>(attributesToIgnore.Select(a => (a ?? "").Trim()).Where(a => !string.IsNullOrWhiteSpace(a)).Select(a => a.ToLower()));
+
+            if (includeID)
+            {
+                ignored.Remove("id"); // (explicit request to include this, so remove from the ignore list if set)
+                attributes["id"] = UniqueID;
+            }
+            else if (!ignored.Contains("id"))
+                ignored.Add("id");
+
+            if (includeName)
+            {
+                ignored.Remove("name"); // (explicit request to include this, so remove from the ignore list if set)
+                attributes["name"] = UniqueName;
+            }
+            else if (!ignored.Contains("name"))
+                ignored.Add("name");
+
+            // ... get the non ID and NAME attributes for output ...
+
+            return new HtmlString(string.Join(" ",
+                (from a in attributes
+                 where ignored.Count == 0 || !ignored.Contains(a.Key)
+                 select a.Key + "=\"" + EncodeAttribute(a.Value) + "\"")));
+        }
 
         // --------------------------------------------------------------------------------------------------------------------
 

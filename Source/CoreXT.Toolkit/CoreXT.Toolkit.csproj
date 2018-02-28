@@ -93,8 +93,9 @@
     <EmbeddedResource Include="wwwroot\images\**\*.*" Exclude="wwwroot\images\**\Originals\*.*" />
     <EmbeddedResource Include="wwwroot\js\**\*.*" Exclude="wwwroot\js\**\Originals\*.*" />
     <EmbeddedResource Include="Scripts\*.*" />
-    <EmbeddedResource Include="Components\**\*.cs" />
+    <!--<EmbeddedResource Include="Components\**\*.cs" />-->
     <EmbeddedResource Include="Components\**\*.cshtml" />
+    <EmbeddedResource Include="TagHelpers\**\*.cshtml" />
     <!--Include content using wildcards-->
     <!--<None Include="Components\OrganizationUserApplicationMembershipTable\Display.cshtml" />-->
     <!--<TypeScriptCompile Include="Scripts\**\*.ts" />
@@ -109,30 +110,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Components\Table\Display.cshtml" />
-    <Content Remove="Components\Table\_TableEditor.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Remove="Components\Button\Button.cs" />
-    <EmbeddedResource Remove="Components\Link\LinkTagHelper.cs" />
-    <EmbeddedResource Remove="Components\PanelGroup\PanelGroup.cs" />
-    <EmbeddedResource Remove="Components\Panel\Panel.cs" />
-    <EmbeddedResource Remove="Components\Table\Table.cs" />
-    <EmbeddedResource Remove="Components\Table\_TableEditor.cshtml" />
-    <EmbeddedResource Remove="Components\WebComponentExtentions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <_ContentIncludedByDefault Remove="typings\datatables.net\typings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="TagHelpers\_ViewImports.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="TagHelpers\ModalTagHelper.cs.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

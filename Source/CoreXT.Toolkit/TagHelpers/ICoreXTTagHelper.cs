@@ -12,7 +12,7 @@ namespace CoreXT.Toolkit.TagHelpers
 {
     public interface ICoreXTTagHelper : ITagHelper, IHtmlContent, IActionResult
     {
-        IDictionary<string, string> Attributes { get; }
+        TagHelperAttributeList Attributes { get; }
         string Class { get; set; }
         string ID { get; set; }
         string Name { get; set; }
@@ -24,7 +24,7 @@ namespace CoreXT.Toolkit.TagHelpers
         RenderModes RenderMode { get; set; }
 
         void ApplyResourcesToRequestContext();
-        string GetAttribute(string name);
+        TagHelperAttribute GetAttribute(string name);
         string[] GetClassNames();
         bool HasClass(params string[] classNames);
 
@@ -40,7 +40,7 @@ namespace CoreXT.Toolkit.TagHelpers
         /// </remarks>
         /// <param name="context"> Contains information associated with the current HTML tag. </param>
         /// <seealso cref="M:Microsoft.AspNetCore.Razor.TagHelpers.TagHelper.Init(TagHelperContext)"/>
-        void Init(TagHelperContext context);
+        void Initialize(TagHelperContext context);
 
         /// <summary>
         ///     Allows for setup and configuration prior to processing.

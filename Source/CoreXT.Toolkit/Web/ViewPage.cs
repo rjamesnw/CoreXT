@@ -394,4 +394,17 @@ namespace CoreXT.Toolkit.Web
     //}
 
     // ########################################################################################################################
+
+    public interface IWebComponentViewPage<TModel> : IViewPage<TModel>
+    {
+    }
+
+    /// <summary> The base view page for all web components. </summary>
+    /// <typeparam name="TModel"> Type of the model for the view. </typeparam>
+    /// <seealso cref="T:CoreXT.Toolkit.Web.ViewPage{TModel}"/>
+    public abstract partial class WebComponentViewPage<TModel> : ViewPage<TModel>, IWebComponentViewPage<TModel>
+    {
+    }
+
+    // ########################################################################################################################
 }
