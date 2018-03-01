@@ -12,13 +12,10 @@ using System.Web;
 
 namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 {
-    [HtmlTargetElement("input-box", ParentTag = "input-container", TagStructure = TagStructure.WithoutEndTag)]
-    public class InputBoxTagHelper : CoreXTTagHelper
+    [HtmlTargetElement(ToolkitComponentPrefix + "input-box", ParentTag = ToolkitComponentPrefix + "input-container", TagStructure = TagStructure.WithoutEndTag)]
+    public class InputBox : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
-
-        /// <summary> A name for this input. </summary>
-        public string Name { get; set; }
 
         /// <summary> The type of input (text, date, email, etc.). </summary>
         public string Type { get; set; }
@@ -34,7 +31,7 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         /// <summary>
         /// Renders a bootstrap form group.
         /// </summary>
-        public InputBoxTagHelper(ICoreXTServiceProvider services) : base(services)
+        public InputBox(ICoreXTServiceProvider services) : base(services)
         {
         }
 
@@ -43,7 +40,7 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
 
-            var container = (InputContainerTagHelper)context.Items[typeof(InputContainerTagHelper)];
+            var container = (InputContainer)context.Items[typeof(InputContainer)];
             output.TagName = "input";
             output.Attributes.SetAttribute("id", container.InputID);
             output.Attributes.SetAttribute("name", Name);

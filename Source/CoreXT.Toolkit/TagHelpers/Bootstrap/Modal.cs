@@ -14,6 +14,7 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentTitle"/>
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentHeader"/>
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentFooter"/>
+    [HtmlTargetElement(ToolkitComponentPrefix + "modal")]
     public class Modal : WebComponent, IComponentTitle, IComponentHeader, IComponentFooter
     {
         // --------------------------------------------------------------------------------------------------------------------

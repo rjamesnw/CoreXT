@@ -12,8 +12,8 @@ using System.Web;
 
 namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 {
-    [HtmlTargetElement("input-container", ParentTag = "form-group")]
-    public class InputContainerTagHelper : CoreXTTagHelper
+    [HtmlTargetElement(ToolkitComponentPrefix + "input-container", ParentTag = ToolkitComponentPrefix + "form-group")]
+    public class InputContainer : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -31,13 +31,13 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         /// <summary>
         /// Renders a bootstrap form group.
         /// </summary>
-        public InputContainerTagHelper(ICoreXTServiceProvider services) : base(services)
+        public InputContainer(ICoreXTServiceProvider services) : base(services)
         {
         }
 
         public async override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            context.Items[typeof(InputContainerTagHelper)] = this;
+            context.Items[typeof(InputContainer)] = this;
 
             output.TagName = "div";
 

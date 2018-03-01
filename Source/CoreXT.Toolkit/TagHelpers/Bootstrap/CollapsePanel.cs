@@ -14,7 +14,8 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
     /// <summary>
     /// Renders a bootstrap close button - typically for modal windows, alerts, etc.
     /// </summary>
-    public class CollapsePanelTagHelper : CoreXTTagHelper
+    [HtmlTargetElement(ToolkitComponentPrefix + "collapse-panel")]
+    public class CollapsePanel : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -29,7 +30,7 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         /// <summary>
         /// Creates an empty link control.
         /// </summary>
-        public CollapsePanelTagHelper(ICoreXTServiceProvider services) : base(services)
+        public CollapsePanel(ICoreXTServiceProvider services) : base(services)
         {
         }
 

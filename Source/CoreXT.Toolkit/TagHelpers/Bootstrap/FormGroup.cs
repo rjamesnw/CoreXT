@@ -11,14 +11,15 @@ using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 {
-    public class FormGroupTagHelper : CoreXTTagHelper
+    [HtmlTargetElement(ToolkitComponentPrefix + "form-group")]
+    public class FormGroup : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Renders a bootstrap form group.
         /// </summary>
-        public FormGroupTagHelper(ICoreXTServiceProvider services) : base(services)
+        public FormGroup(ICoreXTServiceProvider services) : base(services)
         {
         }
 
