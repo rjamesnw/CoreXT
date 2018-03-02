@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Components
 {
-    public class Modal : WebComponent, IComponentTitle, IComponentHeader, IComponentFooter
+    public class Modal : WebViewComponent, IComponentTitle, IComponentHeader, IComponentFooter
     {
         // --------------------------------------------------------------------------------------------------------------------
 

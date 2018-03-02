@@ -1,5 +1,5 @@
 ﻿using CoreXT.Services.DI;
-using CoreXT.Toolkit.TagHelpers;
+using CoreXT.Toolkit.TagComponents;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
@@ -9,17 +9,15 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using System;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.TagHelpers.Bootstrap
+namespace CoreXT.Toolkit.TagComponents.Bootstrap
 {
     /// <summary>
     /// Renders a bootstrap close button - typically for modal windows, alerts, etc.
     /// </summary>
-    [HtmlTargetElement(ToolkitComponentPrefix + "collapse-button")]
-    public class CollapseButton : WebComponent
+    [HtmlTargetElement(ToolkitComponentPrefix + "collapse-panel")]
+    public class CollapsePanel : WebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
-
-        public string Href { get; set; }
 
         public string ParentID { get; set; }
 
@@ -30,16 +28,15 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         /// <summary>
         /// Creates an empty link control.
         /// </summary>
-        public CollapseButton(ICoreXTServiceProvider services) : base(services)
+        public CollapsePanel(ICoreXTServiceProvider services) : base(services)
         {
         }
 
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override void Process()
         {
-            output.TagName = "a";
-            output.Attributes.SetAttribute("data-toggle", "collapse");
-            output.Attributes.SetAttribute("data-parent", "#" + ParentID);
-            output.Attributes.SetAttribute("href", "#" + TargetID);
+            TagName = "div";
+            this.SetAttribute("id", ID);
+            this.SetAttribute("class", "panel-collapse collapse in");
         }
 
         // --------------------------------------------------------------------------------------------------------------------

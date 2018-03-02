@@ -29,7 +29,7 @@ namespace CoreXT.Toolkit.Components
             set
             {
                 if (value)
-                    this.AddClass("navbar-inverse");
+                    this.AddClassName("navbar-inverse");
                 else
                     this.RemoveClass("navbar-inverse");
             }

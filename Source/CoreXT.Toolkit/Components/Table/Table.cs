@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Components
 {
-    public class Table : WebComponent
+    public class Table : WebViewComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 

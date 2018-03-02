@@ -185,7 +185,7 @@ namespace CoreXT.Toolkit.Web
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public class TemplatePartDetails<TWebComponent> where TWebComponent : IWebComponent
+        public class TemplatePartDetails<TWebComponent> where TWebComponent : IWebViewComponent
         {
             /// <summary>
             /// The property name for expressions used with template partial views.
@@ -214,19 +214,19 @@ namespace CoreXT.Toolkit.Web
         /// calling template.</param>
         /// <returns>An object that holds common details across all WebComponent type template views.</returns>
         public TemplatePartDetails<TWebComponent> GetTemplatePartDetails<TWebComponent>(Func<TemplatePartDetails<TWebComponent>, TWebComponent> constructor)
-            where TWebComponent : class, IWebComponent
+            where TWebComponent : class, IWebViewComponent
         {
             if (constructor == null)
                 throw new ArgumentNullException("'constructor' is required in case a calling template does not have a control instance as a model.");
 
             var model = Page.Model;
 
-            if (model is IWebComponent && !(model is TWebComponent))
+            if (model is IWebViewComponent && !(model is TWebComponent))
                 throw new InvalidOperationException("An IWebComponent (" + model.GetType().Name + ") was given as the component's view's model, but it is not of type '" + typeof(TWebComponent).Name + "' expected by the component's view.");
 
             var details = new TemplatePartDetails<TWebComponent>();
 
-            var propertyIsControlBase = ViewData.TemplateInfo.FormattedModelValue is WebComponent;
+            var propertyIsControlBase = ViewData.TemplateInfo.FormattedModelValue is WebViewComponent;
             // (note: if NO model property is given, 'ViewData.TemplateInfo.FormattedModelValue' will become the WebComponent
             //  instance [in order to call this template], and the property name and values will be set to 'null')
 

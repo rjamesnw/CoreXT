@@ -48,7 +48,7 @@ namespace CoreXT.MVC
         /// Get a control with a dummy view context in order to be rendered directly from a controller.
         /// </summary>
         /// <typeparam name="T">The type of control to create.</typeparam>
-        protected T GetControl<T>() where T : class, IWebComponent
+        protected T GetControl<T>() where T : class, IWebViewComponent
         {
             return ComponentBaseExtensions.GetComponent<T>(this);
         }

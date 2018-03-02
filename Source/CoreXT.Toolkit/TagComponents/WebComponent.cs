@@ -18,7 +18,7 @@ using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.TagHelpers
+namespace CoreXT.Toolkit.TagComponents
 {
     // ########################################################################################################################
 
@@ -30,15 +30,46 @@ namespace CoreXT.Toolkit.TagHelpers
     public delegate void OnBeforeViewRender(ViewContext viewContext, TagHelperContent childContent);
 
     // ########################################################################################################################
-    // 
-    public abstract class WebComponent : CoreXTTagHelper, IWebComponent
+
+    /// <summary>
+    ///     A web component that which usually contains an accompanying view template ({ClassName}.cshtml file). The
+    ///     '<see cref="TagComponent.TagOutput"/>' property, which is usually used in rendering tags, is not used when a view is
+    ///     present since it becomes the view's responsibility to render the content where applicable.
+    ///     <para>When overriding 'ProcessAsync()', and a view file exists, make sure to call 'ProcessContent()' to render the
+    ///     underlying view. This method allows falling back if a view is missing so something else can be rendered instead.
+    ///     There is also an optional hook just before the view gets rendered.</para>
+    /// </summary>
+    /// <remarks>
+    ///     Example implementation for derived classes:
+    ///     <code>
+    ///        public async override Task ProcessAsync()
+    ///        {
+    ///           // ... try rendering any view or explicitly set content first ...
+    ///           if (!await ProcessContent((viewContext, childContent) =&gt;
+    ///           {
+    ///               // ... anything here needed just before the view is rendered ...
+    ///           }))
+    ///           {
+    ///               // ... no view, and no content set, so assume finally that this is a normal tag component with possibly other nested components/tags ...
+    ///               var content = await TagOutput.GetChildContentAsync();
+    ///               TagOutput.Content.SetHtmlContent(content);
+    ///           }
+    ///        }
+    ///     </code>
+    /// </remarks>
+    /// <seealso cref="T:CoreXT.Toolkit.TagComponents.TagComponent"/>
+    /// <seealso cref="T:CoreXT.Toolkit.TagComponents.IWebComponent"/>
+    public abstract class WebComponent : TagComponent, IWebComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary> The toolkit specific tag component prefix. </summary>
         public const string ToolkitComponentPrefix = "xt-";
 
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary> Gets the view renderer. </summary>
+        /// <value> The view renderer. </value>
         protected IViewRenderer ViewRenderer => _ViewRenderer ?? (_ViewRenderer = GetService<IViewRenderer>());
         protected IViewRenderer _ViewRenderer;
 
@@ -59,7 +90,7 @@ namespace CoreXT.Toolkit.TagHelpers
             {
                 if (_ViewSearchLocations != null) return _ViewSearchLocations;
                 var thisType = GetType();
-                _ViewSearchLocations = new List<string> { "/TagHelpers", "/" + DottedNamesToPath(thisType.Namespace) };
+                _ViewSearchLocations = new List<string> { "/" + nameof(TagComponents), "/" + DottedNamesToPath(thisType.Namespace) };
                 var searchNameSpaces = new List<string[]> {
                     Assembly.GetExecutingAssembly().GetName().Name.Split('.'),
                     Assembly.GetEntryAssembly().GetName().Name.Split('.')
@@ -156,35 +187,55 @@ namespace CoreXT.Toolkit.TagHelpers
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// The raw inner HTML that will be placed within the body of the rendered HTML for this component, if supported.
-        /// <para>This should be overridden in derived classes to throw "NotSupportedException" if content output is not supported.</para>
-        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'GetViewResult()' instead, which has better conversion support for more types.</para>
+        ///     The raw inner HTML that will be placed within the body of the rendered HTML for this web component, if supported.
+        ///     <para>This can be overridden in derived classes to throw "NotSupportedException" if content output is not
+        ///     supported.</para>
+        ///     <para>Note: The base 'Content' property is hidden to support this more general property, since WebComponents usually
+        ///     render views with special content placement within the view template. Any object set is converted to IHtmlContent
+        ///     for output (where supported). Setting this property overwrites any existing content.</para>
         /// </summary>
-        public virtual object Content { get { return _Content; } set { _Content = value; } }
+        /// <value> The content. </value>
+        new public virtual object Content { get { return _Content; } set { _Content = value; } }
+        /// <summary> The content. </summary>
         object _Content;
 
+        ///// <summary>
+        /////     The raw inner HTML that will be placed within the body of the rendered HTML for this web component, if supported.
+        /////     <para>This can be overridden in derived classes to throw "NotSupportedException" if content output is not
+        /////     supported.</para>
+        /////     <para>Note: The base 'Content' property is hidden to support this more general property. Any object set is converted
+        /////     to IHtmlContent for output (where supported). Setting this property overwrites any existing content. </para>
+        ///// </summary>
+        ///// <value> The content. </value>
+        //x new public virtual object Content { get { return base.Content; } set { base.Content.SetHtmlContent(RenderContent(value)); } }
+
         /// <summary>
-        /// Supports razor template delegates to set the content that will be placed within the body of the rendered HTML for this component, if supported.
-        /// Setting this value will take precedence over any previously set 'Content' value.
-        /// <para>This should be overridden in derived classes to throw "NotSupportedException" if not supported.</para>
-        /// <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using 'GetViewResult()' instead, which has better conversion support for more types.</para>
+        ///     Supports razor template delegates to set the content that will be placed within the body of the rendered HTML for
+        ///     this component, if supported. Setting this value will take precedence over any previously set 'Content' value.
+        ///     <para>This should be overridden in derived classes to throw "NotSupportedException" if not supported.</para>
+        ///     <para>Note: The base 'Content()' method of same name is hidden to support this property.  Developers should be using
+        ///     'GetViewResult()' instead, which has better conversion support for more types.</para>
         /// </summary>
+        /// <value> The content template. </value>
         public virtual RazorTemplateDelegate<object> ContentTemplate { get; set; }
 
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary> Constructor. </summary>
+        /// <param name="services"> The services. </param>
         public WebComponent(ICoreXTServiceProvider services) : base(services)
         {
         }
 
-        internal override void _Init(TagHelperContext context, TagHelperOutput output)
+        /// <summary> Initializes this object. </summary>
+        internal override void _Init()
         {
-            base._Init(context, output);
-            context.Items[GetType()] = this;
-            output.TagName = null; // (hide the outer tag by default)
+            base._Init();
+            TagContext.Items[GetType()] = this; // (set and entry to this instance base on its type by default)
+            TagOutput.TagName = null; // (hide the outer tag by default)
         }
 
-        // --------------------------------------------------------------------------------------------------------------------
+        // --------------v------------------------------------------------------------------------------------------------------
 
         /// <summary>
         ///     Attempts to render any view or explicitly set content first.  If no underlying view is found, or 'Content' or
@@ -192,8 +243,6 @@ namespace CoreXT.Toolkit.TagHelpers
         ///     <para>Derived components should call this first, and if false, can continue to render their own inner tag content.
         ///     </para>
         /// </summary>
-        /// <param name="context"> The context. </param>
-        /// <param name="output"> The output. </param>
         /// <param name="onBeforeViewRender">
         ///     (Optional) A callback to trigger just before the view is rendered, and just after the child content is pulled. If no
         ///     view was found, the callback will not trigger. This allows components to perform some setup just prior to the view
@@ -201,12 +250,13 @@ namespace CoreXT.Toolkit.TagHelpers
         ///     content).
         /// </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
-        public async Task<bool> ProcessContent(TagHelperContext context, TagHelperOutput output, OnBeforeViewRender onBeforeViewRender = null)
+        /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
+        public async Task<bool> ProcessContent(OnBeforeViewRender onBeforeViewRender = null)
         {
             // ... try rendering the view first, if one exists (otherwise null is returned) ...
             var viewContent = await RenderView(false, onBeforeRender: async viewContext =>
             {
-                var childContent = await output.GetChildContentAsync();
+                var childContent = await TagOutput.GetChildContentAsync();
                 if (Content != null)
                     Content = RenderContent(Content).Render() + childContent.Render(); // (the content was previously set already; perhaps by a child component, so merge them [rendering should be inner most to outer most, so render the child content first])
                 else
@@ -216,13 +266,13 @@ namespace CoreXT.Toolkit.TagHelpers
 
             if (viewContent != null)
             {
-                output.Content.SetHtmlContent(viewContent); // (view was found; the view is now responsible to render the inner content, if supported)
+                TagOutput.Content.SetHtmlContent(viewContent); // (view was found; the view is now responsible to render the inner content, if supported)
             }
             else if (Content != null || ContentTemplate != null)
             {
                 // ... no view exists; however, there IS content explicitly set, so render that as the inner HTML ...
                 var result = RenderContent();
-                output.Content.SetHtmlContent(result);
+                TagOutput.Content.SetHtmlContent(result);
             }
             else return false;
             return true;
@@ -241,6 +291,7 @@ namespace CoreXT.Toolkit.TagHelpers
         /// <param name="name"> (Optional) A view name to override the default name. </param>
         /// <param name="onBeforeRender"> (Optional) A callback to trigger just before the view is rendered. </param>
         /// <returns> An asynchronous result that yields HTML. </returns>
+        /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.RenderView(bool,string,Action{ViewContext})"/>
         /// <seealso cref="M:CoreXT.Toolkit.TagHelpers.ICoreXTTagHelper.RenderView(string,bool)"/>
         public async Task<HtmlString> RenderView(bool required = true, string name = null, Action<ViewContext> onBeforeRender = null)
         {
@@ -382,15 +433,23 @@ namespace CoreXT.Toolkit.TagHelpers
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Called within component views to render the content from either the 'ContentTemplate' or 'Content' properties.
-        /// 'ContentTemplate' will always take precedence over setting the 'Content' property.
+        ///     Called within component views to render the content from either the 'ContentTemplate' or 'Content' properties.
+        ///     'ContentTemplate' will always take precedence over setting the 'Content' property.
         /// </summary>
+        /// <returns> An IHtmlContent. </returns>
         public virtual IHtmlContent RenderContent()
             => ContentTemplate != null ? RenderContent(GetViewResult(ContentTemplate)) : RenderContent(Content); //x WebUtility.HtmlEncode()
 
-        /// <summary>
-        /// Typically called within derived component views to render content.
-        /// </summary>
+        /// <summary> Typically called within derived component views to render content. </summary>
+        /// <param name="content">
+        ///     The raw inner HTML that will be placed within the body of the rendered HTML for this web component, if supported.
+        ///     <para>This can be overridden in derived classes to throw "NotSupportedException" if content output is not
+        ///     supported.</para>
+        ///     <para>Note: The base 'Content' property is hidden to support this more general property, since WebComponents usually
+        ///     render views with special content placement within the view template. Any object set is converted to IHtmlContent
+        ///     for output (where supported). Setting this property overwrites any existing content.</para>
+        /// </param>
+        /// <returns> An IHtmlContent. </returns>
         public virtual IHtmlContent RenderContent(object content)
             => (content is IHtmlContent) ? (IHtmlContent)content
             : (content is string) ? new HtmlString((string)content)
@@ -400,16 +459,16 @@ namespace CoreXT.Toolkit.TagHelpers
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Renders the attributes for this component.
-        /// </summary>
-        /// <param name="includeID">If true, the ID attribute is included (default is false).</param> 
-        /// <param name="includeName">If true, the NAME attribute is included (default is false).</param> 
-        /// <param name="attributesToIgnore">Attributes not to include in the output. 
-        /// By default, if nothing is specified, the ID and NAME attributes are skipped, since these are usually set another way in the templates.
-        /// Giving ANY attribute to skip will bypass this default, so you'll have to explicitly name those to 
-        /// If these are needed, simply pass in an empty string for an attribute name to ignore.</param>
-        /// <returns></returns>
+        /// <summary> Renders the attributes for this component. </summary>
+        /// <param name="includeID"> (Optional) If true, the ID attribute is included (default is false). </param>
+        /// <param name="includeName"> (Optional) If true, the NAME attribute is included (default is false). </param>
+        /// <param name="attributesToIgnore">
+        ///     Attributes not to include in the output. By default, if nothing is specified, the ID and NAME attributes are skipped,
+        ///     since these are usually set another way in the templates. Giving ANY attribute to skip will bypass this default, so
+        ///     you'll have to explicitly name those to If these are needed, simply pass in an empty string for an attribute name to
+        ///     ignore.
+        /// </param>
+        /// <returns> An IHtmlContent. </returns>
         public virtual IHtmlContent RenderAttributes(bool includeID = false, bool includeName = false, params string[] attributesToIgnore)
         {
             if (Attributes.Count == 0)
@@ -466,9 +525,11 @@ namespace CoreXT.Toolkit.TagHelpers
         }
 
         /// <summary>
-        /// An async method to return an IHtmlContent instance from the specified template delegate.
-        /// This is used in controls to support rendering razor template delegates into the underlying views, where applicable.
+        ///     An async method to return an IHtmlContent instance from the specified template delegate. This is used in controls to
+        ///     support rendering razor template delegates into the underlying views, where applicable.
         /// </summary>
+        /// <param name="templateDelegate"> The template delegate. </param>
+        /// <returns> The view result. </returns>
         public virtual IViewComponentResult GetViewResult(RazorTemplateDelegate<object> templateDelegate)
         {
             if (templateDelegate != null)
@@ -482,13 +543,20 @@ namespace CoreXT.Toolkit.TagHelpers
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        /// <summary> Converts a model member name to a valid attribute name. </summary>
+        /// <summary>
+        ///     Converts a Pascal-style name (typical of most public class/struct/interface properties) to a valid attribute name.
+        ///     This places dashes '-' before all capitalized letters that follow a lower case letter, and makes the whole string
+        ///     lowercase.
+        ///     <para>A Pascal style name is where the first letter in the identifier and the first letter of each subsequent
+        ///     concatenated word are capitalized.</para>
+        /// </summary>
         /// <param name="name"> A property name. </param>
         /// <returns> A string. </returns>
-        public static string ModelMemberNameToAttributeName(string name)
+        /// <seealso cref="!:https://msdn.microsoft.com/en-us/library/ms229043%28v=vs.100%29.aspx"/>
+        public static string PascalNameToAttributeName(string name)
         {
             // (converts "someMemberName" format to "some-member-name")
-            return Regex.Replace(name, "([a-z])([A-Z])", m => m.Groups[1].Value + "-" + m.Groups[2].Value.ToLower());
+            return Regex.Replace(name, "([a-z])([A-Z])", m => m.Groups[1].Value + "-" + m.Groups[2].Value).ToLower();
         }
 
         /// <summary> Converts given content to an IViewComponentResult for rendering. </summary>

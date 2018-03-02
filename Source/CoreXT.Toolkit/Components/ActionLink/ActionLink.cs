@@ -9,7 +9,7 @@ namespace CoreXT.Toolkit.Components
 {
     /// <summary> An action link. </summary>
     /// <seealso cref="T:CoreXT.Toolkit.Components.WebComponent"/>
-    public class ActionLink : WebComponent
+    public class ActionLink : WebViewComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -135,7 +135,7 @@ namespace CoreXT.Toolkit.Components
             Href = Url?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, HostName, Port, Fragment, RouteValues);
         }
 
-        public override async Task<WebComponent> Update()
+        public override async Task<WebViewComponent> Update()
         {
             await base.Update();
             _CalcHref();

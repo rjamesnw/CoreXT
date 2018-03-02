@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CoreXT.Toolkit.Components
 {
-    public class Label : WebComponent
+    public class Label : WebViewComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 

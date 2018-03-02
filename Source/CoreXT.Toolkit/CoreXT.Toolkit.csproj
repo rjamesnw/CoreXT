@@ -34,8 +34,8 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.184</FileVersion>
-    <AssemblyVersion>1.0.7.184</AssemblyVersion>
+    <FileVersion>1.0.7.213</FileVersion>
+    <AssemblyVersion>1.0.7.213</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
@@ -66,7 +66,7 @@
     <Compile Remove="Controls\TextBox.cs" />
     <Compile Remove="Controls\ValidationMessage.cs" />
     <Compile Remove="Controls\ValidationSummary.cs" />
-    <Compile Remove="TagHelpers\TagViewRenderer - Copy.cs" />
+    <Compile Remove="TagComponents\TagViewRenderer - Copy.cs" />
     <Compile Remove="Utility\MarkdownHelper.cs" />
   </ItemGroup>
 
@@ -95,7 +95,7 @@
     <EmbeddedResource Include="Scripts\*.*" />
     <!--<EmbeddedResource Include="Components\**\*.cs" />-->
     <EmbeddedResource Include="Components\**\*.cshtml" />
-    <EmbeddedResource Include="TagHelpers\**\*.cshtml" />
+    <EmbeddedResource Include="TagComponents\**\*.cshtml" />
     <!--Include content using wildcards-->
     <!--<None Include="Components\OrganizationUserApplicationMembershipTable\Display.cshtml" />-->
     <!--<TypeScriptCompile Include="Scripts\**\*.ts" />

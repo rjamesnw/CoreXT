@@ -37,7 +37,7 @@ namespace CoreXT.Toolkit.Components
     /// helper methods for custom component modifications, such as adding attributes, CSS classes, or other component configurations.</para>
     /// </summary>
     // (https://docs.microsoft.com/en-us/aspnet/core/mvc/views/view-components)
-    public abstract class WebComponent : ViewComponent, IWebComponent // ('IHtmlString' is the trick that allows the generated MVC views to render this component)
+    public abstract class WebViewComponent : ViewComponent, IWebViewComponent // ('IHtmlString' is the trick that allows the generated MVC views to render this component)
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -102,7 +102,7 @@ namespace CoreXT.Toolkit.Components
         public string Class
         {
             get { return Attributes.Value("class"); }
-            set { if (value != null) this.AddClass(value); else Attributes.MergeString("class", null); }
+            set { if (value != null) this.AddClassName(value); else Attributes.MergeString("class", null); }
         }
 
         /// <summary>
@@ -201,7 +201,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// If set, this will be called to render the raw HTML result when 'Render()' is called.
         /// </summary>up
-        Func<WebComponent, IHtmlContent> _Renderer;
+        Func<WebViewComponent, IHtmlContent> _Renderer;
 
         IViewPageRenderStack _ViewPageRenderStack;
 
@@ -286,7 +286,7 @@ namespace CoreXT.Toolkit.Components
         /// <para>Example: The ActionLink component has properties that configure the HREF URL. Calling 
         /// Update() resets the HREF value to match the currently configured path values.</para>
         /// </summary>
-        public virtual async Task<WebComponent> Update()
+        public virtual async Task<WebViewComponent> Update()
         {
             if (EnableAutomaticID && string.IsNullOrWhiteSpace(ID))
                 this.GenerateID();
@@ -300,7 +300,7 @@ namespace CoreXT.Toolkit.Components
         /// <remarks>'pageRenderStack' can be null, which is usually only for unit testing controls where applicable.</remarks>
         /// <param name="pageRenderStack">The view page rendering stack to associate with this component. This is used as a hint
         /// to default the 'Page' property to the currently rendering view. You can also use 'SetPage()' instead to be more explicit.</param>
-        public WebComponent(ICoreXTServiceProvider sp)
+        public WebViewComponent(ICoreXTServiceProvider sp)
         {
             _CoreXTServiceProvider = sp;
             _ViewPageRenderStack = sp.GetService<IViewPageRenderStack>();
@@ -316,7 +316,7 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         /// <param name="renderer">An optional render delegate used for custom rendering when 'Render()' is called.</param>
         /// <returns></returns>
-        public WebComponent SetRenderer(Func<WebComponent, IHtmlContent> renderer)
+        public WebViewComponent SetRenderer(Func<WebViewComponent, IHtmlContent> renderer)
         {
             _Renderer = renderer;
             return this;
@@ -634,7 +634,7 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public static implicit operator HtmlString(WebComponent ctrl)
+        public static implicit operator HtmlString(WebViewComponent ctrl)
         {
             return new HtmlString(ctrl.ToString());
         }
@@ -778,17 +778,17 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// Allows setting the 'Page' property using chained calls.
         /// </summary>
-        public static T SetPage<T>(this T component, IViewPage page) where T : IWebComponent { component.Page = page; return (T)component; }
+        public static T SetPage<T>(this T component, IViewPage page) where T : IWebViewComponent { component.Page = page; return (T)component; }
 
         /// <summary>
         /// Get a component with a dummy view context in order to be rendered directly from a controller.
         /// </summary>
         /// <typeparam name="T">The type of component to create.</typeparam>
         /// <param name="controller">The controller to create the component for.</param>
-        public static T GetComponent<T>(this Controller controller) where T : class, IWebComponent
+        public static T GetComponent<T>(this Controller controller) where T : class, IWebViewComponent
         {
             var component = controller?.HttpContext?.GetService<T>();
-            component.Page = WebComponent.GetCurrentOrDefaultPage(controller.ControllerContext);
+            component.Page = WebViewComponent.GetCurrentOrDefaultPage(controller.ControllerContext);
             return (T)component;
         }
 
@@ -801,7 +801,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="assembly">The assembly that contains all the 'IWebComponent' types to register with the services container.</param>
         public static void AddComponents(this IServiceCollection services, Assembly assembly)
         {
-            var types = from t in assembly.GetTypes() where typeof(IWebComponent).IsAssignableFrom(t) select new { Type = t, Info = t.GetTypeInfo() };
+            var types = from t in assembly.GetTypes() where typeof(IWebViewComponent).IsAssignableFrom(t) select new { Type = t, Info = t.GetTypeInfo() };
             foreach (var type in types)
                 if (type.Info.IsClass && !type.Info.IsAbstract && type.Info.IsPublic)
                 {

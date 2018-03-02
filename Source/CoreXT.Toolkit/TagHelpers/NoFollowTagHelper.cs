@@ -1,5 +1,7 @@
 ﻿using CoreXT;
+using CoreXT.ASPNet;
 using CoreXT.Services.DI;
+using CoreXT.Toolkit.TagComponents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Text.RegularExpressions;
@@ -12,7 +14,7 @@ namespace CoreXT.Toolkit.TagHelpers
     /// post context (opening up to spamming by bots).
     /// </summary>
     [HtmlTargetElement("a", Attributes = "href")]
-    public class NoFollowTagHelper : CoreXTTagHelper
+    public class NoFollowTagHelper : TagComponent
     {
         /// <summary>
         /// This is the pattern template for matching links in order to apply the 'rel=nofollow' attribute on external links.
@@ -22,18 +24,16 @@ namespace CoreXT.Toolkit.TagHelpers
 
         public NoFollowTagHelper(ICoreXTServiceProvider services) : base(services) { }
 
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override void Process()
         {
-            var href = output.Attributes["href"]?.Value.ND().ToLower();
+            var href = Attributes["href"].Render();
             if (!string.IsNullOrWhiteSpace(href))
             {
-                if (!Regex.IsMatch(href, NoFollowMatchPattern.Replace("{DOMAIN}", Context.Request.Host.Host)))
+                if (!Regex.IsMatch(href, NoFollowMatchPattern.Replace("{DOMAIN}", HttpContext.Request.Host.Host), RegexOptions.IgnoreCase))
                 {
-                    output.Attributes.Add("rel", "nofollow"); // (this is not a local site link, so must be external)
+                    this.SetAttribute("rel", "nofollow"); // (this is not a local site link, so must be external)
                 }
             }
-
-            base.Process(context, output);
         }
     }
 }

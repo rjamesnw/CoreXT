@@ -38,7 +38,7 @@ namespace CoreXT.Toolkit.Components
 
     /// <summary> A button component. </summary>
     /// <seealso cref="T:CoreXT.Toolkit.Components.WebComponent"/>
-    public class Button : WebComponent
+    public class Button : WebViewComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         /// <returns> An asynchronous result that yields a WebComponent. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.Components.WebComponent.Update()"/>
-        public override Task<WebComponent> Update()
+        public override Task<WebViewComponent> Update()
         {
             /*(do stuff here just before the view gets rendered)*/
             return base.Update();

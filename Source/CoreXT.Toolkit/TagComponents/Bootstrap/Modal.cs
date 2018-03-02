@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.TagHelpers.Bootstrap
+namespace CoreXT.Toolkit.TagComponents.Bootstrap
 {
     //[OutputElementHint("div")]
 
@@ -40,25 +40,26 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Creates an empty modal pop-up.
-        /// </summary>
+        /// <summary> Creates an empty modal pop-up. </summary>
         /// <param name="services"></param>
         public Modal(ICoreXTServiceProvider services) : base(services) { }
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public async override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+        /// <summary> Asynchronously processes the component and renders output. </summary>
+        /// <returns> An asynchronous result. </returns>
+        /// <seealso cref="M:CoreXT.Toolkit.TagComponents.TagComponent.ProcessAsync()"/>
+        public async override Task ProcessAsync()
         {
             // ... try rendering any view or explicitly set content first ...
-            if (!await ProcessContent(context, output, (vc, cc) =>
+            if (!await ProcessContent((viewContext, childContent) =>
             {
                 // ... anything here just before the view is rendered ...
             }))
             {
-                // ... no view, and no content set, so assume finally that this is a normal tag component with possibly other nested tags ...
-                var content = await output.GetChildContentAsync();
-                output.Content.SetHtmlContent(content);
+                /// ... no view, and no content set, so assume finally that this is a normal tag component with possibly other nested components/tags ...
+                var content = await TagOutput.GetChildContentAsync();
+                TagOutput.Content.SetHtmlContent(content);
             }
         }
 

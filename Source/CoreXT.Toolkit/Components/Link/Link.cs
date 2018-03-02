@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Components
 {
-    public class Link : WebComponent
+    public class Link : WebViewComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 

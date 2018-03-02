@@ -2,7 +2,7 @@
 using CoreXT.MVC;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Components;
-using CoreXT.Toolkit.TagHelpers;
+using CoreXT.Toolkit.TagComponents;
 using CoreXT.Toolkit.Web;
 //using Glimpse;
 using Microsoft.AspNetCore.Hosting;

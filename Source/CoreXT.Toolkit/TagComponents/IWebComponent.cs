@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
-namespace CoreXT.Toolkit.TagHelpers
+namespace CoreXT.Toolkit.TagComponents
 {
-    public interface IWebComponent : ICoreXTTagHelper
+    public interface IWebComponent : ITagComponent
     {
         object Content { get; set; }
         RazorTemplateDelegate<object> ContentTemplate { get; set; }
@@ -35,7 +35,7 @@ namespace CoreXT.Toolkit.TagHelpers
         ///     content).
         /// </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
-        Task<bool> ProcessContent(TagHelperContext context, TagHelperOutput output, OnBeforeViewRender onBeforeViewRender = null);
+        Task<bool> ProcessContent(OnBeforeViewRender onBeforeViewRender = null);
 
         IHtmlContent RenderContent();
         IHtmlContent RenderContent(object content);

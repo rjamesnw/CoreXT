@@ -1,5 +1,5 @@
 ﻿using CoreXT.Services.DI;
-using CoreXT.Toolkit.TagHelpers;
+using CoreXT.Toolkit.TagComponents;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
@@ -9,11 +9,25 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using System;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.TagHelpers.Bootstrap
+namespace CoreXT.Toolkit.TagComponents.Bootstrap
 {
+    public enum ValidationStates
+    {
+        Normal,
+        Success,
+        Warning,
+        Error
+    }
+
     [HtmlTargetElement(ToolkitComponentPrefix + "form-group")]
     public class FormGroup : WebComponent
     {
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Gets or sets the state of the validation style. </summary>
+        /// <value> The validation state. </value>
+        public ValidationStates ValidationState { get; set; }
+
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -23,10 +37,12 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
         {
         }
 
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override void Process()
         {
-            output.TagName = "div";
-            output.Attributes.SetAttribute("class", "form-group");
+            TagName = "div";
+            this.AddClass("form-group");
+            if (ValidationState != ValidationStates.Normal)
+                this.AddClass("has-" + PascalNameToAttributeName(ValidationState.ToString()));
         }
 
         // --------------------------------------------------------------------------------------------------------------------

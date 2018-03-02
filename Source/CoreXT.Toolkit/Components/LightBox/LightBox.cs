@@ -9,7 +9,7 @@ using CoreXT.Services.DI;
 
 namespace CoreXT.Toolkit.Components
 {
-    public class LightBox : WebComponent
+    public class LightBox : WebViewComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 

@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc.ViewComponents;
 
 namespace CoreXT.Toolkit.Components
 {
-    public interface IWebComponent : IHtmlContent, IActionResult
+    public interface IWebViewComponent : IHtmlContent, IActionResult
     {
         IDictionary<string, string> Attributes { get; }
         string Class { get; set; }
@@ -63,9 +63,9 @@ namespace CoreXT.Toolkit.Components
         Task<IHtmlContent> Render();
         Task<IHtmlContent> RenderView(IViewComponentResult viewResult);
         IHtmlContent RenderFor<TModel, TValue>(Expression<Func<TModel, TValue>> expression = null);
-        WebComponent SetRenderer(Func<WebComponent, IHtmlContent> renderer);
+        WebViewComponent SetRenderer(Func<WebViewComponent, IHtmlContent> renderer);
         string ToString();
-        Task<WebComponent> Update();
+        Task<WebViewComponent> Update();
         ViewViewComponentResult View();
         ViewViewComponentResult View(string viewName);
         ViewViewComponentResult View<TModel>(string viewName, TModel model);

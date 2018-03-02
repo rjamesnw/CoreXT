@@ -14,7 +14,7 @@ namespace CoreXT.Toolkit.Web
     {
         // --------------------------------------------------------------------------------------------------------------------
 
-        public T GetControl<T>() where T : class, IWebComponent { return Context?.GetService<T>().SetPage(this); }
+        public T GetControl<T>() where T : class, IWebViewComponent { return Context?.GetService<T>().SetPage(this); }
 
         /// <summary>
         /// Returns a link element with the given text and URL (href).

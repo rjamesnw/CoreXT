@@ -8,7 +8,7 @@ namespace CoreXT.Toolkit.Components
 
     /// <summary> A panel group component. </summary>
     /// <seealso cref="T:CoreXT.Toolkit.Components.WebComponent"/>
-    public class PanelGroup : WebComponent
+    public class PanelGroup : WebViewComponent
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public override Task<WebComponent> Update()
+        public override Task<WebViewComponent> Update()
         {
             /*(do stuff here just before the view gets rendered)*/
             return base.Update();

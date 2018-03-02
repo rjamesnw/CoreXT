@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.TagHelpers.Bootstrap
+namespace CoreXT.Toolkit.TagComponents.Bootstrap
 {
     /// <summary> Footer content for the modal window. </summary>
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.WebComponent"/>
@@ -20,15 +20,15 @@ namespace CoreXT.Toolkit.TagHelpers.Bootstrap
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public async override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+        public async override Task ProcessAsync()
         {
-            var modal = context.Items[typeof(Modal)] as Modal;
+            var modal = TagContext.Items[typeof(Modal)] as Modal;
             if (modal != null)
             {
-                modal.Footer = await output.GetChildContentAsync();
-                output.SuppressOutput(); // (this will be processed by the parent modal tag component)
+                modal.Footer = await TagOutput.GetChildContentAsync();
+                TagOutput.SuppressOutput(); // (this will be processed by the parent modal tag component)
             }
-            else output.Content.SetHtmlContent(await output.GetChildContentAsync());
+            else TagOutput.Content.SetHtmlContent(await TagOutput.GetChildContentAsync());
         }
 
         // --------------------------------------------------------------------------------------------------------------------
