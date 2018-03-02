@@ -73,13 +73,18 @@ namespace CoreXT.Toolkit.TagComponents
         ///     removed instead (if 'replace' is true).
         /// </param>
         /// <param name="replace">
-        ///     (Optional) If true (default) adds a new entry or replaces an existing entry, otherwise the request is ignored. If
-        ///     this is false, nothing is removed, and any merge requests with existing keys will be ignored.
+        ///     (Optional) If true (the default) adds a new entry or replaces an existing entry, otherwise the request is ignored.
+        ///     If this is false, nothing is removed, and any merge requests with existing keys will be ignored.
         /// </param>
         /// <param name="removeOnEmptyOrWhitespace">
-        ///     (Optional) If true (default) any empty or whitespace values will remove the attribute.
+        ///     (Optional) If true (default) any empty or whitespace-only values will remove the attribute. This is in addition to
+        ///     'null', which always removes values.
         /// </param>
-        public static void MergeAttribute(this TagHelperAttributeList list, string name, object value, bool replace = true, bool removeOnEmptyOrWhitespace = true)
+        /// <param name="replaceIfValueNotEmpty">
+        ///     (Optional) If true, any existing entry is only replaced if the given value is not empty or whitespace only. Default
+        ///     is false. This setting has no affect if the 'replace' parameter is false.
+        /// </param>
+        public static void MergeAttribute(this TagHelperAttributeList list, string name, object value, bool replace = true, bool removeOnEmptyOrWhitespace = true, bool replaceIfValueNotEmpty = false)
         {
             if (name == null)
                 throw new ArgumentException("Value cannot be null.", nameof(name));
@@ -89,9 +94,10 @@ namespace CoreXT.Toolkit.TagComponents
             if (replace || value != null && !list.ContainsName(name))
             {
                 var valueStr = value?.ToString().Trim();
-                if (valueStr == null || removeOnEmptyOrWhitespace && string.IsNullOrWhiteSpace(valueStr))
+                var isEmpty = string.IsNullOrWhiteSpace(valueStr);
+                if (valueStr == null || removeOnEmptyOrWhitespace && isEmpty)
                     list.RemoveAll(name);
-                else
+                else if (!replaceIfValueNotEmpty || !isEmpty)
                     list.Add(name, valueStr);
             }
         }
@@ -159,12 +165,17 @@ namespace CoreXT.Toolkit.TagComponents
         ///     this is false, nothing is removed, and any merge requests with existing keys will be ignored.
         /// </param>
         /// <param name="removeOnEmptyOrWhitespace">
-        ///     (Optional) If true (default) any null or empty values will remove the attribute.
+        ///     (Optional) If true (default) any empty or whitespace-only values will remove the attribute. This is in addition to
+        ///     'null', which always removes values.
+        /// </param>
+        /// <param name="replaceIfValueNotEmpty">
+        ///     (Optional) If true, any existing entry is only replaced if the given value is not empty or whitespace only. Default
+        ///     is false. This setting has no affect if the 'replace' parameter is false.
         /// </param>
         /// <returns> Returns the type 'T' instance passed in as '<paramref name="comp"/>'. </returns>
-        public static T SetAttribute<T>(this T comp, string name, object value, bool replace = true, bool removeOnEmptyOrWhitespace = true) where T : class, ITagComponent
+        public static T SetAttribute<T>(this T comp, string name, object value, bool replace = true, bool removeOnEmptyOrWhitespace = true, bool replaceIfValueNotEmpty = false) where T : class, ITagComponent
         {
-            comp.Attributes.MergeAttribute(name, value, replace, removeOnEmptyOrWhitespace);
+            comp.Attributes.MergeAttribute(name, value, replace, removeOnEmptyOrWhitespace, replaceIfValueNotEmpty);
             return comp;
         }
 

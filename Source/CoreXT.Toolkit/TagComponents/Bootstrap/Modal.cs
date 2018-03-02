@@ -52,7 +52,7 @@ namespace CoreXT.Toolkit.TagComponents.Bootstrap
         public async override Task ProcessAsync()
         {
             // ... try rendering any view or explicitly set content first ...
-            if (!await ProcessContent((viewContext, childContent) =>
+            if (!await ProcessContent(false, (viewContext, childContent) =>
             {
                 // ... anything here just before the view is rendered ...
             }))

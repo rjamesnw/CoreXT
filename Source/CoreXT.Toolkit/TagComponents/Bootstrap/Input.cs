@@ -102,7 +102,7 @@ namespace CoreXT.Toolkit.TagComponents.Bootstrap
             TagOutput.TagName = "input";
             this.SetAttribute("id", container.InputID);
             this.SetAttribute("name", Name);
-            this.SetAttribute("type", PascalNameToAttributeName(Type.ToString()));
+            this.SetAttribute("type", PascalNameToAttributeName(Type));
             this.SetAttribute("aria-describedby", container.InputID + "Help");
             if (Type != InputTypes.Checkbox)
                 this.SetAttribute("class", "form-control");

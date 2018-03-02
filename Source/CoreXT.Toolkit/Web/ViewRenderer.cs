@@ -93,7 +93,7 @@ namespace CoreXT.Toolkit.Web
 
             var actionContext = GetActionContext();
             var viewEngineResult = _FindView(searchPaths, name, required);
-            if (!viewEngineResult.Success) return null;
+            if (viewEngineResult?.Success != true) return null;
             var view = viewEngineResult.View;
 
             using (var output = new StringWriter())
@@ -183,7 +183,10 @@ namespace CoreXT.Toolkit.Web
                 }
             }
 
-            throw new FileNotFoundException("Failed to find view '" + name + "'. Locations searched: " + Environment.NewLine + " > " + string.Join(Environment.NewLine + " > ", locationsSearched));
+            if (required)
+                throw new FileNotFoundException("Failed to find view '" + name + "'. Locations searched: " + Environment.NewLine + " > " + string.Join(Environment.NewLine + " > ", locationsSearched));
+            else
+                return null;
         }
     }
 

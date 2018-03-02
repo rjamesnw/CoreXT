@@ -42,7 +42,7 @@ namespace CoreXT.Toolkit.TagComponents.Bootstrap
             TagName = "div";
             this.AddClass("form-group");
             if (ValidationState != ValidationStates.Normal)
-                this.AddClass("has-" + PascalNameToAttributeName(ValidationState.ToString()));
+                this.AddClass("has-" + PascalNameToAttributeName(ValidationState));
         }
 
         // --------------------------------------------------------------------------------------------------------------------

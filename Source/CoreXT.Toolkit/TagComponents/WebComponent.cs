@@ -243,6 +243,9 @@ namespace CoreXT.Toolkit.TagComponents
         ///     <para>Derived components should call this first, and if false, can continue to render their own inner tag content.
         ///     </para>
         /// </summary>
+        /// <param name="required">
+        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// </param>
         /// <param name="onBeforeViewRender">
         ///     (Optional) A callback to trigger just before the view is rendered, and just after the child content is pulled. If no
         ///     view was found, the callback will not trigger. This allows components to perform some setup just prior to the view
@@ -251,10 +254,10 @@ namespace CoreXT.Toolkit.TagComponents
         /// </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
-        public async Task<bool> ProcessContent(OnBeforeViewRender onBeforeViewRender = null)
+        public async Task<bool> ProcessContent(bool required = true, OnBeforeViewRender onBeforeViewRender = null)
         {
             // ... try rendering the view first, if one exists (otherwise null is returned) ...
-            var viewContent = await RenderView(false, onBeforeRender: async viewContext =>
+            var viewContent = await RenderView(required, onBeforeRender: async viewContext =>
             {
                 var childContent = await TagOutput.GetChildContentAsync();
                 if (Content != null)
@@ -296,7 +299,7 @@ namespace CoreXT.Toolkit.TagComponents
         public async Task<HtmlString> RenderView(bool required = true, string name = null, Action<ViewContext> onBeforeRender = null)
         {
             var result = await ViewRenderer.RenderAsync(ViewSearchLocations, name ?? GetType().Name, this, required, onBeforeRender);
-            return new HtmlString(result);
+            return result != null ? new HtmlString(result) : null;
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -557,6 +560,23 @@ namespace CoreXT.Toolkit.TagComponents
         {
             // (converts "someMemberName" format to "some-member-name")
             return Regex.Replace(name, "([a-z])([A-Z])", m => m.Groups[1].Value + "-" + m.Groups[2].Value).ToLower();
+        }
+
+        /// <summary>
+        ///     Converts a Pascal-style name (typical of most public class/struct/interface properties) to a valid attribute name.
+        ///     This places dashes '-' before all capitalized letters that follow a lower case letter, and makes the whole string
+        ///     lowercase.
+        ///     <para>A Pascal style name is where the first letter in the identifier and the first letter of each subsequent
+        ///     concatenated word are capitalized.</para>
+        /// </summary>
+        /// <typeparam name="T"> Generic value type parameter. </typeparam>
+        /// <param name="value"> A property name. </param>
+        /// <returns> A string. </returns>
+        /// <seealso cref="!:https://msdn.microsoft.com/en-us/library/ms229043%28v=vs.100%29.aspx"/>
+        public static string PascalNameToAttributeName<T>(T value) where T : struct
+        {
+            // (converts "someMemberName" format to "some-member-name")
+            return PascalNameToAttributeName(value.ToString());
         }
 
         /// <summary> Converts given content to an IViewComponentResult for rendering. </summary>

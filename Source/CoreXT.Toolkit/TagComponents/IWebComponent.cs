@@ -26,8 +26,9 @@ namespace CoreXT.Toolkit.TagComponents
         ///     <para>Derived components should call this first, and if false, can continue to render their own inner tag content.
         ///     </para>
         /// </summary>
-        /// <param name="context"> The context. </param>
-        /// <param name="output"> The output. </param>
+        /// <param name="required">
+        ///     (Optional) True if the view is required. If required and not found an exception will be thrown. Default is true.
+        /// </param>
         /// <param name="onBeforeViewRender">
         ///     (Optional) A callback to trigger just before the view is rendered, and just after the child content is pulled. If no
         ///     view was found, the callback will not trigger. This allows components to perform some setup just prior to the view
@@ -35,7 +36,8 @@ namespace CoreXT.Toolkit.TagComponents
         ///     content).
         /// </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
-        Task<bool> ProcessContent(OnBeforeViewRender onBeforeViewRender = null);
+        /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
+        Task<bool> ProcessContent(bool required = true, OnBeforeViewRender onBeforeViewRender = null);
 
         IHtmlContent RenderContent();
         IHtmlContent RenderContent(object content);
