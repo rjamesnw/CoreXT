@@ -37,7 +37,7 @@ namespace CoreXT.Toolkit.TagComponents
         /// </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
-        Task<bool> ProcessContent(bool required = true, OnBeforeViewRender onBeforeViewRender = null);
+        Task<bool> ProcessContent(OnBeforeViewRender onBeforeViewRender = null, bool required = true);
 
         IHtmlContent RenderContent();
         IHtmlContent RenderContent(object content);

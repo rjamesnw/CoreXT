@@ -69,19 +69,11 @@ namespace CoreXT.Toolkit.TagComponents.Bootstrap
         public async override Task ProcessAsync()
         {
             // ... try rendering any view or explicitly set content first ...
-            if (!await ProcessContent(false, (viewContext, childContent) =>
+            if (!await ProcessContent())
             {
-                // ... anything here just before the view is rendered ...
-            }))
-            {
-                //var container = (InputContainer)TagContext.Items[typeof(InputContainer)];
                 TagOutput.TagName = "button";
                 this.AddClass("btn", "btn-" + PascalNameToAttributeName(ButtonStyle));
-                //this.SetAttribute("id", container?.InputID, false); // (override with any container ID, but ONLY if a value is set)
                 this.SetAttribute("type", PascalNameToAttributeName(ButtonType));
-                /// ... no view, and no content set, so assume finally that this is a normal tag component with possibly other nested components/tags ...
-                var content = await TagOutput.GetChildContentAsync();
-                TagOutput.Content.SetHtmlContent(content);
             }
         }
 

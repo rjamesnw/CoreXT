@@ -1,10 +1,5 @@
 ﻿@model Menu
-@{
-    var templateDetails = XT.GetTemplatePartDetails<Menu>(td => GetControl<Menu>().Configure(td.Text));
-    var ctrl = templateDetails.Control;
-}
-@*<a >@await ctrl.RenderContent()</a>*@
-<div @ctrl.AddClassName("navbar navbar-fixed-top").GetElementAttributes(true, true)>
+<div @Model.RenderAttributes(true, true)>
     <div class="container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -13,13 +8,13 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a asp-area="@ctrl.AreaName" asp-controller="@ctrl.ControllerName" asp-action="@ctrl.ActionName" class="navbar-brand">@(ctrl.Caption ?? ctrl.Title)</a>
+            <xt-action area="@Model.AreaName" controller="@Model.ControllerName" action="@Model.ActionName" class="navbar-brand">@(Model.Caption)</xt-action>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                @foreach (var item in ctrl.Items)
+                @foreach (var item in Model.Items)
                 {
-                    @item
+                    @Model.RenderContent(item)
                 }
             </ul>
         </div>

@@ -52,14 +52,12 @@ namespace CoreXT.Toolkit.TagComponents.Bootstrap
         public async override Task ProcessAsync()
         {
             // ... try rendering any view or explicitly set content first ...
-            if (!await ProcessContent(false, (viewContext, childContent) =>
+            if (!await ProcessContent((viewContext, childContent) =>
             {
                 // ... anything here just before the view is rendered ...
             }))
             {
                 /// ... no view, and no content set, so assume finally that this is a normal tag component with possibly other nested components/tags ...
-                var content = await TagOutput.GetChildContentAsync();
-                TagOutput.Content.SetHtmlContent(content);
             }
         }
 

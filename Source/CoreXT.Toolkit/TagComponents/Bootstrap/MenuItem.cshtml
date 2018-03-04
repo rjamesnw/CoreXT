@@ -1,0 +1,4 @@
+﻿@model MenuItem
+<li @Model.RenderAttributes(true, true)>
+    <xt-action area="@Model.AreaName" controller="@Model.ControllerName" action="@Model.ActionName">@Model.RenderContent()</xt-action>
+</li>

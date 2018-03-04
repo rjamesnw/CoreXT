@@ -3,7 +3,9 @@ using CoreXT.Services.DI;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System;
@@ -66,7 +68,38 @@ namespace CoreXT.Toolkit.TagComponents
         /// <value> The view context. </value>
         [ViewContext]
         [HtmlAttributeNotBound]
-        public ViewContext ViewContext { get; set; }
+        public ViewContext ViewContext { get => _ViewContext ?? ViewPageRenderStack?.Current?.ViewContext; set => _ViewContext = value; }
+        ViewContext _ViewContext;
+
+        /// <summary> If 'ViewContext' is set, this returns the underlying IView instance as a RazorView, or null if the view is not a RazorView. </summary>
+        /// <value> The razor view. </value>
+        public RazorView RazorView => ViewContext?.View as RazorView;
+
+        /// <summary>
+        ///     The page that will render the component, if any. If no page exists when the component is rendered, a temp page will
+        ///     be created.
+        /// </summary>
+        /// <value> The page. </value>
+        [HtmlAttributeNotBound]
+        public IViewPage Page
+        {
+            get { return _Page ?? (_Page = RazorView?.RazorPage as IViewPage ?? ViewPageRenderStack?.Current); }
+            set
+            {
+                _Page = value;
+                if (_Page != null)
+                    RequiredResources = new ResourceList(_Page.ViewContext); // (this will get rendered out only when the component is rendered)
+            }
+        }
+        /// <summary> The page. </summary>
+        IViewPage _Page;
+
+        /// <summary>
+        /// Gets a URL helper to build URLs for ASP.NET MVC within an application.
+        /// </summary>
+        public IUrlHelper Url => ViewContext != null ? (_Url = GetService<IUrlHelperFactory>()?.GetUrlHelper(ViewContext))
+            : throw new InvalidOperationException("Url helper not available. Make sure the 'IUrlHelperFactory' service is registered on startup, and that the 'ViewContext' property is not null.");
+        IUrlHelper _Url;
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -166,27 +199,6 @@ namespace CoreXT.Toolkit.TagComponents
             get { return Attributes.Value("title", string.Empty); }
             set { Attributes.MergeAttribute("title", value); }
         }
-
-        // --------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
-        ///     The page that will render the component, if any. If no page exists when the component is rendered, a temp page will
-        ///     be created.
-        /// </summary>
-        /// <value> The page. </value>
-        [HtmlAttributeNotBound]
-        public IViewPage Page
-        {
-            get { return _Page ?? (_Page = ViewPageRenderStack?.Current); }
-            set
-            {
-                _Page = value;
-                if (_Page != null)
-                    RequiredResources = new ResourceList(_Page.ViewContext); // (this will get rendered out only when the component is rendered)
-            }
-        }
-        /// <summary> The page. </summary>
-        IViewPage _Page;
 
         // --------------------------------------------------------------------------------------------------------------------
 
