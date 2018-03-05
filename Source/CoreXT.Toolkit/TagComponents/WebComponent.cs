@@ -279,11 +279,6 @@ namespace CoreXT.Toolkit.TagComponents
             return null;
         }
 
-        public async Task<IHtmlContent> RenderComponent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
-        {
-            var result =;
-        }
-
         /// <summary>
         ///     Attempts to render any view or explicitly set content first.  If no underlying view is found, or 'Content' or
         ///     'ContentTemplate' is null, then false is returned.
