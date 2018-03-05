@@ -239,8 +239,8 @@ namespace CoreXT.Toolkit.TagComponents
 
         /// <summary>
         ///     Attempts to render any view or explicitly set content first.  If no underlying view is found, or 'Content' or
-        ///     'ContentTemplate' is null, then false is returned.
-        ///     <para>Derived components should call this first, and if false, can continue to render their own inner tag content.
+        ///     'ContentTemplate' is null, then null is returned.
+        ///     <para>Derived components can call this method to render the view or inner content of base types.
         ///     </para>
         /// </summary>
         /// <param name="onBeforeViewRender">
@@ -255,7 +255,7 @@ namespace CoreXT.Toolkit.TagComponents
         /// <param name="type"> (Optional) The component type to render. This is the current component type by default.  </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
-        public async Task<IHtmlContent> RenderComponent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
+        public async Task<IHtmlContent> RenderContent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
         {
             // ... try rendering the view first, if one exists (otherwise null is returned) ...
             var viewContent = await RenderView(GetType(), required, onBeforeRender: async viewContext =>
@@ -273,16 +273,21 @@ namespace CoreXT.Toolkit.TagComponents
             else if (Content != null || ContentTemplate != null)
             {
                 // ... no view exists; however, there IS content explicitly set, so render that as the inner HTML ...
-                return RenderContent();
+                return RenderInnerContent();
             }
 
             return null;
         }
 
+        public async Task<IHtmlContent> RenderComponent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
+        {
+            var result =;
+        }
+
         /// <summary>
         ///     Attempts to render any view or explicitly set content first.  If no underlying view is found, or 'Content' or
         ///     'ContentTemplate' is null, then false is returned.
-        ///     <para>Derived components should call this first, and if false, can continue to render their own inner tag content.
+        ///     <para>Derived components should call this first, and if false, can continue to render their content in "tag mode".
         ///     </para>
         /// </summary>
         /// <param name="onBeforeViewRender">
@@ -299,29 +304,13 @@ namespace CoreXT.Toolkit.TagComponents
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
         public async Task<bool> ProcessContent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
         {
-            // ... try rendering the view first, if one exists (otherwise null is returned) ...
-            var viewContent = await RenderView(GetType(), required, onBeforeRender: async viewContext =>
+            var content = await RenderContent(onBeforeViewRender, required, type);
+            if (content != null)
             {
-                var childContent = await TagOutput.GetChildContentAsync();
-                if (Content != null)
-                    Content = RenderContent(Content).Render() + childContent.Render(); // (the content was previously set already; perhaps by a child component, so merge them [rendering should be inner most to outer most, so render the child content first])
-                else
-                    Content = childContent;
-                onBeforeViewRender?.Invoke(viewContext, childContent);
-            });  // (if a view is found, this will also set the content before it renders)
-
-            if (viewContent != null)
-            {
-                TagOutput.Content.SetHtmlContent(viewContent); // (view was found; the view is now responsible to render the inner content, if supported)
-            }
-            else if (Content != null || ContentTemplate != null)
-            {
-                // ... no view exists; however, there IS content explicitly set, so render that as the inner HTML ...
-                var result = RenderContent();
-                TagOutput.Content.SetHtmlContent(result);
+                TagOutput.Content.SetHtmlContent(content);
+                return true;
             }
             else return false;
-            return true;
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -502,7 +491,7 @@ namespace CoreXT.Toolkit.TagComponents
         ///     'ContentTemplate' will always take precedence over setting the 'Content' property.
         /// </summary>
         /// <returns> An IHtmlContent. </returns>
-        public virtual IHtmlContent RenderContent()
+        public virtual IHtmlContent RenderInnerContent()
             => ContentTemplate != null ? RenderContent(GetViewResult(ContentTemplate)) : RenderContent(Content); //x WebUtility.HtmlEncode()
 
         /// <summary> Typically called within derived component views to render content. </summary>

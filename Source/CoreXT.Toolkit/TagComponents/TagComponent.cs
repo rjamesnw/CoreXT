@@ -219,10 +219,17 @@ namespace CoreXT.Toolkit.TagComponents
         /// </summary>
         /// <param name="writer"> The writer. </param>
         /// <param name="encoder"> The encoder. </param>
-        public void WriteTo(TextWriter writer, HtmlEncoder encoder) // (implementation for IHtmlContent)
+        public virtual void WriteTo(TextWriter writer, HtmlEncoder encoder) // (implementation for IHtmlContent)
         {
             ApplyResourcesToRequestContext();
-            writer.Write(ToString());
+
+            var tagContext = TagContext ?? new TagHelperContext(new TagHelperAttributeList(), new Dictionary<object, object>(), Guid.NewGuid().ToString("N"));
+            var tagOutput = TagOutput ?? new TagHelperOutput(GetType().Name, new TagHelperAttributeList(), null);
+
+            ((ITagHelper)this).Init(tagContext);
+            ((ITagHelper)this).ProcessAsync(tagContext, tagOutput).Wait(300 * 1000);
+
+            writer.Write(TagOutput.Render());
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -233,10 +240,10 @@ namespace CoreXT.Toolkit.TagComponents
         public async Task ExecuteResultAsync(ActionContext context)
         {
             if (Page == null)
-                Page = GetCurrentOrDefaultPage(context);
+                Page = GetCurrentOrTempPage(context);
 
-            var tagContext = new TagHelperContext(new TagHelperAttributeList(), new Dictionary<object, object>(), Guid.NewGuid().ToString("N"));
-            var tagOutput = new TagHelperOutput(GetType().Name, new TagHelperAttributeList(), null);
+            var tagContext = TagContext ?? new TagHelperContext(new TagHelperAttributeList(), new Dictionary<object, object>(), Guid.NewGuid().ToString("N"));
+            var tagOutput = TagOutput ?? new TagHelperOutput(GetType().Name, new TagHelperAttributeList(), null);
 
             ((ITagHelper)this).Init(tagContext);
             await ((ITagHelper)this).ProcessAsync(tagContext, tagOutput);
@@ -251,15 +258,13 @@ namespace CoreXT.Toolkit.TagComponents
         }
 
         /// <summary>
-        ///     Try to get the current view from the DI container (most likely this is null if the component is being returned as an
-        ///     action response).
+        ///     Try to get the current view, or create a new temp one).
         /// </summary>
         /// <param name="context"> . </param>
         /// <returns> The current or default page. </returns>
-        public static IViewPage GetCurrentOrDefaultPage(ActionContext context)
+        protected IViewPage GetCurrentOrTempPage(ActionContext context)
         {
-            var pageRenderStack = context.HttpContext.GetService<IViewPageRenderStack>();
-            return pageRenderStack?.Current ?? new _TempViewPage(context);
+            return Page ?? new _TempViewPage(context);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
