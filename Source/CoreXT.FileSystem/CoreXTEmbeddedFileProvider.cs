@@ -9,7 +9,7 @@ using System.IO;
 using System.Collections;
 using System.Linq;
 
-namespace CoreXT.MVC
+namespace CoreXT.FileSystem
 {
 
     ///<Summary>
