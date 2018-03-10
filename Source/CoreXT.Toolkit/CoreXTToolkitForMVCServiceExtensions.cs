@@ -1,4 +1,5 @@
 ﻿using CoreXT.Entities;
+using CoreXT.FileSystem;
 using CoreXT.MVC;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Components;
@@ -57,6 +58,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.Configure<RazorViewEngineOptions>(options =>
             {
+                options.FileProviders.Add(new VirtualFileProvider("CoreXT", hostingEnvironment));
                 options.FileProviders.Add(new CoreXTEmbeddedFileProvider(currentAssembly, hostingEnvironment));
             });
 

@@ -3,8 +3,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>CoreXT.ASPNet</AssemblyName>
-    <PackageId>CoreXT.ASPNet</PackageId>
+    <AssemblyName>CoreXT.Validation</AssemblyName>
+    <PackageId>CoreXT.Validation</PackageId>
     <!--<NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>-->
     <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -16,13 +16,13 @@
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageTags>CoreXT AspNet WebApi MVC</PackageTags>
+    <PackageTags>CoreXT AspNet WebApi MVC Validation</PackageTags>
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
-This package holds some utility methods mainly around the ASP side of .Net Core (especially converting over older ASP 4 MVC projects), such as 'Render()' for IHtmlContent, 'GetService&lt;T&gt;()' and 'GetIPAddress()', etc., for HttpContext, 'MapPath()', and so on.</Description>
+This package will grow eventually with some common data/input validations.</Description>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.176</FileVersion>
-    <AssemblyVersion>1.0.7.176</AssemblyVersion>
+    <FileVersion>1.0.7.171</FileVersion>
+    <AssemblyVersion>1.0.7.171</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
@@ -32,12 +32,9 @@ This package holds some utility methods mainly around the ASP side of .Net Core 
 
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.0.2" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

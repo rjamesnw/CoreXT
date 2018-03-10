@@ -2,8 +2,8 @@
 #define DOTNETCORE
 #endif
 
-// ZipStorer, by Jaime Olivares
-// Website: zipstorer.codeplex.com (http://zipstorer.codeplex.com/)
+// Base off ZipStorer, by Jaime Olivares
+// Website: zipstorer.codeplex.com (http://zipstorer.codeplex.com/ or https://github.com/jaime-olivares/zipstorer)
 // Version: 2.35 (March 14, 2010)
 
 using System;
@@ -15,9 +15,9 @@ using System.Text;
 namespace CoreXT.Compression
 {
     /// <summary>
-    /// Simple class for compression/decompression of ZIP files. Represents a Zip file.
+    /// Simple class for compression/decompression of ZIP files.
     /// </summary>
-    public class ZipStorer : IDisposable
+    public class ZipFile : IDisposable
     {
         /// <summary>
         /// Compression method enumeration
@@ -96,7 +96,7 @@ namespace CoreXT.Compression
 
         #region Public methods
         // Static constructor. Just invoked once in order to create the CRC32 lookup table.
-        static ZipStorer()
+        static ZipFile()
         {
             // Generate CRC32 table
             CrcTable = new UInt32[256];
@@ -119,11 +119,11 @@ namespace CoreXT.Compression
         /// <param name="_filename">Full path of Zip file to create</param>
         /// <param name="_comment">General comment for Zip file</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Create(string _filename, string _comment)
+        public static ZipFile Create(string _filename, string _comment)
         {
             Stream stream = new FileStream(_filename, FileMode.Create, FileAccess.ReadWrite);
 
-            ZipStorer zip = Create(stream, _comment);
+            ZipFile zip = Create(stream, _comment);
             zip.Comment = _comment;
             zip.FileName = _filename;
 
@@ -135,9 +135,9 @@ namespace CoreXT.Compression
         /// <param name="_stream"></param>
         /// <param name="_comment"></param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Create(Stream _stream, string _comment)
+        public static ZipFile Create(Stream _stream, string _comment)
         {
-            ZipStorer zip = new ZipStorer();
+            ZipFile zip = new ZipFile();
             zip.Comment = _comment;
             zip.ZipFileStream = _stream;
             zip.Access = FileAccess.Write;
@@ -150,11 +150,11 @@ namespace CoreXT.Compression
         /// <param name="_filename">Full path of Zip file to open</param>
         /// <param name="_access">File access mode as used in FileStream constructor</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Open(string _filename, FileAccess _access)
+        public static ZipFile Open(string _filename, FileAccess _access)
         {
             Stream stream = (Stream)new FileStream(_filename, FileMode.Open, _access == FileAccess.Read ? FileAccess.Read : FileAccess.ReadWrite);
 
-            ZipStorer zip = Open(stream, _access);
+            ZipFile zip = Open(stream, _access);
             zip.FileName = _filename;
 
             return zip;
@@ -165,12 +165,12 @@ namespace CoreXT.Compression
         /// <param name="_stream">Already opened stream with zip contents</param>
         /// <param name="_access">File access mode for stream operations</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Open(Stream _stream, FileAccess _access)
+        public static ZipFile Open(Stream _stream, FileAccess _access)
         {
             if (!_stream.CanSeek && _access != FileAccess.Read)
                 throw new InvalidOperationException("Stream cannot seek");
 
-            ZipStorer zip = new ZipStorer();
+            ZipFile zip = new ZipFile();
             //zip.FileName = _filename;
             zip.ZipFileStream = _stream;
             zip.Access = _access;
@@ -406,7 +406,7 @@ namespace CoreXT.Compression
         /// <param name="_zfes">List of Entries to remove from storage</param>
         /// <returns>True if success, false if not</returns>
         /// <remarks>This method only works for storage of type FileStream</remarks>
-        public static bool RemoveEntries(ref ZipStorer _zip, List<ZipFileEntry> _zfes)
+        public static bool RemoveEntries(ref ZipFile _zip, List<ZipFileEntry> _zfes)
         {
             if (!(_zip.ZipFileStream is FileStream))
                 throw new InvalidOperationException("RemoveEntries is allowed just over streams of type FileStream");
@@ -421,7 +421,7 @@ namespace CoreXT.Compression
 
             try
             {
-                ZipStorer tempZip = ZipStorer.Create(tempZipName, string.Empty);
+                ZipFile tempZip = ZipFile.Create(tempZipName, string.Empty);
 
                 foreach (ZipFileEntry zfe in fullList)
                 {
@@ -439,7 +439,7 @@ namespace CoreXT.Compression
                 File.Delete(_zip.FileName);
                 File.Move(tempZipName, _zip.FileName);
 
-                _zip = ZipStorer.Open(_zip.FileName, _zip.Access);
+                _zip = ZipFile.Open(_zip.FileName, _zip.Access);
             }
             catch
             {
@@ -609,7 +609,7 @@ namespace CoreXT.Compression
 
                     for (uint i = 0; i < bytesRead; i++)
                     {
-                        _zfe.Crc32 = ZipStorer.CrcTable[(_zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (_zfe.Crc32 >> 8);
+                        _zfe.Crc32 = ZipFile.CrcTable[(_zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (_zfe.Crc32 >> 8);
                     }
                 }
             } while (bytesRead == buffer.Length);
