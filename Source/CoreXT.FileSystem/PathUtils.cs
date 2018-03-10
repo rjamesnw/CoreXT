@@ -12,22 +12,33 @@ namespace CoreXT.FileSystem
         internal const string NOT_NULL_EMPTY_OR_WHITESPACE_MSG = "Cannot be null, empty, or only whitespace.";
 
         /// <summary> The invalid file name characters. </summary>
-        public static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars()
+        public static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
+
+        /// <summary> The invalid file name characters. </summary>
+        public static readonly char[] InvalidPathChars = Path.GetInvalidFileNameChars()
             .Where(c => c != Path.DirectorySeparatorChar && c != Path.AltDirectorySeparatorChar).ToArray();
 
         /// <summary> The invalid glob filter characters (see <seealso cref="Microsoft.Extensions.FileSystemGlobbing.Matcher" />). </summary>
-        public static readonly char[] InvalidFilterChars = InvalidFileNameChars
+        public static readonly char[] InvalidFilterChars = InvalidPathChars
             .Where(c => c != '*' && c != '|' && c != '?').ToArray();
 
         /// <summary> The common forward and backward slash path separators. </summary>
         public static readonly char[] PathSeparators = new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+        /// <summary> Returns true if the given filename has invalid characters. </summary>
+        /// <param name="filename"> A file system filename. </param>
+        /// <returns> True if invalid filename characters were found, false if not. </returns>
+        public static bool HasInvalidFilenameChars(string filename)
+        {
+            return filename.IndexOfAny(InvalidFileNameChars) != -1;
+        }
 
         /// <summary> Returns true if the given path has invalid characters. </summary>
         /// <param name="path"> A file system path. </param>
         /// <returns> True if invalid path characters were found, false if not. </returns>
         public static bool HasInvalidPathChars(string path)
         {
-            return path.IndexOfAny(InvalidFileNameChars) != -1;
+            return path.IndexOfAny(InvalidPathChars) != -1;
         }
 
         /// <summary> Returns true  if 'path' has invalid filter characters. </summary>

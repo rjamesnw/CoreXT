@@ -144,12 +144,7 @@ namespace CoreXT.FileSystem
 
         public EnumerableDirectoryContents(IEnumerable<IFileInfo> entries)
         {
-            if (entries == null)
-            {
-                throw new ArgumentNullException(nameof(entries));
-            }
-
-            _entries = entries;
+            _entries = entries ?? throw new ArgumentNullException(nameof(entries));
         }
 
         public bool Exists

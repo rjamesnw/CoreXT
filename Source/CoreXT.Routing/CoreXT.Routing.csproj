@@ -22,8 +22,8 @@
 Used by some other CoreXT packages to help deal with various routing aspects.</Description>
     <IncludeContentInPack>false</IncludeContentInPack>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.161</FileVersion>
-    <AssemblyVersion>1.0.7.161</AssemblyVersion>
+    <FileVersion>1.0.7.163</FileVersion>
+    <AssemblyVersion>1.0.7.163</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

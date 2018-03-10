@@ -21,8 +21,8 @@
 
 This package will contain some additional file systems, such as a virtual memory file system.</Description>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.171</FileVersion>
-    <AssemblyVersion>1.0.7.171</AssemblyVersion>
+    <FileVersion>1.0.7.175</FileVersion>
+    <AssemblyVersion>1.0.7.175</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 

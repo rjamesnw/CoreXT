@@ -24,8 +24,8 @@
 
 This package holds various basic utilities and extension methods for convenience.  For example, adds a '.Value(key, defaultValue)' method to easily pull out values from dictionaries, or '{string}.ND(defaultValue)' (null to default) for string values, async Task extensions, ObservableDictionary, WeakReferenceList, basic encryption, basic zip file support,, text parser,  'GetFullErrorMessage()' for writing out exceptions for debugging, and much more.</Description>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.163</FileVersion>
-    <AssemblyVersion>1.0.7.163</AssemblyVersion>
+    <FileVersion>1.0.7.165</FileVersion>
+    <AssemblyVersion>1.0.7.165</AssemblyVersion>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>

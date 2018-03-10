@@ -24,8 +24,8 @@
 This package holds some entities model utility methods.
 </Description>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.171</FileVersion>
-    <AssemblyVersion>1.0.7.171</AssemblyVersion>
+    <FileVersion>1.0.7.176</FileVersion>
+    <AssemblyVersion>1.0.7.176</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 

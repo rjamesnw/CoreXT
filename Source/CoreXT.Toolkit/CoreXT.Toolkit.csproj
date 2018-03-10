@@ -34,8 +34,8 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
     <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.213</FileVersion>
-    <AssemblyVersion>1.0.7.213</AssemblyVersion>
+    <FileVersion>1.0.7.219</FileVersion>
+    <AssemblyVersion>1.0.7.219</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
@@ -115,6 +115,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CoreXT.Entities\CoreXT.Entities.csproj" />
+    <ProjectReference Include="..\CoreXT.FileSystem\CoreXT.FileSystem.csproj" />
     <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
     <ProjectReference Include="..\CoreXT.ASPNet\CoreXT.ASPNet.csproj" />
     <ProjectReference Include="..\CoreXT.Email\CoreXT.Email.csproj" />

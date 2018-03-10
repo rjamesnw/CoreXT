@@ -235,7 +235,9 @@ namespace CoreXT.Toolkit.TagComponents
             TagOutput.TagName = null; // (hide the outer tag by default)
         }
 
-        // --------------v------------------------------------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------------------------------------
+
+        bool _renderingTagComponent;
 
         /// <summary>
         ///     Attempts to render any view or explicitly set content first.  If no underlying view is found, or 'Content' or
@@ -255,28 +257,37 @@ namespace CoreXT.Toolkit.TagComponents
         /// <param name="type"> (Optional) The component type to render. This is the current component type by default.  </param>
         /// <returns> An asynchronous result that yields true if it succeeds, false if it fails. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
-        public async Task<IHtmlContent> RenderContent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
+        public async Task<IHtmlContent> RenderComponent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
         {
-            // ... try rendering the view first, if one exists (otherwise null is returned) ...
-            var viewContent = await RenderView(GetType(), required, onBeforeRender: async viewContext =>
-            {
-                var childContent = await TagOutput.GetChildContentAsync();
-                if (Content != null)
-                    Content = RenderContent(Content).Render() + childContent.Render(); // (the content was previously set already; perhaps by a child component, so merge them [rendering should be inner most to outer most, so render the child content first])
-                else
-                    Content = childContent;
-                onBeforeViewRender?.Invoke(viewContext, childContent);
-            });  // (if a view is found, this will also set the content before it renders)
+            if (_renderingTagComponent)
+                throw new InvalidOperationException($"You attempted to render the tag component '{TagContext.TagName}' while it is already being rendered.  Make sure you are calling 'RenderInnerContent()' within views and not 'RenderComponent()'.");
 
-            if (viewContent != null)
-                return viewContent; // (view was found; the view is now responsible to render the inner content, if supported)
-            else if (Content != null || ContentTemplate != null)
+            try
             {
-                // ... no view exists; however, there IS content explicitly set, so render that as the inner HTML ...
-                return RenderInnerContent();
+                _renderingTagComponent = true;
+
+                // ... try rendering the view first, if one exists (otherwise null is returned) ...
+                var viewContent = await RenderView(GetType(), required, onBeforeRender: async viewContext =>
+                {
+                    var childContent = await TagOutput.GetChildContentAsync();
+                    if (Content != null)
+                        Content = RenderContent(Content).Render() + childContent.Render(); // (the content was previously set already; perhaps by a child component, so merge them [rendering should be inner most to outer most, so render the child content first])
+                    else
+                        Content = childContent;
+                    onBeforeViewRender?.Invoke(viewContext, childContent);
+                });  // (if a view is found, this will also set the content before it renders)
+
+                if (viewContent != null)
+                    return viewContent; // (view was found; the view is now responsible to render the inner content, if supported)
+                else if (Content != null || ContentTemplate != null)
+                {
+                    // ... no view exists; however, there IS content explicitly set, so render that as the inner HTML ...
+                    return RenderInnerContent();
+                }
+
+                return null;
             }
-
-            return null;
+            finally { _renderingTagComponent = false; }
         }
 
         /// <summary>
@@ -299,7 +310,7 @@ namespace CoreXT.Toolkit.TagComponents
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.IWebComponent.ProcessContent(OnBeforeViewRender)"/>
         public async Task<bool> ProcessContent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
         {
-            var content = await RenderContent(onBeforeViewRender, required, type);
+            var content = await RenderComponent(onBeforeViewRender, required, type);
             if (content != null)
             {
                 TagOutput.Content.SetHtmlContent(content);
