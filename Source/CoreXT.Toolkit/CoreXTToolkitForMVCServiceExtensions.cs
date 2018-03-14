@@ -56,13 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var currentAssembly = typeof(CoreXTToolkitForMVCServiceExtensions).GetTypeInfo().Assembly;
 
-            services.Configure<RazorViewEngineOptions>(options =>
-            {
-                options.FileProviders.Add(new VirtualFileProvider("CoreXT", hostingEnvironment));
-                options.FileProviders.Add(new CoreXTEmbeddedFileProvider(currentAssembly, hostingEnvironment));
-            });
-
-            services.AddComponents(currentAssembly);
+            // ... get MVC builder, which also, by default, adds the physical file provider ...
 
             IMvcBuilder mvcBuilder;
 
@@ -76,6 +70,16 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             else
                 mvcBuilder = services.AddMvcXT();
+
+            // ... physical file provider should be first now, so add the embedded providers next ...
+
+            services.Configure<RazorViewEngineOptions>(options =>
+            {
+                //options.FileProviders.Add(new VirtualFileProvider("CoreXT", hostingEnvironment));
+                options.FileProviders.Add(new CoreXTEmbeddedFileProvider(currentAssembly, hostingEnvironment));
+            });
+
+            services.AddComponents(currentAssembly);
 
             //services.AddSwaggerGen(c =>
             //{

@@ -12,7 +12,7 @@ using System;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace CoreXT.Toolkit.TagComponents.Bootstrap
+namespace CoreXT.Toolkit.TagComponents
 {
     /// <summary> Renders an input control. Use the 'type' attribute to select the input type. </summary>
     /// <seealso cref="T:CoreXT.Toolkit.TagComponents.WebComponent"/>

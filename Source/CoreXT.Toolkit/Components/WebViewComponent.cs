@@ -620,8 +620,8 @@ namespace CoreXT.Toolkit.Components
         }
 
         // --------------------------------------------------------------------------------------------------------------------
-   
-            /// <summary>
+
+        /// <summary>
         /// Renders the current component and returns the result as an IHtmlContent based value, which can be written to an
         /// output stream via a 'TextWriter' instance.
         /// <para>To render a component to a string value, just call the 'ToString()' method instead.</para>
@@ -684,9 +684,9 @@ namespace CoreXT.Toolkit.Components
         /// This is only here to support the documented '@await Component.InvokeAsync()' semantics of ViewComponent execution.
         /// Please use the '@await {component}' or '@await {component}.Render()' format instead (both do the same thing).
         /// </summary>
-        public virtual async Task<IViewComponentResult> InvokeAsync()
+        public virtual Task<IViewComponentResult> InvokeAsync()
         {
-            return await Task.FromResult<IViewComponentResult>(GetView(this));
+            return Task.FromResult<IViewComponentResult>(GetView(this));
         }
 
         // --------------------------------------------------------------------------------------------------------------------
