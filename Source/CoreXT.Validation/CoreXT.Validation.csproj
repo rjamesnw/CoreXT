@@ -32,9 +32,9 @@ This package will grow eventually with some common data/input validations.</Desc
 
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.0.3" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

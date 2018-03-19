@@ -153,8 +153,8 @@ namespace CoreXT.Toolkit.Web
         {
             List<string> filenames = new List<string>();
 
+            filenames.Add(Path.ChangeExtension(name, "cshtml")); // (put the most likely one first)
             filenames.Add(Path.ChangeExtension(name, "cs.cshtml"));
-            filenames.Add(Path.ChangeExtension(name, "cshtml"));
             filenames.Add(name);
 
             List<string> locationsSearched = new List<string>();

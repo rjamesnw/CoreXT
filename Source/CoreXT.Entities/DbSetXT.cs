@@ -9,7 +9,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -243,7 +242,8 @@ namespace CoreXT.Entities
         /// <typeparam name="T"></typeparam>
         /// <param name="queryable"></param>
         /// <returns></returns>
-        public static T GetService<T>(this IQueryable queryable) where T : class => (queryable.Provider as ICoreXTQueryBridge ?? throw new InvalidOperationException("Provider is not a 'ICoreXTQueryBridge' type. Make sure the \"entity set\" property in your DbContext is of type 'DbSetXT<T>'."))
+        public static T GetService<T>(this IQueryable queryable) where T : class 
+            => (queryable.Provider as ICoreXTQueryBridge ?? throw new InvalidOperationException("Provider is not a 'ICoreXTQueryBridge' type. Make sure the \"entity set\" property in your DbContext is of type 'DbSetXT<T>'."))
             .GetServices().GetService<T>();
     }
 }

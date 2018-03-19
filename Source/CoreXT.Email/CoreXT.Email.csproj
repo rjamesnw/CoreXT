@@ -29,7 +29,7 @@ This package provides support for creating and sending emails.</Description>
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
     <PackageReference Include="MailKit" Version="2.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.3" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">
