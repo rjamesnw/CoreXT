@@ -47,10 +47,40 @@ namespace CoreXT
         /// <param name="propertyName">The property name on the entity.</param>
         /// <returns></returns>
         public static Expression<Func<TEntity, TProperty>> CreateMemberSelector<TEntity, TProperty>(string propertyName)
+            where TEntity : class
         {
             var parameter = Expression.Parameter(typeof(TEntity), "m");
             var body = Expression.PropertyOrField(parameter, propertyName);
             return Expression.Lambda<Func<TEntity, TProperty>>(body, parameter);
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        ///     Dynamically creates a lambda expression in the form "m=>m.MemberName==constantValue" that can be used with LINQ
+        ///     'Where()' filter calls. If the member type and constant value type are different, a conversion expression is
+        ///     inserted as well.
+        /// </summary>
+        /// <typeparam name="TEntity"> Type of the entity. </typeparam>
+        /// <typeparam name="TValue"> Type of the value. </typeparam>
+        /// <param name="entityMemberName">
+        ///     Name of the entity member to test equality for, which is the left side of the equality expression.
+        /// </param>
+        /// <param name="entityMemberType"> Type of the entity member. </param>
+        /// <param name="constantValue"> The constant value on the right side of the equality test. </param>
+        /// <returns> The new lambda equality expression. </returns>
+        public static Expression<Func<TEntity, bool>> CreateWhereEqualLambda<TEntity, TValue>(string entityMemberName, Type entityMemberType, TValue constantValue)
+            where TEntity : class
+        {
+            ParameterExpression pe = Expression.Parameter(typeof(TEntity), "m");
+            var left = Expression.Property(pe, entityMemberType, entityMemberName);
+            var valueType = typeof(TValue);
+            Expression right = Expression.Constant(constantValue, valueType);
+            if (valueType != entityMemberType)
+                right = Expression.Convert(right, entityMemberType);
+            Expression eq = Expression.Equal(left, right);
+            var lam = Expression.Lambda<Func<TEntity, bool>>(eq, pe);
+            return lam;
         }
 
         // ---------------------------------------------------------------------------------------------------------------------
