@@ -5,6 +5,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
 #if DOTNETCORE // (DNXCORE50: https://channel9.msdn.com/Events/dotnetConf/2015/ASPNET-5-Deep-Dive; 0:36)
@@ -97,8 +98,7 @@ namespace CoreXT
         public struct Null
         {
             public readonly Type Type;
-            public Null(Type type)
-            { if (type == null) throw new ArgumentNullException("type"); Type = type; }
+            public Null(Type type) => Type = type ?? throw new ArgumentNullException("type");
         }
 
         /// <summary>
@@ -152,6 +152,32 @@ namespace CoreXT
                     if (items[i] is Null) items[i] = null;
             return items;
         }
+
+        /// <summary>
+        ///     Get a public instance property info object from 'type' by name. If the name is null or empty then null is
+        ///     returned.
+        /// </summary>
+        /// <param name="type"> The type to act on. </param>
+        /// <param name="name"> name of the property. </param>
+        /// <returns> property info object. </returns>
+        ///
+        /// ### <typeparam name="T"> Generic type parameter. </typeparam>
+        public static PropertyInfo GetPublicInstanceProperty(this Type type, string name)
+            => type?.GetProperties(BindingFlags.Public | BindingFlags.Instance)?.Where(p => string.Compare(p.Name, name, true) == 0).FirstOrDefault();
+
+        /// <summary>
+        ///     Get a public instance property info object from 'type' by name. If the name is null or empty then null is
+        ///     returned.
+        /// </summary>
+        /// <param name="type"> The type to act on. </param>
+        /// <param name="name"> name of the property. </param>
+        /// <param name="bindingAttr">
+        ///     A bitmask comprised of one or more System.Reflection.BindingFlags that specify how the search is conducted; or Zero,
+        ///     to return null.
+        /// </param>
+        /// <returns> property info object. </returns>
+        public static PropertyInfo GetPublicInstanceProperty(this Type type, string name, BindingFlags bindingAttr)
+            => type?.GetProperties(BindingFlags.Public | BindingFlags.Instance | bindingAttr)?.Where(p => string.Compare(p.Name, name, true) == 0).FirstOrDefault();
     }
 
     // =========================================================================================================================

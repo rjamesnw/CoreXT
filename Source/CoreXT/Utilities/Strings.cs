@@ -235,11 +235,9 @@ namespace CoreXT
 
         // ---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Fixes 2 or more letter words, making them all lowercase except for the first letter.
-        /// </summary>
-        /// <param name="text">The string to change.</param>
-        /// <returns>The result.</returns>
+        /// <summary> Fixes words with 2 or more letters, making them all lowercase except for the first letter. </summary>
+        /// <param name="text"> The string to change. </param>
+        /// <returns> The result. </returns>
         public static string Propertize(string text)
         {
             string propertizedText = "";
