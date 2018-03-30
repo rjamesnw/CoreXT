@@ -1,23 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Reflection;
-using System.ComponentModel;
-using System.Net.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Data.Common;
+﻿using CoreXT;
+using CoreXT.ASPNet;
+using CoreXT.Services.DI;
+using CoreXT.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using CoreXT.ASPNet;
-using CoreXT.Validation;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using CoreXT.Services.DI;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Common;
+using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace CoreXT.Entities
 {
@@ -923,6 +924,52 @@ namespace CoreXT.Entities
         ITable<TEntity> BuildTable(bool rebuild = false);
         ITableRow<TEntity> this[Int64 rowID] { get; }
         ITableRow<TEntity> this[ITableRow row] { get; }
+
+        /// <summary> Creates a new table without any associated database context. </summary>
+        /// <param name="tableTitle"> A display title for this table. </param>
+        /// <param name="tableId"> (Optional) A page-wide unique identifier for this table. </param>
+        /// <param name="keyNames">
+        ///     (Optional) The key property names shared by all the entities for this table.  Composite keys can also specify a
+        ///     DBContext (see other overloaded constructor), or entity metadata to specify a Key attribute for each key entity
+        ///     property.  By default, any property named "id" (case insensitive) is automatically assumed.
+        /// </param>
+        /// <param name="context">
+        ///     (Optional) A context to use as the default for this table.  It also helps to retrieve entity details (like primary
+        ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
+        ///     over the context if supplied.
+        /// </param>
+        ITable<TEntity> Configure(string tableTitle, string tableId = null, string[] keyNames = null, DbContext context = null);
+
+        /// <summary>
+        ///     Creates a new table with an associated context. An associated context helps to pull more details on the underlying
+        ///     table without needing to lookup metadata info on entity properties. The EDMX information is automatically applied to
+        ///     all table columns.
+        /// </summary>
+        /// <param name="tableTitle"> A display title for this table. </param>
+        /// <param name="context">
+        ///     A context to use as the default for this table.  It also helps to retrieve entity details (like primary keys)
+        ///     without the need to add metadata to entity properties. Note: Entity property attributes always take precedence over
+        ///     the context if supplied.
+        /// </param>
+        /// <param name="tableID">
+        ///     (Optional) A page-wide unique identifier for this table. If this is null, a GUID will be used;
+        ///     however when inspecting the HTML, adding a more descriptive ID can make debugging easier.
+        /// </param>
+        ITable<TEntity> Configure(string tableTitle, DbContext context, string tableID = null);
+
+        /// <summary>
+        ///     Loads the table contents from the posted table with the specified ID. Use this in cases there multiple tables are on
+        ///     a single page.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
+        /// <param name="id"> A page-wide unique identifier for this table. </param>
+        /// <param name="request"> The request. </param>
+        /// <param name="context">
+        ///     (Optional) A context to use as the default for this table.  It also helps to retrieve entity details (like primary
+        ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
+        ///     over the context if supplied.
+        /// </param>
+        ITable<TEntity> Configure(string id, HttpRequest request, DbContext context = null);
     }
 
     /// <summary>
@@ -958,14 +1005,19 @@ namespace CoreXT.Entities
         internal string[] _KeyNames;
 
         /// <summary>
-        /// The underlying context for this table, if specified via one of the constructor overloads.
-        /// Setting this property pulls the EDMX (Entity Data Model XML) meta-data from the given context, if available.
+        ///     The underlying context for this table, if specified via one of the constructor overloads, or before any rows get
+        ///     added. Setting this property pulls the <see cref="DbContext"/> model meta-data from the given context to help
+        ///     configure table and column properties.
         /// </summary>
+        /// <exception cref="InvalidOperationException"> Thrown when the requested operation is invalid. </exception>
+        /// <value> The context. </value>
         public DbContext Context
         {
             get { return _DBContext; }
             private set
             {
+                if (Context != null && RowCount > 0)
+                    throw new InvalidOperationException("You cannot replace the existing database context while rows exist in the table.");
                 _DBContext = value;
             }
         }
@@ -1203,74 +1255,110 @@ namespace CoreXT.Entities
         IObjectModelValidator _ModelValidator;
         ActionContext _DummyActionContext = new ActionContext(); // (the model validator requires it, but doesn't seem to use it)
 
-        public Table(ICoreXTServiceProvider sp)
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Creates an empty table instance with the specified DI service provider reference. </summary>
+        /// <param name="context">
+        ///     The underlying context for this table, if specified via one of the constructor overloads, or before any rows get
+        ///     added. Setting this property pulls the <see cref="DbContext"/> model meta-data from the given context to help
+        ///     configure table and column properties.
+        /// </param>
+        /// <param name="service"> (Optional) A CoreXT DI service provider. </param>
+        public Table(DbContext context, ICoreXTServiceProvider service = null) : this(service)
         {
-            ServiceProvider = sp;
+            Context = context;
         }
 
-        /// <summary>
-        /// Creates a new table without an associated context.
-        /// </summary>
-        /// <param name="tableTitle">A display title for this table.</param>
-        /// <param name="tableID">An application-wide unique identifier for this table.</param>
-        /// <param name="keyNames">The key property names shared by all the entities for this table.  Composite keys can also 
-        /// specify a DBContext (see other overloaded constructor), or entity metadata to specify a Key attribute for each key
-        /// entity property.  By default, any property named "id" (case insensitive) is automatically assumed.</param>
-        public Table(string tableTitle, string tableID = null, string[] keyNames = null)
+        /// <summary> Creates an empty table instance with the specified DI service provider reference. </summary>
+        /// <param name="service"> A CoreXT DI service provider. </param>
+        public Table(ICoreXTServiceProvider service)
+        {
+            ServiceProvider = service;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Creates a new table without any associated database context. </summary>
+        /// <param name="tableTitle"> A display title for this table. </param>
+        /// <param name="tableId"> (Optional) A page-wide unique identifier for this table. </param>
+        /// <param name="keyNames">
+        ///     (Optional) The key property names shared by all the entities for this table.  Composite keys can also specify a
+        ///     DBContext (see other overloaded constructor), or entity metadata to specify a Key attribute for each key entity
+        ///     property.  By default, any property named "id" (case insensitive) is automatically assumed.
+        /// </param>
+        /// <param name="context">
+        ///     (Optional) A context to use as the default for this table.  It also helps to retrieve entity details (like primary
+        ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
+        ///     over the context if supplied.
+        /// </param>
+        public ITable<TEntity> Configure(string tableTitle, string tableId = null, string[] keyNames = null, DbContext context = null)
         {
             TableTitle = tableTitle != null ? tableTitle.Trim() : null;
-            if (tableID != null)
-                ID = tableID;
+            if (tableId != null)
+                ID = tableId;
             KeyNames = keyNames ?? (from p in UpdateEntityPropertyCache(typeof(TEntity)) where string.Equals(p.Key, "id", StringComparison.CurrentCultureIgnoreCase) select p.Key);
+            return this;
         }
 
         /// <summary>
-        /// Creates a new table with an associated context.
-        /// An associated context helps to pull more details on the underlying table without needing to lookup metadata info on
-        /// entity properties. The EDMX information is automatically applied to all table columns.
+        ///     Creates a new table with an associated context. An associated context helps to pull more details on the underlying
+        ///     table without needing to lookup metadata info on entity properties. The EDMX information is automatically applied to
+        ///     all table columns.
         /// </summary>
-        /// <param name="tableTitle">A display title for this table.</param>
-        /// <param name="context">A context to use as the default for this table.  It also helps to retrieve entity details
-        /// (like primary keys) without the need to add metadata to entity properties. Note: Entity property attributes
-        /// always take precedence over the context if supplied.</param>
-        /// <param name="tableID">An application-wide unique identifier for this table. If this is null, a GUID will be used;
-        /// however when inspecting the HTML, adding a more descriptive ID can make debugging easier.</param>
-        public Table(string tableTitle, DbContext context, string tableID = null)
+        /// <param name="tableTitle"> A display title for this table. </param>
+        /// <param name="context">
+        ///     A context to use as the default for this table.  It also helps to retrieve entity details (like primary keys)
+        ///     without the need to add metadata to entity properties. Note: Entity property attributes always take precedence over
+        ///     the context if supplied.
+        /// </param>
+        /// <param name="tableID">
+        ///     (Optional) A page-wide unique identifier for this table. If this is null, a GUID will be used;
+        ///     however when inspecting the HTML, adding a more descriptive ID can make debugging easier.
+        /// </param>
+        public ITable<TEntity> Configure(string tableTitle, DbContext context, string tableID = null)
         {
             ID = tableID ?? Guid.NewGuid().ToString("N");
             TableTitle = tableTitle;
-            // ... get some details from the context ...
-            Context = context; // (setting this pulls the EDMX data)
+            Context = context; // (setting this make the model data available)
+            return this;
         }
 
         /// <summary>
-        /// Loads the table contents from the posted table with the specified ID.
+        ///     Loads the table contents from the posted table with the specified ID. Use this in cases there multiple tables are on
+        ///     a single page.
         /// </summary>
-        public Table(string id, HttpRequest request)
-            : this(request.Form["TableTitle"], request.Form["KeyName"])
+        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
+        /// <param name="id"> A page-wide unique identifier for this table. </param>
+        /// <param name="request"> The request. </param>
+        /// <param name="context">
+        ///     (Optional) A context to use as the default for this table.  It also helps to retrieve entity details (like primary
+        ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
+        ///     over the context if supplied.
+        /// </param>
+        public ITable<TEntity> Configure(string id, HttpRequest request, DbContext context = null)
         {
-            if (string.IsNullOrEmpty(id))
-                throw new ArgumentNullException("ID is null or empty.");
-
             _ID = id;
-
-            Load(request);
+            Context = context; // (setting this make the model data available, if given)
+            Load(request); // (will load from "_id" by default if not specified as a parameter)
+            return this;
         }
 
-        /// <summary>
-        /// Loads data from an HTTP request form data to this table.
-        /// </summary>
-        /// <param name="request">An HTTPRequestBase object that contains the form data.</param>
-        /// <param name="tableID">The ID of a specific table to apply.  If null, the current table ID is used.  If the current
-        /// table doesn't have an ID, then the posted table in the form is assumed if there is only one. To force pulling
-        /// the table data of a single posted table in the request, pass in an empty string ("").</param>
-        /// <returns>'true' if data was loaded into this table.</returns>
-        public bool Load(HttpRequest request, string tableID = null)
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Loads data from an HTTP request form data to this table. </summary>
+        /// <param name="request"> An HTTPRequestBase object that contains the form data. </param>
+        /// <param name="tableId">
+        ///     (Optional) The ID of a specific table to apply.  If null, the current table ID is used.  If the current table
+        ///     doesn't have an ID, then the posted table in the form is assumed if there is only one. To force pulling the table
+        ///     data of a single posted table in the request, pass in an empty string ("").
+        /// </param>
+        /// <returns> 'true' if data was loaded into this table. </returns>
+        public bool Load(HttpRequest request, string tableId = null)
         {
             Dictionary<string, string[]> requestProperties = new Dictionary<string, string[]>();
             foreach (string key in request.Form.Keys)
                 requestProperties[key] = request.Form.GetValues(key);
-            return _Load(requestProperties, tableID);
+            return _Load(requestProperties, tableId);
         }
         public bool Load(HttpRequestMessage request, string tableID = null)
         {
@@ -1282,28 +1370,27 @@ namespace CoreXT.Entities
             ClearValidations();
 
             if (tableID == null)
-                tableID = _ID;
+                tableID = _ID; // (use local table ID if one is not specified)
 
             var props = requestProperties;
 
             if (string.IsNullOrWhiteSpace(tableID))
             {
-                // ... need a table ID to pull the form data ...
+                // ... no table ID found - need a table ID to pull the form data; try to pull from the request data ...
                 // (Note: All request entity data is in the format Table.{ID}.{RowIndex}.Entity.{EntityPropertyName})
 
                 string[] tableIDs = props.Value("Table.ID");
 
                 if (tableIDs == null || tableIDs.Length == 0)
-                    return false;
+                    return false; // (there is no table data to load in this request)
 
-                if (tableIDs.Length == 1) // (only if there is one ID)
-                    tableID = _ID = tableIDs[0];
+                if (tableIDs.Length == 1)
+                    tableID = _ID = tableIDs[0]; // (perfect, only one table, so assume that one)
+                else
+                    throw new InvalidOperationException("ID is null or empty, and no ID can be assumed since there " + Strings.S(tableIDs.Length, "table", "is", "are") + " posted.");
 
-                if (string.IsNullOrEmpty(tableID))
-                    if (tableIDs == null || tableIDs.Length == 0)
-                        throw new InvalidOperationException("ID is null or empty, and no table ID can be found in the posted data.");
-                    else
-                        throw new InvalidOperationException("ID is null or empty, and no ID can be assumed, since there are " + tableIDs.Length + " tables posted.");
+                if (string.IsNullOrWhiteSpace(tableID))
+                    throw new InvalidOperationException("ID is null or empty, and no table ID can be found in the posted data.");
             }
 
             // ... clear all entities and rows (will be rebuilt later) and reset the counter ...

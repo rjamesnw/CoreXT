@@ -39,6 +39,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.TryAddTransient<ICoreXTServiceProvider, CoreXTServiceProvider>();
 
+            services.TryAddTransient(typeof(ITable), typeof(Table<object>));
+            services.TryAddTransient(typeof(ITable<>), typeof(Table<>));
+            services.TryAddTransient(typeof(ITableRow), typeof(TableRow<object>));
+            services.TryAddTransient(typeof(ITableRow<>), typeof(TableRow<>));
+            services.TryAddTransient(typeof(ITableColumn), typeof(TableColumn<object>));
+            services.TryAddTransient(typeof(ITableColumn<>), typeof(TableColumn<>));
+
             services.TryAddSingleton<IViewRenderer, ViewRenderer>(); // (IRazorViewEngine and ITempDataProvider are singletons also)
 
             services.TryAddTransient(typeof(ViewHelper<>), typeof(ViewHelper<>));

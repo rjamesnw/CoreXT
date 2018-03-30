@@ -112,11 +112,19 @@ namespace CoreXT
 
         // ---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary> Formats an integer. This is just a more descriptive way of doing 'n.ToString(format)'. See <see cref="int.ToString(string)"/>.</summary>
+        /// <param name="n"> An int to format. </param>
+        /// <param name="format"> Describes the format to use. </param>
+        /// <returns> The formatted number. </returns>
         public static string FormatNumber(int n, string format)
         {
             return n.ToString(format);
         }
 
+        /// <summary> Formats a number. This is just a more descriptive way of doing 'n.ToString(format)'. See <see cref="double.ToString(string)"/>.</summary>
+        /// <param name="n"> A double to format. </param>
+        /// <param name="format"> Describes the format to use. </param>
+        /// <returns> The formatted number. </returns>
         public static string FormatNumber(double n, string format)
         {
             return n.ToString(format);
@@ -124,33 +132,42 @@ namespace CoreXT
 
         // ---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Returns the value plus the singular or plural of a word based on a numerical value.
-        /// </summary>
-        /// <param name="value">Number value.</param>
-        /// <param name="word">Base word, singular.</param>
-        /// <param name="suffix_if_plural">Suffix to use if "value" is not 1.</param>
-        /// <param name="numberFormatting">The number format, if any (optional).</param>
-        public static string S(int value, string word, string suffix_if_plural, string numberFormatting)
+        /// <summary> Returns the value plus the singular or plural of a word based on a numerical value. </summary>
+        /// <param name="value"> Number value. </param>
+        /// <param name="word"> Base word, singular. </param>
+        /// <param name="prewordIfSingular"> (Optional) The pre-word if singular, such as "is" in "there are 2" vs "there is 1". </param>
+        /// <param name="suffixIfPlural"> (Optional) Suffix to use if "value" is not 1. </param>
+        /// <param name="prewordIfPlural"> (Optional) The pre-word if plural, such as "are" in "there are 2" vs "there is 1".  </param>
+        /// <param name="numberFormatting">
+        ///     The number format, if any (optional). See <see cref="FormatNumber(int, string)"/>.
+        /// </param>
+        /// <returns> A string. </returns>
+        public static string S(int value, string word, string prewordIfSingular = null, string suffixIfPlural = "s", string prewordIfPlural = null, string numberFormatting = null)
         {
-            if (value != 1) return (numberFormatting != null ? FormatNumber(value, numberFormatting) : value.ToString()) + " " + word + suffix_if_plural;
-            return value + " " + word;
+            var formattedValue = numberFormatting != null ? FormatNumber(value, numberFormatting) : value.ToString();
+            if (value != 1) { word += suffixIfPlural; if (!string.IsNullOrWhiteSpace(prewordIfPlural)) word = prewordIfSingular + " " + word; }
+            else if (!string.IsNullOrWhiteSpace(prewordIfSingular)) word = prewordIfSingular + " " + word;
+            return formattedValue + " " + word;
         }
-        public static string S(int value, string word, string suffix_if_plural) { return S(value, word, suffix_if_plural, null); }
 
-        /// <summary>
-        /// Returns the value plus the singular or plural of a word based on a numerical value.
-        /// </summary>
-        /// <param name="value">Number value.</param>
-        /// <param name="word">Base word, singular.</param>
-        /// <param name="suffix_if_plural">Suffix to use if "value" is not 1.</param>
-        /// <param name="numberFormatting">The number format, if any (optional).</param>
-        public static string S(double value, string word, string suffix_if_plural, string numberFormatting)
+        /// <summary> Returns the value plus the singular or plural of a word based on a numerical value. </summary>
+        /// <param name="value"> Number value. </param>
+        /// <param name="word"> Base word, singular. </param>
+        /// <param name="prewordIfSingular"> (Optional) The pre-word if singular, such as "is" in "there are 2" vs "there is 1". </param>
+        /// <param name="suffixIfPlural"> (Optional) Suffix to use if "value" is not 1. </param>
+        /// <param name="prewordIfPlural"> (Optional) The pre-word if plural, such as "are" in "there are 2" vs "there is 1".  </param>
+        /// <param name="numberFormatting">
+        ///     The number format, if any (optional). See <see cref="FormatNumber(double, string)"/>.
+        /// </param>
+        /// <returns> A string. </returns>
+        public static string S(double value, string word, string prewordIfSingular = null, string suffixIfPlural = "s", string prewordIfPlural = null, string numberFormatting = null)
         {
-            if (value != 1) return (numberFormatting != null ? FormatNumber(value, numberFormatting) : value.ToString()) + " " + word + suffix_if_plural;
-            return value + " " + word;
+            var formattedValue = numberFormatting != null ? FormatNumber(value, numberFormatting) : value.ToString();
+            if (value != 1) { word += suffixIfPlural; if (!string.IsNullOrWhiteSpace(prewordIfPlural)) word = prewordIfSingular + " " + word; }
+            else if (!string.IsNullOrWhiteSpace(prewordIfSingular)) word = prewordIfSingular + " " + word;
+            return formattedValue + " " + word;
         }
-        public static string S(double value, string word, string suffix_if_plural) { return S(value, word, suffix_if_plural, null); }
+
         // ---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>

@@ -664,13 +664,13 @@ namespace CoreXT
         public static string GetShortByteSizeDescription(Int64 byteSize)
         {
             if (byteSize < 1024)
-                return Strings.S(byteSize, "byte", "s", "");
+                return Strings.S(byteSize, "byte", "", "s");
             else if (byteSize < 1024 * 1024)
-                return Strings.S(byteSize / 1024, "Kb", "", "0.##");
+                return Strings.S(byteSize / 1024, "Kb", "0.##", "");
             else if (byteSize < 1024 * 1024 * 1024)
-                return Strings.S(byteSize / (1024 * 1024), "Mb", "", "0.##");
+                return Strings.S(byteSize / (1024 * 1024), "Mb", "0.##", "");
             else
-                return Strings.S(byteSize / (1024 * 1024 * 1024), "Gb", "", "0.##");
+                return Strings.S(byteSize / (1024 * 1024 * 1024), "Gb", "0.##", "");
         }
 
         // ---------------------------------------------------------------------------------------------------------------------
@@ -708,15 +708,16 @@ namespace CoreXT
         // ---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Adds an array of items to the given list.
+        /// Adds an array of items to the given list and returns the given list.
         /// </summary>
         /// <typeparam name="T">Item type.</typeparam>
         /// <param name="listItems">The list to add the items to.</param>
         /// <param name="items">The items to add.</param>
-        public static void AddArray<T>(this IList<T> listItems, T[] items)
+        public static IList<T> AddArray<T>(this IList<T> listItems, T[] items)
         {
             foreach (T _item in items)
                 listItems.Add(_item);
+            return listItems;
         }
 
         // ---------------------------------------------------------------------------------------------------------------------
