@@ -4,14 +4,17 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Routing.Logging;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace CoreXT.Routing
 {
     /// <summary>
-    /// Acts like a "main" function, which is, in this case, the main entry point for ALL routing as a "rule of thumb".
-    /// Typically this should be the ONLY router added to the ASP.Net Core system, which will act as a dispatcher
-    /// to either intercept a matching request, or pass it on to the encapsulated 'RouterMiddleware' that comes as the
-    /// standard MVC routing object.
+    ///     Acts like a "main" function, which is, in this case, the main entry point for ALL routing as a "rule of thumb".
+    ///     Typically this should be the ONLY router added to the ASP.Net Core system, which will act as a dispatcher to either
+    ///     intercept a matching request, or pass it on to the encapsulated 'RouterMiddleware' that comes as the standard MVC
+    ///     routing object. The main middleware also supports 'HttpException' which is not available in ASP.Net Core. Using
+    ///     'HttpException' allows creating utility methods shared by multiple APIs without having to deal with return values
+    ///     repetitively (such as shared verification methods at the top of controller actions).
     /// </summary>
     public class MainRouterMiddleware
     {
@@ -32,7 +35,7 @@ namespace CoreXT.Routing
         public MainRouterMiddleware(RequestDelegate next, ILoggerFactory loggerFactory, IRouter router)
         {
             _Next = next;
-             _Router = router;
+            _Router = router;
             _Logger = loggerFactory.CreateLogger<MainRouterMiddleware>();
             _RouterMiddleware = new RouterMiddleware(next, loggerFactory, router);
         }
@@ -44,7 +47,16 @@ namespace CoreXT.Routing
         /// <returns>A task to handle this request.</returns>
         public async Task Invoke(HttpContext httpContext)
         {
-            await _RouterMiddleware.Invoke(httpContext);
+            try
+            {
+                await _RouterMiddleware.Invoke(httpContext);
+            }
+            catch (HttpException httpException)
+            {
+                httpContext.Response.StatusCode = httpException.StatusCode;
+                var responseFeature = httpContext.Features.Get<IHttpResponseFeature>();
+                responseFeature.ReasonPhrase = httpException.Message;
+            }
 
             //// ... build a context for this request ...
 

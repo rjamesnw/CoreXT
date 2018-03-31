@@ -39,9 +39,9 @@ namespace CoreXT.MVC
 
         public ICoreXTServiceProvider ServiceProvider { get; private set; }
 
-        public CoreXTController(ICoreXTServiceProvider sp)
+        public CoreXTController(ICoreXTServiceProvider services)
         {
-            ServiceProvider = sp;
+            ServiceProvider = services;
         }
 
         /// <summary>

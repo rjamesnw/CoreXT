@@ -1116,7 +1116,8 @@ namespace CoreXT.Entities
         /// <summary>
         /// The title of the table to edit.
         /// </summary>
-        public string TableTitle { get; set; }
+        public string TableTitle { get => _TableTitle ?? typeof(TEntity).Name; set => _TableTitle = value; }
+        string _TableTitle;
 
         /// <summary>
         /// The available rows to edit after calling 'BuildRows()'.
@@ -1291,9 +1292,9 @@ namespace CoreXT.Entities
         ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
         ///     over the context if supplied.
         /// </param>
-        public ITable<TEntity> Configure(string tableTitle, string tableId = null, string[] keyNames = null, DbContext context = null)
+        public virtual ITable<TEntity> Configure(string tableTitle, string tableId = null, string[] keyNames = null, DbContext context = null)
         {
-            TableTitle = tableTitle != null ? tableTitle.Trim() : null;
+            TableTitle = tableTitle?.Trim();
             if (tableId != null)
                 ID = tableId;
             KeyNames = keyNames ?? (from p in UpdateEntityPropertyCache(typeof(TEntity)) where string.Equals(p.Key, "id", StringComparison.CurrentCultureIgnoreCase) select p.Key);
@@ -1315,7 +1316,7 @@ namespace CoreXT.Entities
         ///     (Optional) A page-wide unique identifier for this table. If this is null, a GUID will be used;
         ///     however when inspecting the HTML, adding a more descriptive ID can make debugging easier.
         /// </param>
-        public ITable<TEntity> Configure(string tableTitle, DbContext context, string tableID = null)
+        public virtual ITable<TEntity> Configure(string tableTitle, DbContext context, string tableID = null)
         {
             ID = tableID ?? Guid.NewGuid().ToString("N");
             TableTitle = tableTitle;
@@ -1335,7 +1336,7 @@ namespace CoreXT.Entities
         ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
         ///     over the context if supplied.
         /// </param>
-        public ITable<TEntity> Configure(string id, HttpRequest request, DbContext context = null)
+        public virtual ITable<TEntity> Configure(string id, HttpRequest request, DbContext context = null)
         {
             _ID = id;
             Context = context; // (setting this make the model data available, if given)
