@@ -28,7 +28,7 @@ namespace CoreXT.Entities
     /// </summary>
     public interface IInternalTableRow
     {
-        ITable<object> Table { get; set; }
+        IVariantTable<object> Table { get; set; }
         Int64 ID { get; set; }
         bool Deleted { get; set; }
         bool New { get; set; }
@@ -38,25 +38,27 @@ namespace CoreXT.Entities
     public interface ITableRow
     {
         TableRow<T> AsTableRow<T>() where T : class, new();
-        ITable<object> Table { get; }
+        IVariantTable<object> Table { get; }
         Int64 ID { get; }
         Type EntityType { get; }
         bool HasValidEntityKey { get; }
         bool Deleted { get; }
         bool New { get; }
+        IEnumerable<string> Changed { get; }
+        bool IsAttached { get; }
         Dictionary<string, Exception> LoadErrors { get; }
         TableRowValidationResult EntityValidationResult { get; }
         ValidationResults ValidationResult { get; }
         string ErrorMessage { get; }
         bool Load(IDictionary<string, string[]> requestProperties, Int64 rowIndex);
-        object GetValue(ITableColumn<object> col);
+        object GetValue(IVariantTableColumn<object> col);
         object GetValue(string propertyName);
-        string GetDisplayText(ITableColumn<object> col);
+        string GetDisplayText(IVariantTableColumn<object> col);
         string GetDisplayText(string propertyName);
-        T GetValue<T>(ITableColumn<object> col);
+        T GetValue<T>(IVariantTableColumn<object> col);
         T GetValue<T>(string propertyName);
         Exception SetValue(string propertyName, object value, bool compareWithExistingValue = true);
-        Exception SetValue(ITableColumn<object> col, object value, bool compareWithExistingValue = true);
+        Exception SetValue(IVariantTableColumn<object> col, object value, bool compareWithExistingValue = true);
         ValidationResults ApplyChanges(DbContext context);
         ValidationResults ApplyChanges<TEntities>()
            where TEntities : DbContext, new();
@@ -64,12 +66,14 @@ namespace CoreXT.Entities
         ValidationResults Commit<TEntities>(bool save = true)
            where TEntities : DbContext, new();
         void ClearValidations();
+        Exception[] SetValues<T>(IDictionary<string, T> properties);
+        ValidationResults Validate(ActionContext actionContext);
     }
 
-    public interface ITableRow<out TEntity> : ITableRow
+    public interface IVariantTableRow<out TEntity> : ITableRow
         where TEntity : class, new()
     {
-        new ITable<TEntity> Table { get; }
+        new IVariantTable<TEntity> Table { get; }
         TEntity Entity { get; }
     }
 
@@ -105,13 +109,13 @@ namespace CoreXT.Entities
         }
     }
 
-    public class TableRow<TEntity> : ITableRow<TEntity>, IInternalTableRow where TEntity : class, new()
+    public class TableRow<TEntity> : ITableRow<TEntity>, IVariantTableRow<TEntity>, IInternalTableRow where TEntity : class, new()
     {
         TableRow<T> ITableRow.AsTableRow<T>() { return (TableRow<T>)(ITableRow<TEntity>)this; }
 
         public ITable<TEntity> Table { get; set; }
-        ITable<object> ITableRow.Table { get { return Table; } }
-        ITable<object> IInternalTableRow.Table { get { return Table; } set { Table = (ITable<TEntity>)value; } }
+        IVariantTable<object> ITableRow.Table { get { return (IVariantTable<object>)Table; } }
+        IVariantTable<object> IInternalTableRow.Table { get { return (IVariantTable<object>)Table; } set { Table = (ITable<TEntity>)value; } }
 
         public Int64 ID { get; set; }
 
@@ -226,7 +230,7 @@ namespace CoreXT.Entities
 
             return new InvalidOperationException("Entity contains no property named '" + propertyName + "'.");
         }
-        public Exception SetValue(ITableColumn<object> col, object value, bool compareWithExistingValue = true)
+        public Exception SetValue(IVariantTableColumn<object> col, object value, bool compareWithExistingValue = true)
         {
             return SetValue(col?.PropertyName, value, compareWithExistingValue);
         }
@@ -374,14 +378,14 @@ namespace CoreXT.Entities
             var col = Table.GetColumn(propertyName);
             if (col == null)
                 throw new InvalidOperationException("There is no column named '" + propertyName + "' for table '" + Table.TableTitle + "'.");
-            return GetValue(col);
+            return GetValue((IVariantTableColumn<object>)col);
         }
-        public object GetValue(ITableColumn<object> col)
+        public object GetValue(IVariantTableColumn<object> col)
         {
             return col.GetValue(this);
         }
 
-        public T GetValue<T>(ITableColumn<object> col)
+        public T GetValue<T>(IVariantTableColumn<object> col)
         {
             return col.GetValue<T>(this);
         }
@@ -396,9 +400,9 @@ namespace CoreXT.Entities
             var col = Table.GetColumn(propertyName);
             if (col == null)
                 throw new InvalidOperationException("There is no column named '" + propertyName + "' for table '" + Table.TableTitle + "'.");
-            return GetDisplayText(col);
+            return GetDisplayText((IVariantTableColumn<object>)col);
         }
-        public string GetDisplayText(ITableColumn<object> col)
+        public string GetDisplayText(IVariantTableColumn<object> col)
         {
             var value = GetValue(col);
             string displayText = "";
@@ -649,5 +653,13 @@ namespace CoreXT.Entities
         {
             EntityValidationResult = null;
         }
+
+        // -----------------------------------------------------------------------------------------------------------------------------------
+        // Variant Support
+
+        IVariantTable<TEntity> IVariantTableRow<TEntity>.Table => (IVariantTable<TEntity>)Table;
+        TEntity IVariantTableRow<TEntity>.Entity => Entity;
+
+        // -----------------------------------------------------------------------------------------------------------------------------------
     }
 }

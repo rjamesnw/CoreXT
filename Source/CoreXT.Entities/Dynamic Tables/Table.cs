@@ -58,32 +58,32 @@ namespace CoreXT.Entities
         void ClearValidations();
     }
 
-    public interface ITable<out TEntity> : ITable
+    public interface IVariantTable<out TEntity> : ITable
         where TEntity : class, new()
     {
         IEnumerable<TEntity> Entities { get; }
 
-        ITableRow<TEntity> AttachRow(IInternalTableRow row);
-        ITableRow<TEntity> DetachRow(IInternalTableRow row);
+        IVariantTableRow<TEntity> AttachRow(IInternalTableRow row);
+        IVariantTableRow<TEntity> DetachRow(IInternalTableRow row);
 
-        ITableColumn<TEntity> AttachColumn(IInternalTableColumn column);
-        ITableColumn<TEntity> AddColumn(string name, string title = null, int order = 0);
+        IVariantTableColumn<TEntity> AttachColumn(IInternalTableColumn column);
+        IVariantTableColumn<TEntity> AddColumn(string name, string title = null, int order = 0);
 
-        ITableRow<TEntity>[] TableRows { get; }
-        ITableColumn<TEntity>[] TableColumns { get; }
-        ITableColumn<TEntity>[] OrderedColumns { get; }
-        ITableColumn<TEntity>[] DisplayableColumns { get; }
-        ITableColumn<TEntity>[] KeyColumns { get; }
-        IEnumerable<ITableRow<TEntity>> DisplayableRows { get; }
-        ITable<TEntity> SetColumnOrder(params string[] entityPropertyNames);
-        ITable<TEntity> SetExcludedColumns(params string[] entityPropertyNames);
-        ITable<TEntity> SetIncludedColumns(params string[] entityPropertyNames);
-        ITableColumn<TEntity> GetColumn(string clrName);
-        ITableColumn<TEntity> GetColumn(int columnIndex);
-        ITableColumn<TEntity> GetColumnByDBName(string dbName);
-        ITable<TEntity> BuildColumns(bool rebuild = false);
-        ITable<TEntity> BuildRows(bool rebuild = false);
-        ITable<TEntity> BuildTable(bool rebuild = false);
+        IVariantTableRow<TEntity>[] TableRows { get; }
+        IVariantTableColumn<TEntity>[] TableColumns { get; }
+        IVariantTableColumn<TEntity>[] OrderedColumns { get; }
+        IVariantTableColumn<TEntity>[] DisplayableColumns { get; }
+        IVariantTableColumn<TEntity>[] KeyColumns { get; }
+        IEnumerable<IVariantTableRow<TEntity>> DisplayableRows { get; }
+        IVariantTable<TEntity> SetColumnOrder(params string[] entityPropertyNames);
+        IVariantTable<TEntity> SetExcludedColumns(params string[] entityPropertyNames);
+        IVariantTable<TEntity> SetIncludedColumns(params string[] entityPropertyNames);
+        IVariantTableColumn<TEntity> GetColumn(string clrName);
+        IVariantTableColumn<TEntity> GetColumn(int columnIndex);
+        IVariantTableColumn<TEntity> GetColumnByDBName(string dbName);
+        IVariantTable<TEntity> BuildColumns(bool rebuild = false);
+        IVariantTable<TEntity> BuildRows(bool rebuild = false);
+        IVariantTable<TEntity> BuildTable(bool rebuild = false);
 
         /// <summary> Gets or sets the query to use for populating this table. Setting this causes the next read to '<see cref="Entities"/>' to re-execute the query.</summary>
         /// <value> The query. </value>
@@ -95,10 +95,10 @@ namespace CoreXT.Entities
         ///     <para>Note: To force a rebuild of table rows AND columns pass 'true' to '<see cref="BuildTable(bool)"/>'.</para>
         /// </summary>
         /// <returns> The current ITable&lt;TEntity&gt; instance. </returns>
-        ITable<TEntity> Requery();
+        IVariantTable<TEntity> Requery();
 
-        ITableRow<TEntity> this[Int64 rowID] { get; }
-        ITableRow<TEntity> this[ITableRow row] { get; }
+        IVariantTableRow<TEntity> this[Int64 rowID] { get; }
+        IVariantTableRow<TEntity> this[ITableRow row] { get; }
 
         /// <summary> Creates a new table without any associated database context. </summary>
         /// <param name="tableTitle"> A display title for this table. </param>
@@ -113,7 +113,7 @@ namespace CoreXT.Entities
         ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
         ///     over the context if supplied.
         /// </param>
-        ITable<TEntity> Configure(string tableTitle, string tableId = null, string[] keyNames = null, DbContext context = null);
+        IVariantTable<TEntity> Configure(string tableTitle, string tableId = null, string[] keyNames = null, DbContext context = null);
 
         /// <summary>
         ///     Creates a new table with an associated context. An associated context helps to pull more details on the underlying
@@ -130,7 +130,7 @@ namespace CoreXT.Entities
         ///     (Optional) A page-wide unique identifier for this table. If this is null, a GUID will be used;
         ///     however when inspecting the HTML, adding a more descriptive ID can make debugging easier.
         /// </param>
-        ITable<TEntity> Configure(string tableTitle, DbContext context, string tableID = null);
+        IVariantTable<TEntity> Configure(string tableTitle, DbContext context, string tableID = null);
 
         /// <summary>
         ///     Loads the table contents from the posted table with the specified ID. Use this in cases there multiple tables are on
@@ -144,14 +144,14 @@ namespace CoreXT.Entities
         ///     keys) without the need to add metadata to entity properties. Note: Entity property attributes always take precedence
         ///     over the context if supplied.
         /// </param>
-        ITable<TEntity> Configure(string id, HttpRequest request, DbContext context = null);
+        IVariantTable<TEntity> Configure(string id, HttpRequest request, DbContext context = null);
     }
 
     /// <summary>
     /// Wraps a collection of entities to make working with them easier in view models.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class Table<TEntity> : ITable<TEntity>, ITable where TEntity : class, new()
+    public class Table<TEntity> : ITable<TEntity>, IVariantTable<TEntity> where TEntity : class, new()
     {
         internal static Int64 _TableIDCounter;
 
@@ -478,6 +478,50 @@ namespace CoreXT.Entities
 
         public IObjectModelValidator ModelValidator => _ModelValidator ?? (_ModelValidator = ServiceProvider?.GetService<IObjectModelValidator>())
             ?? throw new InvalidOperationException("'IObjectModelValidator' service provider could not be found.");
+
+        IEnumerable<TEntity> IVariantTable<TEntity>.Entities => throw new NotImplementedException();
+
+        IVariantTableRow<TEntity>[] IVariantTable<TEntity>.TableRows => throw new NotImplementedException();
+
+        IVariantTableColumn<TEntity>[] IVariantTable<TEntity>.TableColumns => throw new NotImplementedException();
+
+        IVariantTableColumn<TEntity>[] IVariantTable<TEntity>.OrderedColumns => throw new NotImplementedException();
+
+        IVariantTableColumn<TEntity>[] IVariantTable<TEntity>.DisplayableColumns => throw new NotImplementedException();
+
+        IVariantTableColumn<TEntity>[] IVariantTable<TEntity>.KeyColumns => throw new NotImplementedException();
+
+        IEnumerable<IVariantTableRow<TEntity>> IVariantTable<TEntity>.DisplayableRows => throw new NotImplementedException();
+
+        IQueryable<TEntity> IVariantTable<TEntity>.Query => throw new NotImplementedException();
+
+        DbContext ITable.Context => throw new NotImplementedException();
+
+        string ITable.ID => throw new NotImplementedException();
+
+        IEnumerable<string> ITable.KeyNames { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        string ITable.TableTitle => throw new NotImplementedException();
+
+        List<string> ITable.ColumnOrder => throw new NotImplementedException();
+
+        int ITable.RowCount => throw new NotImplementedException();
+
+        ValidationResults ITable.ValidationResult => throw new NotImplementedException();
+
+        string ITable.ErrorMessage => throw new NotImplementedException();
+
+        ICoreXTServiceProvider ITable.ServiceProvider { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        IObjectModelValidator ITable.ModelValidator => throw new NotImplementedException();
+
+        int ITable.Skip { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        int ITable.Take { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        IVariantTableRow<TEntity> IVariantTable<TEntity>.this[ITableRow row] => throw new NotImplementedException();
+
+        IVariantTableRow<TEntity> IVariantTable<TEntity>.this[long rowID] => throw new NotImplementedException();
+
         IObjectModelValidator _ModelValidator;
         ActionContext _DummyActionContext = new ActionContext(); // (the model validator requires it, but doesn't seem to use it)
 
@@ -940,7 +984,7 @@ namespace CoreXT.Entities
         /// </summary>
         public override bool Equals(object obj)
         {
-            return obj == (object)this || (obj is string && ((string)obj) == ID) || (obj is ITable<object> && ((ITable<object>)obj).ID == ID);
+            return obj == (object)this || (obj is string && ((string)obj) == ID) || (obj is IVariantTable<object> && ((IVariantTable<object>)obj).ID == ID);
         }
 
         /// <summary>
@@ -1042,6 +1086,62 @@ namespace CoreXT.Entities
                 _ValidationResult = null;
             }
         }
+
+        // -----------------------------------------------------------------------------------------------------------------------------------
+        // Variant Interface
+
+        IVariantTableRow<TEntity> IVariantTable<TEntity>.AttachRow(IInternalTableRow row)
+            => (IVariantTableRow<TEntity>)AttachRow(row);
+
+        IVariantTableRow<TEntity> IVariantTable<TEntity>.DetachRow(IInternalTableRow row)
+            => (IVariantTableRow<TEntity>)DetachRow(row);
+
+        IVariantTableColumn<TEntity> IVariantTable<TEntity>.AttachColumn(IInternalTableColumn column)
+            => (IVariantTableColumn<TEntity>)AttachColumn(column);
+
+        IVariantTableColumn<TEntity> IVariantTable<TEntity>.AddColumn(string name, string title, int order)
+            => (IVariantTableColumn<TEntity>)AddColumn(name, title, order);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.SetColumnOrder(params string[] entityPropertyNames)
+            => (IVariantTable<TEntity>)SetColumnOrder(entityPropertyNames);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.SetExcludedColumns(params string[] entityPropertyNames)
+            => (IVariantTable<TEntity>)SetExcludedColumns(entityPropertyNames);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.SetIncludedColumns(params string[] entityPropertyNames)
+            => (IVariantTable<TEntity>)SetIncludedColumns(entityPropertyNames);
+
+        IVariantTableColumn<TEntity> IVariantTable<TEntity>.GetColumn(string clrName)
+            => (IVariantTableColumn<TEntity>)GetColumn(clrName);
+
+        IVariantTableColumn<TEntity> IVariantTable<TEntity>.GetColumn(int columnIndex)
+            => (IVariantTableColumn<TEntity>)GetColumn(columnIndex);
+
+        IVariantTableColumn<TEntity> IVariantTable<TEntity>.GetColumnByDBName(string dbName)
+            => (IVariantTableColumn<TEntity>)GetColumnByDBName(dbName);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.BuildColumns(bool rebuild)
+            => (IVariantTable<TEntity>)BuildColumns(rebuild);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.BuildRows(bool rebuild)
+            => (IVariantTable<TEntity>)BuildRows(rebuild);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.BuildTable(bool rebuild)
+            => (IVariantTable<TEntity>)BuildTable(rebuild);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.Requery()
+            => (IVariantTable<TEntity>)Requery();
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.Configure(string tableTitle, string tableId, string[] keyNames, DbContext context)
+            => (IVariantTable<TEntity>)Configure(tableTitle, tableId, keyNames, context);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.Configure(string tableTitle, DbContext context, string tableID)
+            => (IVariantTable<TEntity>)Configure(tableTitle, context, tableID);
+
+        IVariantTable<TEntity> IVariantTable<TEntity>.Configure(string id, HttpRequest request, DbContext context)
+            => (IVariantTable<TEntity>)Configure(id, request, context);
+
+        // -----------------------------------------------------------------------------------------------------------------------------------
     }
 
     // TODO: Support JSON converters: http://www.dotnetcurry.com/aspnet-mvc/1368/aspnet-core-mvc-custom-model-binding (at bottom)

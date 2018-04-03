@@ -27,7 +27,7 @@ namespace CoreXT.Entities
     /// </summary>
     public interface IInternalTableColumn
     {
-        ITable<object> Table { get; set; }
+        IVariantTable<object> Table { get; set; }
         string PropertyName { get; }
         string DBName { get; }
         Int64 Order { get; set; }
@@ -36,6 +36,7 @@ namespace CoreXT.Entities
     public interface ITableColumn
     {
         TableColumn<T> AsTableColumn<T>() where T : class, new();
+        IVariantTable<object> Table { get; }
         string PropertyName { get; }
         string DBName { get; }
         Int64 Order { get; set; }
@@ -49,22 +50,26 @@ namespace CoreXT.Entities
         bool Hidden { get; set; }
         ITableColumn Unhide();
         bool IsCalculated { get; }
+        string RequiredMessage { get; set; }
         //TableColumn<object>.TableColumnValueHandler ValueHandler { get; set; }
         IEnumerable<SelectListItem> Selections { get; set; }
         Type DataType { get; }
-        object GetValue(ITableRow<object> row);
-        T GetValue<T>(ITableRow<object> row);
+        object GetValue(IVariantTableRow<object> row);
+        T GetValue<T>(IVariantTableRow<object> row);
+        bool Equals(object obj);
+        int GetHashCode();
+        string ToString();
     }
 
-    public interface ITableColumn<out TEntity> : ITableColumn
+    public interface IVariantTableColumn<out TEntity> : ITableColumn
         where TEntity : class, new()
     {
-        ITable<TEntity> Table { get; }
+        IVariantTable<TEntity> Table { get; }
     }
 
     //public delegate object TableColumnValueHandler(ITableRow row, ITableColumn column);
 
-    public class TableColumn<TEntity> : ITableColumn<TEntity>, ITableColumn, IInternalTableColumn where TEntity : class, new()
+    public class TableColumn<TEntity> : ITableColumn<TEntity>, IVariantTableColumn<TEntity>, IInternalTableColumn where TEntity : class, new()
     {
         public delegate object TableColumnValueHandler(ITableRow<TEntity> row, ITableColumn<TEntity> column);
         public delegate string TableColumnValidationHandler(ITableRow<TEntity> row, ITableColumn<TEntity> column);
@@ -72,7 +77,8 @@ namespace CoreXT.Entities
         TableColumn<T> ITableColumn.AsTableColumn<T>() { return (TableColumn<T>)(ITableColumn<TEntity>)this; }
 
         public ITable<TEntity> Table { get; private set; }
-        ITable<object> IInternalTableColumn.Table { get { return Table; } set { Table = (ITable<TEntity>)value; } }
+        IVariantTable<object> ITableColumn.Table { get { return (IVariantTable<object>)Table; } }
+        IVariantTable<object> IInternalTableColumn.Table { get { return (IVariantTable<object>)Table; } set { Table = (ITable<TEntity>)value; } }
 
         public string PropertyName { get; private set; }
         public string DBName { get; private set; }
@@ -156,7 +162,7 @@ namespace CoreXT.Entities
         /// <summary>
         /// Returns a value for this column when given a row.
         /// </summary>
-        public object GetValue(ITableRow<object> row) //(note: this method is the master method for getting values, due to calculated columns that may not be on the entity object)
+        public object GetValue(IVariantTableRow<object> row) //(note: this method is the master method for getting values, due to calculated columns that may not be on the entity object)
         {
             var result = ValueHandler != null ? ValueHandler((ITableRow<TEntity>)row, this) : DBNull.Value;
             //? /*Entity.Property{get} can also be used for a value handler!*/ if (IsCalculated) return result; // (always return this if this is a calculated-only column)
@@ -164,7 +170,7 @@ namespace CoreXT.Entities
             var property = Table.GetEntityPropertyFromCache(row.EntityType, PropertyName);
             return property?.GetValue(row.Entity, null); // (if no user handler exists [override/filter], or it's return is null, get the value from the row)
         }
-        public T GetValue<T>(ITableRow<object> row)
+        public T GetValue<T>(IVariantTableRow<object> row)
         {
             return Types.ChangeType<T>(GetValue(row));
         }
@@ -237,5 +243,12 @@ namespace CoreXT.Entities
                 Hidden = hidden
             };
         }
+
+        // -----------------------------------------------------------------------------------------------------------------------------------
+        // Variant Support
+
+        IVariantTable<TEntity> IVariantTableColumn<TEntity>.Table => (IVariantTable<TEntity>)Table;
+
+        // -----------------------------------------------------------------------------------------------------------------------------------
     }
 }
