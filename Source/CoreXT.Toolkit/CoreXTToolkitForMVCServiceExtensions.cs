@@ -67,16 +67,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
             IMvcBuilder mvcBuilder;
 
-            if (setupAction != null)
+            mvcBuilder = services.AddMvcXT(opts =>
             {
-                mvcBuilder = services.AddMvcXT(opts =>
-                {
-                    opts.ModelBinderProviders.Insert(0, new TableSetBinderProvider()); // (will automatically handle any Table<T> parameter types in controller actions that capture form posts)
-                    setupAction(opts);
-                });
-            }
-            else
-                mvcBuilder = services.AddMvcXT();
+                opts.ModelBinderProviders.Insert(0, new TableSetBinderProvider()); // (will automatically handle any Table<T> parameter types in controller actions that capture form posts)
+                setupAction?.Invoke(opts);
+            });
+
+            mvcBuilder.AddJsonOptions(o => o.SerializerSettings.Converters.Add(new TableJsonConverter()));
 
             // ... physical file provider should be first now, so add the embedded providers next ...
 

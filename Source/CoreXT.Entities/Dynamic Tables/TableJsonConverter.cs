@@ -15,7 +15,7 @@ namespace CoreXT.Entities
     ///     from JSON, but not columns and rows separately, since those need a table reference.
     /// </summary>
     /// <seealso cref="T:Newtonsoft.Json.JsonConverter"/>
-    class TableConverter : JsonConverter
+    public class TableJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
@@ -146,30 +146,58 @@ namespace CoreXT.Entities
             }
         }
 
+        //public static string CLRNameToJSName(string clrName)
+        //{
+        //    if (string.IsNullOrEmpty(clrName)) return clrName;
+        //    //var isDbStyleName = Regex.IsMatch(clrName, "[a-z_]+"); // (if all lowercase then assume this is a DB field and convert the name accordingly "a_b_cd" to "aBCd" and not "a_b_cD" to )
+        //    var newString = "";
+        //    char c, prevC = '\0';
+        //    bool isLowerChar, isUpperChar;
+        //    //return Regex.Replace(clrName, "_([a-z])", m => m.Value.TrimStart('_').ToUpper());
+        //    for (int i = 0, n = clrName.Length; i < n; ++i)
+        //    {
+        //        c = clrName[i];
+
+        //        isLowerChar = TextReader.IsLower(c);
+        //        isUpperChar = TextReader.IsUpper(c);
+
+        //        if (prevC == '\0' && isUpperChar)
+        //            newString += c.ToString().ToLower();
+        //        else if (prevC == '_' && isLowerChar)
+        //            newString += c.ToString().ToUpper();
+        //        else if (c != '_') newString += c;
+
+        //        prevC = c;
+        //    }
+        //    return newString;
+        //}
+
+        /// <summary>
+        ///     Converts a CLR name "PropertyName" or "_PropertyName" into "propertyName" or "_propertyName", including underscore delimiters like
+        ///     "property_name", "_property_name", or "property_Name" into "propertyName", "_propertyName", or "propertyName" respectfully.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
+        /// <exception cref="ArgumentException"> Thrown when one or more arguments have unsupported or illegal values. </exception>
+        /// <exception cref="InvalidOperationException"> Thrown when the requested operation is invalid. </exception>
+        /// <param name="clrName"> Name of the colour. </param>
+        /// <returns> A string. </returns>
         public static string CLRNameToJSName(string clrName)
         {
-            if (string.IsNullOrEmpty(clrName)) return clrName;
-            //var isDbStyleName = Regex.IsMatch(clrName, "[a-z_]+"); // (if all lowercase then assume this is a DB field and convert the name accordingly "a_b_cd" to "aBCd" and not "a_b_cD" to )
-            var newString = "";
-            char c, prevC = '\0';
-            bool isLowerChar, isUpperChar;
-            //return Regex.Replace(clrName, "_([a-z])", m => m.Value.TrimStart('_').ToUpper());
-            for (int i = 0, n = clrName.Length; i < n; ++i)
-            {
-                c = clrName[i];
+            if (clrName == null) throw new ArgumentNullException(nameof(clrName));
+            clrName = clrName.Trim();
+            if (string.IsNullOrWhiteSpace(clrName)) throw new ArgumentException($"'{nameof(clrName)}' cannot be null, empty, or whitespace.");
 
-                isLowerChar = TextReader.IsLower(c);
-                isUpperChar = TextReader.IsUpper(c);
+            // ... split names on underscore, if any; regardless, the first letter should be lowercase ...
+            var parts = clrName.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) throw new InvalidOperationException($"A valid JavaScript name could not be determined from the given name '{clrName}'.");
+            var startsWithUnderscore = clrName[0] == '_'; // (maintain any starting underscores to allow marking private properties)
 
-                if (prevC == '\0' && isUpperChar)
-                    newString += c.ToString().ToLower();
-                else if (prevC == '_' && isLowerChar)
-                    newString += c.ToString().ToUpper();
-                else if (c != '_') newString += c;
+            parts[0] = parts[0][0].ToString().ToLower() + parts[0].Substring(1);
 
-                prevC = c;
-            }
-            return newString;
+            for (int i = 1, n = parts.Length; i < n; ++i)
+                parts[i] = parts[i][0].ToString().ToUpper() + parts[0].Substring(1);
+
+            return (startsWithUnderscore ? "_" : string.Empty) + string.Concat(parts);
         }
 
         private static void _SerializePrimitivePublicReadableProperties(JsonWriter writer, object obj)

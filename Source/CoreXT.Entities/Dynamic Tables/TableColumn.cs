@@ -33,7 +33,7 @@ namespace CoreXT.Entities
         Int64 Order { get; set; }
     }
 
-    public interface ITableColumn: IInternalTableColumn
+    public interface ITableColumn : IInternalTableColumn
     {
         TableColumn<T> AsTableColumn<T>() where T : class, new();
         new IVariantTable<object> Table { get; }
@@ -210,13 +210,13 @@ namespace CoreXT.Entities
             bool? nullable = requiredMsg != null;
             bool hidden = hiddenAttr != null;
 
-            return new TableColumn<TEntity>(table, colProp.Name, dbName, title, order, maxLen, nullable, isKey ?? false, requiredMsg)
+            return new TableColumn<TEntity>(table)
             {
                 Description = desc,
                 Prompt = prompt,
                 IsCalculated = !colProp.CanWrite || (colProp.SetMethod?.Attributes.HasFlag(MethodAttributes.Private) ?? false) || (readonlyAttr?.IsReadOnly ?? false),
                 Hidden = hidden
-            };
+            }.Configure(colProp.Name, dbName, title, order, maxLen, nullable, isKey ?? false, requiredMsg);
         }
 
         public static TableColumn<TEntity> FromMetadataProperty(ITable<TEntity> table, Property prop)
@@ -243,13 +243,13 @@ namespace CoreXT.Entities
             bool nullable = prop.IsNullable;
             bool hidden = hiddenAttr != null;
 
-            return new TableColumn<TEntity>(table, prop.Name, dbName, title, order, maxLen, nullable, isKey, requiredMsg)
+            return new TableColumn<TEntity>(table)
             {
                 Description = desc,
                 Prompt = prompt,
                 IsCalculated = readonlyAttr?.IsReadOnly ?? false,
                 Hidden = hidden
-            };
+            }.Configure(prop.Name, dbName, title, order, maxLen, nullable, isKey, requiredMsg);
         }
 
         // -----------------------------------------------------------------------------------------------------------------------------------

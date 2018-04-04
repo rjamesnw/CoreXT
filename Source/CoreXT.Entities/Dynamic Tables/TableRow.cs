@@ -22,7 +22,6 @@ using System.Threading.Tasks;
 
 namespace CoreXT.Entities
 {
-
     /// <summary>
     /// Used internally to work with the table rows.
     /// </summary>
@@ -35,7 +34,7 @@ namespace CoreXT.Entities
         bool HasValidEntityKey { get; }
     }
 
-    public interface ITableRow: IInternalTableRow
+    public interface ITableRow : IInternalTableRow
     {
         TableRow<T> AsTableRow<T>() where T : class, new();
         new IVariantTable<object> Table { get; }
@@ -486,7 +485,7 @@ namespace CoreXT.Entities
             return null;
         }
 
-        public ValidationResults Validate(ActionContext actionContext)
+        public virtual ValidationResults Validate(ActionContext actionContext)
         {
             Table.ModelValidator.Validate(actionContext, null, string.Empty, _Entity);
             if (actionContext.ModelState.IsValid)

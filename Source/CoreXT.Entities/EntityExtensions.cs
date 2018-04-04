@@ -181,7 +181,7 @@ namespace CoreXT.Entities
 
     // ########################################################################################################################
 
-    public static class CoreXTDBContextExtensions
+    public static class DBContextExtensions
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -481,6 +481,35 @@ namespace CoreXT.Entities
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+    }
+
+    // ########################################################################################################################
+
+    public static class EntityExtensions
+    {
+        /// <summary>
+        ///     An IQueryable&lt;TEntity&gt; extension method that skips a number of records and takes a number of records. This is
+        ///     a useful shortcut that helps with table paging on the client side.
+        /// </summary>
+        /// <typeparam name="TEntity"> Type of the entity. </typeparam>
+        /// <param name="query"> The query to act on. </param>
+        /// <param name="skip"> The number of records to skip, or null to ignore. </param>
+        /// <param name="take"> The number of records to return, or null to ignore. </param>
+        /// <param name="maxTake">
+        ///     (Optional) The maximum number of records allowed to return. If null then '<paramref name="take"/>' is not constrained,
+        ///     otherwise if take is greater than the max then '<paramref name="maxTake"/>' is used instead.
+        /// </param>
+        /// <returns> An IQueryable&lt;TEntity&gt; </returns>
+        public static IQueryable<TEntity> SkipTake<TEntity>(this IQueryable<TEntity> query, int? skip, int? take, int? maxTake = null)
+        {
+            if (skip != null) query = query.Skip(skip.Value);
+            if (take != null)
+            {
+                if (take > maxTake) take = maxTake;
+                query = query.Skip(skip.Value);
+            }
+            return query;
         }
     }
 

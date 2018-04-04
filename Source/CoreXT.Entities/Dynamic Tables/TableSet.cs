@@ -27,7 +27,7 @@ namespace CoreXT.Entities
     {
         public DbContext Context { get; private set; }
 
-        Dictionary<string, Table<TEntity>> _Tables = new Dictionary<string, Table<TEntity>>();
+        Dictionary<string, ITable<TEntity>> _Tables = new Dictionary<string, ITable<TEntity>>();
 
         /// <summary>
         /// Returns the worst case validation across all tables.
@@ -59,7 +59,7 @@ namespace CoreXT.Entities
             Load(request);
         }
 
-        public Table<TEntity> Add(Table<TEntity> table)
+        public ITable<TEntity> Add(ITable<TEntity> table)
         {
             if (table != null)
             {
@@ -69,7 +69,7 @@ namespace CoreXT.Entities
             return table;
         }
 
-        public Table<TEntity> GetTable(string tableID)
+        public ITable<TEntity> GetTable(string tableID)
         {
             return _Tables.Value(tableID);
         }
@@ -91,7 +91,7 @@ namespace CoreXT.Entities
 
                 foreach (var ID in tableIDs)
                 {
-                    var table = new Table<TEntity>(ID, request);
+                    var table = new Table<TEntity>(_Services).Configure(ID, request);
                     Add(table);
                 }
             }
