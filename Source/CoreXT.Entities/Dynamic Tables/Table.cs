@@ -24,6 +24,7 @@ namespace CoreXT.Entities
 {
     public interface ITable
     {
+        Type EntityType { get; }
         DbContext Context { get; }
         string ID { get; }
         IEnumerable<string> KeyNames { get; set; }
@@ -49,13 +50,17 @@ namespace CoreXT.Entities
         PropertyInfo GetEntityPropertyFromCache(Type type, string name);
         PropertyInfo[] GetEntityPropertiesFromCache(Type type);
         bool Load(HttpRequest request, string tableID);
+        bool Load(HttpRequestMessage request, string tableID = null);
         ValidationResults ApplyChanges(DbContext context);
-        ValidationResults ApplyChanges<TEntities>()
-           where TEntities : DbContext, new();
+        ValidationResults ApplyChanges<TEntities>() where TEntities : DbContext, new();
         ValidationResults Commit(DbContext context = null, bool save = true);
-        ValidationResults Commit<TEntities>(bool save = true)
-           where TEntities : DbContext, new();
+        ValidationResults Commit<TEntities>(bool save = true) where TEntities : DbContext, new();
         void ClearValidations();
+        PropertyInfo[] GetCustomMetadataProperties(Type entityType = null);
+        bool Equals(object obj);
+        int GetHashCode();
+        string ToString();
+        void HideAllColumns();
     }
 
     public interface IVariantTable<out TEntity> : ITable
@@ -63,10 +68,14 @@ namespace CoreXT.Entities
     {
         IEnumerable<TEntity> Entities { get; }
 
-        IVariantTableRow<TEntity> AttachRow(IInternalTableRow row);
-        IVariantTableRow<TEntity> DetachRow(IInternalTableRow row);
+        /// <summary>
+        /// Creates a new row using the given entity. If no entity is given, a new empty entity is created automatically.
+        /// </summary>
+        IVariantTableRow<TEntityType> CreateRow<TEntityType>(TEntityType entitiy = null) where TEntityType : class, new();
+        IVariantTableRow<TEntity> AttachRow(ITableRow row);
+        IVariantTableRow<TEntity> DetachRow(ITableRow row);
 
-        IVariantTableColumn<TEntity> AttachColumn(IInternalTableColumn column);
+        IVariantTableColumn<TEntity> AttachColumn(ITableColumn column);
         IVariantTableColumn<TEntity> AddColumn(string name, string title = null, int order = 0);
 
         IVariantTableRow<TEntity>[] TableRows { get; }
@@ -154,6 +163,8 @@ namespace CoreXT.Entities
     public class Table<TEntity> : ITable<TEntity>, IVariantTable<TEntity> where TEntity : class, new()
     {
         internal static Int64 _TableIDCounter;
+
+        public Type EntityType => typeof(TEntity);
 
         public string ID
         {
@@ -384,23 +395,24 @@ namespace CoreXT.Entities
         /// Attaches a table row to the internal row index. Any existing table row will be replaced.
         /// </summary>
         /// <param name="row"></param>
-        public ITableRow<TEntity> AttachRow(IInternalTableRow row)
+        public ITableRow<TEntity> AttachRow(ITableRow row)
         {
-            if (row.Table != this)
+            IInternalTableRow _row = row;
+            if (_row.Table != this)
             {
-                row.Table.DetachRow(row);
-                row.Table = this;
-                row.Deleted = false; // (rows in a deleted state are no longer deleted by default when moved to another table)
+                _row.Table.DetachRow(row);
+                _row.Table = this;
+                _row.Deleted = false; // (rows in a deleted state are no longer deleted by default when moved to another table)
             } // (else this row already has a reference to this table, so attach it AS IS)
 
-            if (row.ID == 0 || _TableRowIndex.ContainsKey(row.ID))
-                row.ID = NextRowID; // (give the row a new ID if new, or one already exists [duplicates not allowed! - else this reference will overwrite the existing one])
+            if (_row.ID == 0 || _TableRowIndex.ContainsKey(_row.ID))
+                _row.ID = NextRowID; // (give the row a new ID if new, or one already exists [duplicates not allowed! - else this reference will overwrite the existing one])
 
-            _TableRowIndex[row.ID] = (ITableRow<TEntity>)row;
+            _TableRowIndex[_row.ID] = (ITableRow<TEntity>)row;
 
             return (ITableRow<TEntity>)row;
         }
-        public ITableRow<TEntity> DetachRow(IInternalTableRow row)
+        public ITableRow<TEntity> DetachRow(ITableRow row)
         {
             if (row.Table != this)
                 return (ITableRow<TEntity>)row.Table.DetachRow(row);
@@ -416,7 +428,7 @@ namespace CoreXT.Entities
         internal Dictionary<Int64, ITableRow<TEntity>> _TableRowIndex { get { return __TableRowIndex ?? (__TableRowIndex = new Dictionary<long, ITableRow<TEntity>>()); } }
         Dictionary<Int64, ITableRow<TEntity>> __TableRowIndex;
 
-        public ITableColumn<TEntity> AttachColumn(IInternalTableColumn column)
+        public ITableColumn<TEntity> AttachColumn(ITableColumn column)
         {
             if (_TableColumns == null)
                 _TableColumns = new List<ITableColumn<TEntity>>();
@@ -428,8 +440,7 @@ namespace CoreXT.Entities
 
         public ITableColumn<TEntity> AddColumn(string name, string title = null, int order = 0)
         {
-            var col = new TableColumn<TEntity>(this, name, null, title, order);
-
+            var col = new TableColumn<TEntity>(this).Configure(name, null, title, order);
             return AttachColumn(col);
         }
 
@@ -687,7 +698,7 @@ namespace CoreXT.Entities
 
             if (rowIndexStrValues != null)
             {
-                var tableRows = new List<TableRow<TEntity>>(); // new Dictionary<Int64, TableRow<TEntity>>();
+                var tableRows = new List<ITableRow<TEntity>>(); // new Dictionary<Int64, TableRow<TEntity>>();
 
                 foreach (var rowIndexStr in rowIndexStrValues)
                     if (!rowIndexStr.StartsWith("{{") && !rowIndexStr.EndsWith("}}")) // (skip the template section that gets posted as well)
@@ -795,9 +806,9 @@ namespace CoreXT.Entities
         }
 
         /// <summary>
-        /// Adds an entity to the internal entity collection.
+        /// Adds an entity to the internal entity collection and returns the entity added.
         /// </summary>
-        public TEntity AddEntity(TEntity entity) { if (entity != null) _Entities.Add(entity); return entity; }
+        public TEntity AddEntity(TEntity entity) { if (entity != null && !_Entities.Contains(entity)) _Entities.Add(entity); return entity; }
 
         /// <summary>
         /// Adds am array of entities to the internal entity collection.
@@ -809,8 +820,8 @@ namespace CoreXT.Entities
         /// </summary>
         public TEntity RemoveEntity(TEntity e) { if (e != null) if (_Entities.Remove(e)) return e; return null; }
 
-        TableRow<TEntity> _CreateRow(TEntity entity = null) { return (TableRow<TEntity>)Activator.CreateInstance(_RowType, this, entity); }
-        TableRow<TEntity> _CreateRow(Int64 rowIndex, IDictionary<string, string[]> requestProperties)
+        ITableRow<TEntity> _CreateRow(TEntity entity = null) { return (ITableRow<TEntity>)Activator.CreateInstance(_RowType, this, entity); }
+        ITableRow<TEntity> _CreateRow(Int64 rowIndex, IDictionary<string, string[]> requestProperties)
         { return (TableRow<TEntity>)Activator.CreateInstance(_RowType, this, rowIndex, requestProperties); }
 
         Type _RowType = typeof(TableRow<TEntity>);
@@ -825,13 +836,24 @@ namespace CoreXT.Entities
         }
 
         /// <summary>
-        /// Creates a new row using the given entity. If no entity is given, a new empty entity is created automatically.
+        /// Returns a row with a reference to the specified entity.
         /// </summary>
-        public TableRow<TEntity> CreateRow(TEntity entitiy = null)
+        public ITableRow<TEntity> GetRow(TEntity entitiy)
+            => _TableRows.SingleOrDefault(r => r.Entity == entitiy);
+
+        /// <summary>
+        ///     Creates a new row using the given entity. If no entity is given, a new empty entity is created automatically. If the
+        ///     entity already exists then the existing row is returned.
+        /// </summary>
+        /// <param name="entitiy"> (Optional) The entity to create a new row for. </param>
+        /// <returns> A new or existing row. </returns>
+        public ITableRow<TEntity> CreateRow(TEntity entitiy = null)
         {
+            var row = GetRow(entitiy);
+            if (row != null) return row;
             entitiy = AddEntity(entitiy ?? new TEntity());
-            BuildRows(true);
-            return (TableRow<TEntity>)_TableRows.First(r => r.Entity == entitiy);
+            row = _CreateRow(entitiy);
+            return AttachRow(row);
         }
 
         /// <summary>
@@ -1090,13 +1112,16 @@ namespace CoreXT.Entities
         // -----------------------------------------------------------------------------------------------------------------------------------
         // Variant Interface
 
-        IVariantTableRow<TEntity> IVariantTable<TEntity>.AttachRow(IInternalTableRow row)
+        IVariantTableRow<TEntityType> IVariantTable<TEntity>.CreateRow<TEntityType>(TEntityType entitiy)
+        => (IVariantTableRow<TEntityType>)CreateRow((TEntity)(object)entitiy);
+
+        IVariantTableRow<TEntity> IVariantTable<TEntity>.AttachRow(ITableRow row)
             => (IVariantTableRow<TEntity>)AttachRow(row);
 
-        IVariantTableRow<TEntity> IVariantTable<TEntity>.DetachRow(IInternalTableRow row)
+        IVariantTableRow<TEntity> IVariantTable<TEntity>.DetachRow(ITableRow row)
             => (IVariantTableRow<TEntity>)DetachRow(row);
 
-        IVariantTableColumn<TEntity> IVariantTable<TEntity>.AttachColumn(IInternalTableColumn column)
+        IVariantTableColumn<TEntity> IVariantTable<TEntity>.AttachColumn(ITableColumn column)
             => (IVariantTableColumn<TEntity>)AttachColumn(column);
 
         IVariantTableColumn<TEntity> IVariantTable<TEntity>.AddColumn(string name, string title, int order)

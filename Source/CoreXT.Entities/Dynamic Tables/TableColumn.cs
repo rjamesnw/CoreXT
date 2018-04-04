@@ -33,13 +33,14 @@ namespace CoreXT.Entities
         Int64 Order { get; set; }
     }
 
-    public interface ITableColumn
+    public interface ITableColumn: IInternalTableColumn
     {
         TableColumn<T> AsTableColumn<T>() where T : class, new();
-        IVariantTable<object> Table { get; }
-        string PropertyName { get; }
-        string DBName { get; }
-        Int64 Order { get; set; }
+        new IVariantTable<object> Table { get; }
+        Type EntityType { get; }
+        new string PropertyName { get; }
+        new string DBName { get; }
+        new Int64 Order { get; set; }
         string Title { get; set; }
         string Description { get; set; }
         bool IsKey { get; }
@@ -69,7 +70,7 @@ namespace CoreXT.Entities
 
     //public delegate object TableColumnValueHandler(ITableRow row, ITableColumn column);
 
-    public class TableColumn<TEntity> : ITableColumn<TEntity>, IVariantTableColumn<TEntity>, IInternalTableColumn where TEntity : class, new()
+    public class TableColumn<TEntity> : ITableColumn<TEntity>, IVariantTableColumn<TEntity> where TEntity : class, new()
     {
         public delegate object TableColumnValueHandler(ITableRow<TEntity> row, ITableColumn<TEntity> column);
         public delegate string TableColumnValidationHandler(ITableRow<TEntity> row, ITableColumn<TEntity> column);
@@ -79,6 +80,8 @@ namespace CoreXT.Entities
         public ITable<TEntity> Table { get; private set; }
         IVariantTable<object> ITableColumn.Table { get { return (IVariantTable<object>)Table; } }
         IVariantTable<object> IInternalTableColumn.Table { get { return (IVariantTable<object>)Table; } set { Table = (ITable<TEntity>)value; } }
+
+        public Type EntityType => typeof(TEntity);
 
         public string PropertyName { get; private set; }
         public string DBName { get; private set; }
@@ -146,9 +149,13 @@ namespace CoreXT.Entities
         }
         Type _DataType;
 
-        public TableColumn(ITable<TEntity> table, string propertyName, string dbName, string title = null, Int64? order = null, int? maxLength = null, bool? nullable = null, bool isKey = false, string requiredMsg = null)
+        public TableColumn(ITable<TEntity> table)
         {
             Table = table;
+        }
+
+        public TableColumn<TEntity> Configure(string propertyName, string dbName, string title = null, Int64? order = null, int? maxLength = null, bool? nullable = null, bool isKey = false, string requiredMsg = null)
+        {
             PropertyName = propertyName;
             DBName = dbName;
             Title = title ?? DBName;
@@ -157,6 +164,7 @@ namespace CoreXT.Entities
             MaxLength = maxLength;
             RequiredMessage = requiredMsg;
             Nullable = nullable ?? (requiredMsg != null ? true : (bool?)null);
+            return this;
         }
 
         /// <summary>

@@ -2,6 +2,8 @@
 #define DOTNETCORE
 #endif
 
+using System;
+
 namespace CoreXT
 {
     /// <summary>
@@ -235,5 +237,15 @@ namespace CoreXT
             Index2 = 0;
             SkippedStartIndex = 0;
         }
+
+        /// <summary> Returns true if the given English character is lowercase. </summary>
+        /// <param name="c"> A English character. </param>
+        /// <returns> True if lower, false if not. </returns>
+        public static bool IsLower(char c) => c >= 'a' && c <= 'z';
+
+        /// <summary> Returns true if the given English character is uppercase. </summary>
+        /// <param name="c"> A English character. </param>
+        /// <returns> True if upper, false if not. </returns>
+        public static bool IsUpper(char c) => c >= 'A' && c <= 'Z';
     }
 }

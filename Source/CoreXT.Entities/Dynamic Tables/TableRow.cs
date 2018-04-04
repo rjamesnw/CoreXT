@@ -35,15 +35,15 @@ namespace CoreXT.Entities
         bool HasValidEntityKey { get; }
     }
 
-    public interface ITableRow
+    public interface ITableRow: IInternalTableRow
     {
         TableRow<T> AsTableRow<T>() where T : class, new();
-        IVariantTable<object> Table { get; }
-        Int64 ID { get; }
+        new IVariantTable<object> Table { get; }
+        new Int64 ID { get; }
         Type EntityType { get; }
-        bool HasValidEntityKey { get; }
-        bool Deleted { get; }
-        bool New { get; }
+        new bool HasValidEntityKey { get; }
+        new bool Deleted { get; }
+        new bool New { get; }
         IEnumerable<string> Changed { get; }
         bool IsAttached { get; }
         Dictionary<string, Exception> LoadErrors { get; }
@@ -109,7 +109,7 @@ namespace CoreXT.Entities
         }
     }
 
-    public class TableRow<TEntity> : ITableRow<TEntity>, IVariantTableRow<TEntity>, IInternalTableRow where TEntity : class, new()
+    public class TableRow<TEntity> : ITableRow<TEntity>, IVariantTableRow<TEntity> where TEntity : class, new()
     {
         TableRow<T> ITableRow.AsTableRow<T>() { return (TableRow<T>)(ITableRow<TEntity>)this; }
 
