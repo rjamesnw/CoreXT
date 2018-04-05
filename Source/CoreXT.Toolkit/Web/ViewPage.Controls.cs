@@ -130,7 +130,7 @@ namespace CoreXT.Toolkit.Web
         /// <summary>
         /// Returns a table component based on the specified table.
         /// </summary>
-        public Table Table<TEntity>(string id, ITable<TEntity> table) where TEntity : class, new()
+        public Table Table<TEntity>(string id, IVariantTable<TEntity> table) where TEntity : class, new()
         {
             return GetControl<Table>().Configure(id, table);
         }

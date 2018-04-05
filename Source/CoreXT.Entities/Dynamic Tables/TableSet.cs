@@ -29,12 +29,13 @@ namespace CoreXT.Entities
 
         Dictionary<string, ITable<TEntity>> _Tables = new Dictionary<string, ITable<TEntity>>();
 
-        /// <summary>
-        /// Returns the worst case validation across all tables.
-        /// </summary>
+        /// <summary> Returns the worst case validation across all tables. </summary>
+        /// <value> The validation result. </value>
         public ValidationResults ValidationResult { get { return (ValidationResults)(_ValidationResult ?? (_ValidationResult = (_CommitError != null ? ValidationResults.Errors : _Tables != null && _Tables.Values.Count > 0 ? _Tables.Values.Min(t => t.ValidationResult) : ValidationResults.Unknown))); } }
         ValidationResults? _ValidationResult;
 
+        /// <summary> Gets a message describing the error. </summary>
+        /// <value> A message describing the error. </value>
         public string ErrorMessage { get { return _CommitError != null ? Exceptions.GetFullErrorMessage(_CommitError, false, false) : null; } }
         Exception _CommitError;
 
@@ -43,19 +44,24 @@ namespace CoreXT.Entities
         /// </summary>
         public IEnumerable<ITable<TEntity>> InvalidTables { get { return _Tables != null ? _Tables.Values.Where(t => t.ValidationResult == ValidationResults.Errors) : Enumerable.Empty<ITable<TEntity>>(); } }
 
-        /// <summary>
-        /// Creates a new table set, optionally associating it with a fixed context.
-        /// </summary>
-        public TableSet(DbContext context = null)
+        public ICoreXTServiceProvider Services { get => _Services; private set => _Services = value; }
+        private ICoreXTServiceProvider _Services;
+
+        /// <summary> Creates a new table set, optionally associating it with a fixed context. </summary>
+        /// <param name="context"> (Optional) A database context to use. </param>
+        /// <param name="services"> (Optional) A service provider to use. </param>
+        public TableSet(DbContext context = null, ICoreXTServiceProvider services = null)
         {
             Context = context;
+            _Services = services;
         }
 
-        /// <summary>
-        /// Creates a table set from TableEditor posts.
-        /// </summary>
-        public TableSet(HttpRequest request)
+        /// <summary> Creates a table set from TableEditor posts. </summary>
+        /// <param name="request"> An HTTP request instance. </param>
+        /// <param name="services"> (Optional) A service provider to use. </param>
+        public TableSet(HttpRequest request, ICoreXTServiceProvider services = null)
         {
+            _Services = services;
             Load(request);
         }
 
@@ -91,7 +97,7 @@ namespace CoreXT.Entities
 
                 foreach (var ID in tableIDs)
                 {
-                    var table = new Table<TEntity>(_Services).Configure(ID, request);
+                    var table = new Table<TEntity>(Services).Configure(ID, request);
                     Add(table);
                 }
             }

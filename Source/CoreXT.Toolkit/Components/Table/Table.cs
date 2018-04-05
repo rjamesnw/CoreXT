@@ -13,7 +13,7 @@ namespace CoreXT.Toolkit.Components
         /// <summary>
         /// A reference to the data table to be rendered.
         /// </summary>
-        public ITable<object> DataTable { get; set; }
+        public IVariantTable<object> DataTable { get; set; }
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ namespace CoreXT.Toolkit.Components
         /// <param name="id">    The identifier. </param>
         /// <param name="table"> The data table to use. </param>
         /// <returns> A Table. </returns>
-        public Table Configure<TEntity>(string id, ITable<TEntity> table) where TEntity : class, new()
+        public Table Configure<TEntity>(string id, IVariantTable<TEntity> table) where TEntity : class, new()
         {
             EnableAutomaticID = true;
             ID = id;
