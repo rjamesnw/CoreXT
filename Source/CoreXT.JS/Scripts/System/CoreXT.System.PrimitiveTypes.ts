@@ -109,17 +109,19 @@ namespace CoreXT {
 
             /* ------ This part uses the CoreXT factory pattern ------ */
 
-            static '$Object Factory' = function (base = $Object, instanceType = <{}>null && new base()) {
-                return frozen(class ObjectFactory {
+            static '$Object Factory' = function (type = $Object) {
+                return frozen(class Factory {
 
-                    static $Type = base;
+                    static $Type = type;
+                    static $InstanceType = <{}>null && new Factory.$Type();
+                    static $BaseFactory = <IFactoryType>null;
 
                     /**
                      * Create a new basic object type.
                      * @param value If specified, the value will be wrapped in the created object.
                      * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
                      */
-                    static 'new'(value?: any, makeValuePrivate: boolean = false): typeof instanceType {
+                    static 'new'(value?: any, makeValuePrivate: boolean = false): typeof Factory.$InstanceType {
                         return TypeFactory.__new.call(this, value, makeValuePrivate);
                     }
 
@@ -127,7 +129,7 @@ namespace CoreXT {
                     /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
                       * constructor function to get new instances, and 'dispose()' to release them when done.
                       */
-                    static init($this: typeof instanceType, isnew: boolean, value?: any, makePrivate: boolean = false): typeof instanceType {
+                    static init($this: typeof Factory.$InstanceType, isnew: boolean, value?: any, makePrivate: boolean = false): typeof Factory.$InstanceType {
                         if (!isnew)
                             $this.$__reset();
 
@@ -160,8 +162,6 @@ namespace CoreXT {
         }
 
         export interface IObject extends $Object { }
-        //x type IObjectFactory = typeof $Object['$Object Factory'];
-
         /** The base type for many CoreXT classes. */
         export var Object = TypeFactory.__RegisterFactoryType($Object, $Object['$Object Factory']);
 
@@ -287,13 +287,14 @@ namespace CoreXT {
 
             /* ------ This part uses the CoreXT factory pattern ------ */
 
-            static '$String Factory' = function (base = $String) {
-                var _InstanceType = <{}>null && new base();
-                var factoryType = class StringFactory {
-                    static $Type = base;
+            static '$String Factory' = function () {
+                return frozen(class Factory {
+                    static $Type = $String;
+                    static $InstanceType = <{}>null && new Factory.$Type();
+                    static $BaseFactory = <IFactoryType>null;
 
                     /** Returns a new string object instance. */
-                    static 'new'(value?: any): typeof _InstanceType { return null; }
+                    static 'new'(value?: any): typeof Factory.$InstanceType { return null; }
 
                     /**
                      * Reinitializes a disposed Delegate instance.
@@ -302,7 +303,7 @@ namespace CoreXT {
                      * @param object The instance to bind to the resulting delegate object.
                      * @param func The function that will be called for the resulting delegate object.
                      */
-                    static init($this: typeof _InstanceType, isnew: boolean, value?: any): typeof _InstanceType {
+                    static init($this: typeof Factory.$InstanceType, isnew: boolean, value?: any): typeof Factory.$InstanceType {
                         $this.$__value = global.String(value);
                         //??System.String.prototype.constructor.apply(this, arguments);
                         // (IE browsers older than v9 do not populate the string object with the string characters)
@@ -311,9 +312,7 @@ namespace CoreXT {
                         for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                         return $this;
                     }
-                };
-                frozen(factoryType);
-                return factoryType;
+                });
             }();
 
             /* ------------------------------------------------------- */
@@ -322,7 +321,6 @@ namespace CoreXT {
         }
 
         export interface IString extends $String, IDisposable, ISerializable { }
-
         export var String = TypeFactory.__RegisterFactoryType($String, $String['$String Factory']);
 
         // =======================================================================================================================
@@ -338,10 +336,11 @@ namespace CoreXT {
             // -------------------------------------------------------------------------------------------------------------------
             /* ------ This part uses the CoreXT factory pattern ------ */
 
-            static '$Array Factory' = function (base = $Array) {
+            static '$Array Factory' = function (type = $Array, baseType = global.Array) {
                 type TInstance<TItem> = $Array<TItem>;
-                var factoryType = class ArrayFactory {
-                    static $Type = base;
+                return frozen(class Factory {
+                    static $Type = type;
+                    static $BaseFactory = <IFactoryType>null;
 
                     /** Returns a new array object instance. 
                       * Note: This is a CoreXT system array object, and not the native JavaScript object. */
@@ -368,9 +367,7 @@ namespace CoreXT {
                         for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                         return $this;
                     }
-                };
-                frozen(factoryType);
-                return factoryType;
+                });
             }();
 
             /* ------------------------------------------------------- */
@@ -379,7 +376,6 @@ namespace CoreXT {
         }
 
         export interface IArray<T> extends $Array<T>, IDisposable, ISerializable { }
-
         export var Array = TypeFactory.__RegisterFactoryType($Array, $Array['$Array Factory']);
 
         // =======================================================================================================================

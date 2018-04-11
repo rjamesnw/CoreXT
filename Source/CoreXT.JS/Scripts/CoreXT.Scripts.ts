@@ -73,27 +73,27 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static ' '() {
-                var _super_factory = super[' ']().ResourceRequest_factory;
-                return class {
-                    static ScriptResource_factory?= class {
-                        /** Returns a new module object only - does not load it. */
-                        static 'new'(url: string): $ScriptResource { return null; }
+            static '$ScriptResource Factory' = function (type = $ScriptResource, instanceType = <{}>null && new type()) {
+                return frozen(class Factory {
+                    static $Type = type;
+                    static $BaseFactory = $ScriptResource['$ResourceRequest Factory'];
 
-                        /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        static init($this: $Module, isnew: boolean, url: string): $ScriptResource {
-                            _super_factory.init($this, isnew, url, Loader.ResourceTypes.Application_Script);
-                            return $this;
-                        }
+                    /** Returns a new module object only - does not load it. */
+                    static 'new'(url: string): typeof instanceType { return null; }
+
+                    /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+                    static init($this: $Module, isnew: boolean, url: string): typeof instanceType {
+                        this.$BaseFactory.init($this, isnew, url, Loader.ResourceTypes.Application_Script);
+                        return $this;
                     }
-                }
-            }
+                });
+            }();
 
             // ----------------------------------------------------------------------------------------------------------------
         }
 
         export interface IScriptResource extends $ScriptResource { }
-        export var ScriptResource = System.AppDomain.registerClass($ScriptResource, $ScriptResource[' ']().ScriptResource_factory, [CoreXT, Scripts]);
+        export var ScriptResource = TypeFactory.__RegisterFactoryType($ScriptResource, $ScriptResource['$ScriptResource Factory']);
 
         // ====================================================================================================================
 
@@ -105,27 +105,27 @@ namespace CoreXT {
         class $Manifest extends ScriptResource.$Type {
             // ----------------------------------------------------------------------------------------------------------------
 
-            static ' '() {
-                var _super_factory = super[' ']().ScriptResource_factory;
-                return class {
-                    static Manifest_factory?= class {
-                        /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                        static 'new'(url: string): $ScriptResource { return null; }
+            static '$Manifest Factory' = function (type = $Manifest, instanceType = <{}>null && new type()) {
+                return frozen(class Factory {
+                    static $Type = type;
+                    static $BaseFactory = $Manifest['$ScriptResource Factory'];
 
-                        /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                        static init($this: $Module, isnew: boolean, url: string): $ScriptResource {
-                            _super_factory.init($this, isnew, url);
-                            return $this;
-                        }
+                    /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
+                    static 'new'(url: string): $ScriptResource { return null; }
+
+                    /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
+                    static init($this: $Module, isnew: boolean, url: string): $ScriptResource {
+                        this.$BaseFactory.init($this, isnew, url);
+                        return $this;
                     }
-                }
-            };
+                });
+            }();
 
             // ----------------------------------------------------------------------------------------------------------------
         }
 
         export interface IManifest extends $Manifest { }
-        export var Manifest = System.AppDomain.registerClass($Manifest, $Manifest[' ']().Manifest_factory, [CoreXT, Scripts]);
+        export var Manifest = TypeFactory.__RegisterFactoryType($Manifest, $Manifest['$Manifest Factory']);
 
         // ====================================================================================================================
 
@@ -304,38 +304,37 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static ' '() {
-                var _super_factory = super[' ']().ScriptResource_factory;
-                return class {
-                    static Module_factory?= class {
-                        /** Returns a new module object only - does not load it. */
-                        static 'new'(fullname: string, path: string, minifiedPath?: string): $Module { return null; }
+            static '$Module Factory' = function (type = $Module, instanceType = <{}>null && new type()) {
+                return frozen(class Factory {
+                    static $Type = type;
+                    static $BaseFactory = $Module['$ScriptResource Factory'];
 
-                        /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        static init($this: $Module, isnew: boolean, fullname: string, url: string, minifiedURL: string = null): $Module {
-                            _super_factory.init($this, isnew, System.Diagnostics.debug ? url : (minifiedURL || url));
+                    /** Returns a new module object only - does not load it. */
+                    static 'new'(fullname: string, path: string, minifiedPath?: string): $Module { return null; }
 
-                            if (!$this.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
-                                throw System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", $this);
+                    /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+                    static init($this: $Module, isnew: boolean, fullname: string, url: string, minifiedURL: string = null): $Module {
+                        this.$BaseFactory.init($this, isnew, System.Diagnostics.debug ? url : (minifiedURL || url));
 
-                            $this.fullname = fullname;
-                            $this.nonMinifiedURL = url;
-                            $this.minifiedURL = minifiedURL;
+                        if (!$this.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
+                            throw System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", $this);
 
-                            $this.then($this.__onLoaded).ready($this.__onReady);
+                        $this.fullname = fullname;
+                        $this.nonMinifiedURL = url;
+                        $this.minifiedURL = minifiedURL;
 
-                            return $this;
-                        }
+                        $this.then($this.__onLoaded).ready($this.__onReady);
+
+                        return $this;
                     }
-                }
-            }
+                });
+            }();
 
             // ----------------------------------------------------------------------------------------------------------------
         }
 
         export interface IModule extends $Module { }
-
-        export var Module = System.AppDomain.registerClass($Module, $Module[' ']().Module_factory, [CoreXT, Scripts]);
+        export var Module = TypeFactory.__RegisterFactoryType($Module, $Module['$Module Factory']);
 
         var _runMode = 0; // (0=auto run, depending on debug flag; 1=user has requested run before the app module was ready; 2=running)
 

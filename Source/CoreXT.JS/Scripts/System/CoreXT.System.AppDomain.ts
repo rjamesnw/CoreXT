@@ -14,7 +14,7 @@ namespace CoreXT {
 
         // =======================================================================================================================
 
-        //export class $DomainObject extends Object.$Type {
+        //x export class $DomainObject extends Object.$Type {
         //    //static ' '?= class FactoryRoot {
         //    //    static DomainObject_factory?: IFactoryType<$DomainObject> = {
 
@@ -74,7 +74,7 @@ namespace CoreXT {
             /** A collection of all objects created via this application domain instance. Each object is given an ID value
               * that is unique for this specific AppDomain instance only.
               */
-            objects: Collections.IndexedObjectCollection<IDomainObjectInfo> = new Collections.IndexedObjectCollection<IDomainObjectInfo>();
+            objects: Collections.IIndexedObjectCollection<IDomainObjectInfo> = new Collections.IndexedObjectCollection<IDomainObjectInfo>();
             // (why an object pool? http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/)
 
             /** Returns the default (first) application for this domain. */
@@ -312,39 +312,35 @@ namespace CoreXT {
 
             // -------------------------------------------------------------------------------------------------------------------
 
-            static '$AppDomain Factory' = function (type = $AppDomain) {
-                var baseFactory = type['$Object Factory'];
-                var _InstanceType = <{}>null && new type();
-
-                var factoryType = class AppDomainFactory {
-                    static $Type = type;
+            static '$AppDomain Factory' = function () {
+                return frozen(class Factory {
+                    static $Type = $AppDomain;
+                    static $InstanceType = <{}>null && new Factory.$Type();
+                    static $BaseFactory = $AppDomain['$Object Factory'];
 
                     /** Get a new app domain instance.
                     * @param application An optional application to add to the new domain.
                     */
-                    static 'new'(application?: $Application): typeof _InstanceType { return null; }
+                    static 'new'(application?: $Application): typeof Factory.$InstanceType { return null; }
 
                     /** Constructs an application domain for the specific application instance. */
-                    static init($this: typeof _InstanceType, isnew: boolean, application?: $Application): typeof _InstanceType {
-                        baseFactory.init($this, isnew);
+                    static init($this: typeof Factory.$InstanceType, isnew: boolean, application?: $Application): typeof Factory.$InstanceType {
+                        this.$BaseFactory.init($this, isnew);
                         (<IDomainObjectInfo><any>$this).$__appDomain = $this;
                         $this.applications = typeof application == OBJECT ? [application] : [];
                         //? if (global.Object.freeze)
                         //?    global.Object.freeze($this); // (properties cannot be modified once set)
                         return $this;
                     }
-                }
-                frozen(factoryType);
-                return factoryType;
+                });
             }();
 
             // -------------------------------------------------------------------------------------------------------------------
         }
 
         export interface IAppDomain extends $AppDomain { }
-
         export var AppDomain = TypeFactory.__RegisterFactoryType($AppDomain, $AppDomain['$AppDomain Factory']);
-        
+
         $AppDomain.prototype.createApplication = function createApplication<TApp extends $Application>(appClassMod?: ICallableType<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
             if (!Platform.UIApplication)
                 throw Exception.error("AppDomain.createApplication()", "");
@@ -415,25 +411,23 @@ namespace CoreXT {
             applications: $Application[];
 
             // ----------------------------------------------------------------------------------------------------------------
-            static '$Application Factory' = function (type = $Application) {
-                var baseFactoryProto = type['$Object Factory'];
-                var _InstanceType = <{}>null && new type();
+            
+            static '$Application Factory' = function () {
+                return frozen(class Factory {
+                    static $Type = $Application;
+                    static $InstanceType = <{}>null && new Factory.$Type();
+                    static $BaseFactory = $Application['$Object Factory'];
 
-                var factoryType = class ApplicationFactory {
-                    static $Type = type;
+                    static 'new'(title: string, appID: number): typeof Factory.$InstanceType { return null; }
 
-                    static 'new'(title: string, appID: number): typeof _InstanceType { return null; }
-
-                    static init($this: typeof _InstanceType, isnew: boolean, title: string, appID: number): typeof _InstanceType {
-                        baseFactoryProto.init($this, isnew);
+                    static init($this: typeof Factory.$InstanceType, isnew: boolean, title: string, appID: number): typeof Factory.$InstanceType {
+                        this.$InstanceType.init($this, isnew);
                         (<IDomainObjectInfo><any>$this).$__app = $this;
                         $this._title = title;
                         $this._appID = appID;
                         return $this;
                     }
-                }
-                frozen(factoryType);
-                return factoryType;
+                });
             }();
 
             // ----------------------------------------------------------------------------------------------------------------
@@ -456,7 +450,6 @@ namespace CoreXT {
         }
 
         export interface IApplication extends $Application { }
-
         export var Application = TypeFactory.__RegisterFactoryType($Application, $Application['$Application Factory']);
 
         // ====================================================================================================================

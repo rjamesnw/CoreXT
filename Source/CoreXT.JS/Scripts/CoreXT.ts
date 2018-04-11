@@ -164,7 +164,7 @@ namespace CoreXT {
     * This is used to clear certain function properties, such as when preventing client/server functions based on platform,
     * or when replacing the 'CoreXT.Loader.bootstrap()' function, which should only ever need to be called once.
     */
-    export function noop(): void { }
+    export function noop(...args: any[]): any { }
 
     /** Evaluates a string within a Function scope at the GLOBAL level. This is more secure for executing scripts without exposing
       * private/protected variables wrapped in closures.
@@ -438,19 +438,23 @@ namespace CoreXT {
     export namespace TypeFactory {
         export var __disposedObjects: { [fulltypename: string]: IDomainObjectInfo[]; } = {}; // (can be reused by any AppDomain instance! [global pool for better efficiency])
 
-        /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
-           * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
-           * also makes sure the object is associated with an application domain.
-           * Objects that derive from 'DomainObject' should register the type and supply a custom 'init' function instead of a
-           * constructor (in fact, only a default constructor should exist). This is done by creating a static property on the class
-           * that uses 'AppDomain.registerCall()' to register the type. See '$Object.__register' for more information.
-           *
-           * Performance note: When creating thousands of objects continually, proper CoreXT object disposal (and subsequent cache of the
-           * instances) means the GC doesn't have to keep engaging to clear up the abandoned objects.  While using the "new" operator may
-           * be faster than using "{type}.new()" at first, the application actually becomes very lagged while the GC keeps eventually kicking
-           * in. This is why CoreXT objects are cached and reused as much as possible, and why you should try to refrain from using the 'new',
-           * operator, or any other operation that creates objects that the GC has to manage on a blocking thread.
-           */
+        /** 
+          * Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
+          * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
+          * also makes sure the object is associated with an application domain. Reducing lag due to GC collection is an
+          * important consideration when development games, which makes the CoreXTJS system a great way to get started quickly.
+          * 
+          * Objects that derive from 'System.Object' should register the type and supply a custom 'init' function instead of a
+          * constructor (in fact, only a default constructor should exist). This is done by creating a static property on the class
+          * that uses 'TypeFactory.__RegisterFactoryType()' to register the type.
+          *
+          * Performance note: When creating thousands of objects continually, proper CoreXT object disposal (and subsequent
+          * cache of the instances) means the GC doesn't have to keep engaging to clear up the abandoned objects.  While using
+          * the 'new' operator may be faster than using "{type}.new()" factory function at first, the application actually 
+          * becomes very lagged while the GC keeps eventually kicking in. This is why CoreXT objects are cached and reused as
+          * much as possible, and why you should try to refrain from using the 'new', operator, or any other operation that
+          * creates objects that the GC has to manage by blocking the main thread.
+          */
         export function __new(...args: any[]): NativeTypes.IObject {
             // ... this is the default 'new' function ...
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
@@ -477,41 +481,52 @@ namespace CoreXT {
 
         /** Called internally once registration is finalized (see also end of 'AppDomain.registerClass()'). */
         export function __RegisterFactoryType<TClass extends IType<object>, TFactory extends IFactoryType<object>>(type: TClass, factoryType: TFactory): TClass & TFactory {
-            if (!factoryType.$Type)
-                factoryType.$Type = type;
+            var _type = <IFactoryType & ITypeInfo & Object><any>type;
+            var _factoryType = <TFactory & Object>factoryType;
 
-            var _type = <IFactoryType & ITypeInfo><any>type;
+            if (!_factoryType.$Type)
+                _factoryType.$Type = type;
 
-            _type.$__factory = factoryType; // (sets the factory type on the )
+            _type.$__factory = _factoryType; // (sets the factory type on the )
+            _type.$InstanceType = factoryType.$InstanceType; // (this copy is not really necessary, but here anyhow to be thorough)
+            _type.$BaseFactory = factoryType.$BaseFactory;
+
+            // ... create the 'init' and 'new' hooks ...
 
             if (!Object.prototype.hasOwnProperty.call(_type.prototype, "init"))
-                if (factoryType.prototype.init && typeof factoryType.prototype.init == FUNCTION)
-                    _type.prototype.init = factoryType.prototype.init;
+                if (_factoryType.prototype.init && typeof _factoryType.prototype.init == FUNCTION)
+                    _type.prototype.init = _factoryType.prototype.init;
                 else if (!type.prototype.init || typeof type.prototype.init != FUNCTION)
                     _type.prototype.init = noop;
 
             if (!Object.prototype.hasOwnProperty.call(_type, "new"))
-                if (factoryType.new && typeof factoryType.new == FUNCTION)
+                if (_factoryType.new && typeof _factoryType.new == FUNCTION)
                     _type.new = function _firstTimeNewTest() {
-                        var result = factoryType.new.call(this, ...arguments);
+                        var result = _factoryType.new.call(this, ...arguments);
                         if (result && typeof result == OBJECT) {
                             // (the call returned a valid value, so next time, just use that one as is)
-                            _type.new = factoryType.new;
+                            _type.new = _factoryType.new;
                             return result;
                         }
                         else {
                             // (an object is required, otherwise this is not valid and only a place holder; if so, revert to the generic 'new' implementation)
-                            _type.new = factoryType.new = __new;
-                            return factoryType.new.call(this, ...arguments);
+                            _type.new = _factoryType.new = __new;
+                            return _factoryType.new.call(this, ...arguments);
                         }
                     };
                 else if (!_type.new || typeof _type.new != FUNCTION) // (normally the default 'new' function should exist behind the scenes on the base Object type)
                     _type.new = () => {
-                        throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(factoryType, false) + "'. This exists on the DomainObject base type, and is required.";
+                        throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(_factoryType, false) + "'. This exists on the DomainObject base type, and is required.";
                     }
 
-            if ('__register' in factoryType)
-                factoryType['__register'] == noop;
+            // ... copy over any other static methods and properties on the factory object ...
+
+            for (var p in _factoryType)
+                if (_factoryType.hasOwnProperty(p) && !_type.hasOwnProperty(p))
+                    _type[p] = _factoryType[p];
+
+            //x if ('__register' in _factoryType)
+            //x     _factoryType['__register'] == noop;
 
             return <any>_type;
         }
@@ -1320,6 +1335,7 @@ namespace CoreXT {
                 var _InstanceType = <{}>null && new type();
                 var factoryType = class ResourceRequest extends type {
                     static $Type = type;
+                    static $BaseFactory = <IFactoryType>null;
 
                     /** Returns a new module object only - does not load it. */
                     static 'new'(url: string, type: ResourceTypes, async?: boolean): typeof _InstanceType { return null; }

@@ -25,26 +25,27 @@ namespace CoreXT.System.Collections {
 
         // ----------------------------------------------------------------------------------------------------------------
 
-        static ' '() {
-            var _super_factory = super[' ']().Array_factory;
-            return class {
-                static ObservableCollection_factory?= class {
-                    static 'new'<TOwner extends object, T>(...items: T[]): $ObservableCollection<TOwner, T> { return null; }
+        static '$ObservableCollection Factory' = function () {
+            type TInstance<TOwner extends object, T> = $ObservableCollection<TOwner, T>
+            return frozen(class Factory {
+                static $Type = $ObservableCollection;
+                static $InstanceType = <{}>null && new Factory.$Type();
+                static $BaseFactory = $ObservableCollection['$Array Factory'];
 
-                    static init<TOwner extends object, T>($this: $ObservableCollection<TOwner, T>, isnew: boolean, ...items: T[]): $ObservableCollection<TOwner, T> {
-                        _super_factory.init<T>($this, isnew, ...items);
-                        return $this;
-                    }
+                static 'new'<TOwner extends object, T>(...items: T[]): TInstance<TOwner, T> { return null; }
+
+                static init<TOwner extends object, T>($this: TInstance<TOwner, T>, isnew: boolean, ...items: T[]): TInstance<TOwner, T> {
+                    this.$BaseFactory.init<T>($this, isnew, ...items);
+                    return $this;
                 }
-            }
-        }
+            });
+        }();
 
         // ----------------------------------------------------------------------------------------------------------------
     }
 
-    export interface ICollection<TOwner extends object, T> extends $ObservableCollection<TOwner, T> { }
-
-    export var ObservableCollection = AppDomain.registerClass($ObservableCollection, $ObservableCollection[' ']().ObservableCollection_factory, [CoreXT, System, Collections]);
+    export interface IObservableCollection<TOwner extends object, T> extends $ObservableCollection<TOwner, T> { }
+    export var ObservableCollection = TypeFactory.__RegisterFactoryType($ObservableCollection, $ObservableCollection['$ObservableCollection Factory']);
 
     // =======================================================================================================================
 

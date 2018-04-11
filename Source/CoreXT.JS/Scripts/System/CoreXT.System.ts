@@ -91,7 +91,12 @@ namespace CoreXT {
     export interface InitDelegate<TInstance extends NativeTypes.IObject> { ($this: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
     export interface IFactoryType<TInstance extends object = object, TNew extends NewDelegate<TInstance> = NewDelegate<any>, TInit extends InitDelegate<TInstance> = InitDelegate<any>> {
+        /** The underlying type for this factory. */
         $Type: IType<TInstance>;
+        /** The underlying instance type for this factory. */
+        $InstanceType?: TInstance;
+        /** The factory from the inherited base type, or null if this object does not inherit from an object with a factory pattern. */
+        $BaseFactory: IFactoryType;
 
         /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
         * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and

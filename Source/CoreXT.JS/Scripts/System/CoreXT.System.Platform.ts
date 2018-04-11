@@ -34,22 +34,22 @@ namespace CoreXT.System.Platform {
         protected _url: string;
 
         // ----------------------------------------------------------------------------------------------------------------
+        
         static '$Context Factory' = function (type = $Context) {
-            var baseFactory = type['$Object Factory'];
-            var _InstanceType: $Context;
-
-            var factoryType = class ContextFactory  {
+            var factoryType = class Factory {
                 static $Type = type;
+                static $InstanceType = <{}>null && new Factory.$Type();
+                static $BaseFactory = $Context['$Object Factory'];
 
                 //? static 'new'?(context: Contexts = Contexts.Secure): typeof _InstanceType { throw Exception.from("You cannot create instances of the abstract Context class.", this); }
 
-                static init($this: typeof _InstanceType, isnew: boolean, context: Contexts = Contexts.Secure): typeof _InstanceType {
-                    baseFactory.init($this, isnew);
+                static init($this: typeof Factory.$InstanceType, isnew: boolean, context: Contexts = Contexts.Secure): typeof Factory.$InstanceType {
+                    this.$BaseFactory.init($this, isnew);
                     $this._contextType = context;
                     return $this;
                 }
             };
-            factoryType['new'] = (context: Contexts = Contexts.Secure): typeof _InstanceType => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
+            factoryType['new'] = (context: Contexts = Contexts.Secure): typeof factoryType.$InstanceType => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
             frozen(factoryType);
             return factoryType;
         }();
@@ -65,9 +65,8 @@ namespace CoreXT.System.Platform {
     }
 
     export interface IContext extends $Context { }
-
     export var Context = TypeFactory.__RegisterFactoryType($Context, $Context['$Context Factory']);
-    
+
     // ====================================================================================================================
 
     /** Where the Application object represents the base application properties for an AppDomain instance, the UIApplication
@@ -92,22 +91,19 @@ namespace CoreXT.System.Platform {
 
         // -------------------------------------------------------------------------------------------------------------------
 
-        static '$UIApplication Factory' = function (type = $UIApplication) {
-            var baseFactory = type['$Application Factory'];
-            var _InstanceType = <{}>null && new type();
+        static '$UIApplication Factory' = function () {
+            return frozen(class Factory {
+                static $Type = $UIApplication;
+                static $InstanceType = <{}>null && new Factory.$Type();
+                static $BaseFactory = $UIApplication['$Application Factory'];
 
-            var factoryType = class UIApplicationFactory {
-                static $Type = type;
+                static 'new'(title: string, appID: number): typeof Factory.$InstanceType { return null; }
 
-                static 'new'(title: string, appID: number): typeof _InstanceType { return null; }
-
-                static init($this: typeof _InstanceType, isnew: boolean, title: string, appID: number): typeof _InstanceType {
-                    baseFactory.init($this, isnew, title, appID);
+                static init($this: typeof Factory.$InstanceType, isnew: boolean, title: string, appID: number): typeof Factory.$InstanceType {
+                    this.$BaseFactory.init($this, isnew, title, appID);
                     return $this;
                 }
-            }
-            frozen(factoryType);
-            return factoryType;
+            });
         }();
 
         // ----------------------------------------------------------------------------------------------------------------
@@ -190,7 +186,6 @@ namespace CoreXT.System.Platform {
     }
 
     export interface IUIApplication extends $UIApplication { }
-
     export var UIApplication = TypeFactory.__RegisterFactoryType($UIApplication, $UIApplication['$UIApplication Factory']);
 
     // ====================================================================================================================

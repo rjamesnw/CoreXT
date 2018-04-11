@@ -168,7 +168,7 @@ namespace CoreXT.System {
         getData(data: SerializedData): void {
             var isstatic = $Delegate.__validate("getData()", this.object, this.func);
             if (!isstatic)
-                data.addValue("id", (<IDomainObjectInfo>this.object).$__id);
+                data.addValue("id", (<IDomainObjectInfo><any>this.object).$__id);
             data.addValue("ft", this.__functionText);
         }
         /**
@@ -177,7 +177,7 @@ namespace CoreXT.System {
          */
         setData(data: SerializedData): void {
             var objid = data.getNumber("id");
-            this.object = (<IDomainObjectInfo>this).$__appDomain.objects.getObject<TObj>(objid);
+            this.object = (<IDomainObjectInfo><any>this).$__appDomain.objects.getObjectForceCast<TObj>(objid);
             this.__functionText = data.getValue("ft");
             this.update();
             // TODO: Consider functions that implement ITypeInfo, and use that if they are registered.
@@ -204,46 +204,46 @@ namespace CoreXT.System {
 
         /* ------ This part uses the CoreXT factory pattern ------ */
 
-        static ' '() {
-            var _super_factory = super[' ']().Object_factory;
-            return class {
-                static Delegate_factory?= class {
-                    /**
-                     * Constructs a new Delegate object.
-                     * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
-                     * @param {Function} func The function to be called on the associated object.
-                     */
-                    static 'new'<TObj extends object, TFunc extends DelegateFunction<object>>(object: TObj, func: TFunc): $Delegate<TObj, TFunc> { return null; }
+        static '$Delegate Factory' = function () {
+            type Instance<TObj extends object, TFunc extends DelegateFunction<object>> = $Delegate<TObj, TFunc>;
+            return frozen(class Factory {
+                static $Type = $Delegate;
+                static $InstanceType = <{}>null && new Factory.$Type();
+                static $BaseFactory = $Delegate['$Object Factory'];
 
-                    /**
-                     * Reinitializes a disposed Delegate instance.
-                     * @param $this The Delegate instance to initialize, or re-initialize.
-                     * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                     * @param object The instance to bind to the resulting delegate object.
-                     * @param func The function that will be called for the resulting delegate object.
-                     */
-                    static init<TObj extends object, TFunc extends DelegateFunction<object>>($this: $Delegate<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc): $Delegate<TObj, TFunc> {
-                        _super_factory.init($this, isnew);
-                        if (object === void 0) object = null;
-                        $this.object = object;
-                        $this.func = <any>func;
-                        $this.update();
-                        return $this;
-                    }
+                /**
+                  * Constructs a new Delegate object.
+                  * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
+                  * @param {Function} func The function to be called on the associated object.
+                  */
+                static 'new'<TObj extends object, TFunc extends DelegateFunction<object>>(object: TObj, func: TFunc): Instance<TObj, TFunc> { return null; }
+
+                /**
+                 * Reinitializes a disposed Delegate instance.
+                 * @param $this The Delegate instance to initialize, or re-initialize.
+                 * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                 * @param object The instance to bind to the resulting delegate object.
+                 * @param func The function that will be called for the resulting delegate object.
+                 */
+                static init<TObj extends object, TFunc extends DelegateFunction<object>>($this: $Delegate<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc): Instance<TObj, TFunc> {
+                    this.$BaseFactory.init($this, isnew);
+                    if (object === void 0) object = null;
+                    $this.object = object;
+                    $this.func = <any>func;
+                    $this.update();
+                    return $this;
                 }
-            }
-        }
+            });
+        }();
 
         /* ------------------------------------------------------- */
 
         // -------------------------------------------------------------------------------------------------------------------
     }
 
-    /** An interface of the Delegate type. Interfaces are used in some places rather than concrete types to allow custom implementations. */
-    export interface IDelegate<TObj extends object, TFunc extends DelegateFunction<object>> extends $Delegate<TObj, TFunc> {
-    }
+    export interface IDelegate<TObj extends object, TFunc extends DelegateFunction<object>> extends $Delegate<TObj, TFunc> { }
 
-    export var Delegate = AppDomain.registerClass($Delegate, $Delegate[' ']().Delegate_factory, [CoreXT, System]);
+    export var Delegate = TypeFactory.__RegisterFactoryType($Delegate, $Delegate['$Delegate Factory']);
 
     // =======================================================================================================================
 }
