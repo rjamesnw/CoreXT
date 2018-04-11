@@ -159,7 +159,7 @@ namespace CoreXT {
                 else
                     parentModules = parentModules.slice(); // (use copy only just in case, since we will be modifying it)
 
-                var _type: ITypeInfo = type, namespaceItem: {} = CoreXT.global, mod: IModuleInfo, pname: string, name: string, fullname: string;
+                var _type = <ITypeInfo>type, namespaceItem: {} = CoreXT.global, mod: IModuleInfo, pname: string, name: string, fullname: string;
                 if (!_type.$__name)
                     _type.$__name = Object.getTypeName(_type);
 

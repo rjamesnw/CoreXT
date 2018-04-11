@@ -476,7 +476,7 @@ namespace CoreXT {
         }
 
         /** Called internally once registration is finalized (see also end of 'AppDomain.registerClass()'). */
-        export function __RegisterFactoryType<TClass extends IType<object>, TFactory extends IFactoryType<object>>(type: TClass, factoryType: TFactory) {
+        export function __RegisterFactoryType<TClass extends IType<object>, TFactory extends IFactoryType<object>>(type: TClass, factoryType: TFactory): TClass & TFactory {
             if (!factoryType.$Type)
                 factoryType.$Type = type;
 
@@ -513,7 +513,7 @@ namespace CoreXT {
             if ('__register' in factoryType)
                 factoryType['__register'] == noop;
 
-            return factoryType;
+            return <any>_type;
         }
 
         /** Disposes a specific object in this AppDomain instance. 
@@ -588,21 +588,23 @@ namespace CoreXT {
     /**
     * A TypeScript decorator used to seal a function and its prototype. Properties cannot be added, but existing ones can be updated.
     */
-    export function sealed(target: any, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): any {
+    export function sealed<T extends {}>(target: T, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): T {
         if (typeof target == CoreXT.OBJECT)
             Object.seal(target);
-        if (typeof target.prototype == CoreXT.OBJECT)
-            Object.seal(target.prototype);
+        if (typeof (<Object>target).prototype == CoreXT.OBJECT)
+            Object.seal((<Object>target).prototype);
+        return target;
     }
 
     /**
     * A TypeScript decorator used to freeze a function and its prototype.  Properties cannot be added, and existing ones cannot be changed.
     */
-    export function frozen(target: any, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): any {
+    export function frozen<T extends {}>(target: T, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): T {
         if (typeof target == CoreXT.OBJECT)
             Object.freeze(target);
-        if (typeof target.prototype == CoreXT.OBJECT)
-            Object.freeze(target.prototype);
+        if (typeof (<Object>target).prototype == CoreXT.OBJECT)
+            Object.freeze((<Object>target).prototype);
+        return target;
     }
 
     // =======================================================================================================================

@@ -95,13 +95,13 @@ namespace CoreXT {
             * This helps to speed up future calls.
             */
             static getTypeName(object: object, cacheTypeName = true): string {
-                $Object.getTypeName = CoreXT.getTypeName;
+                this.getTypeName = CoreXT.getTypeName;
                 return CoreXT.getTypeName(object, cacheTypeName);
             }
 
             /** Returns true if the given object is empty. */
             static isEmpty(obj: any): boolean {
-                $Object.isEmpty = CoreXT.isEmpty; // (make future calls use the root namespace function that already exists)
+                this.isEmpty = CoreXT.isEmpty; // (make future calls use the root namespace function that already exists)
                 return CoreXT.isEmpty(obj);
             }
 
@@ -109,9 +109,9 @@ namespace CoreXT {
 
             /* ------ This part uses the CoreXT factory pattern ------ */
 
-            static '$Object Factory' = function (base = $Object) {
-                var _InstanceType = <{}>null && new base();
-                var factoryType = class ObjectFactory  {
+            static '$Object Factory' = function (base = $Object, instanceType = <{}>null && new base()) {
+                return frozen(class ObjectFactory {
+
                     static $Type = base;
 
                     /**
@@ -119,7 +119,7 @@ namespace CoreXT {
                      * @param value If specified, the value will be wrapped in the created object.
                      * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
                      */
-                    static 'new'(value?: any, makeValuePrivate: boolean = false): typeof _InstanceType {
+                    static 'new'(value?: any, makeValuePrivate: boolean = false): typeof instanceType {
                         return TypeFactory.__new.call(this, value, makeValuePrivate);
                     }
 
@@ -127,7 +127,7 @@ namespace CoreXT {
                     /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
                       * constructor function to get new instances, and 'dispose()' to release them when done.
                       */
-                    static init($this: typeof _InstanceType, isnew: boolean, value?: any, makePrivate: boolean = false): typeof _InstanceType {
+                    static init($this: typeof instanceType, isnew: boolean, value?: any, makePrivate: boolean = false): typeof instanceType {
                         if (!isnew)
                             $this.$__reset();
 
@@ -151,9 +151,7 @@ namespace CoreXT {
 
                         return $this;
                     }
-                };
-                frozen(factoryType);
-                return factoryType;
+                });
             }();
 
             /* ------------------------------------------------------- */
@@ -162,7 +160,7 @@ namespace CoreXT {
         }
 
         export interface IObject extends $Object { }
-        type IObjectFactory = typeof $Object['$Object Factory'];
+        //x type IObjectFactory = typeof $Object['$Object Factory'];
 
         /** The base type for many CoreXT classes. */
         export var Object = TypeFactory.__RegisterFactoryType($Object, $Object['$Object Factory']);
@@ -383,7 +381,7 @@ namespace CoreXT {
         export interface IArray<T> extends $Array<T>, IDisposable, ISerializable { }
 
         export var Array = TypeFactory.__RegisterFactoryType($Array, $Array['$Array Factory']);
-        
+
         // =======================================================================================================================
 
         //if (Object.freeze) {
