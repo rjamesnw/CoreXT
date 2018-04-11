@@ -22,7 +22,7 @@
   "exclude": [
     "node_modules",
     "wwwroot/**/*.ts",
-    "Scripts/js/CoreXT.VDom.Canvas.ts",
-    "Scripts/js/CoreXT.VDom.ts"
+    "Scripts/CoreXT.VDom.Canvas.ts",
+    "Scripts/CoreXT.VDom.ts"
   ]
 }
