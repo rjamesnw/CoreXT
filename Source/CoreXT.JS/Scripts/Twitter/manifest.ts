@@ -6,7 +6,7 @@
 
 namespace CoreXT.Scripts.Modules {
     /** Twitter related plugins. */
-    export module Twitter {
+    export namespace Twitter {
 
         // ===================================================================================
 

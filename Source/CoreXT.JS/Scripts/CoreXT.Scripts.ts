@@ -4,7 +4,7 @@
 
 /** Types and functions for loading scripts into the CoreXT system. */
 namespace CoreXT {
-    export module Scripts {
+    export namespace Scripts {
         // =======================================================================================================================
 
         /** Used to strip out the module header */
@@ -17,17 +17,17 @@ namespace CoreXT {
           * loaded first before a module is ready for use.
           * Usage: To load a module, call it using the '[CoreXT.]using.ModuleName(...)' syntax.
           * Note: If you are developing your own module, use a proper name path under the Modules namespace -
-          * typically something like 'module CoreXT.Scripts.Modules { /** Comments... * / export module CompanyOrWebsite.YourModule { ... } }'
+          * typically something like 'module CoreXT.Scripts.Modules { /** Comments... * / export namespace CompanyOrWebsite.YourModule { ... } }'
           * (take note that the comments are in their own scope, which is required as well).
           */
-        export module Modules {
+        export namespace Modules {
 
             /** Supported CoreXT system modules.
               * Note: If you are developing your own module, use a proper name path under the parent 'Modules' namespace -
-              * typically something like 'module CoreXT.Scripts.Modules { /** Comments... * / export module CompanyOrWebsite.YourModule { ... } }'
+              * typically something like 'module CoreXT.Scripts.Modules { /** Comments... * / export namespace CompanyOrWebsite.YourModule { ... } }'
               * Do not put custom modules directly in the 'CoreXT.Scripts.Modules.System' namespace, nor any sub-namespace from there.
               */
-            export module System {
+            export namespace System {
             }
         }
 

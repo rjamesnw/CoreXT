@@ -21,7 +21,7 @@ if (CoreXT.Environment == CoreXT.Environments.Browser) { // (just in case [shoul
 namespace CoreXT.System.Platform.UI.HTML {
 
     /** Contains Bootstrap related styling, elements, and components wrapped in GraphItem derived classes. */
-    export module Bootstrap {
+    export namespace Bootstrap {
 
         // ===================================================================================================================
 
@@ -69,7 +69,7 @@ namespace CoreXT.System.Platform.UI.HTML {
 
         export declare function Button(parent?: GraphItem.$Type, buttonType?: ButtonTypes, buttonSize?: ButtonSize): Button.$Type;
         /** Represents a button type in Bootstrap. */
-        export module Button {
+        export namespace Button {
             export var ButtonType = Events.EventDispatcher.registerEvent(Button, "buttonType", true, ButtonTypes.Success);
             export var ButtonSize = Events.EventDispatcher.registerEvent(Button, "buttonSize", true, ButtonSize.Default);
             export var BLockLevel = Events.EventDispatcher.registerEvent(Button, "blockLevel", true, <boolean>void 0);
@@ -127,7 +127,7 @@ namespace CoreXT.System.Platform.UI.HTML {
 
         export declare function Table(parent?: GraphItem.$Type): Table.$Type;
         /** Represents a button type in Bootstrap. */
-        export module Table {
+        export namespace Table {
             export class $Type extends HTML.Table.$Type {
                 // ---------------------------------------------------------------------------------------------------------------
 
@@ -159,7 +159,7 @@ namespace CoreXT.System.Platform.UI.HTML {
 
         export declare function TableRow(parent?: GraphItem.$Type): TableRow.$Type;
         /** Represents a row on a table type in Bootstrap. */
-        export module TableRow {
+        export namespace TableRow {
             export var RowState = Property.register(TableRow, "rowState", true, RowStates.Default, UNDEFINED, $Type.prototype._rowStateChanged);
 
             export class $Type extends HTML.TableRow.$Type {
@@ -196,7 +196,7 @@ namespace CoreXT.System.Platform.UI.HTML {
         /** Return a new model window. */
         export declare function Modal(parent?: GraphItem.$Type): Modal.$Type;
         /** Represents a modal window in Bootstrap. */
-        export module Modal {
+        export namespace Modal {
             export class $Type extends __HTMLElement.HTMLElement {
                 // ---------------------------------------------------------------------------------------------------------------
 

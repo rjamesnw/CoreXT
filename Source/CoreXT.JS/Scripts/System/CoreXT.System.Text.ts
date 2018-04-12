@@ -5,7 +5,7 @@
 namespace CoreXT.System.Text {
     // =======================================================================================================================
 
-    export module RegEx {
+    export namespace RegEx {
         // -------------------------------------------------------------------------------------------------------------------
 
         /** Escapes a RegEx string so it behaves like a normal string. This is useful for RexEx string based operations, such as 'replace()'. */
@@ -16,7 +16,7 @@ namespace CoreXT.System.Text {
         // -------------------------------------------------------------------------------------------------------------------
     }
 
-    export module Encoding {
+    export namespace Encoding {
         //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
 
         export enum Base64Modes {
@@ -193,7 +193,7 @@ namespace CoreXT.System.Text {
 
     // =======================================================================================================================
 
-    export module HTML {
+    export namespace HTML {
         // -------------------------------------------------------------------------------------------------------------------
 
         // Removes the '<!-- -->' comment sequence from the ends of the specified HTML.

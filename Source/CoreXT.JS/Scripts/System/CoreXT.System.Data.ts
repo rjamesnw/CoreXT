@@ -6,7 +6,7 @@ namespace CoreXT.System.Data {
     // =======================================================================================================================
 
     /** Provides basic functions for working with JSON data. */
-    export module JSON {
+    export namespace JSON {
         // ===================================================================================================================
 
         /** Converts a JSON string into an object with nested objects as required.

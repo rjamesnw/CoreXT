@@ -412,7 +412,7 @@ namespace CoreXT {
     /**
      * Contains some basic static values and calculations used by time related functions within the system.
      */
-    export module Time {
+    export namespace Time {
         export var __millisecondsPerSecond = 1000;
         export var __secondsPerMinute = 60;
         export var __minsPerHour = 60;
@@ -640,7 +640,7 @@ namespace CoreXT {
     // =======================================================================================================================
 
     /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
-    export module System {
+    export namespace System {
     }
 
     // =======================================================================================================================
@@ -650,7 +650,7 @@ namespace CoreXT {
     export interface IErrorCallback<TSender> { (sender?: TSender, error?: any): any }
 
     /** The loader namespace contains low level functions for loading/bootstrapping the whole system. */
-    export module Loader {
+    export namespace Loader {
 
         // ... polyfill some XHR 'readyState' constants ...
 

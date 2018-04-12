@@ -6,7 +6,7 @@ namespace CoreXT.Scripts.Modules {
     /**
      * Google related modules.
      */
-    export module Google {
+    export namespace Google {
 
         // ===================================================================================
 

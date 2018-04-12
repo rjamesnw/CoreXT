@@ -334,7 +334,7 @@ namespace CoreXT {
       * Note: While it's always better to check objects for supported functions, sometimes an existing function may take different
       * parameters based on the browser (such as 'Worker.postMessage()' using transferable objects with IE vs All Others [as usual]).
       */
-    export module Browser {
+    export namespace Browser {
         // (Browser detection is a highly modified version of "http://www.quirksmode.org/js/detect.html".)
         // (Note: This is only required for quirk detection in special circumstances [such as IE's native JSON whitespace parsing issue], and not for object feature support)
 

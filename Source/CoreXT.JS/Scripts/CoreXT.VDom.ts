@@ -23,7 +23,7 @@ namespace CoreXT {
     export interface INodeList extends NodeList { }
     export interface IHTMLCanvasElement extends HTMLCanvasElement { }
 
-    export module VDOM {
+    export namespace VDOM {
         export function defineProperty(obj: {}, name: string, initialValue?: any, canRead: boolean = true, canWrite: boolean = true): {} {
             var desc: PropertyDescriptor = {
                 configurable: false,

@@ -21,7 +21,7 @@ namespace CoreXT {
     export interface ICanvasRenderingContext2D extends CanvasRenderingContext2D { }
     export interface IWebGLRenderingContext extends WebGLRenderingContext { }
 
-    export module VDOM {
+    export namespace VDOM {
         export class CanvasRenderingContext2D {
             canvas: IHTMLCanvasElement;
 

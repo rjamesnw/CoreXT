@@ -6,7 +6,7 @@ namespace CoreXT.System {
     // =======================================================================================================================
 
     /** Contains diagnostic based functions, such as those needed for logging purposes. */
-    export module Diagnostics {
+    export namespace Diagnostics {
         export var __logItems: LogItem[] = [];
         var __logItemsSequenceCounter = 0;
         var __logCaptureStack: LogItem[] = [];

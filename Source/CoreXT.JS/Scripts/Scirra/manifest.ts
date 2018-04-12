@@ -6,7 +6,7 @@ namespace CoreXT.Scripts.Modules {
     /**
     * Modules for Scirra's Construct 2 HTML5/JS game development platform (http://scirra.com).
     */
-    export module Scirra {
+    export namespace Scirra {
 
         // ===================================================================================
 

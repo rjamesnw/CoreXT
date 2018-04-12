@@ -6,7 +6,7 @@ namespace CoreXT.Scripts.Modules {
     /**
     * Modules by Matteo Spinelli.
     */
-    export module Cubiq_org {
+    export namespace Cubiq_org {
 
         // ===================================================================================
 

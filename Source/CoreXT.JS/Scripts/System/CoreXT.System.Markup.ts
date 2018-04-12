@@ -122,23 +122,32 @@ namespace CoreXT.System {
                 var _super_factory = super[' ']().Object_factory;
                 return class {
                     static HTMLReader_factory?= class {
-                        /**
-                         * Create a new HTMLReader instance to parse the given HTML text.
-                         * @param html The HTML text to parse.
-                         */
-                        static 'new'(html: string): $HTMLReader { return null; }
-
-                        static init($this: $HTMLReader, isnew: boolean, html: string): $HTMLReader {
-                            _super_factory.init($this, isnew);
-                            // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
-                            $this.html = html;
-                            $this.delimiters = html.match($HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
-                            $this.nonDelimiters = (<any>$this.html).split($HTMLReader.__splitRegEx, void 0, $this.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
-                            return $this;
-                        }
                     }
                 }
             }
+
+            static '$HTMLReader Factory' = function () {
+                return frozen(class Factory {
+                    static $Type = $HTMLReader;
+                    static $InstanceType = <{}>null && new Factory.$Type();
+                    static $BaseFactory = $HTMLReader['$Object Factory'];
+
+                    /**
+                     * Create a new HTMLReader instance to parse the given HTML text.
+                     * @param html The HTML text to parse.
+                     */
+                    static 'new'(html: string): typeof Factory.$InstanceType { return null; }
+
+                    static init($this: typeof Factory.$InstanceType, isnew: boolean, html: string): typeof Factory.$InstanceType {
+                        this.$BaseFactory.init($this, isnew);
+                        // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
+                        $this.html = html;
+                        $this.delimiters = html.match($HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
+                        $this.nonDelimiters = (<any>$this.html).split($HTMLReader.__splitRegEx, void 0, $this.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
+                        return $this;
+                    }
+                });
+            }();
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -309,8 +318,7 @@ namespace CoreXT.System {
         }
 
         export interface IHTMLReader extends $HTMLReader { }
-
-        export var HTMLReader = AppDomain.registerClass($HTMLReader, $HTMLReader[' ']().HTMLReader_factory, [CoreXT, System, Markup]);
+        export var HTMLReader = TypeFactory.__RegisterFactoryType($HTMLReader, $HTMLReader['$HTMLReader Factory']);
 
         // ========================================================================================================================
     }

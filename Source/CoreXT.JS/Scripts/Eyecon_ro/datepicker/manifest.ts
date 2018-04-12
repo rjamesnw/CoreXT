@@ -5,7 +5,7 @@ namespace CoreXT.Scripts.Modules {
     /**
      * Plugins by Stefan Petre (http://www.eyecon.ro/bootstrap-datepicker/).
      */
-    export module Eyecon_ro {
+    export namespace Eyecon_ro {
 
         // ===================================================================================
 

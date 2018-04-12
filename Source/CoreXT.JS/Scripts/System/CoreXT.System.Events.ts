@@ -3,12 +3,12 @@
 // ############################################################################################################################
 
 namespace CoreXT {
-    export module System {
+    export namespace System {
         // ====================================================================================================================
 
         /** Encompasses event related types and functions.
           */
-        export module Events {
+        export namespace Events {
 
             /** Represents an event callback function. */
             export interface EventHandler { (_this: {}, ...args: any[]): void | boolean };
@@ -45,7 +45,7 @@ namespace CoreXT {
                  * 'on[EventName]', where the first event character is made uppercase automatically.
                  * @param canCancel If true (default), this event can be cancelled (prevented from completing, so no other events will fire).
                  */
-                static registerEvent<TOwner extends object, TCallback extends EventHandler>(type: { new (...args: any[]): TOwner }, eventName: string,
+                static registerEvent<TOwner extends object, TCallback extends EventHandler>(type: { new(...args: any[]): TOwner }, eventName: string,
                     eventMode: EventModes = EventModes.Capture, removeOnTrigger: boolean = false, eventTriggerCallback?: EventTriggerHandler<TOwner, TCallback>,
                     customEventPropName?: string, canCancel: boolean = true)
                     : { _eventMode: EventModes; _eventName: string; _removeOnTrigger: boolean; eventFuncType: () => $EventDispatcher<TOwner, TCallback>; eventPropertyType: $EventDispatcher<TOwner, TCallback> } {
@@ -186,7 +186,7 @@ namespace CoreXT {
                             var epf = <() => $EventDispatcher<any, any>>parent[eventPropFuncName];
                             if (typeof epf == FUNCTION && epf instanceof $EventDispatcher)
                                 eventChain.push(epf());
-                            parent = parent.__parent;
+                            parent = parent['__parent'];
                         }
                     }
 
@@ -292,50 +292,54 @@ namespace CoreXT {
 
                 // -------------------------------------------------------------------------------------------------------------------
 
-                static ' '() {
-                    var _super_factory = super[' ']().Object_factory;
-                    return class {
-                        static EventDispatcher_factory?= class {
-                            /** Creates an event object for a specific even type.
-                              * @param {TOwner} owner The owner which owns this event object.
-                              * @param {string} eventName The name of the event which this event object represents.
-                              * @param {boolean} removeOnTrigger If true, then handlers are called only once, then removed (default is false).
-                              * @param {Function} eventTriggerHandler This is a hook which is called every time a handler needs to be called.  This exists mainly to support handlers called with special parameters.
-                              * @param {boolean} canCancel If true, the event can be cancelled (prevented from completing, so no other events will fire).
-                              */
-                            static 'new'<TOwner extends object, TCallback extends EventHandler>(owner: TOwner, eventName: string, removeOnTrigger: boolean = false, eventTriggerHandler: EventTriggerHandler<TOwner, TCallback> = null, canCancel: boolean = true): $EventDispatcher<TOwner, TCallback> { return null; }
+                static '$EventDispatcher Factory' = function () {
+                    type TInstance<TOwner extends object, TCallback extends EventHandler> = $EventDispatcher<TOwner, TCallback>;
+                    return frozen(class Factory {
+                        static $Type = $EventDispatcher;
+                        static $InstanceType = <{}>null && new Factory.$Type();
+                        static $BaseFactory = $EventDispatcher['$Object Factory'];
 
-                            /** Initializes/reinitializes an EventDispatcher instance. */
-                            static init<TOwner extends object, TCallback extends EventHandler>($this: $EventDispatcher<TOwner, TCallback>, isnew: boolean, owner: TOwner, eventName: string, removeOnTrigger: boolean = false, eventTriggerHandler: EventTriggerHandler<TOwner, TCallback> = null, canCancel: boolean = true): $EventDispatcher<TOwner, TCallback> {
-                                _super_factory.init($this, isnew);
+                        /** Creates an event object for a specific even type.
+                          * @param {TOwner} owner The owner which owns this event object.
+                          * @param {string} eventName The name of the event which this event object represents.
+                          * @param {boolean} removeOnTrigger If true, then handlers are called only once, then removed (default is false).
+                          * @param {Function} eventTriggerHandler This is a hook which is called every time a handler needs to be called.  This exists mainly to support handlers called with special parameters.
+                          * @param {boolean} canCancel If true, the event can be cancelled (prevented from completing, so no other events will fire).
+                          */
+                        static 'new'<TOwner extends object, TCallback extends EventHandler>(owner: TOwner, eventName: string, removeOnTrigger: boolean = false,
+                            eventTriggerHandler: EventTriggerHandler<TOwner, TCallback> = null, canCancel: boolean = true): $EventDispatcher<TOwner, TCallback> { return null; }
 
-                                if (typeof eventName !== STRING) eventName = '' + eventName;
-                                if (!eventName) throw "An event name is required.";
+                        /** Initializes/reinitializes an EventDispatcher instance. */
+                        static init<TOwner extends object, TCallback extends EventHandler>($this: $EventDispatcher<TOwner, TCallback>, isnew: boolean, owner: TOwner, eventName: string,
+                            removeOnTrigger: boolean = false, eventTriggerHandler: EventTriggerHandler<TOwner, TCallback> = null, canCancel: boolean = true): $EventDispatcher<TOwner, TCallback> {
 
-                                $this.__eventName = eventName;
-                                $this.__eventPropertyName = EventDispatcher.createEventPropertyNameFromEventName(eventName); // (fix to support the convention of {item}.on{Event}().
+                            this.$BaseFactory.init($this, isnew);
 
-                                $this.owner = owner;
-                                $this.__eventTriggerHandler = eventTriggerHandler;
+                            if (typeof eventName !== STRING) eventName = '' + eventName;
+                            if (!eventName) throw "An event name is required.";
 
-                                $this.canCancel = canCancel;
+                            $this.__eventName = eventName;
+                            $this.__eventPropertyName = EventDispatcher.createEventPropertyNameFromEventName(eventName); // (fix to support the convention of {item}.on{Event}().
 
-                                if (!isnew) {
-                                    $this.__handlers.length = 0;
-                                }
+                            $this.owner = owner;
+                            $this.__eventTriggerHandler = eventTriggerHandler;
 
-                                return $this;
+                            $this.canCancel = canCancel;
+
+                            if (!isnew) {
+                                $this.__handlers.length = 0;
                             }
-                        }
-                    }
-                }
 
-                // -------------------------------------------------------------------------------------------------------------------
+                            return $this;
+                        }
+                    });
+                }();
+
+                // ----------------------------------------------------------------------------------------------------------------
             }
 
             export interface IEventDispatcher<TOwner extends object, TCallback extends EventHandler> extends $EventDispatcher<TOwner, TCallback> { }
-
-            export var EventDispatcher = AppDomain.registerClass($EventDispatcher, $EventDispatcher[' ']().EventDispatcher_factory, [CoreXT, System]);
+            export var EventDispatcher = TypeFactory.__RegisterFactoryType($EventDispatcher, $EventDispatcher['$EventDispatcher Factory']);
         }
 
         // =======================================================================================================================
@@ -389,32 +393,32 @@ namespace CoreXT {
 
             /* ------ This part uses the CoreXT factory pattern ------ */
 
-            static ' '() {
-                var _super_factory = super[' ']().Object_factory;
+            static '$EventObject Factory' = function () {
+                return frozen(class Factory {
+                    static $Type = $EventObject;
+                    static $InstanceType = <{}>null && new Factory.$Type();
+                    static $BaseFactory = $EventObject['$Object Factory'];
 
-                return class FactoryRoot {
-                    static EventObject_factory?= class {
-                        /**
-                         * Constructs a new Delegate object.
-                         * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
-                         * @param {Function} func The function to be called on the associated object.
-                         */
-                        static 'new'(): $EventObject { return null; }
+                    /**
+                     * Constructs a new Delegate object.
+                     * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
+                     * @param {Function} func The function to be called on the associated object.
+                     */
+                    static 'new'(): typeof Factory.$InstanceType { return null; }
 
-                        /**
-                         * Reinitializes a disposed Delegate instance.
-                         * @param $this The Delegate instance to initialize, or re-initialize.
-                         * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                         * @param object The instance to bind to the resulting delegate object.
-                         * @param func The function that will be called for the resulting delegate object.
-                         */
-                        static init($this: $EventObject, isnew: boolean): $EventObject {
-                            _super_factory.init($this, isnew);
-                            return $this;
-                        }
+                    /**
+                     * Reinitializes a disposed Delegate instance.
+                     * @param $this The Delegate instance to initialize, or re-initialize.
+                     * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                     * @param object The instance to bind to the resulting delegate object.
+                     * @param func The function that will be called for the resulting delegate object.
+                     */
+                    static init($this: typeof Factory.$InstanceType, isnew: boolean): typeof Factory.$InstanceType {
+                        this.$BaseFactory.init($this, isnew);
+                        return $this;
                     }
-                }
-            }
+                });
+            }();
 
             /* ------------------------------------------------------- */
 
@@ -422,15 +426,14 @@ namespace CoreXT {
         }
 
         export interface IEventObject extends $EventObject { }
-
-        export var EventObject = AppDomain.registerClass($EventObject, $EventObject[' ']().EventObject_factory, [CoreXT, System]);
+        export var EventObject = TypeFactory.__RegisterFactoryType($EventObject, $EventObject['$EventObject Factory']);
 
         // ====================================================================================================================
     }
 
     // ========================================================================================================================
 
-    export module Browser {
+    export namespace Browser {
         /** Triggered when the DOM has completed loading. */
         export var onReady = System.Events.EventDispatcher.new<typeof CoreXT.Browser, { (): void }>(CoreXT.Browser, "onReady", true);
     }

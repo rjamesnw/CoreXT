@@ -5,7 +5,7 @@ namespace CoreXT.Scripts.Modules {
     /**
      * Modules by Sergey Ilinsky (https://github.com/ilinsky/xmlhttprequest).
      */
-    export module Github.Ilinsky {
+    export namespace Github.Ilinsky {
 
         // ===================================================================================
 
