@@ -63,9 +63,6 @@ namespace CoreXT {
             /** A list of all application domains in the system. */
             static readonly appDomains: $AppDomain[] = [$AppDomain.default];
 
-            /** Holds all the class types in the system registered by calling 'AppDomain.registerType()'. */
-            static readonly _types: { [fullTypeName: string]: ITypeInfo } = {};
-
             /** A type bridge is a object instance who's prototype points to the actual static function object.
               * Each time "{AppDomain}.with()" is used, a bridge is created and cached here under the type name for reuse.
               */
@@ -132,140 +129,49 @@ namespace CoreXT {
                 //    global.close(); // (the default app domain is assumed to be the browser window, so try to close it now)
             }
 
-            ///** Registers a given type by name (constructor function), and creates the function on the last specified module if it doesn't already exist.
-            //* @param {Function} type The type (constructor function) to register.
-            //* @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
-            //* @param {boolean} addMemberTypeInfo If true (default), all member functions of any existing type (function object) will have type information
-            //* applied (using the IFunctionInfo interface).
-            //*/
-            //static registerType<T extends (...args)=>any>(type: string, parentModules: {}[], addMemberTypeInfo?: boolean): T;
-            //static registerType(type: Function, parentModules: {}[], addMemberTypeInfo?: boolean): ITypeInfo;
+            ///** Registers a CoreXT type under a specified namespace and returns the given type reference when done.
+            //  * Note: Prototype functions for registered types are also updated to support the ITypeInfo interface.
+            //  * @param {object} classModule The class module container to register (the class to register in the module must have the name '$Type').
+            //  * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
+            //  * Tip: If intellisense is available, hover your mouse cursor over the class type to see the full namespace path.
+            //  * @param {boolean} addMemberTypeInfo If true (default), all class member functions on the type (function object) will have type information
+            //  * applied (using the IFunctionInfo interface).
+            //  */
+            //static registerType<T>(type: T, parentModules: object[], addMemberTypeInfo: boolean = true) : T {
+            //    // ... get the type name for the class (only available on classes; modules end up being simple objects only) ...
+            //    // (note: if 'classType' will be replaced on the last module with a new constructor function)
 
-            /** Registers a given type (constructor function).  The type reference is expected to already exist.
-              *
-              * DO NOT use this to register CoreXT class types.  Use the 'registerClass()' function instead. This function is
-              * used to register global types, and indirectly called by 'registerClass()' for CoreXT types (classes).
-              * @param {IType} type The type (constructor function) to register.
-              * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
-              * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
-              * applied (using the IFunctionInfo interface).
-              */
-            static registerType(type: IType<any>, parentModules: object[], addMemberTypeInfo = true): any {
+            //    // ***************
+            //    // *************** TODONEXT: Need domain object to handle most of this perhaps, where applicable. ***************
+            //    // ***************
 
-                if (parentModules === void 0)
-                    throw Exception.error("registerType()", "A list of namespace modules is required, up to but not including the class type.", type);
-                if (!parentModules)
-                    parentModules = []; // (null was given perhaps to force global scope)
-                else
-                    parentModules = parentModules.slice(); // (use copy only just in case, since we will be modifying it)
+            //    if (typeof type !== FUNCTION)
+            //        throw Exception.error("registerClass()", "The 'classType' argument is not a valid constructor function.", type); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-                var _type = <ITypeInfo>type, namespaceItem: {} = CoreXT.global, mod: IModuleInfo, pname: string, name: string, fullname: string;
-                if (!_type.$__name)
-                    _type.$__name = Object.getTypeName(_type);
+            //    //if (!(type instanceof Object))
+            //    //    throw Exception.error("registerClass()", "Class is not of type 'System.Object'.", type);
 
-                parentModules.push(type); // (put the type on the end so we can include this in the loop also)
+            //    var classTypeInfo: ITypeInfo = <any>type;
 
-                if (!_type.$__parent || !_type.$__fullname) {
-                    // ... refresh the type information by cycling through the given modules ...
+            //    // ... validate that type info and module info exists, otherwise add/update it ...
 
-                    for (var i = 0, n = parentModules.length; i < n; ++i) {
-                        mod = <IModuleInfo>parentModules[i];
-                        if (!mod.$__parent) {
-                            // ... module type info missing, add it now; first, find the reference to get the name ...
-                            name = "";
-                            for (pname in namespaceItem)
-                                if (namespaceItem[pname] === mod) {
-                                    name = pname;
-                                    break;
-                                }
-                            if (!name)
-                                throw Exception.error("registerType()", ((i == n - 1) ? "The type to be registered" : (i == 0 ? "The first module" : "Module " + (1 + i))) + " cannot be found in the" + ((i == 0) ? " root scope." : " preceding module.")
-                                    + " Please double check you have the correct modules that precede the type being registered.", _type);
-                            fullname = fullname ? fullname + "." + name : name;
-                            mod.$__parent = <IModuleInfo>namespaceItem; // (each module will have a reference to its parent module [object], and its local and full type names; note: the CoreXT parent will be pointing to 'CoreXT.global')
-                            if (mod != _type) // (modules cannot be nested in class types)
-                                mod.$__modules = <any>mod; // ('$__modules' just provides an easy way to navigate TypeScript type information by module name)
-                            else
-                                mod.$__modules = <any>mod.$__parent; // ('$__modules', when accessed on a class type, will reference the parent module)
-                            mod.$__name = name; // (the local module name)
-                            mod.$__fullname = fullname; // (the fully qualified namespace name for this module)
-                        }
-                        namespaceItem = mod;
-                    }
+            //    var modInfo = <INamespaceInfo><any>classTypeInfo.$__parent;
 
-                    _type.$__fullname = fullname = fullname ? fullname + "." + _type.$__name : _type.$__name;
-                }
-                else fullname = _type.$__fullname;
+            //    if (!modInfo || !modInfo.$__name || !modInfo.$__fullname)
+            //        this.registerType(type, parentModules, addMemberTypeInfo);
 
-                // ... scan the type's prototype functions and update the type information (only function names at this time) ...
-                // TODO: Consider parsing the function parameters as well and add this information for developers.
+            //    // ... establish the static property definitions ...
+            //    //? Property.__completePropertyRegistration(classTypeInfo);
 
-                if (addMemberTypeInfo) {
-                    var prototype = type['prototype'], func: IFunctionInfo;
+            //    if (!type.prototype.hasOwnProperty("toString"))
+            //        type.prototype.toString = function (): string { return (<INamespaceInfo>this).$__fullname; }
 
-                    for (var pname in prototype) {
-                        func = prototype[pname];
-                        if (typeof func == FUNCTION) {
-                            func.$__parent = <IModuleInfo>_type;
-                            func.$__name = pname;
-                            func.$__fullname = fullname + "." + pname;
-                        }
-                    }
-                }
+            //    //? if (!classType.prototype.hasOwnProperty("valueOf"))
+            //    //    classType.prototype.valueOf = function () { return this; };
 
-                // ... register the type ...
-                // (all registered type names will be made available here globally, since types are not AppDomain specific)
-
-                $AppDomain._types[fullname] = <ITypeInfo><any>type;
-
-                return _type;
-            }
-
-            /** Registers a CoreXT class type and returns the given type reference when done.
-              * Note: Prototype functions for registered types are also updated to support the ITypeInfo interface.
-              * @param {object} classModule The class module container to register (the class to register in the module must have the name '$Type').
-              * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
-              * Tip: If intellisense is available, hover your mouse cursor over the class type to see the full namespace path.
-              * @param {boolean} addMemberTypeInfo If true (default), all class member functions on the type (function object) will have type information
-              * applied (using the IFunctionInfo interface).
-              */
-            static registerClass<TInstance extends NativeTypes.IObject, TClass extends ICoreXTClassType<TInstance>, TNew extends NewDelegate<TInstance>, TInit extends InitDelegate<TInstance>> //IFactoryType<TInstance>
-                (classType: TClass, newFunc: TNew, initFunc: TInit, parentModules: object[], addMemberTypeInfo: boolean = true)
-                : TClass & IFactoryType<TNew, TInit> & IRegisteredType<TClass> {
-                // ... get the type name for the class (only available on classes; modules end up being simple objects only) ...
-                // (note: if 'classType' will be replaced on the last module with a new constructor function)
-
-                // ***************
-                // *************** TODONEXT: Need domain object to handle most of this perhaps, where applicable. ***************
-                // ***************
-
-                if (typeof classType !== FUNCTION)
-                    throw Exception.error("registerClass()", "The 'classType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
-
-                if (!(classType instanceof Object))
-                    throw Exception.error("registerClass()", "Class is not of type 'System.Object'.", classType);
-
-                var classTypeInfo: ITypeInfo = <any>classType;
-
-                // ... validate that type info and module info exists, otherwise add/update it ...
-
-                var modInfo = <IModuleInfo><any>classTypeInfo.$__parent;
-
-                if (!modInfo || !modInfo.$__name || !modInfo.$__fullname)
-                    this.registerType(classType, parentModules, addMemberTypeInfo);
-
-                // ... establish the static property definitions ...
-                //? Property.__completePropertyRegistration(classTypeInfo);
-
-                if (!classType.prototype.hasOwnProperty("toString"))
-                    classType.prototype.toString = function (): string { return (<IModuleInfo>this).$__fullname; }
-
-                //? if (!classType.prototype.hasOwnProperty("valueOf"))
-                //    classType.prototype.valueOf = function () { return this; };
-
-                return (newFunc || initFunc) ? <any>__RegisterFactoryType(classType, newFunc, initFunc) : void 0;
-                // (note: 'factoryDefinition' many not be defined if only registering a class with the AppDomain, where the class completed the factory registration part another way [see CoreXT primitive types])
-            }
+            //    return (newFunc || initFunc) ? <any>__RegisterFactoryType(type, newFunc, initFunc) : void 0;
+            //    // (note: 'factoryDefinition' many not be defined if only registering a class with the AppDomain, where the class completed the factory registration part another way [see CoreXT primitive types])
+            //}
 
             /** Attaches the object to this AppDomain.  The object must never exist in any other domains prior to this call.
               * 'ITypeInfo' details will be updated for the object.  This is useful when 
@@ -313,18 +219,18 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$AppDomain Factory' = function () {
-                return frozen(class Factory {
-                    static $Type = $AppDomain;
-                    static $InstanceType = <{}>null && new Factory.$Type();
-                    static $BaseFactory = $AppDomain['$Object Factory'];
+                return frozen(class Factory implements IFactoryType {
+                    $Type = $AppDomain;
+                    $InstanceType = <{}>null && new this.$Type();
+                    $BaseFactory = this.$Type['$Object Factory'].prototype;
 
                     /** Get a new app domain instance.
                     * @param application An optional application to add to the new domain.
                     */
-                    static 'new'(application?: $Application): typeof Factory.$InstanceType { return null; }
+                    'new'(application?: $Application): typeof Factory.prototype.$InstanceType { return null; }
 
                     /** Constructs an application domain for the specific application instance. */
-                    static init($this: typeof Factory.$InstanceType, isnew: boolean, application?: $Application): typeof Factory.$InstanceType {
+                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, application?: $Application): typeof Factory.prototype.$InstanceType {
                         this.$BaseFactory.init($this, isnew);
                         (<IDomainObjectInfo><any>$this).$__appDomain = $this;
                         $this.applications = typeof application == OBJECT ? [application] : [];
@@ -339,7 +245,7 @@ namespace CoreXT {
         }
 
         export interface IAppDomain extends $AppDomain { }
-        export var AppDomain = TypeFactory.__RegisterFactoryType($AppDomain, $AppDomain['$AppDomain Factory']);
+        export var AppDomain = TypeFactory.__registerFactoryType($AppDomain, $AppDomain['$AppDomain Factory'], [CoreXT, System]);
 
         $AppDomain.prototype.createApplication = function createApplication<TApp extends $Application>(appClassMod?: ICallableType<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
             if (!Platform.UIApplication)
@@ -411,16 +317,16 @@ namespace CoreXT {
             applications: $Application[];
 
             // ----------------------------------------------------------------------------------------------------------------
-            
+
             static '$Application Factory' = function () {
-                return frozen(class Factory {
-                    static $Type = $Application;
-                    static $InstanceType = <{}>null && new Factory.$Type();
-                    static $BaseFactory = $Application['$Object Factory'];
+                return frozen(class Factory implements IFactoryType {
+                    $Type = $Application;
+                    $InstanceType = <{}>null && new this.$Type();
+                    $BaseFactory = this.$Type['$Object Factory'].prototype;
 
-                    static 'new'(title: string, appID: number): typeof Factory.$InstanceType { return null; }
+                    'new'(title: string, appID: number): typeof Factory.prototype.$InstanceType { return null; }
 
-                    static init($this: typeof Factory.$InstanceType, isnew: boolean, title: string, appID: number): typeof Factory.$InstanceType {
+                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, title: string, appID: number): typeof Factory.prototype.$InstanceType {
                         this.$InstanceType.init($this, isnew);
                         (<IDomainObjectInfo><any>$this).$__app = $this;
                         $this._title = title;
@@ -450,7 +356,7 @@ namespace CoreXT {
         }
 
         export interface IApplication extends $Application { }
-        export var Application = TypeFactory.__RegisterFactoryType($Application, $Application['$Application Factory']);
+        export var Application = TypeFactory.__registerFactoryType($Application, $Application['$Application Factory'], [CoreXT, System]);
 
         // ====================================================================================================================
 

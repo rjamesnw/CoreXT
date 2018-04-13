@@ -73,16 +73,17 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static '$ScriptResource Factory' = function (type = $ScriptResource, instanceType = <{}>null && new type()) {
-                return frozen(class Factory {
-                    static $Type = type;
-                    static $BaseFactory = $ScriptResource['$ResourceRequest Factory'];
+            static '$ScriptResource Factory' = function () {
+                return frozen(class Factory implements IFactoryType {
+                    $Type = $ScriptResource;
+                    $InstanceType = <{}>null && new this.$Type();
+                    $BaseFactory = this.$Type['$ResourceRequest Factory'].prototype;
 
                     /** Returns a new module object only - does not load it. */
-                    static 'new'(url: string): typeof instanceType { return null; }
+                    'new'(url: string): typeof Factory.prototype.$InstanceType { return null; }
 
                     /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                    static init($this: $Module, isnew: boolean, url: string): typeof instanceType {
+                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, url: string): typeof Factory.prototype.$InstanceType {
                         this.$BaseFactory.init($this, isnew, url, Loader.ResourceTypes.Application_Script);
                         return $this;
                     }
@@ -93,7 +94,7 @@ namespace CoreXT {
         }
 
         export interface IScriptResource extends $ScriptResource { }
-        export var ScriptResource = TypeFactory.__RegisterFactoryType($ScriptResource, $ScriptResource['$ScriptResource Factory']);
+        export var ScriptResource = TypeFactory.__registerFactoryType($ScriptResource, $ScriptResource['$ScriptResource Factory'], [CoreXT, Scripts]);
 
         // ====================================================================================================================
 
@@ -105,16 +106,17 @@ namespace CoreXT {
         class $Manifest extends ScriptResource.$Type {
             // ----------------------------------------------------------------------------------------------------------------
 
-            static '$Manifest Factory' = function (type = $Manifest, instanceType = <{}>null && new type()) {
-                return frozen(class Factory {
-                    static $Type = type;
-                    static $BaseFactory = $Manifest['$ScriptResource Factory'];
+            static '$Manifest Factory' = function () {
+                return frozen(class Factory implements IFactoryType {
+                    $Type = $Manifest;
+                    $InstanceType = <{}>null && new this.$Type();
+                    $BaseFactory = this.$Type['$ScriptResource Factory'].prototype;
 
                     /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                    static 'new'(url: string): $ScriptResource { return null; }
+                    'new'(url: string): $ScriptResource { return null; }
 
                     /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                    static init($this: $Module, isnew: boolean, url: string): $ScriptResource {
+                    init($this: $Module, isnew: boolean, url: string): $ScriptResource {
                         this.$BaseFactory.init($this, isnew, url);
                         return $this;
                     }
@@ -125,7 +127,7 @@ namespace CoreXT {
         }
 
         export interface IManifest extends $Manifest { }
-        export var Manifest = TypeFactory.__RegisterFactoryType($Manifest, $Manifest['$Manifest Factory']);
+        export var Manifest = TypeFactory.__registerFactoryType($Manifest, $Manifest['$Manifest Factory'], [CoreXT, Scripts]);
 
         // ====================================================================================================================
 
@@ -212,7 +214,7 @@ namespace CoreXT {
         interface _IModuleAccessors { get: (varName: string) => any; set: (varName: string, value: any) => any }
 
         /** Contains static module properties and functions. */
-        class $Module extends $ScriptResource {
+        class $Module extends ScriptResource.$Type {
             /** The full type name for this module. */
             fullname: string;
 
@@ -304,16 +306,17 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static '$Module Factory' = function (type = $Module, instanceType = <{}>null && new type()) {
-                return frozen(class Factory {
-                    static $Type = type;
-                    static $BaseFactory = $Module['$ScriptResource Factory'];
+            static '$Module Factory' = function () {
+                return frozen(class Factory implements IFactoryType {
+                    $Type = $Module;
+                    $InstanceType = <{}>null && new this.$Type();
+                    $BaseFactory = this.$Type['$ScriptResource Factory'].prototype;
 
                     /** Returns a new module object only - does not load it. */
-                    static 'new'(fullname: string, path: string, minifiedPath?: string): $Module { return null; }
+                    'new'(fullname: string, path: string, minifiedPath?: string): typeof Factory.prototype.$InstanceType { return null; }
 
                     /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                    static init($this: $Module, isnew: boolean, fullname: string, url: string, minifiedURL: string = null): $Module {
+                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, fullname: string, url: string, minifiedURL: string = null): typeof Factory.prototype.$InstanceType {
                         this.$BaseFactory.init($this, isnew, System.Diagnostics.debug ? url : (minifiedURL || url));
 
                         if (!$this.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
@@ -334,7 +337,7 @@ namespace CoreXT {
         }
 
         export interface IModule extends $Module { }
-        export var Module = TypeFactory.__RegisterFactoryType($Module, $Module['$Module Factory']);
+        export var Module = TypeFactory.__registerFactoryType($Module, $Module['$Module Factory'], [CoreXT, Scripts]);
 
         var _runMode = 0; // (0=auto run, depending on debug flag; 1=user has requested run before the app module was ready; 2=running)
 

@@ -127,18 +127,18 @@ namespace CoreXT.System {
             }
 
             static '$HTMLReader Factory' = function () {
-                return frozen(class Factory {
-                    static $Type = $HTMLReader;
-                    static $InstanceType = <{}>null && new Factory.$Type();
-                    static $BaseFactory = $HTMLReader['$Object Factory'];
+                return frozen(class Factory implements IFactoryType {
+                    $Type = $HTMLReader;
+                    $InstanceType = <{}>null && new this.$Type();
+                    $BaseFactory = this.$Type['$Object Factory'].prototype;
 
                     /**
                      * Create a new HTMLReader instance to parse the given HTML text.
                      * @param html The HTML text to parse.
                      */
-                    static 'new'(html: string): typeof Factory.$InstanceType { return null; }
+                    'new'(html: string): typeof Factory.prototype.$InstanceType { return null; }
 
-                    static init($this: typeof Factory.$InstanceType, isnew: boolean, html: string): typeof Factory.$InstanceType {
+                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, html: string): typeof Factory.prototype.$InstanceType {
                         this.$BaseFactory.init($this, isnew);
                         // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
                         $this.html = html;
@@ -273,10 +273,8 @@ namespace CoreXT.System {
                 // (note: 'this.arrayIndex == 0' after reading from the delimiter side)
                 while (this.readMode != Markup.HTMLReaderModes.End) {
                     if (this.delimiter.charAt(0) == '<') {
-                        if (this.delimiter.charAt(1) == '/')
-                        { this.tagBracket = this.delimiter.substring(0, 2); this.tagName = this.delimiter.substring(2).toLocaleLowerCase(); break; }
-                        else
-                        { this.tagBracket = this.delimiter.substring(0, 1); this.tagName = this.delimiter.substring(1).toLocaleLowerCase(); break; }
+                        if (this.delimiter.charAt(1) == '/') { this.tagBracket = this.delimiter.substring(0, 2); this.tagName = this.delimiter.substring(2).toLocaleLowerCase(); break; }
+                        else { this.tagBracket = this.delimiter.substring(0, 1); this.tagName = this.delimiter.substring(1).toLocaleLowerCase(); break; }
                     }
                     //else if (this.delimiter.length > 2 && this.delimiter.charAt(0) == '{' && this.delimiter.charAt(1) == '{') {
                     //    this.readMode = Markup.HTMLReaderModes.TemplateToken;
@@ -318,7 +316,7 @@ namespace CoreXT.System {
         }
 
         export interface IHTMLReader extends $HTMLReader { }
-        export var HTMLReader = TypeFactory.__RegisterFactoryType($HTMLReader, $HTMLReader['$HTMLReader Factory']);
+        export var HTMLReader = TypeFactory.__registerFactoryType($HTMLReader, $HTMLReader['$HTMLReader Factory'], [CoreXT, System, Markup]);
 
         // ========================================================================================================================
     }

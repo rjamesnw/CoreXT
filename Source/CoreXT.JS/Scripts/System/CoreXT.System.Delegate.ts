@@ -131,7 +131,7 @@ namespace CoreXT.System {
         }
 
         private static __validate(callername: string, object: NativeTypes.IObject, func: DelegateFunction<object>): boolean { // (returns 'true' if static)
-            var isstatic: boolean = object === void 0 || object === null || !!(<IModuleInfo><any>object).$__fullname; // ('$__fullname' exists on modules and registered type objects)
+            var isstatic: boolean = object === void 0 || object === null || !!(<INamespaceInfo><any>object).$__fullname; // ('$__fullname' exists on modules and registered type objects)
             if (!isstatic && typeof object.$__id != 'number')
                 throw Exception.error("Delegate." + callername, "The object for this delegate does not contain a numerical '$__id' value (used as a global object reference for serialization), or '$__fullname' value (for static type references).  See 'AppDomain.registerClass()'.", this);
             return isstatic;
@@ -191,7 +191,7 @@ namespace CoreXT.System {
           */
         static getKey<TFunc extends DelegateFunction<object>>(object: IObject, func: TFunc): string {
             var isstatic = $Delegate.__validate("getKey()", object, func);
-            var id = isstatic ? (object === void 0 || object === null ? '-1' : (<IModuleInfo><any>object).$__fullname) : object.$__id.toString();
+            var id = isstatic ? (object === void 0 || object === null ? '-1' : (<INamespaceInfo><any>object).$__fullname) : object.$__id.toString();
             return id + "," + (<IFunctionInfo><any>func).$__name; // (note: -1 means "global scope")
         }
 
@@ -206,17 +206,17 @@ namespace CoreXT.System {
 
         static '$Delegate Factory' = function () {
             type Instance<TObj extends object, TFunc extends DelegateFunction<object>> = $Delegate<TObj, TFunc>;
-            return frozen(class Factory {
-                static $Type = $Delegate;
-                static $InstanceType = <{}>null && new Factory.$Type();
-                static $BaseFactory = $Delegate['$Object Factory'];
+            return frozen(class Factory implements IFactoryType {
+                $Type = $Delegate;
+                $InstanceType = <{}>null && new this.$Type();
+                $BaseFactory = this.$Type['$Object Factory'].prototype;
 
                 /**
                   * Constructs a new Delegate object.
                   * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
                   * @param {Function} func The function to be called on the associated object.
                   */
-                static 'new'<TObj extends object, TFunc extends DelegateFunction<object>>(object: TObj, func: TFunc): Instance<TObj, TFunc> { return null; }
+                'new'<TObj extends object, TFunc extends DelegateFunction<object>>(object: TObj, func: TFunc): Instance<TObj, TFunc> { return null; }
 
                 /**
                  * Reinitializes a disposed Delegate instance.
@@ -225,7 +225,7 @@ namespace CoreXT.System {
                  * @param object The instance to bind to the resulting delegate object.
                  * @param func The function that will be called for the resulting delegate object.
                  */
-                static init<TObj extends object, TFunc extends DelegateFunction<object>>($this: $Delegate<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc): Instance<TObj, TFunc> {
+                init<TObj extends object, TFunc extends DelegateFunction<object>>($this: $Delegate<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc): Instance<TObj, TFunc> {
                     this.$BaseFactory.init($this, isnew);
                     if (object === void 0) object = null;
                     $this.object = object;
@@ -243,7 +243,7 @@ namespace CoreXT.System {
 
     export interface IDelegate<TObj extends object, TFunc extends DelegateFunction<object>> extends $Delegate<TObj, TFunc> { }
 
-    export var Delegate = TypeFactory.__RegisterFactoryType($Delegate, $Delegate['$Delegate Factory']);
+    export var Delegate = TypeFactory.__registerFactoryType($Delegate, new $Delegate['$Delegate Factory'](), [CoreXT, System]);
 
     // =======================================================================================================================
 }

@@ -27,14 +27,14 @@ namespace CoreXT.System.Collections {
 
         static '$ObservableCollection Factory' = function () {
             type TInstance<TOwner extends object, T> = $ObservableCollection<TOwner, T>
-            return frozen(class Factory {
-                static $Type = $ObservableCollection;
-                static $InstanceType = <{}>null && new Factory.$Type();
-                static $BaseFactory = $ObservableCollection['$Array Factory'];
+            return frozen(class Factory implements IFactoryType {
+                $Type = $ObservableCollection;
+                $InstanceType = <{}>null && new this.$Type();
+                $BaseFactory = this.$Type['$Array Factory'].prototype;
 
-                static 'new'<TOwner extends object, T>(...items: T[]): TInstance<TOwner, T> { return null; }
+                'new'<TOwner extends object, T>(...items: T[]): TInstance<TOwner, T> { return null; }
 
-                static init<TOwner extends object, T>($this: TInstance<TOwner, T>, isnew: boolean, ...items: T[]): TInstance<TOwner, T> {
+                init<TOwner extends object, T>($this: TInstance<TOwner, T>, isnew: boolean, ...items: T[]): TInstance<TOwner, T> {
                     this.$BaseFactory.init<T>($this, isnew, ...items);
                     return $this;
                 }
@@ -45,7 +45,7 @@ namespace CoreXT.System.Collections {
     }
 
     export interface IObservableCollection<TOwner extends object, T> extends $ObservableCollection<TOwner, T> { }
-    export var ObservableCollection = TypeFactory.__RegisterFactoryType($ObservableCollection, $ObservableCollection['$ObservableCollection Factory']);
+    export var ObservableCollection = TypeFactory.__registerFactoryType($ObservableCollection, $ObservableCollection['$ObservableCollection Factory'], [CoreXT, System, Collections]);
 
     // =======================================================================================================================
 

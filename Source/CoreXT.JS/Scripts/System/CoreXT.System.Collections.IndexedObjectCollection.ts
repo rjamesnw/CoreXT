@@ -111,15 +111,15 @@ namespace CoreXT.System.Collections {
 
         static '$IndexedObjectCollection Factory' = function () {
             type TInstance<TObject extends object> = $IndexedObjectCollection<TObject>
-            return frozen(class Factory {
-                static $Type = $IndexedObjectCollection;
-                static $InstanceType = <{}>null && new Factory.$Type();
-                static $BaseFactory = $IndexedObjectCollection['$Array Factory'];
+            return frozen(class Factory implements IFactoryType {
+                $Type = $IndexedObjectCollection;
+                $InstanceType = <{}>null && new this.$Type();
+                $BaseFactory = this.$Type['$Array Factory'].prototype;
 
                 /** @param {TObject[]} objects Initial objects to add to the collection. */
-                static 'new'<TObject extends object>(...objects: TObject[]): TInstance<TObject> { return null; }
+                'new'<TObject extends object>(...objects: TObject[]): TInstance<TObject> { return null; }
 
-                static init<TObject extends object>($this: TInstance<TObject>, isnew: boolean, ...objects: TObject[]): TInstance<TObject> {
+                init<TObject extends object>($this: TInstance<TObject>, isnew: boolean, ...objects: TObject[]): TInstance<TObject> {
                     $this.clear();
                     for (var i = 0, n = objects.length; i < n; ++i)
                         $this.addObject(objects[i]);
@@ -132,7 +132,7 @@ namespace CoreXT.System.Collections {
     }
 
     export interface IIndexedObjectCollection<TObject extends object> extends $IndexedObjectCollection<TObject> { }
-    export var IndexedObjectCollection = TypeFactory.__RegisterFactoryType($IndexedObjectCollection, $IndexedObjectCollection['$IndexedObjectCollection Factory']);
+    export var IndexedObjectCollection = TypeFactory.__registerFactoryType($IndexedObjectCollection, $IndexedObjectCollection['$IndexedObjectCollection Factory'], [CoreXT, System, Collections]);
 
     // =======================================================================================================================
 
