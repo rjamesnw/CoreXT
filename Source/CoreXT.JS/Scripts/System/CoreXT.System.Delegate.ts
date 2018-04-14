@@ -16,7 +16,7 @@ namespace CoreXT.System {
       * Note: If the target object is undefined, then 'null' is assumed and passed in as 'this'.
       */
     class $Delegate<TObj extends object, TFunc extends DelegateFunction<object>>
-        extends Object.$Type implements IDelegate<TObj, TFunc> {
+        extends Object.$__type implements IDelegate<TObj, TFunc> {
 
         //? static readonly $Type = $Delegate;
 
@@ -201,16 +201,11 @@ namespace CoreXT.System {
         }
 
         // -------------------------------------------------------------------------------------------------------------------
+        // This part uses the CoreXT factory pattern
 
-        /* ------ This part uses the CoreXT factory pattern ------ */
-
-        static '$Delegate Factory' = function () {
+        protected static '$Delegate Factory' = function () {
             type Instance<TObj extends object, TFunc extends DelegateFunction<object>> = $Delegate<TObj, TFunc>;
-            return frozen(class Factory implements IFactoryType {
-                $Type = $Delegate;
-                $InstanceType = <{}>null && new this.$Type();
-                $BaseFactory = this.$Type['$Object Factory'].prototype;
-
+            return Types.__registerFactoryType(class Factory extends FactoryBase($Delegate, $Delegate['$Object Factory']) implements IFactory {
                 /**
                   * Constructs a new Delegate object.
                   * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
@@ -225,25 +220,24 @@ namespace CoreXT.System {
                  * @param object The instance to bind to the resulting delegate object.
                  * @param func The function that will be called for the resulting delegate object.
                  */
-                init<TObj extends object, TFunc extends DelegateFunction<object>>($this: $Delegate<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc): Instance<TObj, TFunc> {
-                    this.$BaseFactory.init($this, isnew);
+                init<TObj extends object, TFunc extends DelegateFunction<object>>($this: Instance<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc): Instance<TObj, TFunc> {
+                    this.$__baseFactory.init($this, isnew);
                     if (object === void 0) object = null;
                     $this.object = object;
                     $this.func = <any>func;
                     $this.update();
                     return $this;
                 }
-            });
+            }, [CoreXT, System]);
         }();
-
-        /* ------------------------------------------------------- */
 
         // -------------------------------------------------------------------------------------------------------------------
     }
 
     export interface IDelegate<TObj extends object, TFunc extends DelegateFunction<object>> extends $Delegate<TObj, TFunc> { }
 
-    export var Delegate = TypeFactory.__registerFactoryType($Delegate, new $Delegate['$Delegate Factory'](), [CoreXT, System]);
-
+    //export var Delegate = Types.__registerFactoryType($Delegate, $Delegate['$Delegate Factory'], [CoreXT, System]);
+    export var Delegate = $Delegate['$Delegate Factory'].$__type;
+    
     // =======================================================================================================================
 }

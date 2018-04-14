@@ -457,7 +457,19 @@ namespace CoreXT {
 
     // =======================================================================================================================
 
-    export namespace TypeFactory {
+    /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
+    export function FactoryBase<TInstance extends IType<NativeTypes.IObject>, TBaseClass extends IType<NativeTypes.IObject>, TBaseFactory extends { new(): IFactory }>(type: TInstance,
+        registeredBaseFactoryType: IRegisteredFactoryType<TBaseClass, TBaseFactory>) {
+        var fb = class FactoryBase {
+            static $__type = type;
+            static $__baseFactoryType = registeredBaseFactoryType.$__factoryType;
+            protected get $__baseFactory() { return registeredBaseFactoryType.$__factory; }
+            static $__factory: IFactory;
+        };
+        return <typeof fb & ITypeInfo>fb;
+    }
+
+    export namespace Types {
         /** Holds all the types registered globally by calling 'registerType()'. */
         export var _types: { [fullTypeName: string]: ITypeInfo } = {};
         /** Holds all disposed objects that can be reused. */
@@ -484,7 +496,7 @@ namespace CoreXT {
             // ... this is the default 'new' function ...
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
             var bridge = <System.IADBridge>this; // (note: this should be either a bridge, or a class/factory object, or undefined)
-            var type = <ITypeInfo & IFactoryType>this;
+            var type = <ITypeInfo & IFactory>this;
             if (this !== void 0 && isEmpty(this) || typeof this != FUNCTION)
                 throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the 'SomeType.new()' factory *function* without the 'new' operator.", this);
             var appDomain = bridge.$__appDomain || System.AppDomain.default;
@@ -504,70 +516,84 @@ namespace CoreXT {
             return instance;
         }
 
+        ///** 
+        //x * Called internally once registration is finalized (see also end of 'AppDomain.registerClass()').
+        //x * 
+        //x * @param {IType} type The type (constructor function) to register.
+        //x * @param {IType} factoryType The factory type to associated with the type.
+        //x * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
+        //x * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
+        //x * applied (using the IFunctionInfo interface).
+        //*/
+        //x export function __registerFactoryType<TClass extends IType<object>, TFactory extends IFactory<object>>(type: TClass, factoryType: new () => TFactory, parentModules: object[], addMemberTypeInfo = true): TClass & TFactory {
+
         /** 
-         * Called internally once registration is finalized (see also end of 'AppDomain.registerClass()').
+         * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
          * 
-         * @param {IType} type The type (constructor function) to register.
          * @param {IType} factoryType The factory type to associated with the type.
          * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
         */
-        export function __registerFactoryType<TClass extends IType<object>, TFactory extends IFactoryType<object>>(type: TClass, factoryType: new () => TFactory, parentModules: object[], addMemberTypeInfo = true, inst = new factoryType()): TClass & TFactory {
-            if (typeof type !== FUNCTION)
-                throw System.Exception.error("__registerFactoryType()", "The 'type' argument is not a valid constructor function.", type); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
-
+        export function __registerFactoryType<TClass extends IType<NativeTypes.IObject>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, parentModules: object[], addMemberTypeInfo = true)
+            : IRegisteredFactoryType<TClass, TFactory> {
             if (typeof factoryType !== FUNCTION)
-                throw System.Exception.error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", type); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+                throw System.Exception.error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-            var _type = <IFactoryType & ITypeInfo & Object><any>type;
-            var _factoryType = <IFactoryType & Object>new factoryType();
+            var classType = <IRegisteredFactoryType<TClass, TFactory> & ITypeInfo & Object>factoryType.$__type;
 
-            if (!_factoryType.$Type)
-                _factoryType.$Type = type;
+            if (typeof classType !== FUNCTION)
+                throw System.Exception.error("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-            _type.$__factory = _factoryType; // (sets the factory type on the )
-            _type.$InstanceType = _factoryType.$InstanceType; // (this copy is not really necessary, but here anyhow to be thorough)
-            _type.$BaseFactory = _factoryType.$BaseFactory;
+            classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
+            classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
+
+            var _factoryInstance = <IFactory & Object>new factoryType();
+
+            factoryType.$__factory = _factoryInstance; // (make sure the factory instance used to create instances of the underlying class type is set on both the factory type and the class type)
+            classType.$__factory = _factoryInstance;
+
+            frozen(factoryType);
+            frozen(_factoryInstance);
 
             // ... create the 'init' and 'new' hooks ...
 
-            if (!Object.prototype.hasOwnProperty.call(_type.prototype, "init"))
-                if (_factoryType.prototype.init && typeof _factoryType.prototype.init == FUNCTION)
-                    _type.prototype.init = _factoryType.prototype.init;
-                else if (!type.prototype.init || typeof type.prototype.init != FUNCTION)
-                    _type.prototype.init = noop;
+            if (!Object.prototype.hasOwnProperty.call(classType.prototype, "init"))
+                if (_factoryInstance.prototype.init && typeof _factoryInstance.prototype.init == FUNCTION)
+                    classType.prototype.init = _factoryInstance.prototype.init;
+                else if (!classType.prototype.init || typeof classType.prototype.init != FUNCTION)
+                    classType.prototype.init = noop;
 
-            if (!Object.prototype.hasOwnProperty.call(_type, "new"))
-                if (_factoryType.new && typeof _factoryType.new == FUNCTION)
-                    _type.new = function _firstTimeNewTest() {
-                        var result = _factoryType.new.call(this, ...arguments);
+            if (!Object.prototype.hasOwnProperty.call(classType, "new"))
+                if (_factoryInstance.new && typeof _factoryInstance.new == FUNCTION)
+                    classType.new = function _firstTimeNewTest() {
+                        var result = _factoryInstance.new.call(this, ...arguments);
                         if (result && typeof result == OBJECT) {
                             // (the call returned a valid value, so next time, just use that one as is)
-                            _type.new = _factoryType.new;
+                            classType.new = _factoryInstance.new;
                             return result;
                         }
                         else {
                             // (an object is required, otherwise this is not valid and only a place holder; if so, revert to the generic 'new' implementation)
-                            _type.new = _factoryType.new = __new;
-                            return _factoryType.new.call(this, ...arguments);
+                            classType.new = _factoryInstance.new = __new;
+                            return _factoryInstance.new.call(this, ...arguments);
                         }
                     };
-                else if (!_type.new || typeof _type.new != FUNCTION) // (normally the default 'new' function should exist behind the scenes on the base Object type)
-                    _type.new = () => {
-                        throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(_factoryType, false) + "'. This exists on the DomainObject base type, and is required.";
+                else if (!classType.new || typeof classType.new != FUNCTION) // (normally the default 'new' function should exist behind the scenes on the base Object type)
+                    classType.new = () => {
+                        throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(_factoryInstance, false) + "'. This exists on the DomainObject base type, and is required.";
                     }
 
             // ... copy over any other static methods and properties on the factory object ...
 
-            for (var p in _factoryType)
-                if (_factoryType.hasOwnProperty(p) && !_type.hasOwnProperty(p))
-                    _type[p] = _factoryType[p];
+            for (var p in _factoryInstance)
+                if (_factoryInstance.hasOwnProperty(p) && !classType.hasOwnProperty(p))
+                    classType[p] = _factoryInstance[p];
 
             //x if ('__register' in _factoryType)
             //x     _factoryType['__register'] == noop;
 
-            return __registerType<any>(_type, parentModules, addMemberTypeInfo);
+            return __registerType<any>(classType, parentModules, addMemberTypeInfo);
         }
 
         //x /** Registers a given type by name (constructor function), and creates the function on the last specified module if it doesn't already exist.
@@ -906,10 +932,10 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$Exception Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $Exception;
                     $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = <IFactoryType>null;
+                    $BaseFactory = <IFactory>null;
 
                     /** Records information about errors that occur in the application.
                     * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.
@@ -939,7 +965,7 @@ namespace CoreXT {
         /** The Exception object is used to record information about errors that occur in an application.
         * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.
         */
-        export var Exception = TypeFactory.__registerFactoryType($Exception, $Exception['$Exception Factory'], [CoreXT, System]);
+        export var Exception = Types.__registerFactoryType($Exception, $Exception['$Exception Factory'], [CoreXT, System]);
 
         // ==========================================================================================
 
@@ -1043,10 +1069,10 @@ namespace CoreXT {
                 // ------------------------------------------------------------------------------------------------------------
 
                 static '$LogItem Factory' = function () {
-                    return frozen(class Factory implements IFactoryType {
+                    return frozen(class Factory implements IFactory {
                         $Type = $LogItem;
                         $InstanceType = <{}>null && new this.$Type();
-                        $BaseFactory = <IFactoryType>null;
+                        $BaseFactory = <IFactory>null;
 
                         'new'(parent: $LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): typeof Factory.prototype.$InstanceType;
                         'new'(parent: $LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): typeof Factory.prototype.$InstanceType { return null; }
@@ -1091,7 +1117,7 @@ namespace CoreXT {
             }
 
             export interface ILogItem extends $LogItem { }
-            export var LogItem = TypeFactory.__registerFactoryType($LogItem, $LogItem['$LogItem Factory'], [CoreXT, System, Diagnostics]);
+            export var LogItem = Types.__registerFactoryType($LogItem, $LogItem['$LogItem Factory'], [CoreXT, System, Diagnostics]);
 
             /** Starts a new log entry. */
             export function log(title: string, message: string, type?: LogTypes, outputToConsole?: boolean): $LogItem;
@@ -1902,10 +1928,10 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$ResourceRequest Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $ResourceRequest;
                     $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = <IFactoryType>null;
+                    $BaseFactory = <IFactory>null;
 
                     /** Returns a new module object only - does not load it. */
                     'new'(url: string, type: ResourceTypes, async?: boolean): typeof Factory.prototype.$InstanceType { return null; }
@@ -1943,7 +1969,7 @@ namespace CoreXT {
           * Inheritance note: When creating via the 'new' operator, any already existing instance with the same URL will be returned,
           * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
           */
-        export var ResourceRequest = TypeFactory.__registerFactoryType($ResourceRequest, $ResourceRequest['$ResourceRequest Factory'], [CoreXT, Loader]);
+        export var ResourceRequest = Types.__registerFactoryType($ResourceRequest, $ResourceRequest['$ResourceRequest Factory'], [CoreXT, Loader]);
 
         // ====================================================================================================================
 

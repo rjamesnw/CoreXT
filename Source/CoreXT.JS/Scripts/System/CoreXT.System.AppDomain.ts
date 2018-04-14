@@ -117,7 +117,7 @@ namespace CoreXT {
 
                     this.objects.removeObject(_object);
 
-                    TypeFactory.dispose(_object, release);
+                    Types.dispose(_object, release);
                 } else {
                     for (var i = this._applications.length - 1; i >= 0; --i)
                         this._applications[i].dispose(release);
@@ -219,7 +219,7 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$AppDomain Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $AppDomain;
                     $InstanceType = <{}>null && new this.$Type();
                     $BaseFactory = this.$Type['$Object Factory'].prototype;
@@ -245,7 +245,7 @@ namespace CoreXT {
         }
 
         export interface IAppDomain extends $AppDomain { }
-        export var AppDomain = TypeFactory.__registerFactoryType($AppDomain, $AppDomain['$AppDomain Factory'], [CoreXT, System]);
+        export var AppDomain = Types.__registerFactoryType($AppDomain, $AppDomain['$AppDomain Factory'], [CoreXT, System]);
 
         $AppDomain.prototype.createApplication = function createApplication<TApp extends $Application>(appClassMod?: ICallableType<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
             if (!Platform.UIApplication)
@@ -319,7 +319,7 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$Application Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $Application;
                     $InstanceType = <{}>null && new this.$Type();
                     $BaseFactory = this.$Type['$Object Factory'].prototype;
@@ -356,7 +356,7 @@ namespace CoreXT {
         }
 
         export interface IApplication extends $Application { }
-        export var Application = TypeFactory.__registerFactoryType($Application, $Application['$Application Factory'], [CoreXT, System]);
+        export var Application = Types.__registerFactoryType($Application, $Application['$Application Factory'], [CoreXT, System]);
 
         // ====================================================================================================================
 

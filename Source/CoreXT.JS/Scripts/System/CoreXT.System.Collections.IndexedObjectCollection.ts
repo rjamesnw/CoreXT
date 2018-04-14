@@ -111,7 +111,7 @@ namespace CoreXT.System.Collections {
 
         static '$IndexedObjectCollection Factory' = function () {
             type TInstance<TObject extends object> = $IndexedObjectCollection<TObject>
-            return frozen(class Factory implements IFactoryType {
+            return frozen(class Factory implements IFactory {
                 $Type = $IndexedObjectCollection;
                 $InstanceType = <{}>null && new this.$Type();
                 $BaseFactory = this.$Type['$Array Factory'].prototype;
@@ -132,7 +132,7 @@ namespace CoreXT.System.Collections {
     }
 
     export interface IIndexedObjectCollection<TObject extends object> extends $IndexedObjectCollection<TObject> { }
-    export var IndexedObjectCollection = TypeFactory.__registerFactoryType($IndexedObjectCollection, $IndexedObjectCollection['$IndexedObjectCollection Factory'], [CoreXT, System, Collections]);
+    export var IndexedObjectCollection = Types.__registerFactoryType($IndexedObjectCollection, $IndexedObjectCollection['$IndexedObjectCollection Factory'], [CoreXT, System, Collections]);
 
     // =======================================================================================================================
 

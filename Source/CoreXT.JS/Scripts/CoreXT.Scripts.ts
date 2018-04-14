@@ -74,7 +74,7 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$ScriptResource Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $ScriptResource;
                     $InstanceType = <{}>null && new this.$Type();
                     $BaseFactory = this.$Type['$ResourceRequest Factory'].prototype;
@@ -94,7 +94,7 @@ namespace CoreXT {
         }
 
         export interface IScriptResource extends $ScriptResource { }
-        export var ScriptResource = TypeFactory.__registerFactoryType($ScriptResource, $ScriptResource['$ScriptResource Factory'], [CoreXT, Scripts]);
+        export var ScriptResource = Types.__registerFactoryType($ScriptResource, $ScriptResource['$ScriptResource Factory'], [CoreXT, Scripts]);
 
         // ====================================================================================================================
 
@@ -107,7 +107,7 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$Manifest Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $Manifest;
                     $InstanceType = <{}>null && new this.$Type();
                     $BaseFactory = this.$Type['$ScriptResource Factory'].prototype;
@@ -127,7 +127,7 @@ namespace CoreXT {
         }
 
         export interface IManifest extends $Manifest { }
-        export var Manifest = TypeFactory.__registerFactoryType($Manifest, $Manifest['$Manifest Factory'], [CoreXT, Scripts]);
+        export var Manifest = Types.__registerFactoryType($Manifest, $Manifest['$Manifest Factory'], [CoreXT, Scripts]);
 
         // ====================================================================================================================
 
@@ -307,7 +307,7 @@ namespace CoreXT {
             // ----------------------------------------------------------------------------------------------------------------
 
             static '$Module Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $Module;
                     $InstanceType = <{}>null && new this.$Type();
                     $BaseFactory = this.$Type['$ScriptResource Factory'].prototype;
@@ -337,7 +337,7 @@ namespace CoreXT {
         }
 
         export interface IModule extends $Module { }
-        export var Module = TypeFactory.__registerFactoryType($Module, $Module['$Module Factory'], [CoreXT, Scripts]);
+        export var Module = Types.__registerFactoryType($Module, $Module['$Module Factory'], [CoreXT, Scripts]);
 
         var _runMode = 0; // (0=auto run, depending on debug flag; 1=user has requested run before the app module was ready; 2=running)
 

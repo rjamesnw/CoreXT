@@ -294,7 +294,7 @@ namespace CoreXT {
 
                 static '$EventDispatcher Factory' = function () {
                     type TInstance<TOwner extends object, TCallback extends EventHandler> = $EventDispatcher<TOwner, TCallback>;
-                    return frozen(class Factory implements IFactoryType {
+                    return frozen(class Factory implements IFactory {
                         $Type = $EventDispatcher;
                         $InstanceType = <{}>null && new this.$Type();
                         $BaseFactory = this.$Type['$Object Factory'].prototype;
@@ -339,7 +339,7 @@ namespace CoreXT {
             }
 
             export interface IEventDispatcher<TOwner extends object, TCallback extends EventHandler> extends $EventDispatcher<TOwner, TCallback> { }
-            export var EventDispatcher = TypeFactory.__registerFactoryType($EventDispatcher, $EventDispatcher['$EventDispatcher Factory'], [CoreXT, System, Events]);
+            export var EventDispatcher = Types.__registerFactoryType($EventDispatcher, $EventDispatcher['$EventDispatcher Factory'], [CoreXT, System, Events]);
         }
 
         // =======================================================================================================================
@@ -394,7 +394,7 @@ namespace CoreXT {
             /* ------ This part uses the CoreXT factory pattern ------ */
 
             static '$EventObject Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $EventObject;
                     $InstanceType = <{}>null && new this.$Type();
                     $BaseFactory = this.$Type['$Object Factory'].prototype;
@@ -426,7 +426,7 @@ namespace CoreXT {
         }
 
         export interface IEventObject extends $EventObject { }
-        export var EventObject = TypeFactory.__registerFactoryType($EventObject, $EventObject['$EventObject Factory'], [CoreXT, System]);
+        export var EventObject = Types.__registerFactoryType($EventObject, $EventObject['$EventObject Factory'], [CoreXT, System]);
 
         // ====================================================================================================================
     }

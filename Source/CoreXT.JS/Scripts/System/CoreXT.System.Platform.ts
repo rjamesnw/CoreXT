@@ -36,7 +36,7 @@ namespace CoreXT.System.Platform {
         // ----------------------------------------------------------------------------------------------------------------
 
         static '$Context Factory' = function () {
-            var factoryType = class Factory implements IFactoryType {
+            var factoryType = class Factory implements IFactory {
                 $Type = $Context;
                 $InstanceType = <{}>null && new this.$Type();
                 $BaseFactory = this.$Type['$Object Factory'].prototype;
@@ -65,7 +65,7 @@ namespace CoreXT.System.Platform {
     }
 
     export interface IContext extends $Context { }
-    export var Context = TypeFactory.__registerFactoryType($Context, $Context['$Context Factory'], [CoreXT, System, Platform]);
+    export var Context = Types.__registerFactoryType($Context, $Context['$Context Factory'], [CoreXT, System, Platform]);
 
     // ====================================================================================================================
 
@@ -92,7 +92,7 @@ namespace CoreXT.System.Platform {
         // -------------------------------------------------------------------------------------------------------------------
 
         static '$UIApplication Factory' = function () {
-            return frozen(class Factory implements IFactoryType {
+            return frozen(class Factory implements IFactory {
                 $Type = $UIApplication;
                 $InstanceType = <{}>null && new this.$Type();
                 $BaseFactory = this.$Type['$Application Factory'].prototype;
@@ -186,7 +186,7 @@ namespace CoreXT.System.Platform {
     }
 
     export interface IUIApplication extends $UIApplication { }
-    export var UIApplication = TypeFactory.__registerFactoryType($UIApplication, $UIApplication['$UIApplication Factory'], [CoreXT, System, Platform]);
+    export var UIApplication = Types.__registerFactoryType($UIApplication, $UIApplication['$UIApplication Factory'], [CoreXT, System, Platform]);
 
     // ====================================================================================================================
 }

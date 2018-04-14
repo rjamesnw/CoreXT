@@ -127,7 +127,7 @@ namespace CoreXT.System {
             }
 
             static '$HTMLReader Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $HTMLReader;
                     $InstanceType = <{}>null && new this.$Type();
                     $BaseFactory = this.$Type['$Object Factory'].prototype;
@@ -316,7 +316,7 @@ namespace CoreXT.System {
         }
 
         export interface IHTMLReader extends $HTMLReader { }
-        export var HTMLReader = TypeFactory.__registerFactoryType($HTMLReader, $HTMLReader['$HTMLReader Factory'], [CoreXT, System, Markup]);
+        export var HTMLReader = Types.__registerFactoryType($HTMLReader, $HTMLReader['$HTMLReader Factory'], [CoreXT, System, Markup]);
 
         // ========================================================================================================================
     }

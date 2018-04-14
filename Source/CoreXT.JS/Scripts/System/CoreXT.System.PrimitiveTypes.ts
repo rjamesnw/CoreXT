@@ -106,64 +106,54 @@ namespace CoreXT {
             }
 
             // -------------------------------------------------------------------------------------------------------------------
+            // This part uses the CoreXT factory pattern
 
-            /* ------ This part uses the CoreXT factory pattern ------ */
+            protected static '$Object Factory' = Types.__registerFactoryType(class Factory extends FactoryBase($Object, null) implements IFactory {
+                /**
+                 * Create a new basic object type.
+                 * @param value If specified, the value will be wrapped in the created object.
+                 * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
+                 */
+                'new'(value?: any, makeValuePrivate: boolean = false): InstanceType<typeof Factory.$__type> {
+                    return Types.__new.call(this, value, makeValuePrivate);
+                }
 
-            static '$Object Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
+                //? /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+                /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
+                  * constructor function to get new instances, and 'dispose()' to release them when done.
+                  */
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any, makePrivate: boolean = false): InstanceType<typeof Factory.$__type> {
+                    if (!isnew)
+                        $this.$__reset();
 
-                    $Type = $Object;
-                    $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = <IFactoryType>null;
+                    if ($this.$__appDomain == void 0)
+                        $this.$__appDomain = System.AppDomain.default;
 
-                    /**
-                     * Create a new basic object type.
-                     * @param value If specified, the value will be wrapped in the created object.
-                     * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
-                     */
-                    'new'(value?: any, makeValuePrivate: boolean = false): typeof Factory.prototype.$InstanceType {
-                        return TypeFactory.__new.call(this, value, makeValuePrivate);
-                    }
+                    if ($this.$__app == void 0)
+                        $this.$__app = System.Application.default;
 
-                    //? /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                    /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
-                      * constructor function to get new instances, and 'dispose()' to release them when done.
-                      */
-                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, value?: any, makePrivate: boolean = false): typeof Factory.prototype.$InstanceType {
-                        if (!isnew)
-                            $this.$__reset();
-
-                        if ($this.$__appDomain == void 0)
-                            $this.$__appDomain = System.AppDomain.default;
-
-                        if ($this.$__app == void 0)
-                            $this.$__app = System.Application.default;
-
-                        // ... if a value is given, the behavior changes to latch onto the value ...
-                        if (value == void 0) {
-                            if (makePrivate) {
-                                $this.valueOf = function () { return value; };
-                                $this.toString = function () { return '' + value; };
-                            } else {
-                                $this['$__value'] = value;
-                            }
+                    // ... if a value is given, the behavior changes to latch onto the value ...
+                    if (value == void 0) {
+                        if (makePrivate) {
+                            $this.valueOf = function () { return value; };
+                            $this.toString = function () { return '' + value; };
+                        } else {
+                            $this['$__value'] = value;
                         }
-
-                        //? $this.init = noop;
-
-                        return $this;
                     }
-                });
-            }();
 
-            /* ------------------------------------------------------- */
+                    //? $this.init = noop;
+
+                    return $this;
+                }
+            }, [CoreXT, System]);
 
             // -------------------------------------------------------------------------------------------------------------------
         }
 
         export interface IObject extends $Object { }
         /** The base type for many CoreXT classes. */
-        export var Object = TypeFactory.__registerFactoryType($Object, $Object['$Object Factory'], [CoreXT, System]);
+        export var Object = $Object['$Object Factory'].$__type;
 
         //export var Object: typeof $Object & typeof $ObjectFactoryRoot.Object_factory & IRegisteredType<typeof $Object> = AppDomain.registerClass($Object, $Object[' '].Object_factory, [CoreXT, System]);
         // (have to be explicit on the object type since there may be references within the related types [thought nothing on a static level should access the 'Object' property during initialization])
@@ -284,44 +274,35 @@ namespace CoreXT {
             // (NOTE: This is the magic that makes it work, as 'toString()' is called by the other functions to get the string value, and the native implementation only works on a primitive string only.)
 
             // -------------------------------------------------------------------------------------------------------------------
+            // This part uses the CoreXT factory pattern
 
-            /* ------ This part uses the CoreXT factory pattern ------ */
+            protected static '$String Factory' = Types.__registerFactoryType(class Factory extends FactoryBase($String, null) implements IFactory {
+                /** Returns a new string object instance. */
+                'new'(value?: any): InstanceType<typeof Factory.$__type> { return null; }
 
-            static '$String Factory' = function () {
-                return frozen(class Factory implements IFactoryType {
-                    $Type = $String;
-                    $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = <IFactoryType>null;
-
-                    /** Returns a new string object instance. */
-                    'new'(value?: any): typeof Factory.prototype.$InstanceType { return null; }
-
-                    /**
-                     * Reinitializes a disposed Delegate instance.
-                     * @param this The Delegate instance to initialize, or re-initialize.
-                     * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                     * @param object The instance to bind to the resulting delegate object.
-                     * @param func The function that will be called for the resulting delegate object.
-                     */
-                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, value?: any): typeof Factory.prototype.$InstanceType {
-                        $this.$__value = global.String(value);
-                        //??System.String.prototype.constructor.apply(this, arguments);
-                        // (IE browsers older than v9 do not populate the string object with the string characters)
-                        //if (Browser.type == Browser.BrowserTypes.IE && Browser.version <= 8)
-                        $this.length = $this.$__value.length;
-                        for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
-                        return $this;
-                    }
-                });
-            }();
-
-            /* ------------------------------------------------------- */
+                /**
+                 * Reinitializes a disposed Delegate instance.
+                 * @param this The Delegate instance to initialize, or re-initialize.
+                 * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                 * @param object The instance to bind to the resulting delegate object.
+                 * @param func The function that will be called for the resulting delegate object.
+                 */
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any): InstanceType<typeof Factory.$__type> {
+                    $this.$__value = global.String(value);
+                    //??System.String.prototype.constructor.apply(this, arguments);
+                    // (IE browsers older than v9 do not populate the string object with the string characters)
+                    //if (Browser.type == Browser.BrowserTypes.IE && Browser.version <= 8)
+                    $this.length = $this.$__value.length;
+                    for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
+                    return $this;
+                }
+            }, [CoreXT, System]);
 
             // -------------------------------------------------------------------------------------------------------------------
         }
 
         export interface IString extends $String, IDisposable, ISerializable { }
-        export var String = TypeFactory.__registerFactoryType($String, $String['$String Factory'], [CoreXT, System]);
+        export var String = $String['$String Factory'].$__type;
 
         // =======================================================================================================================
 
@@ -338,9 +319,9 @@ namespace CoreXT {
 
             static '$Array Factory' = function () {
                 type TInstance<TItem> = $Array<TItem>;
-                return frozen(class Factory implements IFactoryType {
+                return frozen(class Factory implements IFactory {
                     $Type = $Array;
-                    $BaseFactory = <IFactoryType>null;
+                    $BaseFactory = <IFactory>null;
 
                     /** Returns a new array object instance. 
                       * Note: This is a CoreXT system array object, and not the native JavaScript object. */
@@ -376,8 +357,8 @@ namespace CoreXT {
         }
 
         export interface IArray<T> extends $Array<T>, IDisposable, ISerializable { }
-        export var Array = TypeFactory.__registerFactoryType($Array, $Array['$Array Factory'], [CoreXT, System]);
-        
+        export var Array = Types.__registerFactoryType($Array, $Array['$Array Factory'], [CoreXT, System]);
+
         // =======================================================================================================================
 
         //if (Object.freeze) {

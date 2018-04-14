@@ -40,7 +40,10 @@ namespace CoreXT {
         $__argumentTypes?: (IType<any> | string)[][];
 
         /** The factory type containing the factory methods for creating instances of the underlying type. */
-        $__factory?: IFactoryType;
+        $__factory?: IFactory;
+
+        /** The base factory type of the factory in '$__factory'. This is provided to maintain a factory inheritance chain. */
+        $__baseFactoryType?: { new(): IFactory } & ITypeInfo;
     }
 
     /** Domain information for every CoreXT 'Object' instance. */
@@ -90,14 +93,16 @@ namespace CoreXT {
 
     export interface InitDelegate<TInstance extends NativeTypes.IObject> { ($this: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
-    export interface IFactoryType<TInstance extends object = object, TNew extends NewDelegate<TInstance> = NewDelegate<any>, TInit extends InitDelegate<TInstance> = InitDelegate<any>> {
-        /** The underlying type for this factory. */
-        $Type: IType<TInstance>;
-        /** The underlying instance type for this factory. */
-        $InstanceType?: TInstance;
+    export interface IFactoryTypeInfo<TInstance extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TInstance>> = NewDelegate<InstanceType<TInstance>>, TInit extends InitDelegate<InstanceType<TInstance>> = InitDelegate<InstanceType<TInstance>>> {
+        /** The underlying type for this factory object. */
+        $__type: TInstance;
+       ///** The underlying instance type for this factory. */
+        //$InstanceType?: TInstance;
         /** The factory from the inherited base type, or null if this object does not inherit from an object with a factory pattern. */
-        $BaseFactory: IFactoryType;
+        $__baseFactoryType: { new(): IFactory } & ITypeInfo;
+    }
 
+    export interface IFactory<TInstance extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TInstance>> = NewDelegate<InstanceType<TInstance>>, TInit extends InitDelegate<InstanceType<TInstance>> = InitDelegate<InstanceType<TInstance>>> {
         /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
         * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
         * also makes sure the object is associated with an application domain.
@@ -119,18 +124,27 @@ namespace CoreXT {
         init: TInit
     }
 
+    export interface IRegisteredFactoryType<TClass extends IType<NativeTypes.IObject> = IType<NativeTypes.IObject>, TFactory extends { new(): IFactory } = { new(): IFactory }> {
+        /** The instance type to be exported for public use. */
+        $__type: TClass & InstanceType<TFactory> & { $__type: TClass };
+        /** The factory instance containing the methods for creating instances of the underlying type '$__type'. */
+        $__factory?: InstanceType<TFactory>;
+       /** The underlying factory type. */
+        $__factoryType: TFactory;
+    }
+
     //export interface IRegisteredType<TClass extends new (...args: any[]) => NativeTypes.IObject> {
     //    /** This is a simple reference to the original type.  Developers should use this to create derived types from CoreXT objects. */
     //    $Type: TClass
     //}
 
     export interface IRegisteredClassInfo<TInstance extends NativeTypes.IObject, TClass extends new (...args: any[]) => NativeTypes.IObject>
-        extends IFactoryType<TInstance>, IRegisteredType<TClass>, ITypeInfo {
+        extends IFactory<TInstance>, IRegisteredType<TClass>, ITypeInfo {
     }
 
     export interface RegisterDelegate {
         <TInstance extends NativeTypes.IObject, TClass extends new (...args: any[]) => TInstance,
-            TFactory extends IFactoryType<TInstance>>()
+            TFactory extends IFactory<TInstance>>()
             : TClass & TFactory & IRegisteredType<TClass>;
     }
 

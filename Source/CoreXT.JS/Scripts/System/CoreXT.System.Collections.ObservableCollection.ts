@@ -27,7 +27,7 @@ namespace CoreXT.System.Collections {
 
         static '$ObservableCollection Factory' = function () {
             type TInstance<TOwner extends object, T> = $ObservableCollection<TOwner, T>
-            return frozen(class Factory implements IFactoryType {
+            return frozen(class Factory implements IFactory {
                 $Type = $ObservableCollection;
                 $InstanceType = <{}>null && new this.$Type();
                 $BaseFactory = this.$Type['$Array Factory'].prototype;
@@ -45,7 +45,7 @@ namespace CoreXT.System.Collections {
     }
 
     export interface IObservableCollection<TOwner extends object, T> extends $ObservableCollection<TOwner, T> { }
-    export var ObservableCollection = TypeFactory.__registerFactoryType($ObservableCollection, $ObservableCollection['$ObservableCollection Factory'], [CoreXT, System, Collections]);
+    export var ObservableCollection = Types.__registerFactoryType($ObservableCollection, $ObservableCollection['$ObservableCollection Factory'], [CoreXT, System, Collections]);
 
     // =======================================================================================================================
 
