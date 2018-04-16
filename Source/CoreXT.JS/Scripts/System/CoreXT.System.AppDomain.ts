@@ -14,7 +14,7 @@ namespace CoreXT {
 
         // =======================================================================================================================
 
-        //x export class $DomainObject extends Object.$Type {
+        //x export class $DomainObject extends Object.$__type {
         //    //static ' '?= class FactoryRoot {
         //    //    static DomainObject_factory?: IFactoryType<$DomainObject> = {
 
@@ -35,7 +35,7 @@ namespace CoreXT {
 
         // =======================================================================================================================
 
-        export abstract class DependencyObject extends Object.$Type {
+        export abstract class DependencyObject extends Object.$__type {
             get parent() { return this.__parent; }
             protected __parent: DependencyObject;
         }
@@ -49,7 +49,7 @@ namespace CoreXT {
              * Note: While script isolation is the default, trusted scripts can run in the system context, and are thus not secured.
              */
         @frozen
-        class $AppDomain extends Object.$Type {
+        class $AppDomain extends Object.$__type {
 
             private _applications: $Application[]; // (allows nesting/embedding child applications which usually run in their own global execution environment)
             private _modules: Scripts.IModule[];
@@ -218,34 +218,28 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static '$AppDomain Factory' = function () {
-                return frozen(class Factory implements IFactory {
-                    $Type = $AppDomain;
-                    $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = this.$Type['$Object Factory'].prototype;
+            protected static '$AppDomain Factory' = class Factory extends FactoryBase($AppDomain, $AppDomain['$Object Factory']) implements IFactory {
+                /** Get a new app domain instance.
+                * @param application An optional application to add to the new domain.
+                */
+                'new'(application?: $Application): InstanceType<typeof Factory.$__type> { return null; }
 
-                    /** Get a new app domain instance.
-                    * @param application An optional application to add to the new domain.
-                    */
-                    'new'(application?: $Application): typeof Factory.prototype.$InstanceType { return null; }
-
-                    /** Constructs an application domain for the specific application instance. */
-                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, application?: $Application): typeof Factory.prototype.$InstanceType {
-                        this.$BaseFactory.init($this, isnew);
-                        (<IDomainObjectInfo><any>$this).$__appDomain = $this;
-                        $this.applications = typeof application == OBJECT ? [application] : [];
-                        //? if (global.Object.freeze)
-                        //?    global.Object.freeze($this); // (properties cannot be modified once set)
-                        return $this;
-                    }
-                });
-            }();
+                /** Constructs an application domain for the specific application instance. */
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, application?: $Application): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew);
+                    (<IDomainObjectInfo><any>$this).$__appDomain = $this;
+                    $this.applications = typeof application == OBJECT ? [application] : [];
+                    //? if (global.Object.freeze)
+                    //?    global.Object.freeze($this); // (properties cannot be modified once set)
+                    return $this;
+                }
+            }.register([CoreXT, System]);
 
             // ----------------------------------------------------------------------------------------------------------------
         }
 
         export interface IAppDomain extends $AppDomain { }
-        export var AppDomain = Types.__registerFactoryType($AppDomain, $AppDomain['$AppDomain Factory'], [CoreXT, System]);
+        export var AppDomain = $AppDomain['$AppDomain Factory'].$__type;
 
         $AppDomain.prototype.createApplication = function createApplication<TApp extends $Application>(appClassMod?: ICallableType<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
             if (!Platform.UIApplication)
@@ -259,7 +253,7 @@ namespace CoreXT {
           * applications in a single AppDomain.
           */
         @frozen
-        class $Application extends Object.$Type {
+        class $Application extends Object.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
             /** References the current running application that owns the current running environment. */
@@ -318,23 +312,17 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static '$Application Factory' = function () {
-                return frozen(class Factory implements IFactory {
-                    $Type = $Application;
-                    $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = this.$Type['$Object Factory'].prototype;
+            protected static '$Application Factory' = class Factory extends FactoryBase($Application, $Application['$Object Factory']) implements IFactory {
+                'new'(title: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
 
-                    'new'(title: string, appID: number): typeof Factory.prototype.$InstanceType { return null; }
-
-                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, title: string, appID: number): typeof Factory.prototype.$InstanceType {
-                        this.$InstanceType.init($this, isnew);
-                        (<IDomainObjectInfo><any>$this).$__app = $this;
-                        $this._title = title;
-                        $this._appID = appID;
-                        return $this;
-                    }
-                });
-            }();
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, appID: number): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew);
+                    (<IDomainObjectInfo><any>$this).$__app = $this;
+                    $this._title = title;
+                    $this._appID = appID;
+                    return $this;
+                }
+            }.register([CoreXT, System]);
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -356,7 +344,7 @@ namespace CoreXT {
         }
 
         export interface IApplication extends $Application { }
-        export var Application = Types.__registerFactoryType($Application, $Application['$Application Factory'], [CoreXT, System]);
+        export var Application = $Application['$Application Factory'].$__type;
 
         // ====================================================================================================================
 

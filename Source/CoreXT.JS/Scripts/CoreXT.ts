@@ -458,13 +458,24 @@ namespace CoreXT {
     // =======================================================================================================================
 
     /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
-    export function FactoryBase<TInstance extends IType<NativeTypes.IObject>, TBaseClass extends IType<NativeTypes.IObject>, TBaseFactory extends { new(): IFactory }>(type: TInstance,
+    export function FactoryBase<TInstance extends IType<object>, TBaseClass extends IType<object>, TBaseFactory extends { new(): IFactory }>(type: TInstance,
         registeredBaseFactoryType: IRegisteredFactoryType<TBaseClass, TBaseFactory>) {
         var fb = class FactoryBase {
             static $__type = type;
             static $__baseFactoryType = registeredBaseFactoryType.$__factoryType;
             protected get $__baseFactory() { return registeredBaseFactoryType.$__factory; }
             static $__factory: IFactory;
+
+            /** 
+             * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
+             * 
+             * @param {modules} parentModules A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
+             * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
+             * applied (using the IFunctionInfo interface).
+            */
+            static register<TClass extends IType<object>, TFactory extends { new(): IFactory }>(this: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, parentModules: object[], addMemberTypeInfo = true) {
+                return Types.__registerFactoryType(this, parentModules, addMemberTypeInfo);
+            }
         };
         return <typeof fb & ITypeInfo>fb;
     }
@@ -531,11 +542,11 @@ namespace CoreXT {
          * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
          * 
          * @param {IType} factoryType The factory type to associated with the type.
-         * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
+         * @param {modules} parentModules A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
         */
-        export function __registerFactoryType<TClass extends IType<NativeTypes.IObject>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, parentModules: object[], addMemberTypeInfo = true)
+        export function __registerFactoryType<TClass extends IType<object>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, parentModules: object[], addMemberTypeInfo = true)
             : IRegisteredFactoryType<TClass, TFactory> {
             if (typeof factoryType !== FUNCTION)
                 throw System.Exception.error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
@@ -931,31 +942,25 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static '$Exception Factory' = function () {
-                return frozen(class Factory implements IFactory {
-                    $Type = $Exception;
-                    $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = <IFactory>null;
-
-                    /** Records information about errors that occur in the application.
+            protected static '$Exception Factory' = class Factory extends FactoryBase($Exception, null) implements IFactory {
+                /** Records information about errors that occur in the application.
                     * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.
                     * @param {string} message The error message.
                     * @param {object} source An object that is associated with the message, or null.
                     * @param {boolean} log True to automatically create a corresponding log entry (default), or false to skip.
                     */
-                    'new'(message: string, source: object, log?: boolean): typeof Factory.prototype.$InstanceType { return null; }
+                'new'(message: string, source: object, log?: boolean): InstanceType<typeof Factory.$__type> { return null; }
 
-                    /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, message: string, source: object, log?: boolean): typeof Factory.prototype.$InstanceType {
-                        if (Browser.ES6)
-                            safeEval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
-                        $this.message = message;
-                        $this.source = source;
-                        if (log || log === void 0) Diagnostics.log("Exception", message, LogTypes.Error);
-                        return $this;
-                    }
-                });
-            }();
+                /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, message: string, source: object, log?: boolean): InstanceType<typeof Factory.$__type> {
+                    if (Browser.ES6)
+                        safeEval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
+                    $this.message = message;
+                    $this.source = source;
+                    if (log || log === void 0) Diagnostics.log("Exception", message, LogTypes.Error);
+                    return $this;
+                }
+            }.register([CoreXT, System]);
 
             // ----------------------------------------------------------------------------------------------------------------
         }
@@ -965,8 +970,8 @@ namespace CoreXT {
         /** The Exception object is used to record information about errors that occur in an application.
         * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.
         */
-        export var Exception = Types.__registerFactoryType($Exception, $Exception['$Exception Factory'], [CoreXT, System]);
-
+        export var Exception = $Exception['$Exception Factory'].$__type;
+        
         // ==========================================================================================
 
         /** Contains diagnostic based functions, such as those needed for logging purposes. */
@@ -1927,36 +1932,30 @@ namespace CoreXT {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            static '$ResourceRequest Factory' = function () {
-                return frozen(class Factory implements IFactory {
-                    $Type = $ResourceRequest;
-                    $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = <IFactory>null;
+            protected static '$ResourceRequest Factory' = class Factory extends FactoryBase($ResourceRequest, null) implements IFactory {
+                /** Returns a new module object only - does not load it. */
+                'new'(url: string, type: ResourceTypes, async?: boolean): InstanceType<typeof Factory.$__type> { return null; }
 
-                    /** Returns a new module object only - does not load it. */
-                    'new'(url: string, type: ResourceTypes, async?: boolean): typeof Factory.prototype.$InstanceType { return null; }
+                /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, url: string, type: ResourceTypes, async: boolean = true): InstanceType<typeof Factory.$__type> {
+                    if (url === void 0 || url === null) throw "A resource URL is required.";
+                    if (type === void 0) throw "The resource type is required.";
 
-                    /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, url: string, type: ResourceTypes, async: boolean = true): typeof Factory.prototype.$InstanceType {
-                        if (url === void 0 || url === null) throw "A resource URL is required.";
-                        if (type === void 0) throw "The resource type is required.";
+                    if (_resourceRequestByURL[url])
+                        return _resourceRequestByURL[url]; // (abandon this new object instance in favor of the one already existing and returned it)
 
-                        if (_resourceRequestByURL[url])
-                            return _resourceRequestByURL[url]; // (abandon this new object instance in favor of the one already existing and returned it)
+                    $this.url = url;
+                    $this.type = type;
+                    $this.async = async;
 
-                        $this.url = url;
-                        $this.type = type;
-                        $this.async = async;
+                    $this.$__index = _resourceRequests.length;
 
-                        $this.$__index = _resourceRequests.length;
+                    _resourceRequests.push($this);
+                    _resourceRequestByURL[$this.url] = $this;
 
-                        _resourceRequests.push($this);
-                        _resourceRequestByURL[$this.url] = $this;
-
-                        return $this;
-                    }
-                });
-            }();
+                    return $this;
+                }
+            }.register([CoreXT, Loader]);
 
             // ----------------------------------------------------------------------------------------------------------------
         }
@@ -1969,7 +1968,7 @@ namespace CoreXT {
           * Inheritance note: When creating via the 'new' operator, any already existing instance with the same URL will be returned,
           * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
           */
-        export var ResourceRequest = Types.__registerFactoryType($ResourceRequest, $ResourceRequest['$ResourceRequest Factory'], [CoreXT, Loader]);
+        export var ResourceRequest = $ResourceRequest['$ResourceRequest Factory'].$__type;
 
         // ====================================================================================================================
 

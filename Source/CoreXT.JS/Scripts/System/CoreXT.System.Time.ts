@@ -11,7 +11,7 @@ namespace CoreXT.System {
     * Note: TimeSpan exposes the results as properties for fast access (rather than getters/setters), but changing individual properties does not
     * cause the other values to update.  Use the supplied functions for manipulating the values.
     */
-    class $TimeSpan extends Object.$Type {
+    class $TimeSpan extends Object.$__type {
         //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
 
         year: number;

@@ -31,7 +31,7 @@ namespace CoreXT.System {
         * Performance note: Since HTML can be large, it's not efficient to scan the HTML character by character. Instead, the HTML reader uses the native
         * RegEx engine to split up the HTML into chunks of delimiter text, which makes reading it much faster.
         */
-        class $HTMLReader extends Object.$Type {
+        class $HTMLReader extends Object.$__type {
             // -------------------------------------------------------------------------------------------------------------------
 
             private static __splitRegEx: RegExp = /<!(?:--[\S\s]*?--)?[\S\s]*?>|<script\b[\S\s]*?<\/script[\S\s]*?>|<style\b[\S\s]*?<\/style[\S\s]*?>|<\![A-Z0-9]+|<\/[A-Z0-9]+|<[A-Z0-9]+|\/?>|&[A-Z]+;?|&#[0-9]+;?|&#x[A-F0-9]+;?|(?:'[^<>]*?'|"[^<>]*?")|=|\s+|\{\{[^\{\}]*?\}\}/gi;
@@ -118,36 +118,22 @@ namespace CoreXT.System {
 
             private html: string;
 
-            static ' '() {
-                var _super_factory = super[' ']().Object_factory;
-                return class {
-                    static HTMLReader_factory?= class {
-                    }
+            protected static '$HTMLReader Factory' = class Factory extends FactoryBase($HTMLReader, $HTMLReader['$Object Factory']) implements IFactory {
+                /**
+                 * Create a new HTMLReader instance to parse the given HTML text.
+                 * @param html The HTML text to parse.
+                 */
+                'new'(html: string): InstanceType<typeof Factory.$__type> { return null; }
+
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, html: string): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew);
+                    // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
+                    $this.html = html;
+                    $this.delimiters = html.match($HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
+                    $this.nonDelimiters = (<any>$this.html).split($HTMLReader.__splitRegEx, void 0, $this.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
+                    return $this;
                 }
-            }
-
-            static '$HTMLReader Factory' = function () {
-                return frozen(class Factory implements IFactory {
-                    $Type = $HTMLReader;
-                    $InstanceType = <{}>null && new this.$Type();
-                    $BaseFactory = this.$Type['$Object Factory'].prototype;
-
-                    /**
-                     * Create a new HTMLReader instance to parse the given HTML text.
-                     * @param html The HTML text to parse.
-                     */
-                    'new'(html: string): typeof Factory.prototype.$InstanceType { return null; }
-
-                    init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, html: string): typeof Factory.prototype.$InstanceType {
-                        this.$BaseFactory.init($this, isnew);
-                        // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
-                        $this.html = html;
-                        $this.delimiters = html.match($HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
-                        $this.nonDelimiters = (<any>$this.html).split($HTMLReader.__splitRegEx, void 0, $this.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
-                        return $this;
-                    }
-                });
-            }();
+            }.register([CoreXT, System, Markup]);
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -316,7 +302,7 @@ namespace CoreXT.System {
         }
 
         export interface IHTMLReader extends $HTMLReader { }
-        export var HTMLReader = Types.__registerFactoryType($HTMLReader, $HTMLReader['$HTMLReader Factory'], [CoreXT, System, Markup]);
+        export var HTMLReader = $HTMLReader['$HTMLReader Factory'].$__type;
 
         // ========================================================================================================================
     }

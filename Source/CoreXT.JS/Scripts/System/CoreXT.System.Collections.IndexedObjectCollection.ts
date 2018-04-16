@@ -109,30 +109,23 @@ namespace CoreXT.System.Collections {
 
         // ----------------------------------------------------------------------------------------------------------------
 
-        static '$IndexedObjectCollection Factory' = function () {
-            type TInstance<TObject extends object> = $IndexedObjectCollection<TObject>
-            return frozen(class Factory implements IFactory {
-                $Type = $IndexedObjectCollection;
-                $InstanceType = <{}>null && new this.$Type();
-                $BaseFactory = this.$Type['$Array Factory'].prototype;
+        protected static '$IndexedObjectCollection Factory' = class Factory extends FactoryBase($IndexedObjectCollection, $IndexedObjectCollection['$Array Factory']) implements IFactory {
+            /** @param {TObject[]} objects Initial objects to add to the collection. */
+            'new'<TObject extends object>(...objects: TObject[]): $IndexedObjectCollection<TObject> { return null; }
 
-                /** @param {TObject[]} objects Initial objects to add to the collection. */
-                'new'<TObject extends object>(...objects: TObject[]): TInstance<TObject> { return null; }
-
-                init<TObject extends object>($this: TInstance<TObject>, isnew: boolean, ...objects: TObject[]): TInstance<TObject> {
-                    $this.clear();
-                    for (var i = 0, n = objects.length; i < n; ++i)
-                        $this.addObject(objects[i]);
-                    return $this;
-                }
-            });
-        }();
+            init<TObject extends object>($this: $IndexedObjectCollection<TObject>, isnew: boolean, ...objects: TObject[]): $IndexedObjectCollection<TObject> {
+                $this.clear();
+                for (var i = 0, n = objects.length; i < n; ++i)
+                    $this.addObject(objects[i]);
+                return $this;
+            }
+        }.register([CoreXT, System, Collections]);
 
         // ----------------------------------------------------------------------------------------------------------------
     }
 
     export interface IIndexedObjectCollection<TObject extends object> extends $IndexedObjectCollection<TObject> { }
-    export var IndexedObjectCollection = Types.__registerFactoryType($IndexedObjectCollection, $IndexedObjectCollection['$IndexedObjectCollection Factory'], [CoreXT, System, Collections]);
+    export var IndexedObjectCollection = $IndexedObjectCollection['$IndexedObjectCollection Factory'].$__type;
 
     // =======================================================================================================================
 

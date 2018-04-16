@@ -5,7 +5,7 @@
 namespace CoreXT.System {
     // =======================================================================================================================
 
-    //export class User extends Object.$Type {
+    //export class User extends Object.$__type {
     //    private _username: any; // (this is either a DIV element [for system windows], IFrame element, or native popup Window reference)
     //    private _type: WindowTypes;
     //    private _header: HTMLElement; // (the HTML-style header contents for this window)

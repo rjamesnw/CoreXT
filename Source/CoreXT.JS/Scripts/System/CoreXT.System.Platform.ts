@@ -29,29 +29,25 @@ namespace CoreXT.System.Platform {
       * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
       * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
       */
-    class $Context extends Object.$Type {
+    class $Context extends Object.$__type {
         protected _contextType: Contexts;
         protected _url: string;
 
         // ----------------------------------------------------------------------------------------------------------------
 
-        static '$Context Factory' = function () {
-            var factoryType = class Factory implements IFactory {
-                $Type = $Context;
-                $InstanceType = <{}>null && new this.$Type();
-                $BaseFactory = this.$Type['$Object Factory'].prototype;
+        protected static '$Context Factory' = function () {
+            var factoryType = class Factory extends FactoryBase($Context, $Context['$Object Factory']) implements IFactory {
 
                 //? static 'new'?(context: Contexts = Contexts.Secure): typeof _InstanceType { throw Exception.from("You cannot create instances of the abstract Context class.", this); }
 
-                init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, context: Contexts = Contexts.Secure): typeof Factory.prototype.$InstanceType {
-                    this.$BaseFactory.init($this, isnew);
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, context: Contexts = Contexts.Secure): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew);
                     $this._contextType = context;
                     return $this;
                 }
             };
-            factoryType['new'] = (context: Contexts = Contexts.Secure): typeof factoryType.$InstanceType => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
-            frozen(factoryType);
-            return factoryType;
+            factoryType['new'] = (context: Contexts = Contexts.Secure): InstanceType<typeof factoryType.$__type> => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
+            return factoryType.register([CoreXT, System, Platform]);
         }();
 
         // ----------------------------------------------------------------------------------------------------------------
@@ -65,7 +61,7 @@ namespace CoreXT.System.Platform {
     }
 
     export interface IContext extends $Context { }
-    export var Context = Types.__registerFactoryType($Context, $Context['$Context Factory'], [CoreXT, System, Platform]);
+    export var Context = $Context['$Context Factory'].$__type;
 
     // ====================================================================================================================
 
@@ -78,7 +74,7 @@ namespace CoreXT.System.Platform {
       * logins, private information, etc.
       * Note: While script isolation is the default, trusted scripts can run in the system context, and are thus not secured.
       */
-    class $UIApplication extends Application.$Type {
+    class $UIApplication extends Application.$__type {
         /** Returns the global context reference for the nested application. Each application gets their own virtual global scope. */
         get global(): typeof global { return null; }
 
@@ -91,20 +87,14 @@ namespace CoreXT.System.Platform {
 
         // -------------------------------------------------------------------------------------------------------------------
 
-        static '$UIApplication Factory' = function () {
-            return frozen(class Factory implements IFactory {
-                $Type = $UIApplication;
-                $InstanceType = <{}>null && new this.$Type();
-                $BaseFactory = this.$Type['$Application Factory'].prototype;
+        protected static '$UIApplication Factory' = class Factory extends FactoryBase($UIApplication, $UIApplication['$Application Factory']) implements IFactory {
+            'new'(title: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
 
-                'new'(title: string, appID: number): typeof Factory.prototype.$InstanceType { return null; }
-
-                init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, title: string, appID: number): typeof Factory.prototype.$InstanceType {
-                    this.$BaseFactory.init($this, isnew, title, appID);
-                    return $this;
-                }
-            });
-        }();
+            init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, appID: number): InstanceType<typeof Factory.$__type> {
+                this.$__baseFactory.init($this, isnew, title, appID);
+                return $this;
+            }
+        }.register([CoreXT, System, Platform]);
 
         // ----------------------------------------------------------------------------------------------------------------
 
@@ -186,7 +176,7 @@ namespace CoreXT.System.Platform {
     }
 
     export interface IUIApplication extends $UIApplication { }
-    export var UIApplication = Types.__registerFactoryType($UIApplication, $UIApplication['$UIApplication Factory'], [CoreXT, System, Platform]);
+    export var UIApplication = $UIApplication['$UIApplication Factory'].$__type;
 
     // ====================================================================================================================
 }

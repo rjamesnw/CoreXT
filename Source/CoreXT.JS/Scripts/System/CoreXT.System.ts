@@ -89,9 +89,9 @@ namespace CoreXT {
     export interface IClassInfo<TInstance extends NativeTypes.IObject> extends IType<TInstance> {
     }
 
-    export interface NewDelegate<TInstance extends NativeTypes.IObject> { (...args: any[]): TInstance }
+    export interface NewDelegate<TInstance extends object> { (...args: any[]): TInstance }
 
-    export interface InitDelegate<TInstance extends NativeTypes.IObject> { ($this: TInstance, isnew: boolean, ...args: any[]): TInstance }
+    export interface InitDelegate<TInstance extends object> { ($this: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
     export interface IFactoryTypeInfo<TInstance extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TInstance>> = NewDelegate<InstanceType<TInstance>>, TInit extends InitDelegate<InstanceType<TInstance>> = InitDelegate<InstanceType<TInstance>>> {
         /** The underlying type for this factory object. */
@@ -102,7 +102,7 @@ namespace CoreXT {
         $__baseFactoryType: { new(): IFactory } & ITypeInfo;
     }
 
-    export interface IFactory<TInstance extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TInstance>> = NewDelegate<InstanceType<TInstance>>, TInit extends InitDelegate<InstanceType<TInstance>> = InitDelegate<InstanceType<TInstance>>> {
+    export interface IFactory<TInstance extends new () => object = any, TNew extends NewDelegate<InstanceType<TInstance>> = NewDelegate<InstanceType<TInstance>>, TInit extends InitDelegate<InstanceType<TInstance>> = InitDelegate<InstanceType<TInstance>>> {
         /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
         * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
         * also makes sure the object is associated with an application domain.
@@ -124,7 +124,7 @@ namespace CoreXT {
         init: TInit
     }
 
-    export interface IRegisteredFactoryType<TClass extends IType<NativeTypes.IObject> = IType<NativeTypes.IObject>, TFactory extends { new(): IFactory } = { new(): IFactory }> {
+    export interface IRegisteredFactoryType<TClass extends IType<object> = IType<object>, TFactory extends { new(): IFactory } = { new(): IFactory }> {
         /** The instance type to be exported for public use. */
         $__type: TClass & InstanceType<TFactory> & { $__type: TClass };
         /** The factory instance containing the methods for creating instances of the underlying type '$__type'. */
@@ -133,37 +133,11 @@ namespace CoreXT {
         $__factoryType: TFactory;
     }
 
-    //export interface IRegisteredType<TClass extends new (...args: any[]) => NativeTypes.IObject> {
-    //    /** This is a simple reference to the original type.  Developers should use this to create derived types from CoreXT objects. */
-    //    $Type: TClass
-    //}
-
-    export interface IRegisteredClassInfo<TInstance extends NativeTypes.IObject, TClass extends new (...args: any[]) => NativeTypes.IObject>
-        extends IFactory<TInstance>, IRegisteredType<TClass>, ITypeInfo {
-    }
-
-    export interface RegisterDelegate {
-        <TInstance extends NativeTypes.IObject, TClass extends new (...args: any[]) => TInstance,
-            TFactory extends IFactory<TInstance>>()
-            : TClass & TFactory & IRegisteredType<TClass>;
-    }
-
-    //?export interface RegisterDelegate {
-    //    <TClass extends new (...args: any[]) => NativeTypes.IObject,
-    //        TNew extends NewDelegate<NativeTypes.IObject>,
-    //        TInit extends InitDelegate<NativeTypes.IObject>>()
-    //        : TClass & IRegisteredType<TClass, TNew, TInit>;
-    //}
-
     /** Represents valid class signatures for the CoreXT class registration system. All objects are expected to have IDs for tracking. */
     export interface ICoreXTClassType<TInstance extends NativeTypes.IObject> {
         new(): TInstance;
         ///** For CoreXT objects, this refers back to the original class type used when calling 'AppDomain.registerClass()'. */
         // $Type: TType;
-    }
-
-    export interface IClassFactory<TObject extends {}> {
-        (...args: any[]): TObject;
     }
 
     ///** Represents a static property on a class module. */
@@ -235,15 +209,15 @@ namespace CoreXT {
     abstract class Enumerable<T> implements Iterator<T>
     {
         next(value?: any): IteratorResult<T> {
-            throw new Error('Method not implemented.');
+            throw System.Exception.notImplemented('next', this);
         }
 
         return(value?: any): IteratorResult<T> {
-            throw new Error('Method not implemented.');
+            throw System.Exception.notImplemented('return', this);
         }
 
         throw(e?: any): IteratorResult<T> {
-            throw new Error('Method not implemented.');
+            throw System.Exception.notImplemented('throw', this);
         }
     }
 

@@ -108,7 +108,7 @@ namespace CoreXT {
             // -------------------------------------------------------------------------------------------------------------------
             // This part uses the CoreXT factory pattern
 
-            protected static '$Object Factory' = Types.__registerFactoryType(class Factory extends FactoryBase($Object, null) implements IFactory {
+            protected static '$Object Factory' = class Factory extends FactoryBase($Object, null) implements IFactory {
                 /**
                  * Create a new basic object type.
                  * @param value If specified, the value will be wrapped in the created object.
@@ -146,7 +146,7 @@ namespace CoreXT {
 
                     return $this;
                 }
-            }, [CoreXT, System]);
+            }.register([CoreXT, System]);
 
             // -------------------------------------------------------------------------------------------------------------------
         }
@@ -276,7 +276,7 @@ namespace CoreXT {
             // -------------------------------------------------------------------------------------------------------------------
             // This part uses the CoreXT factory pattern
 
-            protected static '$String Factory' = Types.__registerFactoryType(class Factory extends FactoryBase($String, null) implements IFactory {
+            protected static '$String Factory' = class Factory extends FactoryBase($String, null) implements IFactory {
                 /** Returns a new string object instance. */
                 'new'(value?: any): InstanceType<typeof Factory.$__type> { return null; }
 
@@ -296,7 +296,7 @@ namespace CoreXT {
                     for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                     return $this;
                 }
-            }, [CoreXT, System]);
+            }.register([CoreXT, System]);
 
             // -------------------------------------------------------------------------------------------------------------------
         }
@@ -317,9 +317,9 @@ namespace CoreXT {
             // -------------------------------------------------------------------------------------------------------------------
             /* ------ This part uses the CoreXT factory pattern ------ */
 
-            static '$Array Factory' = function () {
+            protected static '$Array Factory' = function () {
                 type TInstance<TItem> = $Array<TItem>;
-                return frozen(class Factory implements IFactory {
+                return class Factory extends FactoryBase($Array, null) implements IFactory {
                     $Type = $Array;
                     $BaseFactory = <IFactory>null;
 
@@ -348,7 +348,7 @@ namespace CoreXT {
                         for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                         return $this;
                     }
-                });
+                }.register([CoreXT, System]);
             }();
 
             /* ------------------------------------------------------- */
@@ -357,7 +357,7 @@ namespace CoreXT {
         }
 
         export interface IArray<T> extends $Array<T>, IDisposable, ISerializable { }
-        export var Array = Types.__registerFactoryType($Array, $Array['$Array Factory'], [CoreXT, System]);
+        export var Array = $Array['$Array Factory'].$__type;
 
         // =======================================================================================================================
 

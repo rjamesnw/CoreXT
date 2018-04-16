@@ -205,7 +205,7 @@ namespace CoreXT.System {
 
         protected static '$Delegate Factory' = function () {
             type Instance<TObj extends object, TFunc extends DelegateFunction<object>> = $Delegate<TObj, TFunc>;
-            return Types.__registerFactoryType(class Factory extends FactoryBase($Delegate, $Delegate['$Object Factory']) implements IFactory {
+            return class Factory extends FactoryBase($Delegate, $Delegate['$Object Factory']) implements IFactory {
                 /**
                   * Constructs a new Delegate object.
                   * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
@@ -228,7 +228,7 @@ namespace CoreXT.System {
                     $this.update();
                     return $this;
                 }
-            }, [CoreXT, System]);
+            }.register([CoreXT, System]);
         }();
 
         // -------------------------------------------------------------------------------------------------------------------

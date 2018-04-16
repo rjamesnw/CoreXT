@@ -25,27 +25,20 @@ namespace CoreXT.System.Collections {
 
         // ----------------------------------------------------------------------------------------------------------------
 
-        static '$ObservableCollection Factory' = function () {
-            type TInstance<TOwner extends object, T> = $ObservableCollection<TOwner, T>
-            return frozen(class Factory implements IFactory {
-                $Type = $ObservableCollection;
-                $InstanceType = <{}>null && new this.$Type();
-                $BaseFactory = this.$Type['$Array Factory'].prototype;
+        protected static '$ObservableCollection Factory' = class Factory extends FactoryBase($ObservableCollection, $ObservableCollection['$Array Factory']) implements IFactory {
+            'new'<TOwner extends object, T>(...items: T[]): $ObservableCollection<TOwner, T> { return null; }
 
-                'new'<TOwner extends object, T>(...items: T[]): TInstance<TOwner, T> { return null; }
-
-                init<TOwner extends object, T>($this: TInstance<TOwner, T>, isnew: boolean, ...items: T[]): TInstance<TOwner, T> {
-                    this.$BaseFactory.init<T>($this, isnew, ...items);
-                    return $this;
-                }
-            });
-        }();
+            init<TOwner extends object, T>($this: $ObservableCollection<TOwner, T>, isnew: boolean, ...items: T[]): $ObservableCollection<TOwner, T> {
+                this.$__baseFactory.init<T>($this, isnew, ...items);
+                return $this;
+            }
+        }.register([CoreXT, System, Collections]);
 
         // ----------------------------------------------------------------------------------------------------------------
     }
 
     export interface IObservableCollection<TOwner extends object, T> extends $ObservableCollection<TOwner, T> { }
-    export var ObservableCollection = Types.__registerFactoryType($ObservableCollection, $ObservableCollection['$ObservableCollection Factory'], [CoreXT, System, Collections]);
+    export var ObservableCollection = $ObservableCollection['$ObservableCollection Factory'].$__type;
 
     // =======================================================================================================================
 

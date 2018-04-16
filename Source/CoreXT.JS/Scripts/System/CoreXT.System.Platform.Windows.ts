@@ -18,7 +18,7 @@ namespace CoreXT.System.Platform {
     //    Native
     //}
 
-    class $Window extends Object.$Type {
+    class $Window extends Object.$__type {
         private _guid: string = Utilities.createGUID(false);
         private _target: any; // (this is either a DIV element [for system windows], IFrame element, or native popup Window reference)
         private _header: HTMLElement; // (the HTML-style header contents for this window)
