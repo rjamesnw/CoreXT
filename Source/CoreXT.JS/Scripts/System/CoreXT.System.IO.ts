@@ -7,7 +7,7 @@ namespace CoreXT.System.IO {
 
     /** Path/URL based utilities. */
     export namespace Path {
-        Types.__registerNamespace(CoreXT, System, IO, Path);
+        //Types.__registerNamespace(CoreXT, System, IO, Path);
         Types.__ns(CoreXT, "Systems");
 
         // ===================================================================================================================

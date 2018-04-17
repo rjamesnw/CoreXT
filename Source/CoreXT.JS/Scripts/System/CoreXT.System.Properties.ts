@@ -32,7 +32,7 @@ namespace CoreXT.System.Platform {
 
     // ========================================================================================================================
 
-    export class PropertyEventBase extends EventObject.$Type {
+    export class PropertyEventBase extends EventObject.$__type {
         // -------------------------------------------------------------------------------------------------------------------
 
         /** A list of callbacks to execute BEFORE a value changes. */

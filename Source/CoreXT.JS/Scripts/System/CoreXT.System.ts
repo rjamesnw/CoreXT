@@ -40,7 +40,7 @@ namespace CoreXT {
         $__argumentTypes?: (IType<any> | string)[][];
 
         /** The factory type containing the factory methods for creating instances of the underlying type. */
-        $__factory?: IFactory;
+        $__factory?: IFactory & IRegisteredFactoryType;
 
         /** The base factory type of the factory in '$__factory'. This is provided to maintain a factory inheritance chain. */
         $__baseFactoryType?: { new(): IFactory } & ITypeInfo;

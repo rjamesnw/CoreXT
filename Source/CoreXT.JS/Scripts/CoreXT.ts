@@ -477,7 +477,7 @@ namespace CoreXT {
             */
             static register<TClass extends IType<object>, TFactory extends { new(): IFactory }>(this: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass },
                 parentModules: object[], addMemberTypeInfo = true): InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
-                return Types.__registerFactoryType(this, parentModules, addMemberTypeInfo);
+                return Types.__registerFactoryType(<TFactory & ITypeInfo & IFactoryTypeInfo>this, parentModules, addMemberTypeInfo);
             }
         };
         return <typeof fb & ITypeInfo>fb;
@@ -510,7 +510,7 @@ namespace CoreXT {
             // ... this is the default 'new' function ...
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
             var bridge = <System.IADBridge>this; // (note: this should be either a bridge, or a class/factory object, or undefined)
-            var type = <ITypeInfo & IFactory>this;
+            var type = <ITypeInfo & IFactory & IType<NativeTypes.IObject>>this;
             if (this !== void 0 && isEmpty(this) || typeof this != FUNCTION)
                 throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the 'SomeType.new()' factory *function* without the 'new' operator.", this);
             var appDomain = bridge.$__appDomain || System.AppDomain.default;
@@ -522,7 +522,7 @@ namespace CoreXT {
             if (!objectPool && objectPool.length)
                 instance = objectPool.pop();
             else {
-                instance = new type.$Type();
+                instance = new (<IType<NativeTypes.IObject>>type)();
                 isNew = true;
             }
             if (typeof instance.init == FUNCTION)
@@ -562,7 +562,7 @@ namespace CoreXT {
             classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
             classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
 
-            var _factoryInstance = <IFactory & Object>new factoryType();
+            var _factoryInstance = <IFactory & Object & IRegisteredFactoryType>new factoryType();
 
             factoryType.$__factory = _factoryInstance; // (make sure the factory instance used to create instances of the underlying class type is set on both the factory type and the class type)
             classType.$__factory = <any>_factoryInstance;
@@ -703,8 +703,10 @@ namespace CoreXT {
             return <T>_type;
         }
 
-        export function __ns<T extends {}, A extends keyof T, B extends keyof T[A]=any, C extends keyof T[A][B]=any>(root: T, ns: A, ns2?: B, ns3?: C): void {
+        export function __ns<T extends object, A extends keyof T>(root: T, next: A): void {
         }
+        //export function __ns<T extends any, A extends keyof T, B extends keyof T[A]=any, C extends keyof T[A][B]=any>(root: T, ns: A, ns2?: B, ns3?: C): void {
+        //}
 
         export function __registerNamespace(...namespaces: object[]): void {
             for (var i = 0, n = namespaces.length; i < n; ++i) {
@@ -1109,56 +1111,50 @@ namespace CoreXT {
 
                 // ------------------------------------------------------------------------------------------------------------
 
-                static '$LogItem Factory' = function () {
-                    return frozen(class Factory implements IFactory {
-                        $Type = $LogItem;
-                        $InstanceType = <{}>null && new this.$Type();
-                        $BaseFactory = <IFactory>null;
+                protected static '$LogItem Factory' = class Factory extends FactoryBase($LogItem, null) implements IFactory {
+                    'new'(parent: $LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): InstanceType<typeof Factory.$__type>;
+                    'new'(parent: $LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): InstanceType<typeof Factory.$__type> { return null; }
 
-                        'new'(parent: $LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): typeof Factory.prototype.$InstanceType;
-                        'new'(parent: $LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): typeof Factory.prototype.$InstanceType { return null; }
-
-                        init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, parent: $LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): typeof Factory.prototype.$InstanceType;
-                        init($this: typeof Factory.prototype.$InstanceType, isnew: boolean, parent: $LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): typeof Factory.prototype.$InstanceType {
-                            if (title === void 0 || title === null) {
-                                if (isEmpty(message))
-                                    throw System.Exception.from("LogItem(): A message is required if no title is given.", $this);
-                                title = "";
-                            }
-                            else if (typeof title != STRING)
-                                if ((<ITypeInfo>title).$__fullname)
-                                    title = (<ITypeInfo>title).$__fullname;
-                                else
-                                    title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
-
-                            if (message === void 0 || message === null)
-                                message = "";
-                            else
-                                message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
-
-                            $this.parent = parent;
-                            $this.title = title;
-                            $this.message = message;
-                            $this.time = Date.now(); /*ms*/
-                            $this.type = type;
-
-                            if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
-                                var time = TimeSpan.utcTimeToLocalTime($this.time), margin = "";
-                                while (parent) { parent = parent.parent; margin += "  "; }
-                                var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                    + " " + margin + $this.title + ": " + $this.message;
-                                CoreXT.log(null, consoleText, type, false, false);
-                            }
-                            return $this;
+                    init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: $LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): InstanceType<typeof Factory.$__type>;
+                    init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: $LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): InstanceType<typeof Factory.$__type> {
+                        if (title === void 0 || title === null) {
+                            if (isEmpty(message))
+                                throw System.Exception.from("LogItem(): A message is required if no title is given.", $this);
+                            title = "";
                         }
-                    });
-                }();
+                        else if (typeof title != STRING)
+                            if ((<ITypeInfo>title).$__fullname)
+                                title = (<ITypeInfo>title).$__fullname;
+                            else
+                                title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
+
+                        if (message === void 0 || message === null)
+                            message = "";
+                        else
+                            message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
+
+                        $this.parent = parent;
+                        $this.title = title;
+                        $this.message = message;
+                        $this.time = Date.now(); /*ms*/
+                        $this.type = type;
+
+                        if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
+                            var time = TimeSpan.utcTimeToLocalTime($this.time), margin = "";
+                            while (parent) { parent = parent.parent; margin += "  "; }
+                            var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
+                                + " " + margin + $this.title + ": " + $this.message;
+                            CoreXT.log(null, consoleText, type, false, false);
+                        }
+                        return $this;
+                    }
+                }.register([CoreXT, System, Diagnostics]);
 
                 // ------------------------------------------------------------------------------------------------------------
             }
 
             export interface ILogItem extends $LogItem { }
-            export var LogItem = Types.__registerFactoryType($LogItem, $LogItem['$LogItem Factory'], [CoreXT, System, Diagnostics]);
+            export var LogItem = $LogItem['$LogItem Factory'].$__type;
 
             /** Starts a new log entry. */
             export function log(title: string, message: string, type?: LogTypes, outputToConsole?: boolean): $LogItem;

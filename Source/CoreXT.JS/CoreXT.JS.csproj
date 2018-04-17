@@ -52,6 +52,29 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Remove="scripts\System\CoreXT.System.AppDomain.ts" />
+    <None Remove="Scripts\System\CoreXT.System.AppDomain.ts" />
+    <None Remove="scripts\System\CoreXT.System.Platform.Graph.ts" />
+    <None Remove="Scripts\System\CoreXT.System.Platform.Graph.ts" />
+    <None Remove="scripts\System\CoreXT.System.Platform.HTML.Application.ts" />
+    <None Remove="Scripts\System\CoreXT.System.Platform.HTML.Application.ts" />
+    <None Remove="scripts\System\CoreXT.System.Platform.HTML.ts" />
+    <None Remove="Scripts\System\CoreXT.System.Platform.HTML.ts" />
+    <None Remove="scripts\System\CoreXT.System.Platform.ts" />
+    <None Remove="Scripts\System\CoreXT.System.Platform.ts" />
+    <None Remove="scripts\System\CoreXT.System.Platform.Windows.ts" />
+    <None Remove="Scripts\System\CoreXT.System.Platform.Windows.ts" />
+    <None Remove="scripts\System\CoreXT.System.Properties.ts" />
+    <None Remove="Scripts\System\CoreXT.System.Properties.ts" />
+    <None Remove="scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
+    <None Remove="Scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
+    <None Remove="scripts\Twitter\manifest.ts" />
+    <None Remove="Scripts\Twitter\manifest.ts" />
+    <None Remove="scripts\__references.ts" />
+    <None Remove="Scripts\__references.ts" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <Content Include="Scripts\app.manifest.ts" />
     <Content Include="Scripts\app.ts" />
     <Content Include="Scripts\CoreXT.Browser.ts" />
@@ -103,7 +126,6 @@
     <Content Include="Scripts\MomentJS\moment.min.js" />
     <Content Include="Scripts\Scirra\manifest.ts" />
     <Content Include="Scripts\Scripting Symanics Ideas.txt" />
-    <Content Include="Scripts\System\CoreXT.System.AppDomain.ts" />
     <Content Include="Scripts\System\CoreXT.System.Collections.IndexedObjectCollection.ts" />
     <Content Include="Scripts\System\CoreXT.System.Collections.ObservableCollection.ts" />
     <Content Include="Scripts\System\CoreXT.System.Data.ts" />
@@ -113,31 +135,13 @@
     <Content Include="Scripts\System\CoreXT.System.Exception.ts" />
     <Content Include="Scripts\System\CoreXT.System.IO.ts" />
     <Content Include="Scripts\System\CoreXT.System.Markup.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Platform.Graph.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Platform.HTML.Application.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Platform.HTML.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Platform.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Platform.Windows.ts" />
     <Content Include="Scripts\System\CoreXT.System.PrimitiveTypes.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Properties.ts" />
     <Content Include="Scripts\System\CoreXT.System.Serialization.ts" />
     <Content Include="Scripts\System\CoreXT.System.Storage.ts" />
     <Content Include="Scripts\System\CoreXT.System.Text.ts" />
     <Content Include="Scripts\System\CoreXT.System.Time.ts" />
     <Content Include="Scripts\System\CoreXT.System.ts" />
     <Content Include="Scripts\System\CoreXT.System.Users.ts" />
-    <Content Include="Scripts\Twitter\bootstrap\css\bootstrap-theme.css" />
-    <Content Include="Scripts\Twitter\bootstrap\css\bootstrap-theme.min.css" />
-    <Content Include="Scripts\Twitter\bootstrap\css\bootstrap.css" />
-    <Content Include="Scripts\Twitter\bootstrap\css\bootstrap.min.css" />
-    <Content Include="Scripts\Twitter\bootstrap\fonts\glyphicons-halflings-regular.eot" />
-    <Content Include="Scripts\Twitter\bootstrap\fonts\glyphicons-halflings-regular.svg" />
-    <Content Include="Scripts\Twitter\bootstrap\fonts\glyphicons-halflings-regular.ttf" />
-    <Content Include="Scripts\Twitter\bootstrap\fonts\glyphicons-halflings-regular.woff" />
-    <Content Include="Scripts\Twitter\bootstrap\js\bootstrap.js" />
-    <Content Include="Scripts\Twitter\bootstrap\js\bootstrap.min.js" />
-    <Content Include="Scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
-    <Content Include="Scripts\Twitter\manifest.ts" />
     <Content Include="Scripts\xregexp\manifest.ts" />
     <Content Include="Scripts\xregexp\xregexp-min.js" />
     <Content Include="Scripts\xregexp\xregexp.js" />

@@ -38,8 +38,8 @@ namespace CoreXT.System.Text {
 
         function __CreateCharIndex(str: String) {
             if (str.length < 65)
-                throw Exception.from("65 characters expected for base64 encoding characters (last character is for padding), but only " + str.length + " are specified.", str);
-            if (typeof str !== "object" && !(str instanceof String))
+                throw Exception.from("65 characters expected for base64 encoding characters (last character is for padding), but only " + str.length + " were specified.", <any>str);
+            if (typeof str !== "object" && !(<any>str instanceof String))
                 throw Exception.from("The encoding characters must be set in a valid 'String' OBJECT (not as a string VALUE).");
             if (!str['charIndex']) {
                 var index: { [index: string]: number } = {};

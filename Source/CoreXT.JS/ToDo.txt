@@ -1,0 +1,1 @@
+﻿* In CoreXT.System.IO.ts trying to do Types.__ns(CoreXT, "System"); but the keyof inference only works for the nested namespaces and not the root!!!?

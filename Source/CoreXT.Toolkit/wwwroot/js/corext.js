@@ -171,7 +171,7 @@ if (window.navigator && ("standalone" in window.navigator) && window.navigator["
         while (noddy.nodeName !== "A" && noddy.nodeName !== "HTML") {
             noddy = noddy.parentNode;
         }
-        if ('href' in noddy && noddy.href == '#') {
+        if ('href' in noddy && noddy.href == '#') { // ('#' is a special link used for bootstrap buttons)
             event.preventDefault();
         }
     }, false);

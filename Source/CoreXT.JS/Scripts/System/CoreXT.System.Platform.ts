@@ -158,14 +158,6 @@ namespace CoreXT.System.Platform {
         //    return <any>bridge;
         //}
 
-        private __validateElementTarget(appTitle: string, targetElement: Platform.UI.IUIObject) { //??
-            for (var i = 0; i < this.applications.length; i++)
-                if ((<Platform.UI.View.$Type<any>><any>this.applications[i]).__uiElement == targetElement)
-                    throw "Cannot add application '" + appTitle + "' as another application exists with the same target element.  Two applications cannot render to the same target.";
-        }
-
-        static createApplication: <TApp extends Application.$Type>(appClassMod?: IClassModule<TApp>, parent?: Platform.GraphItem.$Type, title?: string, description?: string, targetElement?: HTMLElement) => TApp;
-
         // ----------------------------------------------------------------------------------------------------------------
 
         /** Try to bring the window for this application to the front. */

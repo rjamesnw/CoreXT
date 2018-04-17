@@ -192,7 +192,7 @@ var CDS;
             TableCell.prototype.getInputValue = function () { return this._getValue(this._input); };
             TableCell.prototype._getDisplayText = function (valueEl) {
                 var displaySrc = this._input; // (display values are always dependent on input element sources)
-                if (displaySrc instanceof HTMLInputElement) {
+                if (displaySrc instanceof HTMLInputElement) { // (then only simple text is needed)
                     var input = valueEl;
                     if (displaySrc.type.toLowerCase() == "checkbox") {
                         if (input.type.toLowerCase() == "checkbox")
@@ -203,7 +203,7 @@ var CDS;
                     else
                         return input.value;
                 }
-                else if (displaySrc instanceof HTMLSelectElement) {
+                else if (displaySrc instanceof HTMLSelectElement) { // (then a display value is expected from a dropdown control)
                     var selectedIndex = -1;
                     if (valueEl instanceof HTMLSelectElement)
                         selectedIndex = valueEl.selectedIndex;
@@ -258,7 +258,7 @@ var CDS;
             /** Sets the current value for the edit control for this cell. */
             TableCell.prototype.setInputValue = function (value) { return this._setValue(value, this._input); };
             TableCell.prototype.edit = function () {
-                if (this._input_display.style.display != 'none') {
+                if (this._input_display.style.display != 'none') { // (only if span is visible)
                     this._input_display.style.display = 'none';
                     this._input.style.display = '';
                     this._input_prompt.style.display = '';
@@ -278,7 +278,7 @@ var CDS;
                 }
             };
             TableCell.prototype.endEdit = function () {
-                if (this._input.style.display != 'none') {
+                if (this._input.style.display != 'none') { // (only if input is visible)
                     this.changeValue(this.getInputValue(), this.getInputDisplayText());
                     this._input.style.display = 'none';
                     this._input_prompt.style.display = 'none';
@@ -450,13 +450,13 @@ var CDS;
             var evt = (evt) ? evt : ((event) ? event : null);
             if (evt != null) {
                 switch (evt.keyCode) {
-                    case 9:// (tab)
+                    case 9: // (tab)
                         evt.preventDefault();
                         var row = getRow(trID);
                         if (row)
                             row.editCellByIndex(colIndex + 1);
                         break;
-                    case 27:// (esc)
+                    case 27: // (esc)
                         evt.preventDefault();
                         var cell = getCell(cellID);
                         if (cell)
