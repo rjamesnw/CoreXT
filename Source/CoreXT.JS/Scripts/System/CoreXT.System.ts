@@ -93,16 +93,16 @@ namespace CoreXT {
 
     export interface InitDelegate<TInstance extends object> { ($this: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
-    export interface IFactoryTypeInfo<TInstance extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TInstance>> = NewDelegate<InstanceType<TInstance>>, TInit extends InitDelegate<InstanceType<TInstance>> = InitDelegate<InstanceType<TInstance>>> {
+    export interface IFactoryTypeInfo<TCLass extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TCLass>> = NewDelegate<InstanceType<TCLass>>, TInit extends InitDelegate<InstanceType<TCLass>> = InitDelegate<InstanceType<TCLass>>> {
         /** The underlying type for this factory object. */
-        $__type: TInstance;
+        $__type: TCLass;
        ///** The underlying instance type for this factory. */
         //$InstanceType?: TInstance;
         /** The factory from the inherited base type, or null if this object does not inherit from an object with a factory pattern. */
         $__baseFactoryType: { new(): IFactory } & ITypeInfo;
     }
 
-    export interface IFactory<TInstance extends new () => object = any, TNew extends NewDelegate<InstanceType<TInstance>> = NewDelegate<InstanceType<TInstance>>, TInit extends InitDelegate<InstanceType<TInstance>> = InitDelegate<InstanceType<TInstance>>> {
+    export interface IFactory<TCLass extends new () => object = any, TNew extends NewDelegate<InstanceType<TCLass>> = NewDelegate<InstanceType<TCLass>>, TInit extends InitDelegate<InstanceType<TCLass>> = InitDelegate<InstanceType<TCLass>>> {
         /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
         * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
         * also makes sure the object is associated with an application domain.

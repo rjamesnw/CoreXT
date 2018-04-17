@@ -154,7 +154,7 @@ namespace CoreXT {
         export interface IObject extends $Object { }
         /** The base type for many CoreXT classes. */
         export var Object = $Object['$Object Factory'].$__type;
-
+        
         //export var Object: typeof $Object & typeof $ObjectFactoryRoot.Object_factory & IRegisteredType<typeof $Object> = AppDomain.registerClass($Object, $Object[' '].Object_factory, [CoreXT, System]);
         // (have to be explicit on the object type since there may be references within the related types [thought nothing on a static level should access the 'Object' property during initialization])
 

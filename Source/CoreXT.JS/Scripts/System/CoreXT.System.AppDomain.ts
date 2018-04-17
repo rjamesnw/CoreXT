@@ -1,18 +1,18 @@
-﻿// ###########################################################################################################################
+﻿// ############################################################################################################################################
 // Application Domains
-// ###########################################################################################################################
+// ############################################################################################################################################
 
 namespace CoreXT {
     export namespace System {
 
-        // =======================================================================================================================
+        // ====================================================================================================================================
 
         /** AppDomain Bridge, for use with 'AppDomain.with()' when selecting a different application domain when operating on CoreXT class types. */
         export interface IADBridge extends IDomainObjectInfo {
             // '$__appDomain' is the app domain that was selected using 'with()'. By adding a value for this in a bridge instance, the default app domain will be overridden.
         }
 
-        // =======================================================================================================================
+        // ====================================================================================================================================
 
         //x export class $DomainObject extends Object.$__type {
         //    //static ' '?= class FactoryRoot {
@@ -33,14 +33,14 @@ namespace CoreXT {
         ///** The base type for all CoreXT classes. Users should normally reference 'System.Object' instead of this lower level object. */
         //export var DomainObject = factoryRoot.__register<$DomainObject, typeof $DomainObject, typeof factoryRoot.DomainObject_factory>();
 
-        // =======================================================================================================================
+        // ====================================================================================================================================
 
         export abstract class DependencyObject extends Object.$__type {
             get parent() { return this.__parent; }
             protected __parent: DependencyObject;
         }
 
-        // =======================================================================================================================
+        // ====================================================================================================================================
 
         /** Application domains encapsulate applications and confine them to a root working space.  When application scripts are
              * loaded, they are isolated and run in the context of a new global scope.  This protects the main window UI, and also
@@ -87,7 +87,7 @@ namespace CoreXT {
               */
             applications: $Application[];
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             /** Disposes this AppDomain instance. */
             dispose(): void;
@@ -214,9 +214,9 @@ namespace CoreXT {
                         throw "Cannot add application '" + appTitle + "' as another application exists with the same target element.  Two applications cannot render to the same target.";
             }
 
-            createApplication: <TApp extends $Application>(appClassMod?: ICallableType<TApp>, parent?: Platform.GraphItem.$Type, title?: string, description?: string, targetElement?: HTMLElement) => TApp;
+            createApplication?<TApp extends typeof $Application>(classFactory?: IFactory<TApp>, parent?: Platform.GraphItem.$__type, title?: string, description?: string, targetElement?: HTMLElement): TApp;
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             protected static '$AppDomain Factory' = class Factory extends FactoryBase($AppDomain, $AppDomain['$Object Factory']) implements IFactory {
                 /** Get a new app domain instance.
@@ -235,26 +235,26 @@ namespace CoreXT {
                 }
             }.register([CoreXT, System]);
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
         }
 
         export interface IAppDomain extends $AppDomain { }
         export var AppDomain = $AppDomain['$AppDomain Factory'].$__type;
 
-        $AppDomain.prototype.createApplication = function createApplication<TApp extends $Application>(appClassMod?: ICallableType<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
+        $AppDomain.prototype.createApplication = function createApplication<TApp extends typeof $Application>(classFactory?: IFactory<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
             if (!Platform.UIApplication)
                 throw Exception.error("AppDomain.createApplication()", "");
-            return (<$AppDomain>this).with(<any>appClassMod || Platform.UIApplication)(parent, title, description, targetElement);
+            return (<$AppDomain>this).with(<any>classFactory || Platform.UIApplication)(parent, title, description, targetElement);
         };
 
-        // ====================================================================================================================
+        // ===================================================================================================================================
 
         /** Applications wrap window reference targets, and any specified HTML for configuration and display. There can be many
           * applications in a single AppDomain.
           */
         @frozen
         class $Application extends Object.$__type {
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             /** References the current running application that owns the current running environment. */
             static get current(): IApplication {
@@ -310,7 +310,7 @@ namespace CoreXT {
               */
             applications: $Application[];
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             protected static '$Application Factory' = class Factory extends FactoryBase($Application, $Application['$Object Factory']) implements IFactory {
                 'new'(title: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
@@ -324,13 +324,13 @@ namespace CoreXT {
                 }
             }.register([CoreXT, System]);
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             /** Try to bring the window for this application to the front. */
             focus(): void {
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             /** Closes the application by disposing all owned AppDomain instances, which also closes any opened windows, including the application's own window as well. */
             close(): void {
@@ -340,26 +340,14 @@ namespace CoreXT {
                 this._appDomains[0].dispose();
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
         }
 
         export interface IApplication extends $Application { }
         export var Application = $Application['$Application Factory'].$__type;
 
-        // ====================================================================================================================
-
-        // ... register the basic types ...
-        $AppDomain.registerType(global.Object, null, false);
-        $AppDomain.registerType(global.Function, null, false);
-        $AppDomain.registerType(global.Array, null, false);
-        $AppDomain.registerType(global.Boolean, null, false);
-        $AppDomain.registerType(global.Number, null, false);
-        $AppDomain.registerType(global.String, null, false);
-        $AppDomain.registerType(global.Date, null, false);
-        $AppDomain.registerType(global.RegExp, null, false);
-
-        $AppDomain.registerClass(Object, null, [CoreXT, System]);
+        // ===================================================================================================================================
     }
 
-    // =======================================================================================================================
+    // ========================================================================================================================================
 }

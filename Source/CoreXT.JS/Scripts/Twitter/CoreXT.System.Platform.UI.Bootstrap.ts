@@ -49,7 +49,7 @@ namespace CoreXT.System.Platform.UI.HTML {
             /** Deemphasize a button by making it look like a link while maintaining button behavior. */
             Link = <ButtonTypes><any>"btn btn-link"
         }
-
+        
         export class ButtonSize {
             static Large: ButtonSize = "btn-large";
             static Default: ButtonSize = "";

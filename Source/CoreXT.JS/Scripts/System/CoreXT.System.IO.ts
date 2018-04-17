@@ -7,6 +7,8 @@ namespace CoreXT.System.IO {
 
     /** Path/URL based utilities. */
     export namespace Path {
+        Types.__registerNamespace(CoreXT, System, IO, Path);
+        Types.__ns(CoreXT, "Systems");
 
         // ===================================================================================================================
 
@@ -40,42 +42,51 @@ namespace CoreXT.System.IO {
         /** Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
         * pairs from a URI or 'location.search' string, and converting the object to a string results in a proper query/search string
         * with all values escaped and ready to be appended to a URI. */
-        export class Query {
+        class $Query {
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             values: { [index: string]: string } = {};
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
-            * @param {string} searchString A URI or 'location.search' string.
-            * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
-            */
-            constructor(searchString: string = null, makeNamesLowercase: boolean = false) {
-                if (searchString) {
-                    var nameValuePairs = searchString.match(QUERY_STRING_REGEX);
-                    var i: number, n: number, eqIndex: number, nameValue: string;
-                    if (nameValuePairs)
-                        for (var i = 0, n = nameValuePairs.length; i < n; ++i) {
-                            nameValue = nameValuePairs[i];
-                            eqIndex = nameValue.indexOf('='); // (need to get first instance of the '=' char)
-                            if (eqIndex == -1) eqIndex = nameValue.length; // (whole string is the name)
-                            if (makeNamesLowercase)
-                                this.values[decodeURIComponent(nameValue).substring(1, eqIndex).toLowerCase()] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
-                            else
-                                this.values[decodeURIComponent(nameValue).substring(1, eqIndex)] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
-                        }
+            protected static '$Query Factory' = class Factory extends FactoryBase($Query, null) implements IFactory {
+                /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
+                    * @param {string} searchString A URI or 'location.search' string.
+                    * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
+                    */
+                'new'(searchString: string = null, makeNamesLowercase: boolean = false): InstanceType<typeof Factory.$__type> { return null; }
+
+                /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
+                    * @param {string} searchString A URI or 'location.search' string.
+                    * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
+                    */
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, searchString: string = null, makeNamesLowercase: boolean = false): InstanceType<typeof Factory.$__type> {
+                    if (searchString) {
+                        var nameValuePairs = searchString.match(QUERY_STRING_REGEX);
+                        var i: number, n: number, eqIndex: number, nameValue: string;
+                        if (nameValuePairs)
+                            for (var i = 0, n = nameValuePairs.length; i < n; ++i) {
+                                nameValue = nameValuePairs[i];
+                                eqIndex = nameValue.indexOf('='); // (need to get first instance of the '=' char)
+                                if (eqIndex == -1) eqIndex = nameValue.length; // (whole string is the name)
+                                if (makeNamesLowercase)
+                                    $this.values[decodeURIComponent(nameValue).substring(1, eqIndex).toLowerCase()] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
+                                else
+                                    $this.values[decodeURIComponent(nameValue).substring(1, eqIndex)] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
+                            }
+                    }
+                    return $this;
                 }
-            }
+            }.register([CoreXT, System, IO, Path]);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             /** Use to add additional query string values. The function returns the current object to allow chaining calls.
             * Example: add({'name1':'value1', 'name2':'value2', ...});
             * Note: Use this to also change existing values.
             */
-            addOrUpdate(newValues: { [index: string]: string }): Query {
+            addOrUpdate(newValues: { [index: string]: string }): $Query {
                 if (newValues)
                     for (var pname in newValues)
                         this.values[pname] = newValues[pname];
@@ -88,7 +99,7 @@ namespace CoreXT.System.IO {
             * Example: rename({'oldName':'newName', 'oldname2':'newName2', ...});
             * Warning: If the new name already exists, it will be replaced.
             */
-            rename(newNames: { [index: string]: string }): Query {
+            rename(newNames: { [index: string]: string }): $Query {
                 for (var pname in this.values)
                     for (var pexistingname in newNames)
                         if (pexistingname == pname && newNames[pexistingname] && newNames[pexistingname] != pname) { // (&& make sure the new name is actually different)
@@ -103,7 +114,7 @@ namespace CoreXT.System.IO {
             /** Use to remove a series of query parameter names.  The function returns the current object to allow chaining calls.
             * Example: remove(['name1', 'name2', 'name3']);
             */
-            remove(namesToDelete: string[]): Query {
+            remove(namesToDelete: string[]): $Query {
                 if (namesToDelete && namesToDelete.length)
                     for (var i = 0, n = namesToDelete.length; i < n; ++i)
                         if (this.values[namesToDelete[i]])
@@ -115,7 +126,7 @@ namespace CoreXT.System.IO {
 
             /** Creates and returns a duplicate of this object. */
             clone(): Query {
-                var q = new Query();
+                var q = new $Query();
                 for (var pname in this.values)
                     q.values[pname] = this.values[pname];
                 return q;
@@ -211,6 +222,9 @@ namespace CoreXT.System.IO {
 
             // ---------------------------------------------------------------------------------------------------------------
         }
+
+        export interface IQuery extends $Query { }
+        export var Query = $Query['$Query Factory'].$__type;
 
         // ===================================================================================================================
 

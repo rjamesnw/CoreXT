@@ -463,8 +463,10 @@ namespace CoreXT {
         var fb = class FactoryBase {
             static $__type = type;
             static $__baseFactoryType = registeredBaseFactoryType.$__factoryType;
-            protected get $__baseFactory() { return registeredBaseFactoryType.$__factory; }
             static $__factory: IFactory;
+            protected get $__type() { return FactoryBase.$__type; }
+            protected get $__factory() { return FactoryBase.$__factory; }
+            protected get $__baseFactory() { return registeredBaseFactoryType.$__factory; }
 
             /** 
              * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
@@ -473,7 +475,8 @@ namespace CoreXT {
              * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
              * applied (using the IFunctionInfo interface).
             */
-            static register<TClass extends IType<object>, TFactory extends { new(): IFactory }>(this: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, parentModules: object[], addMemberTypeInfo = true) {
+            static register<TClass extends IType<object>, TFactory extends { new(): IFactory }>(this: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass },
+                parentModules: object[], addMemberTypeInfo = true): InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
                 return Types.__registerFactoryType(this, parentModules, addMemberTypeInfo);
             }
         };
@@ -547,7 +550,7 @@ namespace CoreXT {
          * applied (using the IFunctionInfo interface).
         */
         export function __registerFactoryType<TClass extends IType<object>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, parentModules: object[], addMemberTypeInfo = true)
-            : IRegisteredFactoryType<TClass, TFactory> {
+            : InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
             if (typeof factoryType !== FUNCTION)
                 throw System.Exception.error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
@@ -562,7 +565,7 @@ namespace CoreXT {
             var _factoryInstance = <IFactory & Object>new factoryType();
 
             factoryType.$__factory = _factoryInstance; // (make sure the factory instance used to create instances of the underlying class type is set on both the factory type and the class type)
-            classType.$__factory = _factoryInstance;
+            classType.$__factory = <any>_factoryInstance;
 
             frozen(factoryType);
             frozen(_factoryInstance);
@@ -604,7 +607,9 @@ namespace CoreXT {
             //x if ('__register' in _factoryType)
             //x     _factoryType['__register'] == noop;
 
-            return __registerType<any>(classType, parentModules, addMemberTypeInfo);
+            __registerType(factoryType.$__type, parentModules, addMemberTypeInfo);
+
+            return <any>_factoryInstance;
         }
 
         //x /** Registers a given type by name (constructor function), and creates the function on the last specified module if it doesn't already exist.
@@ -622,30 +627,31 @@ namespace CoreXT {
          * Note: DO NOT use this to register factory types.  You must used '__registerFactoryType()' for those.
          *
          * @param {IType} type The type (constructor function) to register.
-         * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
+         * @param {modules} parentNamespaces A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
          */
-        export function __registerType<T extends IType<any>>(type: T, parentModules: object[], addMemberTypeInfo = true): T {
+        export function __registerType<T extends IType<any>>(type: T, parentNamespaces: object[], addMemberTypeInfo = true): T {
 
-            if (parentModules === void 0)
+            if (parentNamespaces === void 0)
                 throw System.Exception.error("registerType()", "A list of namespace modules is required, up to but not including the class type.", type);
-            if (!parentModules)
-                parentModules = []; // (null was given perhaps to force global scope)
+            if (!parentNamespaces)
+                parentNamespaces = []; // (null was given perhaps to force global scope)
             else
-                parentModules = parentModules.slice(); // (use copy only just in case, since we will be modifying it)
+                parentNamespaces = parentNamespaces.slice(); // (use copy only just in case, since we will be modifying it)
 
+            //if (type != null) {
             var _type = <ITypeInfo>type, namespaceItem: {} = CoreXT.global, mod: INamespaceInfo, pname: string, name: string, fullname: string;
             if (!_type.$__name)
                 _type.$__name = getTypeName(_type);
 
-            parentModules.push(type); // (put the type on the end so we can include this in the loop also)
+            parentNamespaces.push(type); // (put the type on the end so we can include this in the loop also)
 
             if (!_type.$__parent || !_type.$__fullname) {
                 // ... refresh the type information by cycling through the given modules ...
 
-                for (var i = 0, n = parentModules.length; i < n; ++i) {
-                    mod = <INamespaceInfo>parentModules[i];
+                for (var i = 0, n = parentNamespaces.length; i < n; ++i) {
+                    mod = <INamespaceInfo>parentNamespaces[i];
                     if (!mod.$__parent) {
                         // ... module type info missing, add it now; first, find the reference to get the name ...
                         name = "";
@@ -688,13 +694,43 @@ namespace CoreXT {
                     }
                 }
             }
-
             // ... register the type ...
             // (all registered type names will be made available here globally, since types are not AppDomain specific)
 
             _types[fullname] = <ITypeInfo><any>type;
+            //}
 
             return <T>_type;
+        }
+
+        export function __ns<T extends {}, A extends keyof T, B extends keyof T[A]=any, C extends keyof T[A][B]=any>(root: T, ns: A, ns2?: B, ns3?: C): void {
+        }
+
+        export function __registerNamespace(...namespaces: object[]): void {
+            for (var i = 0, n = namespaces.length; i < n; ++i) {
+                var ns = <INamespaceInfo>namespaces[i];
+                if (!ns.$__parent) {
+                    // ... module type info missing, add it now; first, find the reference to get the name ...
+                    var name = "";
+                    for (var pname in namespaceItem)
+                        if (namespaceItem[pname] === ns) {
+                            name = pname;
+                            break;
+                        }
+                    if (!name)
+                        throw System.Exception.error("registerType()", ((i == n - 1) ? "The type to be registered" : (i == 0 ? "The first module" : "Module " + (1 + i))) + " cannot be found in the" + ((i == 0) ? " root scope." : " preceding module.")
+                            + " Please double check you have the correct modules that precede the type being registered.", _type);
+                    fullname = fullname ? fullname + "." + name : name;
+                    ns.$__parent = <INamespaceInfo>namespaceItem; // (each module will have a reference to its parent module [object], and its local and full type names; note: the CoreXT parent will be pointing to 'CoreXT.global')
+                    if (ns != _type) // (modules cannot be nested in class types)
+                        ns.$__namespaces = <any>ns; // ('$__modules' just provides an easy way to navigate TypeScript type information by module name)
+                    else
+                        ns.$__namespaces = <any>ns.$__parent; // ('$__modules', when accessed on a class type, will reference the parent module)
+                    ns.$__name = name; // (the local module name)
+                    ns.$__fullname = fullname; // (the fully qualified namespace name for this module)
+                }
+                namespaceItem = ns;
+            }
         }
 
         /** Disposes a specific object in this AppDomain instance.
@@ -971,7 +1007,7 @@ namespace CoreXT {
         * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.
         */
         export var Exception = $Exception['$Exception Factory'].$__type;
-        
+
         // ==========================================================================================
 
         /** Contains diagnostic based functions, such as those needed for logging purposes. */
