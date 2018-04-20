@@ -73,6 +73,7 @@ namespace CoreXT {
               */
             objects: Collections.IIndexedObjectCollection<IDomainObjectInfo> = new Collections.IndexedObjectCollection<IDomainObjectInfo>();
             // (why an object pool? http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/)
+            // Note: requires calling {System.Object}.track();
 
             /** Returns the default (first) application for this domain. */
             application(): $Application {

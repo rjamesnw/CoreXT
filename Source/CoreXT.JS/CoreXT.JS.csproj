@@ -52,20 +52,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Remove="scripts\System\CoreXT.System.AppDomain.ts" />
-    <None Remove="Scripts\System\CoreXT.System.AppDomain.ts" />
-    <None Remove="scripts\System\CoreXT.System.Platform.Graph.ts" />
-    <None Remove="Scripts\System\CoreXT.System.Platform.Graph.ts" />
-    <None Remove="scripts\System\CoreXT.System.Platform.HTML.Application.ts" />
-    <None Remove="Scripts\System\CoreXT.System.Platform.HTML.Application.ts" />
-    <None Remove="scripts\System\CoreXT.System.Platform.HTML.ts" />
-    <None Remove="Scripts\System\CoreXT.System.Platform.HTML.ts" />
-    <None Remove="scripts\System\CoreXT.System.Platform.ts" />
-    <None Remove="Scripts\System\CoreXT.System.Platform.ts" />
-    <None Remove="scripts\System\CoreXT.System.Platform.Windows.ts" />
-    <None Remove="Scripts\System\CoreXT.System.Platform.Windows.ts" />
-    <None Remove="scripts\System\CoreXT.System.Properties.ts" />
-    <None Remove="Scripts\System\CoreXT.System.Properties.ts" />
     <None Remove="scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
     <None Remove="Scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
     <None Remove="scripts\Twitter\manifest.ts" />

@@ -4,10 +4,10 @@
 
 namespace CoreXT.System.Platform {
     // ========================================================================================================================
-    export interface IEvents { [index: string]: Events.IEventDispatcher<GraphNode, (ev: Event) => any>; }
+    export interface IEvents { [index: string]: Events.IEventDispatcher<$GraphNode, (ev: Event) => any>; }
 
     /** A graph item represents a single node on the application graph. */
-    export class GraphNode extends PropertyEventBase {
+    class $GraphNode extends PropertyEventBase {
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -23,8 +23,8 @@ namespace CoreXT.System.Platform {
         static accessor = (registeredProperty: StaticProperty): any => {
             return function (value: any) {
                 if (arguments.length > 0)
-                    return (<GraphNode>this).setValue(registeredProperty, value);
-                return (<GraphNode>this).getValue(registeredProperty);
+                    return (<$GraphNode>this).setValue(registeredProperty, value);
+                return (<$GraphNode>this).getValue(registeredProperty);
             };
         };
 
@@ -43,7 +43,7 @@ namespace CoreXT.System.Platform {
         * @param {Function} changedCallback A callback to execute when the property has changed.
         * @param {Function} changingCallback A callback to execute before the property changes.
         */
-        static registerProperty(type: typeof GraphNode, name: string, isVisual: boolean = false,
+        static registerProperty(type: typeof $GraphNode, name: string, isVisual: boolean = false,
             changedCallback: ListenerCallback = null, changingCallback: InterceptorCallback = null): StaticProperty {
 
             if (!type) throw Exception.from("A class type [function] is required for property registration.");
@@ -98,13 +98,13 @@ namespace CoreXT.System.Platform {
         /** The display name for this graph item, which is useful if developing in an IDE. */
         _displayName: string = "";
 
-        __parent: GraphNode = null;
-        __children: Array<GraphNode> = [];
+        __parent: $GraphNode = null;
+        __children: Array<$GraphNode> = [];
 
         /** Represents the HTML element tag to use for this graph item.  The default value is set when a derived graph item is constructed.
         * Not all objects support this property, and changing it is only valid BEFORE the layout is updated for the first time.
         */
-        htmlTag: string = GraphNode.defaultHTMLTag; // (warning: this may already be set from parsing an HTML template)
+        htmlTag: string = $GraphNode.defaultHTMLTag; // (warning: this may already be set from parsing an HTML template)
         __element: Node = null;
         __htmlElement: HTMLElement = null;
 
@@ -137,29 +137,6 @@ namespace CoreXT.System.Platform {
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        constructor(parent: GraphNode = null) {
-            super();
-
-            this._id = GraphNode.__nextID++;
-
-            // ... need to initialize the properties to the static defaults ...
-            // (note: this pass only creates the property instances in their initial states - no state information is applied)
-
-            var i: number, n: number, p: StaticProperty, type = (<any>this).constructor, sp = type.__staticProperties;
-
-            if (sp !== void 0)
-                while (sp) {
-                    for (i = sp.length - 1; i >= 0; --i) {
-                        p = sp[i];
-                        this.__properties[p.name] = p.createPropertyInstance(this);
-                    }
-                    sp = sp.parent; // (each type has its own array of static properties that have a parent reference to the super class)
-                }
-
-            if (parent)
-                parent.addChild(this);
-        }
-
         /** Causes the instance '__properties' collection to be replaced by a brand-new copy of the property values in the '__initialProperties' collection. */
         resetProperties() {
             var i: number, n: number, p: string;
@@ -167,7 +144,42 @@ namespace CoreXT.System.Platform {
                 this.__properties[p] = this.__initialProperties[p].clone();
         }
 
-        // --------------------------------------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------------------------------------------
+        // This part uses the CoreXT factory pattern
+
+        protected static '$GraphNode Factory' = class Factory extends FactoryBase($GraphNode, $GraphNode['']) implements IFactory {
+            /**
+             * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
+             * layout that can render a view, or partial view.
+             * @param parent If specified, the value will be wrapped in the created object.
+             */
+            'new'(parent: $GraphNode = null): InstanceType<typeof Factory.$__type> { return null; }
+
+            init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: $GraphNode = null): InstanceType<typeof Factory.$__type> {
+                $this._id = $GraphNode.__nextID++;
+
+                // ... need to initialize the properties to the static defaults ...
+                // (note: this pass only creates the property instances in their initial states - no state information is applied)
+
+                var i: number, n: number, p: StaticProperty, type = (<any>$this).constructor, sp = type.__staticProperties;
+
+                if (sp !== void 0)
+                    while (sp) {
+                        for (i = sp.length - 1; i >= 0; --i) {
+                            p = sp[i];
+                            $this.__properties[p.name] = p.createPropertyInstance($this);
+                        }
+                        sp = sp.parent; // (each type has its own array of static properties that have a parent reference to the super class)
+                    }
+
+                if (parent)
+                    parent.addChild($this);
+
+                return $this;
+            }
+        }.register([CoreXT, System]);
+
+        // -------------------------------------------------------------------------------------------------------------------
 
         /** This is called internally in the layout phase upon creating elements for the first time. */
         updateInitialProperties() {
@@ -235,7 +247,7 @@ namespace CoreXT.System.Platform {
         // --------------------------------------------------------------------------------------------------------------------
 
         /** Copies over properties from the specified graph item. */
-        copyProperties(graphItem: GraphNode, ...excludeList: string[]): void {
+        copyProperties(graphItem: $GraphNode, ...excludeList: string[]): void {
             for (var pname in graphItem.__properties)
                 if (excludeList && !~excludeList.indexOf(pname))
                     this.setValue(pname, graphItem.__properties[pname]);
@@ -283,7 +295,7 @@ namespace CoreXT.System.Platform {
         on(eventName: string, handler: (ev: Event) => any) {
             var existingEvent = this.__events[eventName];
             if (existingEvent === void 0) {
-                this.__events[eventName] = existingEvent = Events.EventDispatcher.new<GraphNode, (ev: Event) => any>(this, eventName);
+                this.__events[eventName] = existingEvent = Events.EventDispatcher.new<$GraphNode, (ev: Event) => any>(this, eventName);
                 if (this.__htmlElement) {
                     if (this.__htmlElement.addEventListener)
                         this.__htmlElement.addEventListener(eventName, (ev: any): any => { return existingEvent.dispatch(ev); }, false);
@@ -313,7 +325,7 @@ namespace CoreXT.System.Platform {
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        addChild(item: GraphNode): GraphNode {
+        addChild(item: $GraphNode): $GraphNode {
             // ... make sure the item doesn't exist, and move it from any other parent ...
             var i = this.__children.indexOf(item);
             if (i == -1) {
@@ -328,14 +340,14 @@ namespace CoreXT.System.Platform {
         /** Detaches this GraphItem from the logical graph tree, but does not remove it from the parent's child list.
         * Only call this function if you plan to manually remove the child from the parent.
         */
-        detach(): GraphNode {
+        detach(): $GraphNode {
             if (this.__parent && this.__parent.__element && this.__element)
                 this.__parent.__element.removeChild(this.__element);
             this.__parent = null;
             return this;
         }
 
-        removeChildAt(itemIndex: number): GraphNode {
+        removeChildAt(itemIndex: number): $GraphNode {
             if (itemIndex >= 0 && itemIndex < this.__children.length) {
                 var item = this.__children[itemIndex];
                 item.detach();
@@ -344,7 +356,7 @@ namespace CoreXT.System.Platform {
             return null;
         }
 
-        removeChild(item: GraphNode): GraphNode {
+        removeChild(item: $GraphNode): $GraphNode {
             if (item) {
                 var i = this.__children.indexOf(item);
                 if (i >= 0) this.removeChildAt(i);
@@ -352,8 +364,8 @@ namespace CoreXT.System.Platform {
             return item;
         }
 
-        removeAllChildren(): GraphNode[] {
-            var items: GraphNode[] = this.__children;
+        removeAllChildren(): $GraphNode[] {
+            var items: $GraphNode[] = this.__children;
             for (var i = items.length - 1; i >= 0; --i)
                 items[i].detach();
             this.__children = [];
@@ -363,7 +375,7 @@ namespace CoreXT.System.Platform {
         // --------------------------------------------------------------------------------------------------------------------
 
         /** Returns the graph item with the specified ID (similar to 'getElementById()'). */
-        getItem(id: string): GraphNode { // TODO: Create a hash list for the IDs instead.
+        getItem(id: string): $GraphNode { // TODO: Create a hash list for the IDs instead.
             var prop = this.__properties['id'], i, n, item;
             if (prop && prop.getValue() == id) return this;
             for (i = 0, n = this.__children.length; i < n; ++i) {
@@ -451,7 +463,7 @@ namespace CoreXT.System.Platform {
         * and calling 'setHTMLTag("span")' will have no effect before OR after the first layout pass (this element will always be a text node).
         * Some derived types that override 'createUIElement()' my provide special logic to accept only supported types.
         */
-        setHTMLTag(htmlTag: string): GraphNode {
+        setHTMLTag(htmlTag: string): $GraphNode {
             this.htmlTag = htmlTag;
             // .. if an element already exists, replace it if the tag is different ...
             if (this.__element != null && this.__element.nodeName != this.htmlTag) {
@@ -466,7 +478,7 @@ namespace CoreXT.System.Platform {
         * If the derived type doesn't represent a UI element, don't override this function.
         */
         createUIElement(): Node {
-            return document.createElement(this.htmlTag || GraphNode.defaultHTMLTag || "div");
+            return document.createElement(this.htmlTag || $GraphNode.defaultHTMLTag || "div");
         }
 
         /** Call this at the beginning of an overridden 'createUIElement()' function on a derived GraphItem type to validate supported element types. */
@@ -507,7 +519,7 @@ namespace CoreXT.System.Platform {
         // Iteration Support
 
         /** Returns an enumerable that can be used to iterate over the child graph items. */
-        asEnumerable(): IEnumerable<GraphNode> {
+        asEnumerable(): IEnumerable<$GraphNode> {
             return null; //Enumerable.From(this.__children);
         }
 
@@ -518,6 +530,9 @@ namespace CoreXT.System.Platform {
 
         // --------------------------------------------------------------------------------------------------------------------
     }
+
+    export interface IGraphNode extends $GraphNode { }
+    export var GraphNode = $GraphNode['$GraphNode Factory'].$__type;
 
     // ========================================================================================================================
 
@@ -532,7 +547,7 @@ namespace CoreXT.System.Platform {
     * @param {boolean} strictMode If true, then the parser will produce errors on ill-formed HTML (eg. 'attribute=' with no value).
     * This can greatly help keep your html clean, AND identify possible areas of page errors.  If strict formatting is not important, pass in false.
     */
-    export function parse(html: string = null, strictMode?: boolean): { rootElements: GraphNode[]; templates: { [id: string]: IDataTemplate; } } {
+    export function parse(html: string = null, strictMode?: boolean): { rootElements: $GraphNode[]; templates: { [id: string]: IDataTemplate; } } {
         var log = Diagnostics.log(Markup, "Parsing HTML template ...").beginCapture();
         log.write("Template: " + html);
 
@@ -548,10 +563,10 @@ namespace CoreXT.System.Platform {
         var classMatch = /^[$.][A-Za-z0-9_$]*(\.[A-Za-z0-9_$]*)*(\s+|$)/;
         var attribName: string;
 
-        var storeRunningText = (parent: GraphNode) => {
+        var storeRunningText = (parent: $GraphNode) => {
             if (htmlReader.runningText) { // (if there is running text, then create a text node for it for the CURRENT graph item [not the parent])
                 if (!UI)
-                    new GraphNode(parent).setValue((htmlReader.runningText.indexOf('&') < 0 ? "text" : "html"), htmlReader.runningText);
+                    new $GraphNode(parent).setValue((htmlReader.runningText.indexOf('&') < 0 ? "text" : "html"), htmlReader.runningText);
                 else if (htmlReader.runningText.indexOf('&') < 0)
                     new UI.PlainText(parent, htmlReader.runningText);
                 else
@@ -559,13 +574,13 @@ namespace CoreXT.System.Platform {
             }
         };
 
-        var rootElements: GraphNode[] = [];
+        var rootElements: $GraphNode[] = [];
         var dataTemplates: { [id: string]: IDataTemplate; } = {};
 
-        var processTags = (parent: GraphNode): IDataTemplate[] => { // (returns the data templates found for the immediate children only)
+        var processTags = (parent: $GraphNode): IDataTemplate[] => { // (returns the data templates found for the immediate children only)
             var graphItemType: string, graphItemTypePrefix: string;
-            var graphType: { new (parent: GraphNode): GraphNode; defaultHTMLTag: string; };
-            var graphItem: GraphNode;
+            var graphType: { new(parent: $GraphNode): $GraphNode; defaultHTMLTag: string; };
+            var graphItem: $GraphNode;
             var properties: {};
             var currentTagName: string;
             var isDataTemplate: boolean = false, dataTemplateID: string, dataTemplateHTML: string;
@@ -659,7 +674,7 @@ namespace CoreXT.System.Platform {
                                     if (graphItemTypePrefix == '.')
                                         graphItemType = "DreamSpace.System.UI" + graphItemType;
 
-                                    graphType = <typeof GraphNode>Utilities.dereferencePropertyPath(CoreXT['parent'], Scripts.translateModuleTypeName(graphItemType));
+                                    graphType = <typeof $GraphNode>Utilities.dereferencePropertyPath(CoreXT['parent'], Scripts.translateModuleTypeName(graphItemType));
 
                                     if (graphType === void 0)
                                         throw Exception.from("The graph item type '" + graphItemType + "' for tag '<" + currentTagName + "' on line " + htmlReader.getCurrentLineNumber() + " was not found.");
@@ -696,7 +711,7 @@ namespace CoreXT.System.Platform {
 
                                             default: graphType = UI.HTML; // (just create a basic object to use with htmlReader.tagName)
                                         }
-                                    } else graphType = GraphNode; // (UI not loaded, so just create simple GraphItem objects)
+                                    } else graphType = $GraphNode; // (UI not loaded, so just create simple GraphItem objects)
                                 }
 
                                 if (!graphItem) { // (only create if not explicitly created)
