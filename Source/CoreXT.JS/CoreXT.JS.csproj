@@ -97,9 +97,9 @@
     <Content Include="Scripts\HoldOn\manifest.ts" />
     <Content Include="Scripts\HostBridge.d.ts" />
     <Content Include="Scripts\HostBridge.ICE.d.ts" />
-    <Content Include="Scripts\JQuery\jquery.js" />
-    <Content Include="Scripts\JQuery\jquery.min.js" />
-    <Content Include="Scripts\JQuery\jquery.min.map" />
+    <Content Include="Scripts\JQuery\jquery_2_2_0.js" />
+    <Content Include="Scripts\JQuery\jquery_2_2_0.min.js" />
+    <Content Include="Scripts\JQuery\jquery_2_2_0.min.map" />
     <Content Include="Scripts\JQuery\manifest.ts" />
     <Content Include="Scripts\Linq4JS\linq4js.js" />
     <Content Include="Scripts\Linq4JS\linq4js.min.js" />

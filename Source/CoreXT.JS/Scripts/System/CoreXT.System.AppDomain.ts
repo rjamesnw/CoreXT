@@ -68,12 +68,15 @@ namespace CoreXT {
               */
             private readonly __typeBridges: { [fullTypeName: string]: IADBridge } = {};
 
+            /** Automatically tracks new objects created under this app domain. The default is false. */
+            autoTrack = false;
+
             /** A collection of all objects created via this application domain instance. Each object is given an ID value
               * that is unique for this specific AppDomain instance only.
               */
             objects: Collections.IIndexedObjectCollection<IDomainObjectInfo> = new Collections.IndexedObjectCollection<IDomainObjectInfo>();
             // (why an object pool? http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/)
-            // Note: requires calling {System.Object}.track();
+            // Note: requires calling '{System.Object}.track()' or setting '{System.AppDomain}.autoTrack=true'.
 
             /** Returns the default (first) application for this domain. */
             application(): $Application {
@@ -248,14 +251,14 @@ namespace CoreXT {
             return (<$AppDomain>this).with(<any>classFactory || Platform.UIApplication)(parent, title, description, targetElement);
         };
 
-        // ===================================================================================================================================
+        // ==========================================================================================
 
         /** Applications wrap window reference targets, and any specified HTML for configuration and display. There can be many
           * applications in a single AppDomain.
           */
         @frozen
         class $Application extends Object.$__type {
-            // -------------------------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             /** References the current running application that owns the current running environment. */
             static get current(): IApplication {

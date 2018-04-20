@@ -24,11 +24,12 @@ namespace CoreXT.System.Platform {
         Local
     }
 
-    /** A context is a container that manages a reference to a global script environment. Each new context creates a new 
-      * execution environment that keeps scripts from accidentally (or maliciously) populating/corrupting the host environment.
-      * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
-      * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
-      */
+    /** 
+     * A context is a container that manages a reference to a global script environment. Each new context creates a new 
+     * execution environment that keeps scripts from accidentally (or maliciously) populating/corrupting the host environment.
+     * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
+     * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
+     */
     class $Context extends Object.$__type {
         protected _contextType: Contexts;
         protected _url: string;
@@ -57,18 +58,19 @@ namespace CoreXT.System.Platform {
             throw Exception.notImplemented("load", this, "Try the default BrowserContext type instead.");
         }
 
-        // ----------------------------------------------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------------------------------------
     }
 
     export interface IContext extends $Context { }
     export var Context = $Context['$Context Factory'].$__type;
 
-    // ====================================================================================================================
+    // ========================================================================================================================
 
-    /** Where the Application object represents the base application properties for an AppDomain instance, the UIApplication
+    /** 
+      * Where the Application object represents the base application properties for an AppDomain instance, the UIApplication
       * type, which inherits from Application, represents the UI side. 
-      * UIApplications encapsulate HTML, scripts, and modules, confining them to a root working space.  Applications also
-      * wrap window reference targets, and any specified HTML for configuration and display. When application scripts are
+      * UIApplications encapsulate graph nodes, typically representing HTML, scripts, and modules, and confines them to a root working space.
+      * Applications also reference script execution contexts. When application scripts are
       * loaded, they are isolated and run in the context of a new global scope.  This protects the host environment, and also
       * protects the user from malicious applications that may try to hook into and read a user's key strokes to steal
       * logins, private information, etc.
@@ -79,7 +81,7 @@ namespace CoreXT.System.Platform {
         get global(): typeof global { return null; }
 
         /** The root graph node that represents this UIApplication; typically an ApplicationElement instance. */
-        protected _RootGraphNode: GraphNode;
+        protected _RootGraphNode: IGraphNode;
 
         protected _Context: IContext; // (the context in which scripts can be loaded)
 

@@ -12,7 +12,7 @@ namespace CoreXT.Scripts.Modules {
         /**
          * A date picker.
          */
-        export var Datepicker = module([JQuery], 'bootstrap-datepicker', '~Helpers/Eyecon/js/')
+        export var Datepicker = module([JQuery.V2_2_0], 'bootstrap-datepicker', '~Helpers/Eyecon/js/')
             .require(Loader.get("~eyecon.ro/css/datepicker.css"));
 
         // ===================================================================================

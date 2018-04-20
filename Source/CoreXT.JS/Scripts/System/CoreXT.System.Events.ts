@@ -391,19 +391,19 @@ namespace CoreXT {
 
             protected static '$EventObject Factory' = class Factory extends FactoryBase($EventObject, $EventObject['$Object Factory']) implements IFactory {
                 /**
-                    * Constructs a new Delegate object.
-                    * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
-                    * @param {Function} func The function to be called on the associated object.
-                    */
+                * Constructs a new Delegate object.
+                * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
+                * @param {Function} func The function to be called on the associated object.
+                */
                 'new'(): InstanceType<typeof Factory.$__type> { return null; }
 
                 /**
-                    * Reinitializes a disposed Delegate instance.
-                    * @param $this The Delegate instance to initialize, or re-initialize.
-                    * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                    * @param object The instance to bind to the resulting delegate object.
-                    * @param func The function that will be called for the resulting delegate object.
-                    */
+                * Reinitializes a disposed Delegate instance.
+                * @param $this The Delegate instance to initialize, or re-initialize.
+                * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                * @param object The instance to bind to the resulting delegate object.
+                * @param func The function that will be called for the resulting delegate object.
+                */
                 init($this: InstanceType<typeof Factory.$__type>, isnew: boolean): InstanceType<typeof Factory.$__type> {
                     this.$__baseFactory.init($this, isnew);
                     return $this;
