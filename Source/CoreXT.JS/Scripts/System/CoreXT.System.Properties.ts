@@ -3,6 +3,7 @@
 // ###########################################################################################################################
 
 namespace CoreXT.System.Platform {
+    registerNamespace(CoreXT, "System", "Platform");
     // ========================================================================================================================
 
     export interface PropertyChangedHandler { (item: GraphNode, property: Property): void; }

@@ -46,7 +46,7 @@ namespace CoreXT {
 
         class $ScriptResource extends Loader.ResourceRequest.$__type {
 
-            /** For help, see 'CoreXT.Globals'. */
+            /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
             registerGlobal<T>(name: string, initialValue: T, asHostGlobal?: boolean): string {
                 return Globals.register(this, name, initialValue, asHostGlobal);
             }
@@ -202,7 +202,7 @@ namespace CoreXT {
         interface _IModuleAccessors { get: (varName: string) => any; set: (varName: string, value: any) => any }
 
         /** Contains static module properties and functions. */
-        class $Module extends ScriptResource.$Type {
+        class $Module extends ScriptResource.$__type {
             /** The full type name for this module. */
             fullname: string;
 

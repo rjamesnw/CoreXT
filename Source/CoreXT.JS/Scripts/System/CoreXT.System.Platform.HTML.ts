@@ -2,7 +2,7 @@ module CoreXT.System.Platform {
 
     /** Contains a series of core CoreXT HTML-based UI elements. Each element extends the GraphNode type. */
     export namespace HTML {
-
+        registerNamespace(CoreXT, "System", "Platform", "HTML")
         // ===================================================================================================================
 
         /** A context is a container that manages a reference to a global script environment. Each new context creates a new 
@@ -10,30 +10,25 @@ module CoreXT.System.Platform {
         * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
         * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
         */
-        class $BrowserContext extends Context.$Type {
+        class $BrowserContext extends Context.$__type {
             private _target: any; // (iframe or worker)
             private _iframe: HTMLIFrameElement;
             private _worker: Worker;
             private _window: IWindow;
             private _global: IStaticGlobals;
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -----------------------------------------------------------------------------------------------------------------
 
-            static ' '() {
-                var _super_factory = super[' ']().Context_factory;
-                return class {
-                    static BrowserContext_factory?= class {
-                        static 'new'(context: Contexts = Contexts.Secure): $BrowserContext { return null; }
+            protected static '$BrowserContext Factory' = class Factory extends FactoryBase($BrowserContext, $BrowserContext['$Context Factory']) implements IFactory {
+                'new'(context: Contexts = Contexts.Secure): $BrowserContext { return null; }
 
-                        static init($this: $BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure): $BrowserContext {
-                            _super_factory.init($this, isnew, context);
-                            return $this;
-                        }
-                    }
+                init($this: $BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure): $BrowserContext {
+                    this.$__baseFactory.init($this, isnew, context);
+                    return $this;
                 }
-            }
+            }.register();
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -----------------------------------------------------------------------------------------------------------------
 
             _setupIFrame() {
                 this._target = this._iframe = document.createElement("iframe");
@@ -51,7 +46,7 @@ module CoreXT.System.Platform {
                 this._target = this._window = Window.new(null, this._url);
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -----------------------------------------------------------------------------------------------------------------
 
             /** Load a resource (usually a script or page) into this context. */
             load(url: string) {
@@ -97,219 +92,276 @@ module CoreXT.System.Platform {
         }
 
         export interface IBrowserContext extends $BrowserContext { }
+        export var BrowserContext = $BrowserContext['$BrowserContext Factory'].$__type;
 
-        export var BrowserContext = AppDomain.registerClass($BrowserContext, $BrowserContext[' ']().BrowserContext_factory, [CoreXT, System, Platform, HTML]);
-
-    // ====================================================================================================================
-      /** Represents the base of a CoreXT UI object. */
-        export class UIElement extends GraphNode {
-            // ---------------------------------------------------------------------------------------------------------------
+        // ====================================================================================================================
+        /** Represents the base of a CoreXT UI object. */
+        class $UIElement extends GraphNode.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
             /** When extending 'GraphItem' with additional observable properties, it is considered good practice to create a
             * static type with a list of possible vales that can be set by end users (to promote code completion mechanisms).
             */
-            static ID: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>UIElement, "id");
-            static Name: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>UIElement, "name");
-            static Class: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>UIElement, "class", true);
-            static Style: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>UIElement, "style", true);
+            static ID: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$UIElement, "id");
+            static Name: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$UIElement, "name");
+            static Class: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$UIElement, "class", true);
+            static Style: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$UIElement, "style", true);
             /**
             * (Note: This static property registration also updates the internal '__UIProeprties' static list with UI-specific
             * properties (that will trigger redraw events). Derived types should update this to their own values)
             */
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            id: (id?: string) => string = GraphNode.accessor(UIElement.ID);
-            name: (name?: string) => string = GraphNode.accessor(UIElement.Name);
-            Class: (Class?: string) => string = GraphNode.accessor(UIElement.Class);
-            style: (style?: string) => string = GraphNode.accessor(UIElement.Style);
+            id: (id?: string) => string = GraphNode.accessor($UIElement.ID);
+            name: (name?: string) => string = GraphNode.accessor($UIElement.Name);
+            Class: (Class?: string) => string = GraphNode.accessor($UIElement.Class);
+            style: (style?: string) => string = GraphNode.accessor($UIElement.Style);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(node: GraphNode) {
-                super();
-                this.node = node;
-            }
+            protected static '$UIElement Factory' = class Factory extends FactoryBase($UIElement, $UIElement['$GraphNode Factory']) implements IFactory {
+                'new'(node: IGraphNode): InstanceType<typeof Factory.$__type> { return null; }
 
-            // ---------------------------------------------------------------------------------------------------------------
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, node: IGraphNode): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew);
+                    $this.node = node;
+                    return $this;
+                }
+            }.register();
+
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             onRedraw(recursive: boolean = true) {
                 super.onRedraw(recursive);
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
+
+        export interface IUIElement extends $UIElement { }
+        export var UIElement = $UIElement['$UIElement Factory'].$__type;
 
         // ===================================================================================================================
 
         /** Represents an HTML node graph item that renders the content in the 'innerHTML of the default '__htmlTag' element (which is set to 'GraphItem.defaultHTMLTag' [DIV] initially).
         * This object has no element restrictions, so you can create any element you need by setting the '__htmlTag' tag before the UI element gets created.
         */
-        export class HTML extends UIElement {
-            // ---------------------------------------------------------------------------------------------------------------
+        class $HTML extends UIElement.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
-            static HTML: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTML, "html", true);
+            static HTML: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTML, "html", true);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            html: (html?: string) => string = GraphNode.accessor(HTML.HTML);
+            html: (html?: string) => string = GraphNode.accessor($HTML.HTML);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode, html: string = "") {
-                super(parent);
-                this.html(html);
+            protected static '$HTML Factory' = class Factory extends FactoryBase($HTML, $HTML['$UIElement Factory']) implements IFactory {
+                'new'(parent: GraphNode, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                this.getProperty(HTML.HTML).registerListener((property: Property, initialValue: boolean): void => {
-                    if (!initialValue || !this.__children.length) {
-                        if (this.__children.length)
-                            this.removeAllChildren();
-                        try { this.__htmlElement.innerHTML = property.getValue(); }
-                        catch (ex) { /*(setting inner HTML/text is not supported on this element [eg. <img> tags])*/ }
-                    }
-                });
-            }
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew, parent);
+                    $this.html(html);
+                    $this.getProperty($HTML.HTML).registerListener((property: Property, initialValue: boolean): void => {
+                        if (!initialValue || !$this.__children.length) {
+                            if ($this.__children.length)
+                                $this.removeAllChildren();
+                            try { $this.__htmlElement.innerHTML = property.getValue(); }
+                            catch (ex) { /*(setting inner HTML/text is not supported on this element [eg. <img> tags])*/ }
+                        }
+                    });
+                    return $this;
+                }
+            }.register();
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             onRedraw(recursive: boolean = true) {
                 super.onRedraw(recursive);
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
+
+        export interface IHTML extends $HTML { }
+        export var HTML = $HTML['$HTML Factory'].$__type;
 
         // ===================================================================================================================
 
         /** Represents a basic anchor node graph item that renders a link. */
-        export class Anchor extends HTML {
-            // ---------------------------------------------------------------------------------------------------------------
+        class $Anchor extends HTML.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
-            static HRef: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Anchor, "href");
-            static HRefLang: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Anchor, "hreflang");
-            static Type: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Anchor, "type");
-            static Rel: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Anchor, "rel");
+            static HRef: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Anchor, "href");
+            static HRefLang: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Anchor, "hreflang");
+            static Type: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Anchor, "type");
+            static Rel: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Anchor, "rel");
             //static Rev: StaticProperty = GraphItem.registerProperty(<typeof GraphItem><any>Anchor, "rev"); (not supported in HTML5)
             //static CharSet: StaticProperty = GraphItem.registerProperty(<typeof GraphItem><any>Anchor, "charset"); (not supported in HTML5)
-            static Target: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Anchor, "target");
+            static Target: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Anchor, "target");
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            href: (href?: string) => string = GraphNode.accessor(Anchor.HRef);
-            hreflang: (hreflang?: string) => string = GraphNode.accessor(Anchor.HRefLang);
-            type: (type?: string) => string = GraphNode.accessor(Anchor.Type);
-            rel: (rel?: string) => string = GraphNode.accessor(Anchor.Rel);
+            href: (href?: string) => string = GraphNode.accessor($Anchor.HRef);
+            hreflang: (hreflang?: string) => string = GraphNode.accessor($Anchor.HRefLang);
+            type: (type?: string) => string = GraphNode.accessor($Anchor.Type);
+            rel: (rel?: string) => string = GraphNode.accessor($Anchor.Rel);
             //rev: (rev?: string) => string = GraphItem.accessor(Anchor.Rev);
             //charset: (charset?: string) => string = GraphItem.accessor(Anchor.CharSet);
-            target: (target?: string) => string = GraphNode.accessor(Anchor.Target);
+            target: (target?: string) => string = GraphNode.accessor($Anchor.Target);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode, name: string = "", href: string = "", html: string = "") {
-                super(parent, html);
-                this.name(name);
-                this.href(href);
-                this.htmlTag = "a";
-            }
+            protected static '$Anchor Factory' = class Factory extends FactoryBase($Anchor, $Anchor['$HTML Factory']) implements IFactory {
+                'new'(parent: GraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-            // ---------------------------------------------------------------------------------------------------------------
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew, parent, html);
+                    this.name(name);
+                    this.href(href);
+                    this.htmlTag = "a";
+                    return $this;
+                }
+            }.register();
+
+            // ----------------------------------------------------------------------------------------------------------------
+
+            protected static '$Anchor Factory' = class Factory extends FactoryBase($Anchor, $Anchor['']) implements IFactory {
+                /** Get a new app domain instance.
+                    * @param application An optional application to add to the new domain.
+                    */
+                'new'(node: IGraphNode): InstanceType<typeof Factory.$__type> { return null; }
+
+                /** Constructs an application domain for the specific application instance. */
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, node: IGraphNode): InstanceType<typeof Factory.$__type> {
+                    $this.node = node;
+                    return $this;
+                }
+            }.register();
+
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("a");
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             onRedraw(recursive: boolean = true) {
                 super.onRedraw(recursive);
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
 
+        export interface IAnchor extends $Anchor { }
+        export var Anchor = $Anchor['$Anchor Factory'].$__type;
 
         // ===================================================================================================================
 
         /** Represents a basic text node graph item that renders plain text (no HTML). 
         * This is inline with the standard which declares that all DOM elements with text should have text-ONLY nodes.
         */
-        export class PlainText extends UIElement {
-            // ---------------------------------------------------------------------------------------------------------------
+        class $PlainText extends UIElement.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
-            static Text: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>PlainText, "text", true);
+            static Text: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$PlainText, "text", true);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            text: (text?: string) => string = GraphNode.accessor(PlainText.Text);
+            text: (text?: string) => string = GraphNode.accessor($PlainText.Text);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode, text: string = "") {
-                super(parent);
-                this.text(text);
-                this.htmlTag = "";
+            protected static '$PlainText Factory' = class Factory extends FactoryBase($PlainText, $PlainText['$UIElement Factory']) implements IFactory {
+                'new'(parent: IGraphNode, text: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                this.getProperty(PlainText.Text).registerListener((property: Property, initialValue: boolean): void => {
-                    (<Text>this.__element).data = property.getValue();
-                });
-            }
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, text: string = ""): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew, parent);
+                    this.text(text);
+                    this.htmlTag = "";
+                    this.getProperty($PlainText.Text).registerListener((property: Property, initialValue: boolean): void => {
+                        (<Text>this.__element).data = property.getValue();
+                    });
+                    return $this;
+                }
+            }.register();
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("", "Text");
                 return document.createTextNode("");
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             onRedraw(recursive: boolean = true) {
                 super.onRedraw(recursive);
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
+
+        export interface IPlainText extends $PlainText { }
+        export var PlainText = $PlainText['$PlainText Factory'].$__type;
 
         // ===================================================================================================================
 
         /** Represents an HTML text node graph item that renders the content in the 'innerHTML of a SPAN element. 
-        */
-        export class HTMLText extends HTML {
-            // ---------------------------------------------------------------------------------------------------------------
+          */
+        class $HTMLText extends HTML.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode, html: string = "") {
+            constructor() {
                 super(parent, html);
-                this.htmlTag = "span";
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
+
+            protected static '$HTMLText Factory' = class Factory extends FactoryBase($HTMLText, $HTMLText['$HTML Factory']) implements IFactory {
+                'new'(parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew, parent, html);
+                    this.htmlTag = "span";
+                    return $this;
+                }
+            }.register();
+
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertUnsupportedElementTypes("html", "head", "body", "script", "audio", "canvas", "object");
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             onRedraw(recursive: boolean = true) {
                 super.onRedraw(recursive);
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
+
+        export interface IHTMLText extends $HTMLText { }
+        export var HTMLText = $HTMLText['$HTMLText Factory'].$__type;
 
         // ===================================================================================================================
 
@@ -343,31 +395,36 @@ module CoreXT.System.Platform {
         * it does not dictate exactly HOW the text will actually look like. For instance, "<STRONG>" tags usually render as
         * bold text, but someone can decide to color and increase font size instead using CSS for all such elements. This is
         * actually a good thing, as it allows flexible web design in a way that can allow applying themes at a later time. */
-        export class Phrase extends HTMLText {
-            // ---------------------------------------------------------------------------------------------------------------
+        class $Phrase extends $HTMLText.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
-            static PhraseType: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Phrase, "phraseType", true);
+            static PhraseType: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Phrase, "phraseType", true);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            phraseType: (phraseType?: PhraseTypes) => PhraseTypes = GraphNode.accessor(Phrase.PhraseType);
+            phraseType: (phraseType?: PhraseTypes) => PhraseTypes = GraphNode.accessor($Phrase.PhraseType);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = "") {
-                super(parent, html);
-                this.phraseType(phraseTypeFlags);
-                var pInfo: Property = this.getProperty(HTML.HTML);
-                pInfo.registerFilter(this.createPhrase);
-            }
+            protected static '$Anchor Factory' = class Factory extends FactoryBase($Anchor, $Anchor['$HTML Factory']) implements IFactory {
+                'new'(parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-            // ---------------------------------------------------------------------------------------------------------------
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew, parent, html);
+                    $this.phraseType(phraseTypeFlags);
+                    var pInfo: Property = $this.getProperty($HTML.HTML);
+                    pInfo.registerFilter($this.createPhrase);
+                    return $this;
+                }
+            }.register();
+
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createPhrase(property: Property, value: any): any {
                 var leftTags = "", rightTags = "", phraseType = this.phraseType();
@@ -384,29 +441,32 @@ module CoreXT.System.Platform {
                 return leftTags + value + rightTags;
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             onRedraw(recursive: boolean = true) {
                 super.onRedraw(recursive); // (note: the innerHTML property will have been updated after this call to the 'html' property)
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
 
-        // ===================================================================================================================
+        export interface IPhrase extends $Phrase { }
+        export var Phrase = $Phrase['$Phrase Factory'].$__type;
+
+       // ===================================================================================================================
 
         /** Represents an HTML header element. 
         */
-        export class Header extends HTML {
-            // ---------------------------------------------------------------------------------------------------------------
+        export class Header extends $HTML {
+            // ----------------------------------------------------------------------------------------------------------------
 
             static HeaderLevel: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Header, "headerLevel", true);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             headerLevel: (headerLevel?: number) => number = GraphNode.accessor(Header.HeaderLevel);
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             constructor(parent: GraphNode, headerLevel: number = 1, html: string = "") {
                 super(parent, html);
@@ -415,7 +475,7 @@ module CoreXT.System.Platform {
                 this.setValue(Header.HeaderLevel, headerLevel);
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 var headerLevel = this.getValue(Header.HeaderLevel);
@@ -426,97 +486,97 @@ module CoreXT.System.Platform {
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             onRedraw(recursive: boolean = true) {
                 super.onRedraw(recursive);
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
 
         // ===================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class Table extends UIElement {
-            // ---------------------------------------------------------------------------------------------------------------
+        export class Table extends UIElement.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
             constructor(parent: GraphNode) {
                 super(parent);
                 this.htmlTag = "table";
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("table");
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
 
         // ===================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class TableRow extends UIElement {
-            // ---------------------------------------------------------------------------------------------------------------
+        export class TableRow extends UIElement.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
             constructor(parent: GraphNode) {
                 super(parent);
                 this.htmlTag = "tr";
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("tr");
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
 
         // ===================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class TableColumn extends UIElement {
-            // ---------------------------------------------------------------------------------------------------------------
+        export class TableColumn extends UIElement.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
             constructor(parent: GraphNode) {
                 super(parent);
                 this.htmlTag = "td";
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("td");
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
 
         // ===================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class TableHeader extends UIElement {
-            // ---------------------------------------------------------------------------------------------------------------
+        export class TableHeader extends UIElement.$__type {
+            // ----------------------------------------------------------------------------------------------------------------
 
             constructor(parent: GraphNode) {
                 super(parent);
                 this.htmlTag = "th";
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("th");
                 return super.createUIElement();
             }
 
-            // ---------------------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------------------
         }
 
         // ===================================================================================================================

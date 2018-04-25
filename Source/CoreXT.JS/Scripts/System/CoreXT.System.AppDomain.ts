@@ -4,6 +4,7 @@
 
 namespace CoreXT {
     export namespace System {
+        registerNamespace(CoreXT, "System");
 
         // ====================================================================================================================================
 
@@ -89,7 +90,7 @@ namespace CoreXT {
               * Do not add applications directly to this array.  Use the 'createApplication()' function.
               * To remove an application, just dispose it.
               */
-            applications: $Application[];
+            applications: IApplication[];
 
             // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -196,36 +197,44 @@ namespace CoreXT {
               * as a chain method for getting a new instance from a type.
               * Note: The focus for this AppDomain instance is limited to this call only (i.e. not persisted).
               */
-            with<TClassType extends ICoreXTClassType<IObject>>(classType: TClassType): TClassType {
-                var typeInfo = <ITypeInfo><any>classType;
+            with<TFactory extends IFactory>(factory: TFactory): TFactory {
+                var typeInfo = <ITypeInfo><any>factory;
                 if (!typeInfo.$__parent || !typeInfo.$__name || !typeInfo.$__fullname)
-                    throw Exception.error("with()", "The specified class type has not yet been registered properly using 'AppDomain.registerType()'.", classType);
+                    throw Exception.error("with()", "The specified class type has not yet been registered properly using 'Types.__registerFactoryType()'.", factory);
                 var bridge: IADBridge = this.__typeBridges[typeInfo.$__fullname];
                 if (!bridge) {
                     var $appDomain = this;
-                    var bridgeConstructor: { new(): IADBridge } = <any>function ADBridge() { this.constructor = classType.constructor; (<IADBridge>this).$__appDomain = $appDomain; };
+                    var bridgeConstructor: { new(): IADBridge } = <any>function ADBridge() { this.constructor = factory.constructor; (<IADBridge>this).$__appDomain = $appDomain; };
                     /* This references the type to perform some action on with the select app domain. Any property reference on the bridge is redirected to the class type. */
-                    bridgeConstructor.prototype = classType; // (the bridge works only because "type" has STATIC properties, so a bridge object specific to this AppDomain is created, cached, and used to intercept properties on the targeted type)
+                    bridgeConstructor.prototype = factory; // (the bridge works only because "type" has STATIC properties, so a bridge object specific to this AppDomain is created, cached, and used to intercept properties on the targeted type)
                     // ... cache the type so this bridge only has to be created once for this type ...
                     this.__typeBridges[typeInfo.$__fullname] = bridge = new bridgeConstructor();
                 }
                 return <any>bridge;
             }
 
-            private __validateElementTarget(appTitle: string, targetElement: Platform.UI.IUIObject) { //??
-                for (var i = 0; i < this.applications.length; i++)
-                    if ((<Platform.UI.View.$Type<any>><any>this.applications[i]).__uiElement == targetElement)
-                        throw "Cannot add application '" + appTitle + "' as another application exists with the same target element.  Two applications cannot render to the same target.";
+            createApplication<TApp extends IType<IApplication>>(factory?: IFactory<TApp>, title?: string, description?: string): TApp {
+                //if (!Platform.UIApplication)
+                //    throw Exception.error("AppDomain.createApplication()", "");
+                var appIndex = this.applications.length;
+                var newApp = (<typeof Application><any>this.with(factory)).new(title, description, appIndex);
+                this.applications.push(newApp);
+                try {
+                    newApp['_onAddToAppDomain'](this, newApp);
+                    return <any>newApp;
+                }
+                catch (ex) {
+                    this.applications.splice(appIndex, 1);
+                    throw ex;
+                }
             }
-
-            createApplication?<TApp extends typeof $Application>(classFactory?: IFactory<TApp>, parent?: Platform.GraphItem.$__type, title?: string, description?: string, targetElement?: HTMLElement): TApp;
 
             // -------------------------------------------------------------------------------------------------------------------------------
 
             protected static '$AppDomain Factory' = class Factory extends FactoryBase($AppDomain, $AppDomain['$Object Factory']) implements IFactory {
                 /** Get a new app domain instance.
-                * @param application An optional application to add to the new domain.
-                */
+                    * @param application An optional application to add to the new domain.
+                    */
                 'new'(application?: $Application): InstanceType<typeof Factory.$__type> { return null; }
 
                 /** Constructs an application domain for the specific application instance. */
@@ -245,11 +254,11 @@ namespace CoreXT {
         export interface IAppDomain extends $AppDomain { }
         export var AppDomain = $AppDomain['$AppDomain Factory'].$__type;
 
-        $AppDomain.prototype.createApplication = function createApplication<TApp extends typeof $Application>(classFactory?: IFactory<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
-            if (!Platform.UIApplication)
-                throw Exception.error("AppDomain.createApplication()", "");
-            return (<$AppDomain>this).with(<any>classFactory || Platform.UIApplication)(parent, title, description, targetElement);
-        };
+        //x $AppDomain.prototype.createApplication = function createApplication<TApp extends typeof $Application>(classFactory?: IFactory<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
+        //    if (!Platform.UIApplication)
+        //        throw Exception.error("AppDomain.createApplication()", "");
+        //    return (<$AppDomain>this).with(<any>classFactory || Platform.UIApplication)(parent, title, description, targetElement);
+        //};
 
         // ==========================================================================================
 
@@ -283,8 +292,14 @@ namespace CoreXT {
             get isFocused(): boolean { return this._isFocused; }
             private _isFocused: boolean;
 
+            get appID() { return this._appID; }
             private _appID: number; // (path format is "/userDBID/appID/", where 'userID' is the db record ID of the logged in user; example: https://inetos.com/1/1/index.html)
+
+            get title() { return this._title; }
             private _title: string;
+
+            get description() { return this._description; }
+            private _description: string;
 
             get appDomains(): $AppDomain[] { return this._appDomains; }
             private _appDomains: $AppDomain[];
@@ -317,16 +332,20 @@ namespace CoreXT {
             // -------------------------------------------------------------------------------------------------------------------------------
 
             protected static '$Application Factory' = class Factory extends FactoryBase($Application, $Application['$Object Factory']) implements IFactory {
-                'new'(title: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
+                'new'(title: string, description: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
 
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, appID: number): InstanceType<typeof Factory.$__type> {
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number): InstanceType<typeof Factory.$__type> {
                     this.$__baseFactory.init($this, isnew);
                     (<IDomainObjectInfo><any>$this).$__app = $this;
                     $this._title = title;
+                    $this._description = description;
                     $this._appID = appID;
                     return $this;
                 }
             }.register([CoreXT, System]);
+
+            protected _onAddToAppDomain(appDomain: IAppDomain, app: IApplication) {
+            }
 
             // -------------------------------------------------------------------------------------------------------------------------------
 

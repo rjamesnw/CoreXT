@@ -133,13 +133,6 @@ namespace CoreXT {
         $__factoryType: TFactory;
     }
 
-    /** Represents valid class signatures for the CoreXT class registration system. All objects are expected to have IDs for tracking. */
-    export interface ICoreXTClassType<TInstance extends NativeTypes.IObject> {
-        new(): TInstance;
-        ///** For CoreXT objects, this refers back to the original class type used when calling 'AppDomain.registerClass()'. */
-        // $Type: TType;
-    }
-
     ///** Represents a static property on a class module. */
     //? export interface IStaticProperty<TDataType> { }
 

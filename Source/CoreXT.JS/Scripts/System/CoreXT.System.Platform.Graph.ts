@@ -3,6 +3,7 @@
 // ############################################################################################################################
 
 namespace CoreXT.System.Platform {
+    registerNamespace(CoreXT, "System", "Platform");
     // ========================================================================================================================
     export interface IEvents { [index: string]: Events.IEventDispatcher<$GraphNode, (ev: Event) => any>; }
 

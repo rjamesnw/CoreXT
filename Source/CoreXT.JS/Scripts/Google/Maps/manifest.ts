@@ -11,11 +11,11 @@ namespace CoreXT.Scripts.Modules {
         // ===================================================================================
 
         var gmapsCallbackStr = manifest.registerGlobal("onGMapsReady", null);
-
+        
         /**References the Google Maps API.
           */
         export var Maps = module([], 'google.maps', "https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&callback=" + gmapsCallbackStr)
-            .then((mod: IModule) => {
+            .then((mod) => {
                 manifest.setGlobalValue("onGMapsReady", () => {
                     mod.continue(); // (dependent script now loaded and initialized, so continue calling the rest of the promise handlers ...)
                 });

@@ -24,8 +24,8 @@
     "wwwroot/**/*.ts",
     "Scripts/__references.ts",
     "Scripts/CoreXT.VDom.Canvas.ts",
-    "Scripts/CoreXT.VDom.ts",
-    "Scripts/Twitter/**/*.ts"//,
+    "Scripts/CoreXT.VDom.ts"//,
+    //"Scripts/Twitter/**/*.ts",
     //"Scripts/System/CoreXT.System.Platform*.ts",
     //"Scripts/System/CoreXT.System.Properties.ts",
     //"Scripts/System/CoreXT.System.AppDomain.ts"

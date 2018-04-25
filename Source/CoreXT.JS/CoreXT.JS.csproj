@@ -52,10 +52,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Remove="scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
-    <None Remove="Scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
-    <None Remove="scripts\Twitter\manifest.ts" />
-    <None Remove="Scripts\Twitter\manifest.ts" />
     <None Remove="scripts\__references.ts" />
     <None Remove="Scripts\__references.ts" />
   </ItemGroup>

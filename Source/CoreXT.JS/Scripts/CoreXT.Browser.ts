@@ -70,7 +70,7 @@ if (typeof window !== 'undefined') {
 namespace CoreXT {
     // ========================================================================================================================
 
-    module Pollyfills {
+    namespace Pollyfills {
         // -------------------------------------------------------------------------------------------------------------------
 
         interface _window extends NativeTypes.IWindow { [name: string]: any }

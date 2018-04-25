@@ -3,6 +3,8 @@
 // ###########################################################################################################################
 
 namespace CoreXT.System.Platform {
+    registerNamespace(CoreXT, "System", "Platform");
+
     // =======================================================================================================================
     // Note: CoreXT.Environments contains the default supported target environments (platforms).
 
@@ -92,11 +94,17 @@ namespace CoreXT.System.Platform {
         protected static '$UIApplication Factory' = class Factory extends FactoryBase($UIApplication, $UIApplication['$Application Factory']) implements IFactory {
             'new'(title: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
 
-            init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, appID: number): InstanceType<typeof Factory.$__type> {
-                this.$__baseFactory.init($this, isnew, title, appID);
+            init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number): InstanceType<typeof Factory.$__type> {
+                this.$__baseFactory.init($this, isnew, title, description, appID);
                 return $this;
             }
         }.register([CoreXT, System, Platform]);
+
+        protected _onAddToAppDomain(appDomain: IAppDomain) {
+            for (var i = 0; i < appDomain.applications.length; i++)
+                if ((<IUIApplication>appDomain.applications[i])._RootGraphNode == this._RootGraphNode)
+                    throw "Cannot add application '" + this.title + "' as another application exists with the same target element.  Two applications cannot render to the same target.";
+        }
 
         // ----------------------------------------------------------------------------------------------------------------
 

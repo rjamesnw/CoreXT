@@ -9,18 +9,18 @@ namespace CoreXT.System.Platform.HTML.Application {
         id: string;
         originalHTML: string;
         templateHTML: string;
-        templateItem: GraphNode;
+        templateItem: IGraphNode;
     }
 
     // ========================================================================================================================
 
-    export class HTMLApplication extends UIApplication.$Type {
+    export class HTMLApplication extends UIApplication.$__type {
     }
 
     // ========================================================================================================================
 
    /** An ApplicationElement object is the root object of the graph tree that relates one UIApplication instance. */
-    export class ApplicationElement extends HTML {
+    export class ApplicationElement extends HTML.$__type {
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -135,34 +135,34 @@ namespace CoreXT.System.Platform.HTML.Application {
             var contents = null;
             var log = Diagnostics.log("Application.loadTemplate()", "Loading template from '" + htmlFileURI + "' ...").beginCapture();
             // ... load the file ...
-            if (CoreXT.isClient()) {
+            if (CoreXT.host.isClient()) {
                 if (htmlFileURI) {
                     // ... use AJAX ...
                     var request = new XMLHttpRequest();
                     request.open("get", htmlFileURI + "!", false);
                     request.onerror = (ev: ErrorEvent) => {
-                        Diagnostics.log("Application.loadTemplate()", ev.message, Diagnostics.LogTypes.Error);
+                        Diagnostics.log("Application.loadTemplate()", ev.message, LogTypes.Error);
                     };
                     request.onreadystatechange = () => {
                         if (request.readyState == (XMLHttpRequest.DONE || 4)) {
                             var ok = false, response = request.response || request.responseText || request.responseXML || request.responseBody;
                             if (request.status == 200) {
-                                log.write("Template data was loaded from the server.", Diagnostics.LogTypes.Success);
+                                log.write("Template data was loaded from the server.", LogTypes.Success);
                                 ok = true;
                             } else if (request.status == 304) {
-                                log.write("Template data was loaded from the browser cache.", Diagnostics.LogTypes.Success);
+                                log.write("Template data was loaded from the browser cache.", LogTypes.Success);
                                 ok = true;
                             } else
-                                log.write("Template data was not loaded. Response: " + response, Diagnostics.LogTypes.Error); // (usually at 404)
+                                log.write("Template data was not loaded. Response: " + response, LogTypes.Error); // (usually at 404)
                             if (ok)
                                 contents = response;
                         }
                     };
-                    log.write("Sending request for template ...", Diagnostics.LogTypes.Info);
+                    log.write("Sending request for template ...", LogTypes.Info);
                     request.send();
                 }
                 if (!contents && fallbackToDOM) {
-                    log.write("Failed to load the template content, or content is empty.  Using the existing DOM content instead.", Diagnostics.LogTypes.Warning);
+                    log.write("Failed to load the template content, or content is empty.  Using the existing DOM content instead.", LogTypes.Warning);
                     // ... get HTML from the DOM as a fall back [there should be no reason not to have something!] ...
                     contents = document.getElementsByTagName("html")[0].outerHTML;
                 }

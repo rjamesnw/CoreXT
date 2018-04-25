@@ -6,6 +6,7 @@
 
 namespace CoreXT {
     export namespace System {
+        registerNamespace(CoreXT, "System");
 
         // =======================================================================================================================
 

@@ -435,6 +435,8 @@ namespace CoreXT {
      * Contains some basic static values and calculations used by time related functions within the system.
      */
     export namespace Time {
+        registerNamespace(CoreXT, "Time");
+
         export var __millisecondsPerSecond = 1000;
         export var __secondsPerMinute = 60;
         export var __minsPerHour = 60;
@@ -476,14 +478,19 @@ namespace CoreXT {
              * applied (using the IFunctionInfo interface).
             */
             static register<TClass extends IType<object>, TFactory extends { new(): IFactory }>(this: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass },
-                parentModules: object[], addMemberTypeInfo = true): InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
+                parentModules?: object[], addMemberTypeInfo = true): InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
                 return Types.__registerFactoryType(<TFactory & ITypeInfo & IFactoryTypeInfo>this, parentModules, addMemberTypeInfo);
             }
         };
         return <typeof fb & ITypeInfo>fb;
     }
 
+    export function registerNamespace<T extends any, A extends keyof T, B extends keyof T[A]=any, C extends keyof T[A][B]=any, D extends keyof T[A][B][C]=any>(root: T, ns1: A, ns2?: B, ns3?: C): void {
+    }
+
     export namespace Types {
+        registerNamespace(CoreXT, "Types");
+
         /** Holds all the types registered globally by calling 'registerType()'. */
         export var _types: { [fullTypeName: string]: ITypeInfo } = {};
         /** Holds all disposed objects that can be reused. */
@@ -703,11 +710,6 @@ namespace CoreXT {
             return <T>_type;
         }
 
-        export function __ns<T extends object, A extends keyof T>(root: T, next: A): void {
-        }
-        //export function __ns<T extends any, A extends keyof T, B extends keyof T[A]=any, C extends keyof T[A][B]=any>(root: T, ns: A, ns2?: B, ns3?: C): void {
-        //}
-
         export function __registerNamespace(...namespaces: object[]): void {
             for (var i = 0, n = namespaces.length; i < n; ++i) {
                 var ns = <INamespaceInfo>namespaces[i];
@@ -846,6 +848,7 @@ namespace CoreXT {
 
     /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
     export namespace System {
+        registerNamespace(CoreXT, "System");
         // =======================================================================================================================
 
         class $Exception extends Error {
@@ -1284,6 +1287,7 @@ namespace CoreXT {
 
     /** The loader namespace contains low level functions for loading/bootstrapping the whole system. */
     export namespace Loader {
+        registerNamespace(CoreXT, "Loader");
 
         // ... polyfill some XHR 'readyState' constants ...
 
@@ -2093,6 +2097,8 @@ CoreXT.globalEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { 
 // (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
 
 // ===========================================================================================================================
+
+interface ICoreXT extends CoreXT { }
 
 /** (See 'CoreXT') */
 var corext = CoreXT; // (allow all lower case usage)

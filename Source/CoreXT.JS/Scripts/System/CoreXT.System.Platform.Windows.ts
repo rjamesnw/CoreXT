@@ -38,26 +38,19 @@ namespace CoreXT.System.Platform {
             return this;
         }
 
-        static ' '() {
-            var _super_factory = super[' ']().Object_factory;
-            return class {
-                static Window_factory?= class {
-                    /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
-                    static 'new'(rootElement?: HTMLElement, url?: string): $Window { return null; }
+        protected static '$Window Factory' = class Factory extends FactoryBase($Window, $Window['$Object Factory']) implements IFactory {
+            /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
+            'new'(rootElement?: HTMLElement, url?: string): $Window { return null; }
 
-                    static init($this: $Window, isnew: boolean, rootElement?: HTMLElement, url?: string): $Window {
-                        _super_factory.init($this, isnew);
-                        if (typeof rootElement !== OBJECT || !rootElement.style) rootElement = null;
-                        if (rootElement != null) rootElement.style.display = "none";
-                        $this._target = rootElement;
-                        $this._url = url;
-                        return $this;
-                    }
-                }
+            init($this: $Window, isnew: boolean, rootElement?: HTMLElement, url?: string): $Window {
+                this.$__baseFactory.init($this, isnew);
+                if (typeof rootElement !== OBJECT || !rootElement.style) rootElement = null;
+                if (rootElement != null) rootElement.style.display = "none";
+                $this._target = rootElement;
+                $this._url = url;
+                return $this;
             }
-        }
-
-        static $Window_super() { var s = super; return super; }
+        }.register([CoreXT, System, Platform]);
 
         // ----------------------------------------------------------------------------------------------------------------
 
@@ -76,7 +69,7 @@ namespace CoreXT.System.Platform {
 
     export interface IWindow extends $Window { }
 
-    export var Window = AppDomain.registerClass($Window, $Window['$Window new'], $Window.prototype['$Window init'], [CoreXT, System]);
+    export var Window = $Window['$Window Factory'].$__type;
 
     // ====================================================================================================================
 }
