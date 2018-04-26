@@ -11,10 +11,12 @@ namespace CoreXT {
         export namespace Events {
 
             /** Represents an event callback function. */
-            export interface EventHandler { (_this: {}, ...args: any[]): void | boolean };
+            export interface EventHandler { (this: object, ...args: any[]): void | boolean };
 
             /** The event trigger handler is called to allow custom handling of event handlers when an event occurs. */
-            export interface EventTriggerHandler<TOwner extends object, TCallback extends EventHandler> { (event: $EventDispatcher<TOwner, TCallback>, handler: TCallback): void };
+            export interface EventTriggerHandler<TOwner extends object, TCallback extends EventHandler> {
+                (event: $EventDispatcher<TOwner, TCallback>, handler: IDelegate<object, TCallback>, args: any[], mode?: EventModes): void
+            };
 
             /** Controls how the event progression occurs. */
             export enum EventModes {
@@ -109,7 +111,7 @@ namespace CoreXT {
                 private __handlers: IDelegate<object, TCallback>[] = []; // (this is typed "any object type" to allow using delegate handler function objects later on)
                 /** If a parent value is set, then the event chain will travel the parent hierarchy from this event dispatcher. If not set, the owner is assumed instead. */
                 protected __parent: $EventDispatcher<any, EventHandler>; // (this is also declared on the DependencyObject base)
-                private __eventTriggerHandler: EventTriggerHandler<TOwner, TCallback>;
+                private __eventTriggerHandler: EventTriggerHandler<TOwner, TCallback>; // (a global handler per registered type that is triggered before any other handlers)
                 private __eventPropertyName: string;// (the public 'on{Event}' name on the owning type's prototype used to reference this event instance)
                 private __eventPrivatePropertyName: string;// (the '$__{EventName}Event' private name on the owning instance that points to this event instance)
                 private __lastTriggerState: string;
@@ -188,6 +190,7 @@ namespace CoreXT {
                 attach(handler: TCallback | IDelegate<object, TCallback>, eventMode: EventModes = EventModes.Capture): this {
                     if (this._getHandlerIndex(<any>handler) == -1) {
                         var delegate = handler instanceof Delegate ? handler : Delegate.new(this, handler);
+                        delegate['$__eventMode'] = eventMode;
                         this.__handlers.push(delegate);
                     }
                     return this;
@@ -231,7 +234,7 @@ namespace CoreXT {
                         if (this.__cancelled) break;
                         var dispatcher = eventChain[i];
                         if (dispatcher.__handlers.length)
-                            dispatcher.dispatch.call(dispatcher, args, EventModes.Capture);
+                            dispatcher.__dispatchEvent(args, EventModes.Capture);
                     }
 
                     // ... do bubbling phase (target, towards root) ...
@@ -239,10 +242,24 @@ namespace CoreXT {
                         if (this.__cancelled) break;
                         var dispatcher = eventChain[i];
                         if (dispatcher.__handlers.length)
-                            dispatcher.dispatch.call(dispatcher, args, EventModes.Bubble);
+                            dispatcher.__dispatchEvent(args, EventModes.Bubble);
                     }
 
                     return !this.__cancelled;
+                }
+
+                /** Calls the event handlers that match the event mode. */
+                protected __dispatchEvent(args: any[], mode: EventModes) {
+                    args.push(this); // (add this event instance to the end of the arguments list to allow an optional target parameters to get a reference to the calling event)
+                    for (var i = 0, n = this.__handlers.length; i < n; ++i) {
+                        var delegate = this.__handlers[i];
+                        var expectedEventMode = <EventModes>delegate['$__eventMode'];
+                        if (expectedEventMode == mode && delegate)
+                            if (this.__eventTriggerHandler)
+                                this.__eventTriggerHandler(this, delegate, args, mode); // (call any special trigger handler)
+                            else
+                                delegate.apply(args);
+                    }
                 }
 
                 /** If the given state value is different from the last state value, the internal trigger state value will be updated, and true will be returned.
