@@ -124,7 +124,7 @@ namespace CoreXT.System {
             if (this.func.bind)
                 this.__boundFunc = this.func.bind(this, this.object); // (this can be faster in some cases [i.e. IE])
             if (this.object instanceof Object)
-                this.__key = $Delegate.getKey(this.object, this.func); // (this also validates the properties first)
+                this.__key = $Delegate.getKey(<any>this.object, this.func); // (this also validates the properties first)
             else
                 this.__key = void 0;
             return this;

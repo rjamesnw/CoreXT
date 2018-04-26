@@ -20,7 +20,7 @@ namespace CoreXT {
             /**
              * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
              */
-            constructor() {
+            protected constructor() {
                 if (Browser.ES6)
                     safeEval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
                 super();

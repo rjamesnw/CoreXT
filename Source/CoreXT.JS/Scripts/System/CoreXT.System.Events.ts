@@ -40,8 +40,8 @@ namespace CoreXT {
                  * @param eventMode Specifies the desired event traveling mode.
                  * @param removeOnTrigger If true, the event only fires one time, then clears all event handlers. Attaching handlers once an event fires in this state causes them to be called immediately.
                  * @param eventTriggerCallback This is a hook which is called every time a handler needs to be called.  This exists mainly to support handlers called with special parameters.
-                 * @param customEventPropName The name of the property that will be associated with this event, and expected on parent
-                 * objects for the capturing and bubbling phases.  If left undefined/null, then the default is assumed to be
+                 * @param customEventPropName The name of the property that will be associated with this event, and expected on parent objects
+                 * for the capturing and bubbling phases.  If left undefined/null, then the default is assumed to be
                  * 'on[EventName]', where the first event character is made uppercase automatically.
                  * @param canCancel If true (default), this event can be cancelled (prevented from completing, so no other events will fire).
                  */
@@ -50,8 +50,11 @@ namespace CoreXT {
                     customEventPropName?: string, canCancel: boolean = true)
                     : { _eventMode: EventModes; _eventName: string; _removeOnTrigger: boolean; eventFuncType: () => $EventDispatcher<TOwner, TCallback>; eventPropertyType: $EventDispatcher<TOwner, TCallback> } {
 
-                    customEventPropName || (customEventPropName = EventDispatcher.createEventPropertyNameFromEventName(eventName)); // TODO: fix to support the convention of {item}.on{Event}().
-                    var privateEventName = "$__" + eventName + "Event"; // (this name is used to store the new event dispatcher instance, which is created on demand for every instance)
+                    customEventPropName || (customEventPropName = $EventDispatcher.createEventPropertyNameFromEventName(eventName)); // (the default supports the convention of {item}.on{Event}()).
+                    var privateEventName = $EventDispatcher.createPrivateEventName(eventName); // (this name is used to store the new event dispatcher instance, which is created on demand for every instance)
+
+                    // ... create a "getter" in the prototype for 'type' so that, when accessed by specific instances, an event object will be created on demand - this greatly reduces memory
+                    //    allocations when many events exist on a lot of objects) ...
 
                     var onEventProxy = function (): $EventDispatcher<object, EventHandler> {
                         var instance = <object>this; // (instance is the object instance on which this event property reference was made)
@@ -59,24 +62,24 @@ namespace CoreXT {
                             throw Exception.error("{Object}." + eventName, "Must be called on an object instance.", instance);
                         // ... check if the instance already created the event property for registering events specific to this instance ...
                         var eventProperty: $EventDispatcher<object, EventHandler> = instance[privateEventName];
-                        if (typeof eventProperty !== OBJECT)
+                        if (typeof eventProperty !== OBJECT) // (undefined or not valid, so attempt to create one now)
                             instance[privateEventName] = eventProperty = EventDispatcher.new<object, EventHandler>(instance, eventName, removeOnTrigger, eventTriggerCallback, canCancel);
                         eventProperty.__eventPropertyName = customEventPropName;
+                        eventProperty.__eventPrivatePropertyName = privateEventName;
                         return eventProperty;
                     };
 
-                    // ... first, set the depreciating cross-browser compatible access method ...
+                    //x ... first, set the depreciating cross-browser compatible access method ...
+                    //x type.prototype["$__" + customEventPropName] = onEventProxy; // (ex: '$__onClick')
 
-                    type.prototype["$__" + customEventPropName] = onEventProxy; // (ex: '$__onClick')
-
-                    // ... next, if supported, create the event getter property ...
+                    // ... create the event getter property and set the "on event" getter proxy ...
 
                     if (global.Object.defineProperty)
                         global.Object.defineProperty(type.prototype, customEventPropName, {
                             configurable: true,
                             enumerable: true,
                             writable: true,
-                            get: onEventProxy //? function () { return onEventProxy.call(this); }
+                            get: onEventProxy
                         });
                     else
                         throw Exception.error("registerEvent: " + eventName, "This browser does not support 'Object.defineProperty()'. To support older browsers, call '_" + customEventPropName + "()' instead to get an instance specific reference to the EventDispatcher for that event (i.e. for 'click' event, do 'obj._onClick().attach(...)').", type);
@@ -93,14 +96,22 @@ namespace CoreXT {
                     return eventName.match(/^on[^a-z]/) ? eventName : "on" + eventName.charAt(0).toUpperCase() + eventName.substring(1);
                 }
 
-                owner: TOwner;
+                /** 
+               * Returns a formatted event name in the form of a private event name like '$__{eventName}Event' (eg. 'click' becomes '$__clickEvent'). 
+               * The private event names are used to store event instances on the owning instances so each instance has it's own handlers list to manage.
+               */
+                static createPrivateEventName(eventName: string) { return "$__" + eventName + "Event"; }
+
+                readonly owner: TOwner;
 
                 private __eventName: string;
+                private __associations = new WeakMap<object, this>(); // (a mapping between an external object and this event instance - typically used to associated this event with an external object OTHER than the owner)
                 private __handlers: IDelegate<object, TCallback>[] = []; // (this is typed "any object type" to allow using delegate handler function objects later on)
                 /** If a parent value is set, then the event chain will travel the parent hierarchy from this event dispatcher. If not set, the owner is assumed instead. */
-                protected __parent: $EventDispatcher<any, EventHandler>;
+                protected __parent: $EventDispatcher<any, EventHandler>; // (this is also declared on the DependencyObject base)
                 private __eventTriggerHandler: EventTriggerHandler<TOwner, TCallback>;
-                private __eventPropertyName: string;
+                private __eventPropertyName: string;// (the public 'on{Event}' name on the owning type's prototype used to reference this event instance)
+                private __eventPrivatePropertyName: string;// (the '$__{EventName}Event' private name on the owning instance that points to this event instance)
                 private __lastTriggerState: string;
                 private __cancelled: boolean; // (true if the handler wants to stop further handler calls)
 
@@ -125,6 +136,27 @@ namespace CoreXT {
                     // ... remove all handlers ...
                     this.removeAllListeners();
                     // TODO: Detach from owner as well? //?
+                }
+
+                /** 
+                 * Associates this event instance with an object using a weak map. The owner of the instance is already associated by default. 
+                 * Use this function to associate other external objects other than the owner, such as DOM elements (there should only be one
+                 * specific event instance per any object).
+                 */
+                associate(obj: object): this {
+                    this.__associations.set(obj, this);
+                    return this;
+                }
+
+                /** Disassociates this event instance from an object (an internal weak map is used for associations). */
+                disassociate(obj: object): this {
+                    this.__associations.delete(obj);
+                    return this;
+                }
+
+                /** Returns true if this event instance is already associated with the specified object (a weak map is used). */
+                isAssociated(obj: object): boolean {
+                    return this.__associations.has(obj);
                 }
 
                 _getHandlerIndex(handler: TCallback): number;
@@ -174,18 +206,20 @@ namespace CoreXT {
                         return; // (no change in state, so ignore this request)
 
                     // ... for capture phases, start at the bottom and work up; but need to build the chain first (http://stackoverflow.com/a/10654134/1236397) ...
-                    // ('this.$__parent' checks for instance chained events, whereas 'this.owner.$__parent' checks static chained events)
+                    // ('this.__parent' checks for event-instance-only chained events, whereas 'this.owner.parent' iterates events using the a parent-child dependency hierarchy from the owner)
 
                     var parent: DependencyObject = this.__parent || this.owner && (<DependencyObject><any>this.owner).parent || null;
 
-                    var eventChain: IEventDispatcher<any, any>[] = Array.new(this); // ('this' is the last for capture, and first for bubbling)
+                    // ... run capture/bubbling phases; first, build the event chain ...
 
-                    if (parent) { // (run capture/bubbling phases)
-                        var eventPropFuncName = '$__' + this.__eventPropertyName; // (if exists, this references the property function that returns an even dispatcher object [for instances only])
+                    var eventChain: IEventDispatcher<any, any>[] = Array.new(this); // ('this' [the current instance] is the last for capture, and first for bubbling)
+
+                    if (parent) {
+                        var eventPropertyName = this.__eventPropertyName; // (if exists, this references the 'on{EventName}' property getter that returns an even dispatcher object)
                         while (parent) {
-                            var epf = <() => $EventDispatcher<any, any>>parent[eventPropFuncName];
-                            if (typeof epf == FUNCTION && epf instanceof $EventDispatcher)
-                                eventChain.push(epf());
+                            var eventInstance: $EventDispatcher<any, EventHandler> = parent[eventPropertyName];
+                            if (eventInstance instanceof $EventDispatcher)
+                                eventChain.push(eventInstance);
                             parent = parent['__parent'];
                         }
                     }
@@ -197,7 +231,7 @@ namespace CoreXT {
                         if (this.__cancelled) break;
                         var dispatcher = eventChain[i];
                         if (dispatcher.__handlers.length)
-                            dispatcher.__dispatchEvent.call(dispatcher, args, EventModes.Capture);
+                            dispatcher.dispatch.call(dispatcher, args, EventModes.Capture);
                     }
 
                     // ... do bubbling phase (target, towards root) ...
@@ -205,7 +239,7 @@ namespace CoreXT {
                         if (this.__cancelled) break;
                         var dispatcher = eventChain[i];
                         if (dispatcher.__handlers.length)
-                            dispatcher.__dispatchEvent.call(dispatcher, args, EventModes.Bubble);
+                            dispatcher.dispatch.call(dispatcher, args, EventModes.Bubble);
                     }
 
                     return !this.__cancelled;
@@ -318,7 +352,9 @@ namespace CoreXT {
                             $this.__eventName = eventName;
                             $this.__eventPropertyName = EventDispatcher.createEventPropertyNameFromEventName(eventName); // (fix to support the convention of {item}.on{Event}().
 
-                            $this.owner = owner;
+                            (<{ owner: typeof $this.owner }>$this).owner = owner;
+                            $this.associate(owner);
+
                             $this.__eventTriggerHandler = eventTriggerHandler;
 
                             $this.canCancel = canCancel;

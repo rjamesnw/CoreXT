@@ -8,7 +8,11 @@ namespace CoreXT.System.Platform {
     export interface IEvents { [index: string]: Events.IEventDispatcher<$GraphNode, (ev: Event) => any>; }
 
     /** A graph item represents a single node on the application graph. */
-    class $GraphNode extends PropertyEventBase {
+    class $GraphNode extends PropertyEventBase.$__type {
+
+        /** The UI map is week mapping used to associate graph nodes with UI elements. */
+        static get uiElementMap() { return this._uiElementMap; }
+        static private _uiElementMap = new WeakMap<object, IGraphNode>();
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -33,7 +37,7 @@ namespace CoreXT.System.Platform {
 
         //?? private static __staticProperties: StaticProperty[] = [];
 
-        /** Registers a list of UI attribute names that, when updated, should trigger a redraw event. 
+        /** Registers a list of UI attribute names that, when updated, may trigger a redraw event. 
         * @param {GraphItem} type Your derived 'GraphItem' type.
         * @param {string} name The property name to set internally (this can be different from the static property name).
         * Note: The name you choose will also be set as an attribute on the element, so for example, using 'id' or 'name'
@@ -47,10 +51,14 @@ namespace CoreXT.System.Platform {
         static registerProperty(type: typeof $GraphNode, name: string, isVisual: boolean = false,
             changedCallback: ListenerCallback = null, changingCallback: InterceptorCallback = null): StaticProperty {
 
-            if (!type) throw Exception.from("A class type [function] is required for property registration.");
-            if (!name) throw Exception.from("A name is required for property registration.");
+            function exception(_msg: string) {
+                return Exception.from("GraphNode.registerProperty(" + getTypeName(type) + ", " + name + ", " + isVisual + "): " + _msg, this);
+            }
 
-            var sProp = new StaticProperty(name, isVisual);
+            if (!type) throw exception("A class type [function] is required for property registration.");
+            if (!name) throw exception("A name is required for property registration.");
+
+            var sProp = StaticProperty.new(name, isVisual);
 
             if (changedCallback != null)
                 sProp.registerListener(changedCallback);
@@ -77,13 +85,20 @@ namespace CoreXT.System.Platform {
 
             currentSP.push(sProp);
 
+            if (!global.Object.defineProperty)
+                exception("'Object.defineProperty()' not found. This JavaScript environment is not supported.", this);
+
+            global.Object.defineProperty(type, name, {
+                configurable: false,
+                writable: false,
+                get: function (this: IGraphNode): any { return this.getValue(sProp.name); },
+                set: function (this: IGraphNode, value: any): void { this.setValue(sProp.name, value); }
+            });
+
             return sProp;
         }
 
         // --------------------------------------------------------------------------------------------------------------------
-
-        /** Each new graph item instance will initially set its '__htmlTag' property to this value. */
-        static defaultHTMLTag: string = "div";
 
         /** This is a counter used to get a unique ID to all graph items. */
         private static __nextID: number = 0;
@@ -101,13 +116,6 @@ namespace CoreXT.System.Platform {
 
         __parent: $GraphNode = null;
         __children: Array<$GraphNode> = [];
-
-        /** Represents the HTML element tag to use for this graph item.  The default value is set when a derived graph item is constructed.
-        * Not all objects support this property, and changing it is only valid BEFORE the layout is updated for the first time.
-        */
-        htmlTag: string = $GraphNode.defaultHTMLTag; // (warning: this may already be set from parsing an HTML template)
-        __element: Node = null;
-        __htmlElement: HTMLElement = null;
 
         /** Holds a collection of properties, indexed by property name, that are used by the active instance. 
         */
@@ -148,15 +156,15 @@ namespace CoreXT.System.Platform {
         // -------------------------------------------------------------------------------------------------------------------
         // This part uses the CoreXT factory pattern
 
-        protected static '$GraphNode Factory' = class Factory extends FactoryBase($GraphNode, $GraphNode['']) implements IFactory {
+        protected static '$GraphNode Factory' = class Factory extends FactoryBase($GraphNode, $GraphNode['$PropertyEventBase Factory']) implements IFactory {
             /**
              * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
              * layout that can render a view, or partial view.
              * @param parent If specified, the value will be wrapped in the created object.
              */
-            'new'(parent: $GraphNode = null): InstanceType<typeof Factory.$__type> { return null; }
+            'new'(parent: IGraphNode = null): InstanceType<typeof Factory.$__type> { return null; }
 
-            init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: $GraphNode = null): InstanceType<typeof Factory.$__type> {
+            init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode = null): InstanceType<typeof Factory.$__type> {
                 $this._id = $GraphNode.__nextID++;
 
                 // ... need to initialize the properties to the static defaults ...
@@ -196,14 +204,14 @@ namespace CoreXT.System.Platform {
         * @see also: {@link getProperty}
         * @param {boolean} triggerChangeEvent If true (default), causes a change event to be triggered.  Set this to false to prevent any listeners from being called.
         */
-        setValue(property: StaticProperty, value: any, triggerChangeEvents?: boolean): any;
+        setValue(property: StaticProperty, value: any, triggerChangeEvents?: boolean): this;
         /** Sets an observable property value on the graph item object.
         * Observable properties can trigger events to allow the UI to update as required.
         * @see also: {@link getProperty}
         * @param {boolean} triggerChangeEvent If true (default), causes a change event to be triggered.  Set this to false to prevent any listeners from being called.
         */
-        setValue(name: string, value: any, triggerChangeEvents?: boolean): any;
-        setValue(index: any, value: any, triggerChangeEvents: boolean = true): any {
+        setValue(name: string, value: any, triggerChangeEvents?: boolean): this;
+        setValue(index: any, value: any, triggerChangeEvents: boolean = true): this {
             var name = index.name || index;
             if (typeof value === 'object' && value instanceof Property)
                 value = (<Property>value).getValue(); // (value is a property instance, so get its value)
@@ -214,12 +222,13 @@ namespace CoreXT.System.Platform {
             else
                 property.setValue(value, triggerChangeEvents);
 
-            // ... setting a local observable property will also set any corresponding element property ...
-            if (this.__htmlElement && this.__htmlElement.setAttribute)
-                this.__htmlElement.setAttribute(name, value);
+            if (this.onPropertyValueSet && triggerChangeEvents) this.onPropertyValueSet(name, value);
 
-            return property.getValue();
+            return this;
         }
+
+        /** An optional function that is called to let derived types know that a value is being set.  This allows any associated UI elements to also update, if any. */
+        protected onPropertyValueSet?(name: string, value: any): void;
 
         /** Gets an observable property value from the graph item object.
         * Observable properties can trigger events to allow the UI to update as required.
@@ -292,36 +301,31 @@ namespace CoreXT.System.Platform {
             return this.__events[eventName];
         }
 
-        /** Attaches an event handler to the specified event name. */
+        /** Attaches an event handler to the specified event name and returns the event entry. */
         on(eventName: string, handler: (ev: Event) => any) {
-            var existingEvent = this.__events[eventName];
-            if (existingEvent === void 0) {
+            //if (host.isClient())
+            //    throw Exception.notImplemented("{GraphNode}.on()", this, "You must call this on a type derived from GraphNode that implements the function.");
+            var existingEvent = this.getEvent(eventName);
+            if (existingEvent === void 0)
                 this.__events[eventName] = existingEvent = Events.EventDispatcher.new<$GraphNode, (ev: Event) => any>(this, eventName);
-                if (this.__htmlElement) {
-                    if (this.__htmlElement.addEventListener)
-                        this.__htmlElement.addEventListener(eventName, (ev: any): any => { return existingEvent.dispatch(ev); }, false);
-                    else if (this.__htmlElement['attachEvent']) {
-                        this.__htmlElement['attachEvent']("on" + eventName, (ev: any): any => { return existingEvent.dispatch(ev); });
-                    } else {
-                        // (server, do nothing more)
-                    }
-                }
-            }
             existingEvent.addListener(handler);
+            return existingEvent;
         }
 
-        /** Detaches an event handler from the specified event name. */
+        /** Detaches an event handler from the specified event name and returns the event entry. */
         off(eventName: string, handler: (ev: Event) => any) {
-            var existingEvent = this.__events[eventName];
+            var existingEvent = this.getEvent(eventName);
             if (existingEvent !== void 0)
                 existingEvent.removeListener(this, handler);
+            return existingEvent;
         }
 
-        /** Removes all event handlers for the specified event name. */
+        /** Removes all event handlers for the specified event name and returns the event entry. */
         clearHandlers(eventName: string) {
-            var existingEvent = this.__events[eventName];
+            var existingEvent = this.getEvent(eventName);
             if (existingEvent !== void 0)
                 existingEvent.removeAllListeners();
+            return existingEvent;
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -393,46 +397,7 @@ namespace CoreXT.System.Platform {
         */
         updateLayout(recursive: boolean = true) {
 
-            if (host.isClient()) { // (the server has no UI!)
-                // ... create this item's element before the child items get updated ...
-
-                var parentElement: Node = this.__parent ? this.__parent.__element : null;
-                var i: number, n: number;
-                var doRedraw = false;
-
-                if (this.__element == null || this.__element.nodeName != this.htmlTag) {
-                    if (this.__element != null && parentElement != null)
-                        parentElement.removeChild(this.__element);
-
-                    this.__element = this.createUIElement();
-                    this.htmlTag = this.__element.nodeName; // (keep this the same, just in case it changes internally)
-
-                    if (typeof this.__element['innerHTML'] !== 'undefined') { // (more info at http://www.w3schools.com/dom/dom_nodetype.asp)
-                        this.__htmlElement = <HTMLElement>this.__element;
-
-                        // ... apply properties as attributes ...
-
-                        for (var pname in this.__properties) {
-                            var prop = this.__properties[pname];
-                            if (prop.hasValue())
-                                this.__htmlElement.setAttribute(pname, prop.getValue());
-                        }
-                    } else
-                        this.__htmlElement = null;
-
-                    if (this.__element != null && parentElement != null)
-                        parentElement.appendChild(this.__element);
-                }
-                else if (parentElement != null && this.__element.parentNode != parentElement) {
-                    // ... the parent element is different for the existing element, so *move* it to the new parent ...
-                    if (this.__element.parentNode != null)
-                        this.__element.parentNode.removeChild(this.__element);
-                    try {
-                        parentElement.appendChild(this.__element);
-                    } catch (e) {
-                    }
-                }
-            }
+            if (this.onUpdateLayout) this.onUpdateLayout();
 
             // ... update the deepest items first (this is a logical pass only) ...
 
@@ -454,6 +419,8 @@ namespace CoreXT.System.Platform {
             if (doRedraw) // (if not a client, then the server has no UI to redraw for!)
                 this.onRedraw(false);
         }
+
+        protected onUpdateLayout?(): void;
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -532,246 +499,10 @@ namespace CoreXT.System.Platform {
         // --------------------------------------------------------------------------------------------------------------------
     }
 
+    Object.defineProperty($GraphNode, <keyof typeof $GraphNode>'uiElementMap', { writable: false, configurable: false });
+
     export interface IGraphNode extends $GraphNode { }
     export var GraphNode = $GraphNode['$GraphNode Factory'].$__type;
-
-    // ========================================================================================================================
-
-    /** Parses HTML to create a graph object tree, and also returns any templates found.
-    * This concept is similar to using XAML to load objects in WPF. As such, you have the option to use an HTML template, or dynamically build your
-    * graph items directly in code.
-    * 
-    * Warning about inline scripts: Script tags may be executed client side (naturally by the DOM), but you cannot rely on them server side.  Try to use
-    * HTML for UI DESIGN ONLY.  Expect that any code you place in the HTML will not execute server side (or client side for that matter) unless you
-    * handle/execute the script code yourself.
-    * @param {string} html The HTML to parse.
-    * @param {boolean} strictMode If true, then the parser will produce errors on ill-formed HTML (eg. 'attribute=' with no value).
-    * This can greatly help keep your html clean, AND identify possible areas of page errors.  If strict formatting is not important, pass in false.
-    */
-    export function parse(html: string = null, strictMode?: boolean): { rootElements: $GraphNode[]; templates: { [id: string]: IDataTemplate; } } {
-        var log = Diagnostics.log(Markup, "Parsing HTML template ...").beginCapture();
-        log.write("Template: " + html);
-
-        if (!html) return null;
-
-        // ... parsing is done by passing each new graph item the current scan position in a recursive pattern, until the end of the HTML text is found ...
-        var htmlReader = Markup.HTMLReader.new(html);
-        if (strictMode !== void 0)
-            htmlReader.strictMode = !!strictMode;
-
-        var approotID: string;
-        var mode: number = 0; // (1 = ready on next tag, 2 = creating objects)
-        var classMatch = /^[$.][A-Za-z0-9_$]*(\.[A-Za-z0-9_$]*)*(\s+|$)/;
-        var attribName: string;
-
-        var storeRunningText = (parent: $GraphNode) => {
-            if (htmlReader.runningText) { // (if there is running text, then create a text node for it for the CURRENT graph item [not the parent])
-                if (!UI)
-                    new $GraphNode(parent).setValue((htmlReader.runningText.indexOf('&') < 0 ? "text" : "html"), htmlReader.runningText);
-                else if (htmlReader.runningText.indexOf('&') < 0)
-                    new UI.PlainText(parent, htmlReader.runningText);
-                else
-                    new UI.HTMLText(parent, htmlReader.runningText);
-            }
-        };
-
-        var rootElements: $GraphNode[] = [];
-        var dataTemplates: { [id: string]: IDataTemplate; } = {};
-
-        var processTags = (parent: $GraphNode): IDataTemplate[] => { // (returns the data templates found for the immediate children only)
-            var graphItemType: string, graphItemTypePrefix: string;
-            var graphType: { new(parent: $GraphNode): $GraphNode; defaultHTMLTag: string; };
-            var graphItem: $GraphNode;
-            var properties: {};
-            var currentTagName: string;
-            var isDataTemplate: boolean = false, dataTemplateID: string, dataTemplateHTML: string;
-            var tagStartIndex: number, lastTemplateIndex: number;
-            var templateInfo: IDataTemplate;
-            var templates: IDataTemplate[] = null;
-            var immediateChildTemplates: IDataTemplate[] = null;
-
-            while (htmlReader.readMode != Markup.HTMLReaderModes.End) {
-
-                currentTagName = htmlReader.tagName;
-
-                if (!htmlReader.isMarkupDeclaration() && !htmlReader.isCommentBlock() && !htmlReader.isScriptBlock() && !htmlReader.isStyleBlock()) {
-
-                    if (currentTagName == "html") {
-                        if (approotID === void 0)
-                            approotID = null; // (null flags that an HTML tag was found)
-
-                        if (htmlReader.attributeName == "data-approot" || htmlReader.attributeName == "data--approot") {
-                            approotID = htmlReader.attributeValue;
-                        }
-                    }
-                    else {
-                        // (note: app root starts at the body by default, unless a root element ID is given in the HTML tag before hand)
-
-                        if (htmlReader.readMode == Markup.HTMLReaderModes.Attribute) {
-
-                            // ... templates are stripped out for usage later ...
-
-                            if (!isDataTemplate && htmlReader.attributeName == "data--template") {
-                                isDataTemplate = true; // (will add to the template list instead of the final result)
-                                dataTemplateID = htmlReader.attributeValue;
-                            }
-
-                            attribName = (htmlReader.attributeName.substring(0, 6) != "data--") ? htmlReader.attributeName : htmlReader.attributeName.substring(6);
-                            properties[attribName] = htmlReader.attributeValue;
-
-                            if (htmlReader.attributeName == "id" && htmlReader.attributeValue == approotID && mode == 0)
-                                mode = 1;
-                        }
-                        else {
-                            if (mode == 2 && htmlReader.readMode == Markup.HTMLReaderModes.Tag && htmlReader.isClosingTag()) { // (this an ending tag (i.e. "</...>"))
-                                // (this end tag should be the "closure" to the recently created graph item sibling, which clears 'graphiItem', but if
-                                // it's already null, the end tag should be handled by the parent level; also, if the closing tag name is different
-                                // (usually due to ill-formatted HTML [allowed only on parser override], or auto-closing tags, like '<img>'), assume
-                                // closure of the previous tag and let the parent handle it)
-                                if (graphItem) {
-                                    storeRunningText(graphItem);
-
-                                    if (isDataTemplate) {
-                                        dataTemplateHTML = htmlReader.getHTML().substring(tagStartIndex, htmlReader.textEndIndex) + ">";
-                                        templateInfo = { id: dataTemplateID, originalHTML: dataTemplateHTML, templateHTML: undefined, templateItem: graphItem };
-                                        // (note: if there are immediate child templates, remove them from the current template text)
-                                        if (immediateChildTemplates)
-                                            for (var i = 0, n = immediateChildTemplates.length; i < n; i++)
-                                                dataTemplateHTML = dataTemplateHTML.replace(immediateChildTemplates[i].originalHTML, "<!--{{" + immediateChildTemplates[i].id + "Items}}-->");
-                                        templateInfo.templateHTML = dataTemplateHTML;
-                                        dataTemplates[dataTemplateID] = templateInfo; // (all templates are recorded in application scope, so IDs must be unique, otherwise they will override previous ones)
-                                        if (!templates) templates = [];
-                                        templates.push(templateInfo);
-                                        isDataTemplate = false;
-                                    }
-
-                                    if (htmlReader.tagName != graphItem.htmlTag)
-                                        return templates; // (note: in ill-formatted html [optional feature of the parser], make sure the closing tag name is correct, else perform an "auto close and return")
-
-                                    graphType = null;
-                                    graphItem = null;
-                                    immediateChildTemplates = null;
-                                }
-                                else return templates; // (return if this closing tag doesn't match the last opening tag read, so let the parent level handle it)
-                            }
-                            else if (mode == 2 && htmlReader.readMode == Markup.HTMLReaderModes.EndOfTag) { // (end of attributes, so create the tag graph item)
-
-                                // ... this is either the end of the tag with inner html/text, or a self ending tag (XML style) ...
-
-                                graphItemType = properties['class']; // (this may hold an explicit object type to create [note expected format: module.full.name.classname])
-                                graphItem = null;
-                                graphType = null;
-
-                                if (graphItemType && classMatch.test(graphItemType)) {
-                                    graphItemTypePrefix = RegExp.lastMatch.substring(0, 1); // ('$' [DS full type name prefix], or '.' [default UI type name])
-
-                                    if (graphItemTypePrefix == '$') {
-                                        graphItemType = RegExp.lastMatch.substring(1);
-                                        if (graphItemType.charAt(0) == '.') // (just in case there's a '.' after '$', allow this as well)
-                                            graphItemTypePrefix = '.';
-                                    } else
-                                        graphItemType = RegExp.lastMatch; // (type is either a full type, or starts with '.' [relative])
-
-                                    if (graphItemTypePrefix == '.')
-                                        graphItemType = "DreamSpace.System.UI" + graphItemType;
-
-                                    graphType = <typeof $GraphNode>Utilities.dereferencePropertyPath(CoreXT['parent'], Scripts.translateModuleTypeName(graphItemType));
-
-                                    if (graphType === void 0)
-                                        throw Exception.from("The graph item type '" + graphItemType + "' for tag '<" + currentTagName + "' on line " + htmlReader.getCurrentLineNumber() + " was not found.");
-
-                                    if (typeof graphType !== 'function' || typeof graphType.defaultHTMLTag === void 0)
-                                        throw Exception.from("The graph item type '" + graphItemType + "' for tag '<" + currentTagName + "' on line " + htmlReader.getCurrentLineNumber() + " does not resolve to a GraphItem class type.");
-                                }
-
-                                if (graphType == null) {
-                                    if (UI) { // (make sure the UI module is available)
-                                        // ... auto detect the DreamSpace UI GraphItem type based on the tag name (all valid HTML4/5 tags: http://www.w3schools.com/tags/) ...
-                                        switch (currentTagName) {
-                                            case 'a': graphType = UI.Anchor; break;
-
-                                            // (phrases)
-                                            case 'abbr': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Abbreviation; break;
-                                            case 'acronym': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Acronym; break;
-                                            case 'em': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Emphasis; break;
-                                            case 'strong': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Strong; break;
-                                            case 'cite': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Cite; break;
-                                            case 'dfn': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Defining; break;
-                                            case 'code': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Code; break;
-                                            case 'samp': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Sample; break;
-                                            case 'kbd': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Keyboard; break;
-                                            case 'var': graphType = UI.Phrase; properties['phraseTypes'] = UI.PhraseTypes.Variable; break;
-
-                                            // (headers)
-                                            case 'h1': graphType = UI.Header; properties['headerLevel'] = 1; break;
-                                            case 'h2': graphType = UI.Header; properties['headerLevel'] = 2; break;
-                                            case 'h3': graphType = UI.Header; properties['headerLevel'] = 3; break;
-                                            case 'h4': graphType = UI.Header; properties['headerLevel'] = 4; break;
-                                            case 'h5': graphType = UI.Header; properties['headerLevel'] = 5; break;
-                                            case 'h6': graphType = UI.Header; properties['headerLevel'] = 6; break;
-
-                                            default: graphType = UI.HTML; // (just create a basic object to use with htmlReader.tagName)
-                                        }
-                                    } else graphType = $GraphNode; // (UI not loaded, so just create simple GraphItem objects)
-                                }
-
-                                if (!graphItem) { // (only create if not explicitly created)
-                                    graphItem = new graphType(isDataTemplate ? null : parent);
-                                }
-
-                                for (var pname in properties)
-                                    graphItem.setValue(pname, properties[pname], true);
-
-                                graphItem.htmlTag = currentTagName;
-
-                                // ... some tags are not allowed to have children (and don't have to have closing tags, so null the graph item and type now)...
-                                switch (currentTagName) {
-                                    case "area": case "base": case "br": case "col": case "command": case "embed": case "hr": case "img": case "input":
-                                    case "keygen": case "link": case "meta": case "param": case "source": case "track": case "wbr":
-                                        graphItem = null;
-                                        graphType = null;
-                                }
-
-                                if (parent === null)
-                                    rootElements.push(graphItem);
-                            }
-                            else if (htmlReader.readMode == Markup.HTMLReaderModes.Tag) {
-                                if (mode == 1) mode = 2; // (begin creating on this tag [i.e. after the root tag, since root is the "application" object itself])
-
-                                if (!graphItem) {
-                                    // ... start of a new sibling tag ...
-                                    properties = {};
-                                    tagStartIndex = htmlReader.textEndIndex; // (the text end index is the start of the tag)
-                                    if (mode == 2)
-                                        storeRunningText(parent);
-                                } else if (mode == 2) {
-                                    // (note: each function call deals with a single nested level, and if a tag is not closed upon reading another, 'processTag' is called again)
-                                    immediateChildTemplates = processTags(graphItem); // ('graphItem' was just created for the last tag read, but the end tag is still yet to be read)
-                                    if (htmlReader.tagName != graphItem.htmlTag)
-                                        throw Exception.from("The closing tag '</" + htmlReader.tagName + ">' was unexpected for current tag '<" + graphItem.htmlTag + ">' on line " + htmlReader.getCurrentLineNumber() + ".");
-                                    continue; // (need to continue on the last item read before returning)
-                                }
-
-                                if (currentTagName == "body" && !approotID)
-                                    mode = 1; // (body was found, and the 'approotid' attribute was not specified, so assume body as the application's root element)
-                            }
-                        }
-                    }
-                }
-
-                htmlReader.readNext();
-            }
-
-            return templates;
-        };
-
-        htmlReader.readNext(); // (move to the first item)
-        processTags(null);
-
-        log.write("HTML template parsing complete.").endCapture();
-
-        return { rootElements: rootElements, templates: dataTemplates };
-    }
 
     // ========================================================================================================================
 }

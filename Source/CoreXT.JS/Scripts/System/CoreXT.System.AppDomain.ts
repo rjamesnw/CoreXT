@@ -38,7 +38,7 @@ namespace CoreXT {
 
         export abstract class DependencyObject extends Object.$__type {
             get parent() { return this.__parent; }
-            protected __parent: DependencyObject;
+            protected __parent: DependencyObject; // (note: EvenDispatcher expects '__parent' chains also)
         }
 
         // ====================================================================================================================================

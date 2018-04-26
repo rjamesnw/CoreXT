@@ -19,25 +19,25 @@ namespace CoreXT.System.Platform.HTML.Application {
 
     // ========================================================================================================================
 
-   /** An ApplicationElement object is the root object of the graph tree that relates one UIApplication instance. */
-    export class ApplicationElement extends HTML.$__type {
+    /** An ApplicationElement object is the root object of the graph tree that relates one UIApplication instance. */
+    class $ApplicationElement extends HTML.HTMLElement.$__type {
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        static Title: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>ApplicationElement, "title", true);
-        static Description: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>ApplicationElement, "description", true);
-        static Version: StaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>ApplicationElement, "version", true);
+        static Title: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$ApplicationElement, "title", true);
+        static Description: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$ApplicationElement, "description", true);
+        static Version: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$ApplicationElement, "version", true);
 
         // --------------------------------------------------------------------------------------------------------------------
 
         /** A title for the application (required). */
-        title: (title?: string) => string = GraphNode.accessor(ApplicationElement.Title);
+        title: (title?: string) => string = GraphNode.accessor($ApplicationElement.Title);
 
         /** A short application description (optional). */
-        description: (description?: string) => string = GraphNode.accessor(ApplicationElement.Description);
+        description: (description?: string) => string = GraphNode.accessor($ApplicationElement.Description);
 
         /** The application version number (i.e. '#.#.#...') in string form. */
-        version: (version?: string) => string = GraphNode.accessor(ApplicationElement.Version);
+        version: (version?: string) => string = GraphNode.accessor($ApplicationElement.Version);
 
 
         /** This is the target element that the application will render to when updateLayout() is called. */
@@ -52,20 +52,25 @@ namespace CoreXT.System.Platform.HTML.Application {
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        constructor(title: string, description: string, targetElement: HTMLElement = null) {
-            super(null);
-            if (typeof title == "undefined" || "" + title == "")
-                throw "An application title is required.";
-            this.title(title);
-            this.description(description);
-            this.targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
-        }
+        protected static '$ApplicationElement Factory' = class Factory extends FactoryBase($ApplicationElement, $ApplicationElement['$HTML Factory']) implements IFactory {
+            'new'(title: string, description: string, targetElement: HTMLElement = null): InstanceType<typeof Factory.$__type> { return null; }
 
-        // --------------------------------------------------------------------------------------------------------------------
+            init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, targetElement: HTMLElement = null): InstanceType<typeof Factory.$__type> {
+                this.$__baseFactory.init($this, isnew, null);
+                if (typeof title == "undefined" || "" + title == "")
+                    throw "An application title is required.";
+                $this.title(title);
+                $this.description(description);
+                $this.targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
+                return $this;
+            }
+        }.register([CoreXT, System]);
+
+        // -------------------------------------------------------------------------------------------------------------------------------
 
         /** This generates/updates the HTML elements required to display the application. */
         updateLayout(recursive: boolean = true) {
-            var log = Diagnostics.isDebugging() ? Diagnostics.log(ApplicationElement, "Application is updating its layout ...").beginCapture() : null;
+            var log = Diagnostics.isDebugging() ? Diagnostics.log($ApplicationElement, "Application is updating its layout ...").beginCapture() : null;
 
             super.updateLayout(recursive);
 
@@ -100,7 +105,7 @@ namespace CoreXT.System.Platform.HTML.Application {
         * HTML for UI DESIGN ONLY.  Expect that any code you place in the HTML will not execute server side.
         */
         parseTemplate(html: string = null) {
-            var log = Diagnostics.log(ApplicationElement, "Parsing application HTML template ...").beginCapture();
+            var log = Diagnostics.log($ApplicationElement, "Parsing application HTML template ...").beginCapture();
 
             if (!html)
                 if (CoreXT.host.isClient())

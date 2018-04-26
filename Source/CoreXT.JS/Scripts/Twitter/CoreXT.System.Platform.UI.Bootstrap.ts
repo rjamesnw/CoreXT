@@ -18,7 +18,7 @@ if (CoreXT.Environment == CoreXT.Environments.Browser) { // (just in case [shoul
     //document.getElementsByTagName("head")[0].appendChild(link);
 }
 
-namespace CoreXT.System.Platform.UI.HTML {
+namespace CoreXT.System.Platform.HTML {
 
     /** Contains Bootstrap related styling, elements, and components wrapped in GraphItem derived classes. */
     export namespace Bootstrap {

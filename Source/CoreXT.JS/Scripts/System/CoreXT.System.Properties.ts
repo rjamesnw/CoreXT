@@ -6,7 +6,7 @@ namespace CoreXT.System.Platform {
     registerNamespace(CoreXT, "System", "Platform");
     // ========================================================================================================================
 
-    export interface PropertyChangedHandler { (item: GraphNode, property: Property): void; }
+    export interface PropertyChangedHandler { (item: IGraphNode, property: Property): void; }
 
     /** Called BEFORE a property changes.
     * This is called if there's a need to modify property values as they are set.  This is similar to a filter function, except
@@ -163,7 +163,7 @@ namespace CoreXT.System.Platform {
 
     // =======================================================================================================================
 
-    class $StaticProperty extends $PropertyEventBase {
+    class $StaticProperty extends PropertyEventBase.$__type {
         owner: typeof GraphNode;
 
         /** An internal name for the property.  This will also be the attribute set on the underlying UI element (so a name
