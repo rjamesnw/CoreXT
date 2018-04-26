@@ -20,7 +20,7 @@ namespace CoreXT {
             /**
              * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
              */
-            protected constructor() {
+            constructor() {
                 if (Browser.ES6)
                     safeEval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
                 super();
@@ -147,7 +147,7 @@ namespace CoreXT {
 
                     return $this;
                 }
-            }.register([CoreXT, System]);
+            }.register();
 
             // -------------------------------------------------------------------------------------------------------------------
         }
@@ -155,7 +155,7 @@ namespace CoreXT {
         export interface IObject extends $Object { }
         /** The base type for many CoreXT classes. */
         export var Object = $Object['$Object Factory'].$__type;
-        
+
         //export var Object: typeof $Object & typeof $ObjectFactoryRoot.Object_factory & IRegisteredType<typeof $Object> = AppDomain.registerClass($Object, $Object[' '].Object_factory, [CoreXT, System]);
         // (have to be explicit on the object type since there may be references within the related types [thought nothing on a static level should access the 'Object' property during initialization])
 

@@ -328,29 +328,25 @@ namespace CoreXT.System {
             return this.__ms;
         }
 
-        //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+        //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
 
-        static ' '() {
-            return class FactoryRoot {
-                static TimeSpan_factory?= class {
-                    static 'new'(timeInMS: number): $TimeSpan;
-                    static 'new'(year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan;
-                    static 'new'(year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan { return null; }
+        protected static '$TimeSpan Factory' = class Factory extends FactoryBase($TimeSpan, $TimeSpan['$Object Factory']) implements IFactory {
+            'new'(timeInMS: number): $TimeSpan;
+            'new'(year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan;
+            'new'(year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan { return null; }
 
-                    static init($this: $TimeSpan, isnew: boolean, timeInMS: number): $TimeSpan;
-                    static init($this: $TimeSpan, isnew: boolean, year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan;
-                    static init($this: $TimeSpan, isnew: boolean, year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan {
-                        if (arguments.length <= 3)
-                            $this.setTime(year);
-                        else
-                            $this.setTime($TimeSpan.msFromTime(year, dayOfYear, hours, minutes, seconds, milliseconds));
-                        return $this;
-                    }
-                }
+            init($this: $TimeSpan, isnew: boolean, timeInMS: number): $TimeSpan;
+            init($this: $TimeSpan, isnew: boolean, year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan;
+            init($this: $TimeSpan, isnew: boolean, year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan {
+                if (arguments.length <= 3)
+                    $this.setTime(year);
+                else
+                    $this.setTime($TimeSpan.msFromTime(year, dayOfYear, hours, minutes, seconds, milliseconds));
+                return $this;
             }
-        }
+        }.register([CoreXT, System]);
 
-        //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+        //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
     } // (TimeSpan)
 
     export interface ITimeSpan extends $TimeSpan { }
@@ -361,7 +357,7 @@ namespace CoreXT.System {
     * Note: TimeSpan exposes the results as properties for fast access (rather than getters/setters), but changing individual properties does not
     * cause the other values to update.  Use the supplied functions for manipulating the values.
     */
-    export var TimeSpan = AppDomain.registerClass($TimeSpan, $TimeSpan[' ']().TimeSpan_factory, [CoreXT, System]);
+    export var TimeSpan = $TimeSpan['$TimeSpan Factory'].$__type;
 
     // =======================================================================================================================
 }

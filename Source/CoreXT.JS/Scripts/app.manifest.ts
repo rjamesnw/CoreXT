@@ -2,7 +2,7 @@
 
     // ... define the components made available by this manifest ...
 
-    export var App = module([System.UI_HTML, Twitter.Bootstrap_UI], 'app{min:.min}');
+    export var App = module([System.UI_HTML], 'app{min:.min}');
     // (if your app depends on other JavaScript modules, be sure to register them above [in the correct order as needed])
     // Note: All dependencies here get loaded - even those you may never use.  Only specify dependencies that are common.  Others can be
     // loaded and applied as needed via the 'CoreXT.using.{Namespace}.{Module}(onready)...' semantic.

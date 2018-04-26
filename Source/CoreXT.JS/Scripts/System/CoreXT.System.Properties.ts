@@ -153,7 +153,7 @@ namespace CoreXT.System.Platform {
                 this.$__baseFactory.init($this, isnew);
                 return $this;
             }
-        }.register([CoreXT, System, Platform]);
+        }.register();
 
         // -------------------------------------------------------------------------------------------------------------------
     }

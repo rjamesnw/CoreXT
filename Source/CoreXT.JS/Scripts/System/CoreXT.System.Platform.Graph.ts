@@ -12,7 +12,7 @@ namespace CoreXT.System.Platform {
 
         /** The UI map is week mapping used to associate graph nodes with UI elements. */
         static get uiElementMap() { return this._uiElementMap; }
-        static private _uiElementMap = new WeakMap<object, IGraphNode>();
+        private static _uiElementMap = new WeakMap<object, IGraphNode>();
 
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ namespace CoreXT.System.Platform {
         * also include custom attributes not part of the element object as well. This allows creating special element
         * objects that are a combination of multiple elements, allowing for a very flexible UI model.
         */
-        static accessor = (registeredProperty: StaticProperty): any => {
+        static accessor = (registeredProperty: IStaticProperty): any => {
             return function (value: any) {
                 if (arguments.length > 0)
                     return (<$GraphNode>this).setValue(registeredProperty, value);
@@ -49,7 +49,7 @@ namespace CoreXT.System.Platform {
         * @param {Function} changingCallback A callback to execute before the property changes.
         */
         static registerProperty(type: typeof $GraphNode, name: string, isVisual: boolean = false,
-            changedCallback: ListenerCallback = null, changingCallback: InterceptorCallback = null): StaticProperty {
+            changedCallback: ListenerCallback = null, changingCallback: InterceptorCallback = null): IStaticProperty {
 
             function exception(_msg: string) {
                 return Exception.from("GraphNode.registerProperty(" + getTypeName(type) + ", " + name + ", " + isVisual + "): " + _msg, this);
@@ -66,7 +66,7 @@ namespace CoreXT.System.Platform {
             if (changingCallback != null)
                 sProp.registerInterceptor(changingCallback);
 
-            var currentSP: Array<StaticProperty> = type['__staticProperties'];
+            var currentSP: Array<IStaticProperty> = type['__staticProperties'];
 
             if (currentSP === void 0) {
                 type['__staticProperties'] = currentSP = [];
@@ -86,7 +86,7 @@ namespace CoreXT.System.Platform {
             currentSP.push(sProp);
 
             if (!global.Object.defineProperty)
-                exception("'Object.defineProperty()' not found. This JavaScript environment is not supported.", this);
+                exception("'Object.defineProperty()' not found. This JavaScript environment is not supported.");
 
             global.Object.defineProperty(type, name, {
                 configurable: false,
@@ -170,7 +170,7 @@ namespace CoreXT.System.Platform {
                 // ... need to initialize the properties to the static defaults ...
                 // (note: this pass only creates the property instances in their initial states - no state information is applied)
 
-                var i: number, n: number, p: StaticProperty, type = (<any>$this).constructor, sp = type.__staticProperties;
+                var i: number, n: number, p: IStaticProperty, type = (<any>$this).constructor, sp = type.__staticProperties;
 
                 if (sp !== void 0)
                     while (sp) {
@@ -204,7 +204,7 @@ namespace CoreXT.System.Platform {
         * @see also: {@link getProperty}
         * @param {boolean} triggerChangeEvent If true (default), causes a change event to be triggered.  Set this to false to prevent any listeners from being called.
         */
-        setValue(property: StaticProperty, value: any, triggerChangeEvents?: boolean): this;
+        setValue(property: IStaticProperty, value: any, triggerChangeEvents?: boolean): this;
         /** Sets an observable property value on the graph item object.
         * Observable properties can trigger events to allow the UI to update as required.
         * @see also: {@link getProperty}
@@ -234,7 +234,7 @@ namespace CoreXT.System.Platform {
         * Observable properties can trigger events to allow the UI to update as required.
         * @see also: {@link setProperty}
         */
-        getValue(property: StaticProperty): any;
+        getValue(property: IStaticProperty): any;
         /** Gets an observable property value from the graph item object.
         * Observable properties can trigger events to allow the UI to update as required.
         * @see also: {@link setProperty}
@@ -246,7 +246,7 @@ namespace CoreXT.System.Platform {
         }
 
         /** Returns the instance property details for the specified static property definition. */
-        getProperty(property: StaticProperty): Property;
+        getProperty(property: IStaticProperty): Property;
         /** Returns the instance property details for the specified property name. */
         getProperty(name: string): Property;
         getProperty(index: any): Property {
@@ -402,7 +402,7 @@ namespace CoreXT.System.Platform {
             // ... update the deepest items first (this is a logical pass only) ...
 
             if (recursive)
-                for (i = 0, n = this.__children.length; i < n; ++i) {
+                for (var i = 0, n = this.__children.length; i < n; ++i) {
                     this.__children[i].updateLayout(recursive);
                 }
 
@@ -441,12 +441,12 @@ namespace CoreXT.System.Platform {
         }
 
         /** The function is called in order to produce an HTML element that represents the graph item.
-        * The base class, by default, simply returns a new 'HTMLDivElement' element (which doesn't display anything).
-        * It is expected that implementers will override this function in derived classes if any custom UI is to be generated.
-        * If the derived type doesn't represent a UI element, don't override this function.
-        */
+            * The base class, by default, simply returns a new 'HTMLDivElement' element (which doesn't display anything).
+            * It is expected that implementers will override this function in derived classes if any custom UI is to be generated.
+            * If the derived type doesn't represent a UI element, don't override this function.
+            */
         createUIElement(): Node {
-            return document.createElement(this.htmlTag || $GraphNode.defaultHTMLTag || "div");
+            throw Exception.notImplemented("'createUIElement()' must be overridden in a derived type, such as HTMLElement.");
         }
 
         /** Call this at the beginning of an overridden 'createUIElement()' function on a derived GraphItem type to validate supported element types. */

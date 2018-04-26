@@ -499,7 +499,7 @@ namespace CoreXT {
                     this.$__baseFactory.init($this, isnew);
                     return $this;
                 }
-            }.register([CoreXT, System]);
+            }.register();
 
             // -------------------------------------------------------------------------------------------------------------------
         }

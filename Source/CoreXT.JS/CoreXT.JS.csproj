@@ -29,8 +29,6 @@
     <Description>
       Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
-
-
       This package holds a JS based bootstrapping and UI development framework for client side development (using TypeScript).
     </Description>
   </PropertyGroup>
@@ -38,98 +36,12 @@
   <ItemGroup>
     <None Include="wwwroot\**\*.*" />
     <None Include="scripts\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="\**\*.*" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Content Remove="wwwroot/js\CoreXT.VDom.Canvas.ts" />
-    <Content Remove="wwwroot/js\__references.ts" />
-    <Content Remove="wwwroot/lib\linq4js\linq4js.d.ts" />
-    <Content Remove="wwwroot/lib\linq4js\tsconfig.json" />
-  </ItemGroup>
-  
-  <ItemGroup>
+    <None Remove="scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
+    <None Remove="Scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
+    <None Remove="scripts\Twitter\manifest.ts" />
+    <None Remove="Scripts\Twitter\manifest.ts" />
     <None Remove="scripts\__references.ts" />
     <None Remove="Scripts\__references.ts" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Content Include="Scripts\app.manifest.ts" />
-    <Content Include="Scripts\app.ts" />
-    <Content Include="Scripts\CoreXT.Browser.ts" />
-    <Content Include="Scripts\CoreXT.Globals.ts" />
-    <Content Include="Scripts\CoreXT.Scripts.ts" />
-    <Content Include="Scripts\CoreXT.ts" />
-    <Content Include="Scripts\CoreXT.Utilities.ts" />
-    <Content Include="Scripts\CoreXT.VDom.ts" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\.gitignore" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\custom-message\index.html" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\hash-trick\index.html" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-ipad.png" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-ipad2.png" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-iphone.png" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\images\touch-icon-iphone4.png" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\manual-startup\index.html" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\simple\index.html" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\suggested-config\index.html" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\examples\touch-icon\index.html" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\README.md" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home.js" />
-    <Content Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\style\add2home.css" />
-    <Content Include="Scripts\Cubiq_org\manifest.ts" />
-    <Content Include="Scripts\Eyecon_ro\datepicker\css\datepicker.css" />
-    <Content Include="Scripts\Eyecon_ro\datepicker\js\bootstrap-datepicker.js" />
-    <Content Include="Scripts\Eyecon_ro\datepicker\less\datepicker.less" />
-    <Content Include="Scripts\Eyecon_ro\datepicker\manifest.ts" />
-    <Content Include="Scripts\Github\Ilinsky\manifest.ts" />
-    <Content Include="Scripts\Github\Ilinsky\XMLHttpRequest-20130624.js" />
-    <Content Include="Scripts\Google\Maps\manifest.ts" />
-    <Content Include="Scripts\HoldOn\HoldOn.css" />
-    <Content Include="Scripts\HoldOn\HoldOn.min.css" />
-    <Content Include="Scripts\HoldOn\HoldOn.min.js" />
-    <Content Include="Scripts\HoldOn\manifest.ts" />
-    <Content Include="Scripts\HostBridge.d.ts" />
-    <Content Include="Scripts\HostBridge.ICE.d.ts" />
-    <Content Include="Scripts\JQuery\jquery_2_2_0.js" />
-    <Content Include="Scripts\JQuery\jquery_2_2_0.min.js" />
-    <Content Include="Scripts\JQuery\jquery_2_2_0.min.map" />
-    <Content Include="Scripts\JQuery\manifest.ts" />
-    <Content Include="Scripts\Linq4JS\linq4js.js" />
-    <Content Include="Scripts\Linq4JS\linq4js.min.js" />
-    <Content Include="Scripts\Linq4JS\manifest.ts" />
-    <Content Include="Scripts\manifest.ts" />
-    <Content Include="Scripts\Misc\soapclient.js" />
-    <Content Include="Scripts\MomentJS\manifest.ts" />
-    <Content Include="Scripts\MomentJS\moment-with-langs.js" />
-    <Content Include="Scripts\MomentJS\moment-with-langs.min.js" />
-    <Content Include="Scripts\MomentJS\moment.min.js" />
-    <Content Include="Scripts\Scirra\manifest.ts" />
-    <Content Include="Scripts\Scripting Symanics Ideas.txt" />
-    <Content Include="Scripts\System\CoreXT.System.Collections.IndexedObjectCollection.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Collections.ObservableCollection.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Data.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Delegate.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Diagnostics.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Events.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Exception.ts" />
-    <Content Include="Scripts\System\CoreXT.System.IO.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Markup.ts" />
-    <Content Include="Scripts\System\CoreXT.System.PrimitiveTypes.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Serialization.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Storage.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Text.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Time.ts" />
-    <Content Include="Scripts\System\CoreXT.System.ts" />
-    <Content Include="Scripts\System\CoreXT.System.Users.ts" />
-    <Content Include="Scripts\xregexp\manifest.ts" />
-    <Content Include="Scripts\xregexp\xregexp-min.js" />
-    <Content Include="Scripts\xregexp\xregexp.js" />
-    <Content Include="Scripts\xregexp\__xregexp_info.js" />
-    <Content Include="Scripts\xregexp\__xregexp_info.js.map" />
-    <Content Include="Scripts\xregexp\__xregexp_info.ts" />
   </ItemGroup>
 
   <ItemGroup>
@@ -142,11 +54,6 @@
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home-tests.js" />
-    <None Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home-tests.js.map" />
-    <None Include="Scripts\Cubiq_org\AddToHomeScreen-2.0.11\src\add2home-tests.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\js\" />

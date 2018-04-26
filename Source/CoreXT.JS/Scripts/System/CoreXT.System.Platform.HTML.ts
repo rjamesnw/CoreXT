@@ -193,19 +193,19 @@ module CoreXT.System.Platform {
             /** Represents the HTML element tag to use for this graph item.  The default value is set when a derived graph item is constructed.
             * Not all objects support this property, and changing it is only valid BEFORE the layout is updated for the first time.
             */
-            tagName: string = $GraphNode.defaultHTMLTag; // (warning: this may already be set from parsing an HTML template)
+            tagName: string = HTMLElement.defaultHTMLTag; // (warning: this may already be set from parsing an HTML template)
             protected __element: Node = null;
             protected __htmlElement: TElement = null;
 
             // ----------------------------------------------------------------------------------------------------------------
 
             protected static '$HTMLElement Factory' = class Factory extends FactoryBase($HTMLElement, $HTMLElement['$UIElement Factory']) implements IFactory {
-                'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: GraphNode, tagName: TName = "div", html?: string): $HTMLElement<TElement> { return null; }
+                'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: IGraphNode, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> { return null; }
 
                 init<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>($this: $HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, tagName: TName = "div", html?: string): $HTMLElement<TElement> {
                     this.$__baseFactory.init($this, isnew, parent);
-                    this.htmlTag = tagName;
-                    $this.set(<keyof HTMLDivElement>"innerHTML", html);
+                    $this.tagName = tagName;
+                    $this.set("innerHTML", html);
                     $this.getProperty($HTMLElement.HTML).registerListener((property: Property, initialValue: boolean): void => {
                         if (!initialValue || !$this.__children.length) {
                             if ($this.__children.length)
@@ -255,6 +255,17 @@ module CoreXT.System.Platform {
                 // ... setting a local observable property will also set any corresponding element property ...
                 if (this.__htmlElement && this.__htmlElement.setAttribute)
                     this.__htmlElement.setAttribute(name, value);
+            }
+
+            // --------------------------------------------------------------------------------------------------------------------
+
+            /** The function is called in order to produce an HTML element that represents the graph item.
+                * The base class, by default, simply returns a new 'HTMLDivElement' element (which doesn't display anything).
+                * It is expected that implementers will override this function in derived classes if any custom UI is to be generated.
+                * If the derived type doesn't represent a UI element, don't override this function.
+                */
+            createUIElement(): Node {
+                return document.createElement(this.htmlTag || HTMLElement.defaultHTMLTag || "div");
             }
 
             // --------------------------------------------------------------------------------------------------------------------
@@ -847,26 +858,26 @@ module CoreXT.System.Platform {
                                         if (graphType === void 0)
                                             throw Exception.from("The graph item type '" + graphItemType + "' for tag '<" + currentTagName + "' on line " + htmlReader.getCurrentLineNumber() + " was not found.");
 
-                                        if (typeof graphType !== 'function' || typeof graphType.defaultHTMLTag === void 0)
+                                        if (typeof graphType !== 'function' || typeof HTMLElement.defaultHTMLTag === void 0)
                                             throw Exception.from("The graph item type '" + graphItemType + "' for tag '<" + currentTagName + "' on line " + htmlReader.getCurrentLineNumber() + " does not resolve to a GraphItem class type.");
                                     }
 
                                     if (graphType == null) {
                                         // ... auto detect the CoreXT UI GraphNode type based on the tag name (all valid HTML4/5 tags: http://www.w3schools.com/tags/) ...
                                         switch (currentTagName) {
-                                            case 'a': graphType = UI.Anchor; break;
+                                            case 'a': graphType = Anchor; break;
 
                                             // (phrases)
-                                            case 'abbr': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Abbreviation; break;
-                                            case 'acronym': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Acronym; break;
-                                            case 'em': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Emphasis; break;
-                                            case 'strong': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Strong; break;
-                                            case 'cite': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Cite; break;
-                                            case 'dfn': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Defining; break;
-                                            case 'code': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Code; break;
-                                            case 'samp': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Sample; break;
-                                            case 'kbd': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Keyboard; break;
-                                            case 'var': graphType = Phrase; properties['phraseTypes'] = UI.PhraseTypes.Variable; break;
+                                            case 'abbr': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Abbreviation; break;
+                                            case 'acronym': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Acronym; break;
+                                            case 'em': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Emphasis; break;
+                                            case 'strong': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Strong; break;
+                                            case 'cite': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Cite; break;
+                                            case 'dfn': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Defining; break;
+                                            case 'code': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Code; break;
+                                            case 'samp': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Sample; break;
+                                            case 'kbd': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Keyboard; break;
+                                            case 'var': graphType = Phrase; properties['phraseTypes'] = PhraseTypes.Variable; break;
 
                                             // (headers)
                                             case 'h1': graphType = Header; properties['headerLevel'] = 1; break;

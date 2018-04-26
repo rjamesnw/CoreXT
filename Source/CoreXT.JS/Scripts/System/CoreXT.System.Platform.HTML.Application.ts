@@ -98,11 +98,12 @@ namespace CoreXT.System.Platform.HTML.Application {
         }
 
         /** Parses HTML text to build the visual graph tree.
-        * This concept is similar to using XAML to load objects in Silverlight. You have the option to use an HTML file, or dynamically build your application
-        * directly in code (just like with Silverlight XAML/C#/VB/etc.).
+        * This concept is similar to using XAML to load objects in Silverlight or WPF. You have the option to use an HTML file, or dynamically build your application
+        * directly in code (just like with Silverlight/WPF using XAML/C#/VB/etc.).
         * 
-        * Warning about inline scripts: Script tags will be execute client side (naturally by the DOM), but you cannot rely on them server side.  Try to use
-        * HTML for UI DESIGN ONLY.  Expect that any code you place in the HTML will not execute server side.
+        * Warning about inline scripts: Script tags will be executed client side (naturally by the DOM), but you cannot rely on them server side.  Try to use
+        * HTML for UI DESIGN ONLY.  Expect that any code you place in the HTML will not execute server side. "Business" logic should always be in your script
+        * files and NOT inline within the HTML.
         */
         parseTemplate(html: string = null) {
             var log = Diagnostics.log($ApplicationElement, "Parsing application HTML template ...").beginCapture();
@@ -119,7 +120,7 @@ namespace CoreXT.System.Platform.HTML.Application {
             document.body.innerHTML = ""; // (clear this if not already done so [will be dynamically rebuilt using the graph tree before the user sees any changes])
             // (allowing the innterHTML to exist first provides a quick visual view of the page, which will then give time to quickly replace it)
 
-            var result = Markup.parse(html);
+            var result = HTML.parse(html);
 
             for (var i = 0, n = result.rootElements.length; i < n; ++i)
                 this.addChild(result.rootElements[i]);
@@ -150,7 +151,7 @@ namespace CoreXT.System.Platform.HTML.Application {
                     };
                     request.onreadystatechange = () => {
                         if (request.readyState == (XMLHttpRequest.DONE || 4)) {
-                            var ok = false, response = request.response || request.responseText || request.responseXML || request.responseBody;
+                            var ok = false, response = request.response || request.responseText || request.responseXML || request['responseBody'];
                             if (request.status == 200) {
                                 log.write("Template data was loaded from the server.", LogTypes.Success);
                                 ok = true;
