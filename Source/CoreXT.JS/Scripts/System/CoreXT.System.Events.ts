@@ -10,12 +10,15 @@ namespace CoreXT {
           */
         export namespace Events {
 
-            /** Represents an event callback function. */
+            /** Represents an event callback function. Handlers should return false to cancel event dispatching if desired (anything else is ignored). */
             export interface EventHandler { (this: object, ...args: any[]): void | boolean };
 
-            /** The event trigger handler is called to allow custom handling of event handlers when an event occurs. */
+            /** 
+             * The event trigger handler is called to allow custom handling of event handlers when an event occurs. 
+             * This handler should return false to cancel event dispatching if desired (anything else is ignored).
+             */
             export interface EventTriggerHandler<TOwner extends object, TCallback extends EventHandler> {
-                (event: $EventDispatcher<TOwner, TCallback>, handler: IDelegate<object, TCallback>, args: any[], mode?: EventModes): void
+                (event: $EventDispatcher<TOwner, TCallback>, handler: IDelegate<object, TCallback>, args: any[], mode?: EventModes): void | boolean
             };
 
             /** Controls how the event progression occurs. */
@@ -27,6 +30,8 @@ namespace CoreXT {
                 /** Trigger event on both the way up to the target, then back down again. */
                 CaptureAndBubble
             };
+
+            type THandlerInfo<TCallback extends EventHandler = EventHandler> = IDelegate<object, TCallback> & { $__eventMode?: EventModes };
 
             /** The EventDispatcher wraps a specific event type, and manages the triggering of "handlers" (callbacks) when that event type
               * must be dispatched. Events are usually registered as static properties first (to prevent having to create and initialize
@@ -108,7 +113,7 @@ namespace CoreXT {
 
                 private __eventName: string;
                 private __associations = new WeakMap<object, this>(); // (a mapping between an external object and this event instance - typically used to associated this event with an external object OTHER than the owner)
-                private __handlers: IDelegate<object, TCallback>[] = []; // (this is typed "any object type" to allow using delegate handler function objects later on)
+                private __listeners: THandlerInfo<TCallback>[] = []; // (this is typed "any object type" to allow using delegate handler function objects later on)
                 /** If a parent value is set, then the event chain will travel the parent hierarchy from this event dispatcher. If not set, the owner is assumed instead. */
                 protected __parent: $EventDispatcher<any, EventHandler>; // (this is also declared on the DependencyObject base)
                 private __eventTriggerHandler: EventTriggerHandler<TOwner, TCallback>; // (a global handler per registered type that is triggered before any other handlers)
@@ -116,6 +121,8 @@ namespace CoreXT {
                 private __eventPrivatePropertyName: string;// (the '$__{EventName}Event' private name on the owning instance that points to this event instance)
                 private __lastTriggerState: string;
                 private __cancelled: boolean; // (true if the handler wants to stop further handler calls)
+                private __dispatchInProgress: boolean; // (true if a dispatch is in process of calling handlers)
+                private __handlerCallInProgress: THandlerInfo<TCallback>; // (the current handler just called, or null if there is no dispatching in progress)
 
                 /** Return the underlying event name for this event object. */
                 getEventName() { return this.__eventName; }
@@ -125,7 +132,7 @@ namespace CoreXT {
                 autoTrigger: boolean = false;
 
                 /** Returns true if handlers exist on this event object instance. */
-                hasHandlers(): boolean { return !!this.__handlers.length; }
+                hasHandlers(): boolean { return !!this.__listeners.length; }
 
                 /** If true, then handlers are called only once, then removed (default is false). */
                 removeOnTrigger: boolean = false;
@@ -173,8 +180,8 @@ namespace CoreXT {
                         func = handler;
                     } else throw Exception.error("_getHandlerIndex()", "The given handler is not valid.  A Delegate type or function was expected.", this);
 
-                    for (var i = 0, n = this.__handlers.length; i < n; ++i) {
-                        var h = this.__handlers[i];
+                    for (var i = 0, n = this.__listeners.length; i < n; ++i) {
+                        var h = this.__listeners[i];
                         if (h.object == object && h.func == func)
                             return i;
                     }
@@ -189,14 +196,14 @@ namespace CoreXT {
                 attach(handler: IDelegate<object, TCallback>, eventMode?: EventModes): this;
                 attach(handler: TCallback | IDelegate<object, TCallback>, eventMode: EventModes = EventModes.Capture): this {
                     if (this._getHandlerIndex(<any>handler) == -1) {
-                        var delegate = handler instanceof Delegate ? handler : Delegate.new(this, handler);
-                        delegate['$__eventMode'] = eventMode;
-                        this.__handlers.push(delegate);
+                        var delegate: THandlerInfo<TCallback> = handler instanceof Delegate ? handler : Delegate.new(this, handler);
+                        delegate.$__eventMode = eventMode;
+                        this.__listeners.push(delegate);
                     }
                     return this;
                 }
 
-                /** Dispatch the underlying event. Returns true if all events completed, and false if any handler cancelled the event.
+                /** Dispatch the underlying event. Typically 'dispatch()' is called instead of calling this directly. Returns 'true' if all events completed, and 'false' if any handler cancelled the event.
                   * @param {any} triggerState If supplied, the event will not trigger unless the current state is different from the last state.  This is useful in making
                   * sure events only trigger once per state.  Pass in null (the default) to always dispatch regardless.  Pass 'undefined' to used the event
                   * name as the trigger state (this can be used for a "trigger only once" scenario).
@@ -227,46 +234,71 @@ namespace CoreXT {
                         }
                     }
 
-                    this.__cancelled = false;
+                    var cancelled = false;
 
                     // ... do capture phase (root, towards target) ...
                     for (var n = eventChain.length, i = n - 1; i >= 0; --i) {
-                        if (this.__cancelled) break;
+                        if (cancelled) break;
                         var dispatcher = eventChain[i];
-                        if (dispatcher.__handlers.length)
-                            dispatcher.__dispatchEvent(args, EventModes.Capture);
+                        if (dispatcher.__listeners.length)
+                            cancelled = dispatcher.onDispatchEvent(args, EventModes.Capture);
                     }
 
                     // ... do bubbling phase (target, towards root) ...
                     for (var i = 0, n = eventChain.length; i < n; ++i) {
-                        if (this.__cancelled) break;
+                        if (cancelled) break;
                         var dispatcher = eventChain[i];
-                        if (dispatcher.__handlers.length)
-                            dispatcher.__dispatchEvent(args, EventModes.Bubble);
+                        if (dispatcher.__listeners.length)
+                            cancelled = dispatcher.onDispatchEvent(args, EventModes.Bubble);
                     }
 
-                    return !this.__cancelled;
+                    return !cancelled;
                 }
 
-                /** Calls the event handlers that match the event mode. */
-                protected __dispatchEvent(args: any[], mode: EventModes) {
+                protected __exception(msg: string, error?: any) {
+                    if (error) msg += "\r\nInner error: " + getErrorMessage(error);
+                    return Exception.error("{EventDispatcher}.dispatchEvent():", "Error in event " + this.__eventName + " on object type '" + getTypeName(this.owner) + "': " + msg, { exception: error, event: this, handler: this.__handlerCallInProgress });
+                }
+
+                /** Calls the event handlers that match the event mode on the current event instance. */
+                protected onDispatchEvent(args: any[], mode: EventModes): boolean {
                     args.push(this); // (add this event instance to the end of the arguments list to allow an optional target parameters to get a reference to the calling event)
-                    for (var i = 0, n = this.__handlers.length; i < n; ++i) {
-                        var delegate = this.__handlers[i];
-                        var expectedEventMode = <EventModes>delegate['$__eventMode'];
-                        if (expectedEventMode == mode && delegate)
-                            if (this.__eventTriggerHandler)
-                                this.__eventTriggerHandler(this, delegate, args, mode); // (call any special trigger handler)
-                            else
-                                delegate.apply(args);
+                    this.__cancelled = false;
+                    this.__dispatchInProgress = true;
+
+                    try {
+                        for (var i = 0, n = this.__listeners.length; i < n; ++i) {
+                            var delegate = this.__listeners[i];
+                            var cancelled = false;
+                            if (delegate.$__eventMode == mode && delegate) {
+                                this.__handlerCallInProgress = delegate;
+                                if (this.__eventTriggerHandler)
+                                    cancelled = this.__eventTriggerHandler(this, delegate, args, delegate.$__eventMode) === false; // (call any special trigger handler)
+                                else
+                                    cancelled = delegate.apply(args) === false;
+                            }
+                            if (cancelled && this.canCancel) {
+                                this.__cancelled = true;
+                                break;
+                            }
+                        }
                     }
+                    catch (ex) {
+                        throw this.__exception("Error executing handler #" + i + ".", ex);
+                    }
+                    finally {
+                        this.__dispatchInProgress = false;
+                        this.__handlerCallInProgress = null;
+                    }
+
+                    return this.__cancelled;
                 }
 
                 /** If the given state value is different from the last state value, the internal trigger state value will be updated, and true will be returned.
-                * If a state value of null is given, the request will be ignored, and true will always be returned.
-                * If you don't specify a value ('undefined' is received) then the internal event name becomes the trigger state value (this can be used for a "trigger
-                * only once" scenario).  Use 'resetTriggerState()' to reset the internal trigger state when needed.
-                */
+                    * If a state value of null is given, the request will be ignored, and true will always be returned.
+                    * If you don't specify a value ('triggerState' is 'undefined') then the internal event name becomes the trigger state value (this can be used for a "trigger
+                    * only once" scenario).  Use 'resetTriggerState()' to reset the internal trigger state when needed.
+                    */
                 setTriggerState(triggerState?: any): boolean {
                     if (triggerState === void 0) triggerState = this.__eventName;
                     if (triggerState !== null)
@@ -278,15 +310,15 @@ namespace CoreXT {
                 }
 
                 /** Resets the current internal trigger state to null. The next call to 'setTriggerState()' will always return true.
-                * This is usually called after a sequence of events have completed, in which it is possible for the cycle to repeat.
-                */
+                    * This is usually called after a sequence of events have completed, in which it is possible for the cycle to repeat.
+                    */
                 resetTriggerState() { this.__lastTriggerState = null; }
 
                 /** A simple way to pass arguments to event handlers using arguments with static typing (calls 'dispatchEvent(null, false, false, arguments)').
-                * TIP: To prevent triggering the same event multiple times, use a custom state value in a call to 'setTriggerState()', and only call
-                * 'dispatch()' if true is returned (example: "someEvent.setTriggerState(someState) && someEvent.dispatch(...);", where the call to 'dispatch()'
-                * only occurs if true is returned from the previous statement).
-                */
+                    * TIP: To prevent triggering the same event multiple times, use a custom state value in a call to 'setTriggerState()', and only call
+                    * 'dispatch()' if true is returned (example: "someEvent.setTriggerState(someState) && someEvent.dispatch(...);", where the call to 'dispatch()'
+                    * only occurs if true is returned from the previous statement).
+                    */
                 dispatch: TCallback = <TCallback><any>((...args: any[]) => {
                     return this.dispatchEvent.apply(this, args.unshift(null));
                 });
@@ -297,12 +329,12 @@ namespace CoreXT {
                         if (this.canCancel)
                             this.__cancelled = true;
                         else
-                            throw Exception.error("Cancel Event '" + this.__eventName + "'", "This even dispatcher does not support canceling events.", this);
+                            throw this.__exception("This even dispatcher does not support canceling events.");
                 }
 
                 private __indexOf(object: object, handler: TCallback) {
-                    for (var i = this.__handlers.length - 1; i >= 0; --i) {
-                        var d = this.__handlers[i];
+                    for (var i = this.__listeners.length - 1; i >= 0; --i) {
+                        var d = this.__listeners[i];
                         if (d.object == object && d.func == <any>handler)
                             return i;
                     }
@@ -310,19 +342,25 @@ namespace CoreXT {
                 }
 
                 private __removeListener(i: number) {
-                    if (i >= 0 && i < this.__handlers.length) {
-                        var handlerInfo = (i == this.__handlers.length - 1 ? this.__handlers.pop() : this.__handlers.splice(i, 1)[0]);
+                    if (i >= 0 && i < this.__listeners.length) {
+                        var handlerInfo = (i == this.__listeners.length - 1 ? this.__listeners.pop() : this.__listeners.splice(i, 1)[0]);
 
-                        if (this.__handlerCallInProgress && this.__handlerCallInProgress != handlerInfo)
-                            --this.__handlerCountBeforeDispatch; // (if the handler being removed is not the current one in progress, then it will never be called, and thus the original count needs to change)
+                        if (this.__dispatchInProgress && this.__handlerCallInProgress === handlerInfo)
+                            throw this.__exception("Cannot remove a listener while it is executing.");
 
-                        if (handlerInfo.addFunctionName == "addEventListener")
-                            document.removeEventListener(this.__eventName, handlerInfo.__internalCallback, false);
-                        else if (handlerInfo.addFunctionName == "attachEvent")
-                            (<any>document.documentElement).detachEvent("onpropertychange", handlerInfo.__internalCallback);
+                        //    --this.__handlerCountBeforeDispatch; // (if the handler being removed is not the current one in progress, then it will never be called, and thus the original count needs to change)
+
+                        //if (handlerInfo.addFunctionName == "addEventListener")
+                        //    document.removeEventListener(this.__eventName, handlerInfo.__internalCallback, false);
+                        //else if (handlerInfo.addFunctionName == "attachEvent")
+                        //    (<any>document.documentElement).detachEvent("onpropertychange", handlerInfo.__internalCallback);
+
                         // (else this is most likely the server side, and removing it from the array is good enough)
-                        this[handlerInfo.key] = void 0; // (faster than deleting it, and prevents having to create the property over and over)
+                        //? this[handlerInfo.key] = void 0; // (faster than deleting it, and prevents having to create the property over and over)
+                        return handlerInfo;
                     }
+
+                    return void 0;
                 }
 
                 removeListener(object: NativeTypes.IObject, func: TCallback): void;
@@ -337,7 +375,7 @@ namespace CoreXT {
                 }
 
                 removeAllListeners() {
-                    for (var i = this.__handlers.length - 1; i >= 0; --i)
+                    for (var i = this.__listeners.length - 1; i >= 0; --i)
                         this.__removeListener(i);
                 }
 
@@ -377,7 +415,7 @@ namespace CoreXT {
                             $this.canCancel = canCancel;
 
                             if (!isnew) {
-                                $this.__handlers.length = 0;
+                                $this.__listeners.length = 0;
                             }
 
                             return $this;
