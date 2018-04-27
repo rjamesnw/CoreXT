@@ -216,7 +216,7 @@ namespace CoreXT.System.Platform {
         // -------------------------------------------------------------------------------------------------------------------
 
         /** The 'GraphItem' instance or static type that this property belongs to. */
-        owner: GraphNode;
+        owner: IGraphNode;
 
         /** A reference to the static property information for the property instance. */
         staticProperty: $StaticProperty; // WARNING: This is null for non-registered "ad-hoc" properties.
@@ -233,7 +233,7 @@ namespace CoreXT.System.Platform {
 
         // -------------------------------------------------------------------------------------------------------------------
 
-        constructor(owner: GraphNode, staticProperty: $StaticProperty, value: any) {
+        constructor(owner: IGraphNode, staticProperty: $StaticProperty, value: any) {
             super();
             this.owner = owner;
             this.staticProperty = staticProperty;

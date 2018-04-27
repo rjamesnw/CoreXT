@@ -350,7 +350,7 @@ module CoreXT.System.Platform {
             // ----------------------------------------------------------------------------------------------------------------
 
             protected static '$Anchor Factory' = class Factory extends FactoryBase($Anchor, $Anchor['$HTMLElement Factory']) implements IFactory {
-                'new'(parent: GraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                'new'(parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
                 init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> {
                     this.$__baseFactory.init($this, isnew, parent, html);
@@ -592,9 +592,9 @@ module CoreXT.System.Platform {
             // ----------------------------------------------------------------------------------------------------------------
 
             protected static '$Header Factory' = class Factory extends FactoryBase($Header, $Header['$HTMLElement Factory']) implements IFactory {
-                'new'(parent: GraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                'new'(parent: IGraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: GraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> {
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> {
                     this.$__baseFactory.init($this, isnew, parent, html);
                     if (headerLevel < 1 || headerLevel > 6)
                         throw Exception.from("HTML only supports header levels 1 through 6.");
@@ -632,7 +632,7 @@ module CoreXT.System.Platform {
         export class Table extends UIElement.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode) {
+            constructor(parent: IGraphNode) {
                 super(parent);
                 this.htmlTag = "table";
             }
@@ -653,7 +653,7 @@ module CoreXT.System.Platform {
         export class TableRow extends UIElement.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode) {
+            constructor(parent: IGraphNode) {
                 super(parent);
                 this.htmlTag = "tr";
             }
@@ -674,7 +674,7 @@ module CoreXT.System.Platform {
         export class TableColumn extends UIElement.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode) {
+            constructor(parent: IGraphNode) {
                 super(parent);
                 this.htmlTag = "td";
             }
@@ -695,7 +695,7 @@ module CoreXT.System.Platform {
         export class TableHeader extends UIElement.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
-            constructor(parent: GraphNode) {
+            constructor(parent: IGraphNode) {
                 super(parent);
                 this.htmlTag = "th";
             }
@@ -723,8 +723,8 @@ module CoreXT.System.Platform {
         * @param {boolean} strictMode If true, then the parser will produce errors on ill-formed HTML (eg. 'attribute=' with no value).
         * This can greatly help keep your html clean, AND identify possible areas of page errors.  If strict formatting is not important, pass in false.
         */
-        export function parse(html: string = null, strictMode?: boolean): { rootElements: $GraphNode[]; templates: { [id: string]: IDataTemplate; } } {
-            var log = Diagnostics.log(Markup, "Parsing HTML template ...").beginCapture();
+        export function parse(html: string = null, strictMode?: boolean): { rootElements: IGraphNode[]; templates: { [id: string]: IDataTemplate; } } {
+            var log = Diagnostics.log(HTML, "Parsing HTML template ...").beginCapture();
             log.write("Template: " + html);
 
             if (!html) return null;
@@ -738,27 +738,27 @@ module CoreXT.System.Platform {
             var mode: number = 0; // (1 = ready on next tag, 2 = creating objects)
             var classMatch = /^[$.][A-Za-z0-9_$]*(\.[A-Za-z0-9_$]*)*(\s+|$)/;
             var attribName: string;
-
-            var storeRunningText = (parent: $GraphNode) => {
+            
+            var storeRunningText = (parent: IGraphNode) => {
                 if (htmlReader.runningText) { // (if there is running text, then create a text node for it for the CURRENT graph item [not the parent])
                     if (!UI)
-                        new $GraphNode(parent).setValue((htmlReader.runningText.indexOf('&') < 0 ? "text" : "html"), htmlReader.runningText);
+                        GraphNode.new(parent).setValue((htmlReader.runningText.indexOf('&') < 0 ? "text" : "html"), htmlReader.runningText);
                     else if (htmlReader.runningText.indexOf('&') < 0)
-                        new UI.PlainText(parent, htmlReader.runningText);
+                        PlainText.new(parent, htmlReader.runningText);
                     else
-                        new UI.HTMLText(parent, htmlReader.runningText);
+                        HTMLText.new(parent, htmlReader.runningText);
                 }
             };
 
-            var rootElements: $GraphNode[] = [];
+            var rootElements: IGraphNode[] = [];
             var dataTemplates: { [id: string]: IDataTemplate; } = {};
 
             type TGraphNodeFactoryType = typeof GraphNode['$GraphNode Factory']['$__factory'];
 
-            var processTags = (parent: $GraphNode): IDataTemplate[] => { // (returns the data templates found for the immediate children only)
+            var processTags = (parent: IGraphNode): IDataTemplate[] => { // (returns the data templates found for the immediate children only)
                 var graphItemType: string, graphItemTypePrefix: string;
                 var graphType: TGraphNodeFactoryType;
-                var graphItem: $GraphNode;
+                var graphItem: IGraphNode;
                 var properties: {};
                 var currentTagName: string;
                 var isDataTemplate: boolean = false, dataTemplateID: string, dataTemplateHTML: string;
