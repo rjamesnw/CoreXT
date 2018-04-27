@@ -77,7 +77,7 @@ namespace CoreXT.System.IO {
                     }
                     return $this;
                 }
-            }.register([CoreXT, System, IO, Path]);
+            }.register();
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -113,7 +113,7 @@ namespace CoreXT.System.IO {
             /** Use to remove a series of query parameter names.  The function returns the current object to allow chaining calls.
             * Example: remove(['name1', 'name2', 'name3']);
             */
-            remove(namesToDelete: string[]): $Query {
+            remove(namesToDelete: string[]): IQuery {
                 if (namesToDelete && namesToDelete.length)
                     for (var i = 0, n = namesToDelete.length; i < n; ++i)
                         if (this.values[namesToDelete[i]])
@@ -124,8 +124,8 @@ namespace CoreXT.System.IO {
             // ---------------------------------------------------------------------------------------------------------------
 
             /** Creates and returns a duplicate of this object. */
-            clone(): Query {
-                var q = new $Query();
+            clone(): IQuery {
+                var q = Query.new();
                 for (var pname in this.values)
                     q.values[pname] = this.values[pname];
                 return q;
@@ -227,12 +227,13 @@ namespace CoreXT.System.IO {
 
         // ===================================================================================================================
 
-        export var pageQuery = new Path.Query(location.href);
-        //? if (pageQuery.getValue('debug', '') == 'true') Diagnostics.debug = Diagnostics.DebugModes.Debug_Run; // (only allow this on the sandbox and development servers)
-        //? var demo = demo || pageQuery.getValue('demo', '') == 'true'; // (only allow this on the sandbox and development servers)
+        export var pageQuery = Query.new(location.href);
+
+        //! if (pageQuery.getValue('debug', '') == 'true') Diagnostics.debug = Diagnostics.DebugModes.Debug_Run; // (only allow this on the sandbox and development servers)
+        //! var demo = demo || pageQuery.getValue('demo', '') == 'true'; // (only allow this on the sandbox and development servers)
 
         export function setLocation(url: string, includeExistingQuery = false, bustCache = false) {
-            var query = new Path.Query(url);
+            var query = Query.new(url);
             if (bustCache) query.values['_'] = new Date().getTime().toString();
             if (includeExistingQuery)
                 query.addOrUpdate(pageQuery.values);

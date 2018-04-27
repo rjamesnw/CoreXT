@@ -186,7 +186,7 @@ namespace CoreXT.System.Platform {
 
                 return $this;
             }
-        }.register([CoreXT, System]);
+        }.register();
 
         // -------------------------------------------------------------------------------------------------------------------
 

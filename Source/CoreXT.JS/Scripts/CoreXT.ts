@@ -1001,7 +1001,7 @@ namespace CoreXT {
                     if (log || log === void 0) Diagnostics.log("Exception", message, LogTypes.Error);
                     return $this;
                 }
-            }.register([CoreXT, System]);
+            }.register();
 
             // ----------------------------------------------------------------------------------------------------------------
         }
@@ -1151,7 +1151,7 @@ namespace CoreXT {
                         }
                         return $this;
                     }
-                }.register([CoreXT, System, Diagnostics]);
+                }.register();
 
                 // ------------------------------------------------------------------------------------------------------------
             }
@@ -1991,7 +1991,7 @@ namespace CoreXT {
 
                     return $this;
                 }
-            }.register([CoreXT, Loader]);
+            }.register();
 
             // ----------------------------------------------------------------------------------------------------------------
         }

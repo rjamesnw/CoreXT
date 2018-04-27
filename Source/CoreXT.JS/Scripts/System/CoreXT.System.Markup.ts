@@ -133,7 +133,7 @@ namespace CoreXT.System {
                     $this.nonDelimiters = (<any>$this.html).split($HTMLReader.__splitRegEx, void 0, $this.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
                     return $this;
                 }
-            }.register([CoreXT, System, Markup]);
+            }.register();
 
             // ----------------------------------------------------------------------------------------------------------------
 

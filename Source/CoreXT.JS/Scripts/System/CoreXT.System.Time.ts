@@ -344,7 +344,7 @@ namespace CoreXT.System {
                     $this.setTime($TimeSpan.msFromTime(year, dayOfYear, hours, minutes, seconds, milliseconds));
                 return $this;
             }
-        }.register([CoreXT, System]);
+        }.register();
 
         //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
     } // (TimeSpan)

@@ -119,7 +119,7 @@ namespace CoreXT.System.Collections {
                     $this.addObject(objects[i]);
                 return $this;
             }
-        }.register([CoreXT, System, Collections]);
+        }.register();
 
         // ----------------------------------------------------------------------------------------------------------------
     }

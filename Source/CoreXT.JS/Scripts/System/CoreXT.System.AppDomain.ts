@@ -246,7 +246,7 @@ namespace CoreXT {
                     //?    global.Object.freeze($this); // (properties cannot be modified once set)
                     return $this;
                 }
-            }.register([CoreXT, System]);
+            }.register();
 
             // -------------------------------------------------------------------------------------------------------------------------------
         }
@@ -311,7 +311,7 @@ namespace CoreXT {
               * See 'System.Platform.AppDomain' for more details.
               */
             static get default(): IApplication { return $Application._default; }
-            private static _default: $Application = Application.new(window.document.title, 0);
+            private static _default: $Application = Application.new(window.document.title, "Default Application", 0);
 
             /** A list of all applications in the system. */
             static applications: $Application[] = [$Application._default];
@@ -342,7 +342,7 @@ namespace CoreXT {
                     $this._appID = appID;
                     return $this;
                 }
-            }.register([CoreXT, System]);
+            }.register();
 
             protected _onAddToAppDomain(appDomain: IAppDomain, app: IApplication) {
             }

@@ -64,7 +64,7 @@ namespace CoreXT.System.Platform.HTML.Application {
                 $this.targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
                 return $this;
             }
-        }.register([CoreXT, System]);
+        }.register();
 
         // -------------------------------------------------------------------------------------------------------------------------------
 

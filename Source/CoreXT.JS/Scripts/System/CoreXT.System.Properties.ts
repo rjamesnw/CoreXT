@@ -193,7 +193,7 @@ namespace CoreXT.System.Platform {
                 $this.isVisual = isVisual;
                 return $this;
             }
-        }.register([CoreXT, System, Platform]);
+        }.register();
 
         // -------------------------------------------------------------------------------------------------------------------
 

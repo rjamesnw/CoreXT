@@ -297,7 +297,7 @@ namespace CoreXT {
                     for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                     return $this;
                 }
-            }.register([CoreXT, System]);
+            }.register();
 
             // -------------------------------------------------------------------------------------------------------------------
         }
@@ -349,7 +349,7 @@ namespace CoreXT {
                         for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                         return $this;
                     }
-                }.register([CoreXT, System]);
+                }.register();
             }();
 
             /* ------------------------------------------------------- */

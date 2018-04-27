@@ -50,7 +50,7 @@ namespace CoreXT.System.Platform {
                 }
             };
             factoryType['new'] = (context: Contexts = Contexts.Secure): InstanceType<typeof factoryType.$__type> => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
-            return factoryType.register([CoreXT, System, Platform]);
+            return factoryType.register();
         }();
 
         // ----------------------------------------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ namespace CoreXT.System.Platform {
                 this.$__baseFactory.init($this, isnew, title, description, appID);
                 return $this;
             }
-        }.register([CoreXT, System, Platform]);
+        }.register();
 
         protected _onAddToAppDomain(appDomain: IAppDomain) {
             for (var i = 0; i < appDomain.applications.length; i++)
