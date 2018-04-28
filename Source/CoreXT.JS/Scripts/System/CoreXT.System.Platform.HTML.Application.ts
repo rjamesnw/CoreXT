@@ -5,15 +5,6 @@
 namespace CoreXT.System.Platform.HTML.Application {
     // ========================================================================================================================
 
-    export interface IDataTemplate {
-        id: string;
-        originalHTML: string;
-        templateHTML: string;
-        templateItem: IGraphNode;
-    }
-
-    // ========================================================================================================================
-
     export class HTMLApplication extends UIApplication.$__type {
     }
 

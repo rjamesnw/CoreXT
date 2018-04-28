@@ -7,7 +7,7 @@ namespace CoreXT.System {
     /**
      * Contains types and functions to deal with HTML markup textual data.
      */
-    namespace Markup {
+    export namespace Markup {
         // ========================================================================================================================
 
         export enum HTMLReaderModes {
@@ -43,7 +43,7 @@ namespace CoreXT.System {
 
             /** The start index of the running text. */
             textStartIndex: number = 0;
-            /** The end index of the running text. */
+            /** The end index of the running text. This is also the start index of the next tag, if any (since text runs between tags). */
             textEndIndex: number = 0; // (this advances with every read so text can be quickly extracted from the source HTML instead of adding array items [just faster]).
             __lastTextEndIndex: number = 0; // (for backing up from a read [see '__readNext()' && '__goBack()'])
 
@@ -103,7 +103,7 @@ namespace CoreXT.System {
                 // (tag is taken from pre-matched names, so no need to match the whole name)
             }
 
-            /** Returns true if the current position is a tag closure (i.e. '</', or '/>' [self closing allowed for non-nestable tags]). */
+            /** Returns true if the current position is a tag closure (i.e. '</', or '/>' [self-closing allowed for non-nestable tags]). */
             isClosingTag() {
                 return this.readMode == Markup.HTMLReaderModes.Tag && this.tagBracket == '</' || this.readMode == Markup.HTMLReaderModes.EndOfTag && this.delimiter == '/>';
                 // (match "<tag/>" [no inner html/text] and "</tag> [end of inner html/text])

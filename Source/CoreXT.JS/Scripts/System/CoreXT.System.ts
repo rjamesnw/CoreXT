@@ -20,7 +20,7 @@ namespace CoreXT {
         /** The parent namespace object that contains the type (function instance).
         * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
         */
-        $__parent?: INamespaceInfo;
+        $__parent?: INamespaceInfo & ITypeInfo;
 
         /** Returns the name of this type.
         * Note: This is the object type name taken from the constructor (if one exists), and is not the FULL type name (no namespace).

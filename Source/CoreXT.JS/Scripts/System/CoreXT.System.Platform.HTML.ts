@@ -647,70 +647,80 @@ module CoreXT.System.Platform {
             // ----------------------------------------------------------------------------------------------------------------
         }
 
-        // ===================================================================================================================
+        // =====================================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
         export class TableRow extends UIElement.$__type {
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             constructor(parent: IGraphNode) {
                 super(parent);
                 this.htmlTag = "tr";
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("tr");
                 return super.createUIElement();
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
         }
 
-        // ===================================================================================================================
+        // =====================================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
         export class TableColumn extends UIElement.$__type {
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             constructor(parent: IGraphNode) {
                 super(parent);
                 this.htmlTag = "td";
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("td");
                 return super.createUIElement();
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
         }
 
-        // ===================================================================================================================
+        // =====================================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
         export class TableHeader extends UIElement.$__type {
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             constructor(parent: IGraphNode) {
                 super(parent);
                 this.htmlTag = "th";
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
 
             createUIElement(): Node {
                 this.assertSupportedElementTypes("th");
                 return super.createUIElement();
             }
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
         }
 
-        // ========================================================================================================================
+        // =====================================================================================================================================
+
+        export interface IDataTemplate {
+            id: string;
+            originalHTML: string;
+            templateHTML: string;
+            templateItem: IGraphNode;
+            childTemplates: IDataTemplate[];
+        }
+
+        // =====================================================================================================================================
 
         /** Parses HTML to create a graph object tree, and also returns any templates found.
         * This concept is similar to using XAML to load objects in WPF. As such, you have the option to use an HTML template, or dynamically build your
@@ -735,15 +745,16 @@ module CoreXT.System.Platform {
                 htmlReader.strictMode = !!strictMode;
 
             var approotID: string;
-            var mode: number = 0; // (1 = ready on next tag, 2 = creating objects)
+            var mode: number = 0; // (0 = app scope not found yet, 1 = app root found, begin parsing application scope elements, 2 = creating objects)
             var classMatch = /^[$.][A-Za-z0-9_$]*(\.[A-Za-z0-9_$]*)*(\s+|$)/;
             var attribName: string;
-            
+
             var storeRunningText = (parent: IGraphNode) => {
-                if (htmlReader.runningText) { // (if there is running text, then create a text node for it for the CURRENT graph item [not the parent])
-                    if (!UI)
-                        GraphNode.new(parent).setValue((htmlReader.runningText.indexOf('&') < 0 ? "text" : "html"), htmlReader.runningText);
-                    else if (htmlReader.runningText.indexOf('&') < 0)
+                if (htmlReader.runningText) { // (if there is running text, then create a text node for it under the given parent node)
+                    //?if (!host.isClient())
+                    //?    HTMLElement.new(parent).setValue((htmlReader.runningText.indexOf('&') < 0 ? "text" : "html"), htmlReader.runningText); // (not for the UI, so doesn't matter)
+                    //?else
+                    if (htmlReader.runningText.indexOf('&') < 0)
                         PlainText.new(parent, htmlReader.runningText);
                     else
                         HTMLText.new(parent, htmlReader.runningText);
@@ -751,7 +762,7 @@ module CoreXT.System.Platform {
             };
 
             var rootElements: IGraphNode[] = [];
-            var dataTemplates: { [id: string]: IDataTemplate; } = {};
+            var globalTemplatesReference: { [id: string]: IDataTemplate; } = {};
 
             type TGraphNodeFactoryType = typeof GraphNode['$GraphNode Factory']['$__factory'];
 
@@ -774,6 +785,11 @@ module CoreXT.System.Platform {
                     if (!htmlReader.isMarkupDeclaration() && !htmlReader.isCommentBlock() && !htmlReader.isScriptBlock() && !htmlReader.isStyleBlock()) {
 
                         if (currentTagName == "html") {
+
+                            // (The application root is a specification for the root of the WHOLE application, which is typically the body.  The developer should
+                            // specify the element ID for the root element in the 'data--approot' attribute of the <html> tag. [eg: <html data--approot='main'> ... <body id='main'>...]\
+                            // By default the app root will assume the body tag if not specified.)
+
                             if (approotID === void 0)
                                 approotID = null; // (null flags that an HTML tag was found)
 
@@ -801,22 +817,22 @@ module CoreXT.System.Platform {
                             }
                             else {
                                 if (mode == 2 && htmlReader.readMode == Markup.HTMLReaderModes.Tag && htmlReader.isClosingTag()) { // (this an ending tag (i.e. "</...>"))
-                                    // (this end tag should be the "closure" to the recently created graph item sibling, which clears 'graphiItem', but if
-                                    // it's already null, the end tag should be handled by the parent level; also, if the closing tag name is different
-                                    // (usually due to ill-formatted HTML [allowed only on parser override], or auto-closing tags, like '<img>'), assume
-                                    // closure of the previous tag and let the parent handle it)
+                                    // (this end tag should be the "closure" to the recently created graph item sibling, which then sets 'graphiItem' to null, but if
+                                    // it's already null, the end tag should be handled by the parent level (so if the parent tag finds it's own end tag, then we know
+                                    // there's a problem); also, if the closing tag name is different (usually due to ill-formatted HTML [allowed only on parser override],
+                                    // or auto-closing tags, like '<img>'), assume closure of the previous tag and let the parent handle it)
                                     if (graphItem) {
                                         storeRunningText(graphItem);
 
                                         if (isDataTemplate) {
                                             dataTemplateHTML = htmlReader.getHTML().substring(tagStartIndex, htmlReader.textEndIndex) + ">";
-                                            templateInfo = { id: dataTemplateID, originalHTML: dataTemplateHTML, templateHTML: undefined, templateItem: graphItem };
+                                            templateInfo = { id: dataTemplateID, originalHTML: dataTemplateHTML, templateHTML: undefined, templateItem: graphItem, childTemplates: immediateChildTemplates };
                                             // (note: if there are immediate child templates, remove them from the current template text)
                                             if (immediateChildTemplates)
-                                                for (var i = 0, n = immediateChildTemplates.length; i < n; i++)
+                                                for (var i = 0, n = immediateChildTemplates.length; i < n; i++)  // TODO: The following can be optimized better (use start/end indexes).
                                                     dataTemplateHTML = dataTemplateHTML.replace(immediateChildTemplates[i].originalHTML, "<!--{{" + immediateChildTemplates[i].id + "Items}}-->");
                                             templateInfo.templateHTML = dataTemplateHTML;
-                                            dataTemplates[dataTemplateID] = templateInfo; // (all templates are recorded in application scope, so IDs must be unique, otherwise they will override previous ones)
+                                            globalTemplatesReference[dataTemplateID] = templateInfo; // (all templates are recorded in application scope, so IDs must be unique, otherwise they will override previous ones)
                                             if (!templates) templates = [];
                                             templates.push(templateInfo);
                                             isDataTemplate = false;
@@ -853,7 +869,7 @@ module CoreXT.System.Platform {
                                             graphItemType = "DreamSpace.System.UI" + graphItemType;
 
                                         var graphFactory = GraphNode['$GraphNode Factory'];
-                                        graphType = <TGraphNodeFactoryType>Utilities.dereferencePropertyPath((<ITypeInfo>CoreXT).$__parent, Scripts.translateModuleTypeName(graphItemType));
+                                        graphType = <TGraphNodeFactoryType>Utilities.dereferencePropertyPath(Scripts.translateModuleTypeName(graphItemType), (<ITypeInfo>CoreXT).$__parent);
 
                                         if (graphType === void 0)
                                             throw Exception.from("The graph item type '" + graphItemType + "' for tag '<" + currentTagName + "' on line " + htmlReader.getCurrentLineNumber() + " was not found.");
@@ -912,18 +928,19 @@ module CoreXT.System.Platform {
                                         rootElements.push(graphItem);
                                 }
                                 else if (htmlReader.readMode == Markup.HTMLReaderModes.Tag) {
-                                    if (mode == 1) mode = 2; // (begin creating on this tag [i.e. after the root tag, since root is the "application" object itself])
+                                    if (mode == 1) mode = 2; // (begin creating on this tag that is AFTER the root app tag [i.e. since root is the "application" object itself])
 
                                     if (!graphItem) {
-                                        // ... start of a new sibling tag ...
+                                        // ... no current 'graphItem' being worked on, so assume start of a new sibling tag (to be placed under the current parent) ...
                                         properties = {};
-                                        tagStartIndex = htmlReader.textEndIndex; // (the text end index is the start of the tag)
+                                        tagStartIndex = htmlReader.textEndIndex; // (the text end index is the start of the next tag [html text sits between tags])
                                         if (mode == 2)
                                             storeRunningText(parent);
                                     } else if (mode == 2) {
-                                        // (note: each function call deals with a single nested level, and if a tag is not closed upon reading another, 'processTag' is called again)
+                                        // (note: each function call deals with a single nested level, and if a tag is not closed upon reading another, 'processTag' is called again because there may be many other nested tags before it can be closed)
                                         immediateChildTemplates = processTags(graphItem); // ('graphItem' was just created for the last tag read, but the end tag is still yet to be read)
-                                        if (htmlReader.tagName != graphItem.htmlTag)
+                                        // (the previous call will continue until an end tag is found, in which case it returns that tag to be handled by this parent level)
+                                        if (htmlReader.tagName != graphItem.htmlTag) // (the previous level should be parsed now, and the current tag should be an end tag that doesn't match anything in the immediate nested level, which should be the end tag for this parent tag)
                                             throw Exception.from("The closing tag '</" + htmlReader.tagName + ">' was unexpected for current tag '<" + graphItem.htmlTag + ">' on line " + htmlReader.getCurrentLineNumber() + ".");
                                         continue; // (need to continue on the last item read before returning)
                                     }
@@ -946,7 +963,7 @@ module CoreXT.System.Platform {
 
             log.write("HTML template parsing complete.").endCapture();
 
-            return { rootElements: rootElements, templates: dataTemplates };
+            return { rootElements: rootElements, templates: globalTemplatesReference };
         }
 
         // ===================================================================================================================
