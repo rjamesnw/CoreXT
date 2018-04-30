@@ -95,41 +95,21 @@ module CoreXT.System.Platform {
         export var BrowserContext = $BrowserContext['$BrowserContext Factory'].$__type;
 
         // ====================================================================================================================
-        class $UIElement extends GraphNode.$__type {
+        class $HTMLNode extends GraphNode.$__type {
             // ----------------------------------------------------------------------------------------------------------------
-
-            /** When extending 'GraphItem' with additional observable properties, it is considered good practice to create a
-            * static type with a list of possible vales that can be set by end users (to promote code completion mechanisms).
-            */
-            static ID: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$UIElement, "id");
-            static Name: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$UIElement, "name");
-            /**
-            * (Note: This static property registration also updates the internal '__UIProeprties' static list with UI-specific
-            * properties (that will trigger redraw events). Derived types should update this to their own values)
-            */
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            id: (id?: string) => string = GraphNode.accessor($UIElement.ID);
-            name: (name?: string) => string = GraphNode.accessor($UIElement.Name);
+            protected static '$HTMLNode Factory' = class Factory extends FactoryBase($HTMLNode, $HTMLNode['$GraphNode Factory']) implements IFactory {
+                'new'(parent: IGraphNode, id?: string, name?: string): InstanceType<typeof Factory.$__type> { return null; }
 
-            // ----------------------------------------------------------------------------------------------------------------
-
-            protected static '$UIElement Factory' = class Factory extends FactoryBase($UIElement, $UIElement['$GraphNode Factory']) implements IFactory {
-                'new'(node: IGraphNode): InstanceType<typeof Factory.$__type> { return null; }
-
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, node: IGraphNode): InstanceType<typeof Factory.$__type> {
-                    this.$__baseFactory.init($this, isnew);
-                    $this.node = node;
+                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, id?: string, name?: string): InstanceType<typeof Factory.$__type> {
+                    this.$__baseFactory.init($this, isnew, parent);
+                    if (id !== void 0 && id !== null) $this.id = id;
+                    if (name !== void 0 && name !== null) $this.name = name;
                     return $this;
                 }
             }.register();
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            createUIElement(): Node {
-                return super.createUIElement();
-            }
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -140,30 +120,42 @@ module CoreXT.System.Platform {
             // ----------------------------------------------------------------------------------------------------------------
         }
 
-        export interface IUIElement extends $UIElement { }
+        export interface IHTMLNode extends $HTMLNode { }
         /** Represents the base of a CoreXT UI object of various UI types. The default implementation extends this to implement HTML elements. */
-        export var UIElement = $UIElement['$UIElement Factory'].$__type;
+        export var HTMLNode = $HTMLNode['$HTMLNode Factory'].$__type;
 
         // ===================================================================================================================
 
         /** Represents an HTML node graph item that renders the content in the 'innerHTML of the default '__htmlTag' element (which is set to 'GraphItem.defaultHTMLTag' [DIV] initially).
         * This object has no element restrictions, so you can create any element you need by setting the '__htmlTag' tag before the UI element gets created.
         */
-        class $HTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends UIElement.$__type {
+        class $HTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends HTMLNode.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
+            /* When extending 'GraphItem' with additional observable properties, it is considered good practice to create a
+              * static type with a list of possible vales that can be set by end users (to promote code completion mechanisms).
+              */
+
+            static ID: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLNode, "id");
+            static Name: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLNode, "name");
             static Class: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLElement, "class", true);
             static Style: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLElement, "style", true);
-            static HTML: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLElement, "html", true);
+            static InnerHTML: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLElement, "innerHTML", true);
 
             /** Each new graph item instance will initially set its '__htmlTag' property to this value. */
             static defaultHTMLTag: string = "div";
 
+            /*
+              * (Note: This static property registration also updates the internal '__UIProeprties' static list with UI-specific
+              * properties (that will trigger redraw events). Derived types should update this to their own values)
+              */
             // ----------------------------------------------------------------------------------------------------------------
 
+            id: string;
+            name: string;
             class: string; // (auto generated getter/setter based on static property) //x = GraphNode.accessor($UIElement.Class);
-            style: string; // (auto generated getter/setter based on static property) //x = GraphNode.accessor($UIElement.Style);
-            html: string; // (auto generated getter/setter based on static property) //x = GraphNode.accessor($HTMLElement.HTML);
+            style: string;
+            innerHTML: string;
 
             /** Sets a value on this HTML element object and returns the element (to allow chaining calls). If a DOM element is also associated it's attributes are updated with the specified value. */
             set<N extends keyof TElement, V extends TElement[N]>(name: N, value: V): this {
@@ -183,7 +175,7 @@ module CoreXT.System.Platform {
             get<N extends keyof TElement, V extends TElement[N]>(name: N, tryElement = false): V {
                 if (tryElement && this.__htmlElement) {
                     var attr = this.__htmlElement.attributes.getNamedItem(name);
-                    if (attr) return attr.value;
+                    if (attr) return <any>attr.value;
                 }
                 return this.getValue(name);
             }
@@ -200,13 +192,13 @@ module CoreXT.System.Platform {
             // ----------------------------------------------------------------------------------------------------------------
 
             protected static '$HTMLElement Factory' = class Factory extends FactoryBase($HTMLElement, $HTMLElement['$UIElement Factory']) implements IFactory {
-                'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: IGraphNode, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> { return null; }
+                'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> { return null; }
 
-                init<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>($this: $HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, tagName: TName = "div", html?: string): $HTMLElement<TElement> {
-                    this.$__baseFactory.init($this, isnew, parent);
+                init<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>($this: $HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> {
+                    this.$__baseFactory.init($this, isnew, parent, id, name);
                     $this.tagName = tagName;
                     $this.set("innerHTML", html);
-                    $this.getProperty($HTMLElement.HTML).registerListener((property: Property, initialValue: boolean): void => {
+                    $this.getProperty($HTMLElement.InnerHTML).registerListener((property: Property, initialValue: boolean): void => {
                         if (!initialValue || !$this.__children.length) {
                             if ($this.__children.length)
                                 $this.removeAllChildren();
@@ -217,12 +209,6 @@ module CoreXT.System.Platform {
                     return $this;
                 }
             }.register();
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            createUIElement(): Node {
-                return super.createUIElement();
-            }
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -245,6 +231,7 @@ module CoreXT.System.Platform {
                     }
                     event.associate(this.__htmlElement);
                 }
+                    return event;
             }
 
             // ----------------------------------------------------------------------------------------------------------------
@@ -326,7 +313,7 @@ module CoreXT.System.Platform {
         // ===================================================================================================================
 
         /** Represents a basic anchor node graph item that renders a link. */
-        class $Anchor extends HTML.$__type {
+        class $Anchor extends HTMLElement.$__type<HTMLAnchorElement> {
             // ----------------------------------------------------------------------------------------------------------------
 
             static HRef: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Anchor, "href");
@@ -339,13 +326,13 @@ module CoreXT.System.Platform {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            href: (href?: string) => string = GraphNode.accessor($Anchor.HRef);
-            hreflang: (hreflang?: string) => string = GraphNode.accessor($Anchor.HRefLang);
-            type: (type?: string) => string = GraphNode.accessor($Anchor.Type);
-            rel: (rel?: string) => string = GraphNode.accessor($Anchor.Rel);
+            href: string;
+            hreflang: string;
+            type: string;
+            rel: string;
             //rev: (rev?: string) => string = GraphItem.accessor(Anchor.Rev);
             //charset: (charset?: string) => string = GraphItem.accessor(Anchor.CharSet);
-            target: (target?: string) => string = GraphNode.accessor($Anchor.Target);
+            target: string;
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -353,10 +340,9 @@ module CoreXT.System.Platform {
                 'new'(parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
                 init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> {
-                    this.$__baseFactory.init($this, isnew, parent, html);
-                    this.name(name);
-                    this.href(href);
-                    this.htmlTag = "a";
+                    this.$__baseFactory.init($this, isnew, parent, "a", html);
+                    $this.name = name;
+                    $this.href = href;
                     return $this;
                 }
             }.register();
@@ -397,10 +383,11 @@ module CoreXT.System.Platform {
 
         // ===================================================================================================================
 
-        /** Represents a basic text node graph item that renders plain text (no HTML). 
-        * This is inline with the standard which declares that all DOM elements with text should have text-ONLY nodes.
-        */
-        class $PlainText extends UIElement.$__type {
+        /** 
+          * Represents a basic text node graph item that renders plain text (no HTML). 
+          * This is inline with the standard which declares that all DOM elements with text should have text-ONLY nodes.
+          */
+        class $PlainText extends HTMLNode.$__type { // (https://developer.mozilla.org/en-US/docs/Web/API/Text)
             // ----------------------------------------------------------------------------------------------------------------
 
             static Text: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$PlainText, "text", true);
@@ -448,11 +435,11 @@ module CoreXT.System.Platform {
 
         /** Represents an HTML text node graph item that renders the content in the 'innerHTML of a SPAN element. 
           */
-        class $HTMLText extends HTML.$__type {
+        class $HTMLText extends HTMLElement.$__type<glob> {
             // ----------------------------------------------------------------------------------------------------------------
 
             constructor() {
-                super(parent, html);
+                super(parent, html); document.createTextNode
             }
 
             // ----------------------------------------------------------------------------------------------------------------
@@ -518,7 +505,7 @@ module CoreXT.System.Platform {
         * it does not dictate exactly HOW the text will actually look like. For instance, "<STRONG>" tags usually render as
         * bold text, but someone can decide to color and increase font size instead using CSS for all such elements. This is
         * actually a good thing, as it allows flexible web design in a way that can allow applying themes at a later time. */
-        class $Phrase extends $HTMLText.$__type {
+        class $Phrase extends HTMLText.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
             static PhraseType: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Phrase, "phraseType", true);
@@ -535,7 +522,7 @@ module CoreXT.System.Platform {
                 init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> {
                     this.$__baseFactory.init($this, isnew, parent, html);
                     $this.phraseType(phraseTypeFlags);
-                    var pInfo: Property = $this.getProperty($HTMLElement.HTML);
+                    var pInfo: Property = $this.getProperty($HTMLElement.InnerHTML);
                     pInfo.registerFilter($this.createPhrase);
                     return $this;
                 }
@@ -629,7 +616,7 @@ module CoreXT.System.Platform {
         // ===================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class Table extends UIElement.$__type {
+        export class Table extends HTMLNode.$__type {
             // ----------------------------------------------------------------------------------------------------------------
 
             constructor(parent: IGraphNode) {
@@ -650,7 +637,7 @@ module CoreXT.System.Platform {
         // =====================================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class TableRow extends UIElement.$__type {
+        export class TableRow extends HTMLNode.$__type {
             // -------------------------------------------------------------------------------------------------------------------------------
 
             constructor(parent: IGraphNode) {
@@ -671,7 +658,7 @@ module CoreXT.System.Platform {
         // =====================================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class TableColumn extends UIElement.$__type {
+        export class TableColumn extends HTMLNode.$__type {
             // -------------------------------------------------------------------------------------------------------------------------------
 
             constructor(parent: IGraphNode) {
@@ -692,7 +679,7 @@ module CoreXT.System.Platform {
         // =====================================================================================================================================
 
         /** Represents a row on a table type in Bootstrap. */
-        export class TableHeader extends UIElement.$__type {
+        export class TableHeader extends HTMLNode.$__type {
             // -------------------------------------------------------------------------------------------------------------------------------
 
             constructor(parent: IGraphNode) {
