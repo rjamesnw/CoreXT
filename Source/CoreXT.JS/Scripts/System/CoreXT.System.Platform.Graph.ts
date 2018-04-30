@@ -241,8 +241,9 @@ namespace CoreXT.System.Platform {
         */
         getValue(name: string): any;
         getValue(index: any): any {
-            var property = this.__properties[index.name || index];
-            return (property === void 0) ? void 0 : property.getValue();
+            var name = index.name || index;
+            var property = this.__properties[name];
+            return (property === void 0) ? this['__' + name] : property.getValue();
         }
 
         /** Returns the instance property details for the specified static property definition. */

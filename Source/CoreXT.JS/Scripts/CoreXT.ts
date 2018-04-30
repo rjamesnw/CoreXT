@@ -97,37 +97,43 @@ namespace CoreXT {
         export interface IWindow extends Window { }
     }
 
-    export declare module NativeStaticTypes {
-        export var StaticFunction: FunctionConstructor;
-        export var StaticObject: ObjectConstructor;
-        export var StaticArray: ArrayConstructor;
-        export var StaticString: StringConstructor;
-        export var StaticNumber: NumberConstructor;
-        export var StaticBoolean: BooleanConstructor;
-        export var StaticRegExp: RegExpConstructor;
-        export var StaticDate: DateConstructor;
-        export var StaticMath: typeof Math;
-        export var StaticError: ErrorConstructor;
-        export var StaticXMLHttpRequest: typeof XMLHttpRequest;
-        export var StaticHTMLElement: typeof HTMLElement;
-        export var StaticWindow: typeof Window;
-    }
+    //x export declare module NativeStaticTypes {
+    //    export var StaticFunction: FunctionConstructor;
+    //    export var StaticObject: ObjectConstructor;
+    //    export var StaticArray: ArrayConstructor;
+    //    export var StaticString: StringConstructor;
+    //    export var StaticNumber: NumberConstructor;
+    //    export var StaticBoolean: BooleanConstructor;
+    //    export var StaticRegExp: RegExpConstructor;
+    //    export var StaticDate: DateConstructor;
+    //    export var StaticMath: typeof Math;
+    //    export var StaticError: ErrorConstructor;
+    //    export var StaticXMLHttpRequest: typeof XMLHttpRequest;
+    //    export var StaticNode: typeof Node;
+    //    export var StaticElement: typeof Element;
+    //    export var StaticHTMLElement: typeof HTMLElement;
+    //    export var StaticText: typeof Text;
+    //    export var StaticWindow: typeof Window;
+    //x }
 
     export interface IStaticGlobals extends Window {
         [index: string]: any;
-        Function: typeof NativeStaticTypes.StaticFunction;
-        Object: typeof NativeStaticTypes.StaticObject;
-        Array: typeof NativeStaticTypes.StaticArray;
-        String: typeof NativeStaticTypes.StaticString;
-        Number: typeof NativeStaticTypes.StaticNumber;
-        Boolean: typeof NativeStaticTypes.StaticBoolean;
-        RegExp: typeof NativeStaticTypes.StaticRegExp;
-        Date: typeof NativeStaticTypes.StaticDate;
-        Math: typeof NativeStaticTypes.StaticMath;
-        Error: typeof NativeStaticTypes.StaticError;
-        XMLHttpRequest: typeof NativeStaticTypes.StaticXMLHttpRequest;
-        HTMLElement: typeof NativeStaticTypes.StaticHTMLElement;
-        Window: typeof NativeStaticTypes.StaticWindow;
+        Function: FunctionConstructor;
+        Object: ObjectConstructor;
+        Array: ArrayConstructor;
+        String: StringConstructor;
+        Number: NumberConstructor;
+        Boolean: BooleanConstructor;
+        RegExp: RegExpConstructor;
+        Date: DateConstructor;
+        Math: Math;
+        Error: ErrorConstructor;
+        XMLHttpRequest: typeof XMLHttpRequest;
+        Node: typeof Node;
+        Element: typeof Element;
+        HTMLElement: typeof HTMLElement;
+        Text: typeof Text;
+        Window: typeof Window;
     }
 
     /** A reference to the host's global environment (convenient for nested TypeScript code, or when using strict mode [where this=undefined]).
