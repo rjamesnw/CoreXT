@@ -3,7 +3,7 @@
 // ############################################################################################################################
 
 namespace CoreXT.System.Platform {
-    registerNamespace(CoreXT, "System", "Platform");
+    registerNamespace("CoreXT",  "System", "Platform");
     // ========================================================================================================================
     export interface IEvents { [index: string]: Events.IEventDispatcher<$GraphNode, (ev: Event) => any>; }
 
@@ -186,7 +186,7 @@ namespace CoreXT.System.Platform {
 
                 return $this;
             }
-        }.register();
+        }.register(Platform);
 
         // -------------------------------------------------------------------------------------------------------------------
 
@@ -411,7 +411,7 @@ namespace CoreXT.System.Platform {
                 // ... first time initializing: trigger 'changed' events for all properties in case listeners need to update/configure the graph item or underlying element ...
                 for (var pname in this.__properties)
                     if (this.__properties[pname].triggerChangedEvent(true))
-                        doRedraw = true;
+                        var doRedraw = true;
 
                 this.updateInitialProperties();
             }

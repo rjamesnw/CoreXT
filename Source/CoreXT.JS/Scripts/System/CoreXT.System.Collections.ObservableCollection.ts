@@ -32,7 +32,7 @@ namespace CoreXT.System.Collections {
                 this.$__baseFactory.init<T>($this, isnew, ...items);
                 return $this;
             }
-        }.register();
+        }.register(Collections);
 
         // ----------------------------------------------------------------------------------------------------------------
     }

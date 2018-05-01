@@ -2,7 +2,7 @@ module CoreXT.System.Platform {
 
     /** Contains a series of core CoreXT HTML-based UI elements. Each element extends the GraphNode type. */
     export namespace HTML {
-        registerNamespace(CoreXT, "System", "Platform", "HTML")
+        registerNamespace("CoreXT",  "System", "Platform", "HTML")
         // ===================================================================================================================
 
         /** A context is a container that manages a reference to a global script environment. Each new context creates a new 
@@ -26,7 +26,7 @@ module CoreXT.System.Platform {
                     this.$__baseFactory.init($this, isnew, context);
                     return $this;
                 }
-            }.register();
+            }.register(HTML);
 
             // -----------------------------------------------------------------------------------------------------------------
 
@@ -109,7 +109,7 @@ module CoreXT.System.Platform {
                     if (name !== void 0 && name !== null) $this.name = name;
                     return $this;
                 }
-            }.register();
+            }.register(HTML);
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -208,7 +208,7 @@ module CoreXT.System.Platform {
                     });
                     return $this;
                 }
-            }.register();
+            }.register(HTML);
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -345,7 +345,7 @@ module CoreXT.System.Platform {
         //            $this.href = href;
         //            return $this;
         //        }
-        //    }.register();
+        //    }.register(HTML);
 
         //    // ----------------------------------------------------------------------------------------------------------------
 
@@ -395,7 +395,7 @@ module CoreXT.System.Platform {
                     });
                     return $this;
                 }
-            }.register();
+            }.register(HTML);
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -431,7 +431,7 @@ module CoreXT.System.Platform {
                     $this.htmlTag = "span"; global
                     return $this;
                 }
-            }.register();
+            }.register(HTML);
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -505,7 +505,7 @@ module CoreXT.System.Platform {
                     pInfo.registerFilter($this.createPhrase);
                     return $this;
                 }
-            }.register();
+            }.register(HTML);
 
             // ----------------------------------------------------------------------------------------------------------------
 
@@ -567,7 +567,7 @@ module CoreXT.System.Platform {
                     $this.setValue($Header.HeaderLevel, headerLevel);
                     return $this;
                 }
-            }.register();
+            }.register(HTML);
 
             // ----------------------------------------------------------------------------------------------------------------
 

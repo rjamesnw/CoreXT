@@ -4,7 +4,7 @@
 
 namespace CoreXT {
     export namespace System {
-        registerNamespace(CoreXT, "System");
+        registerNamespace("CoreXT",  "System");
 
         // ====================================================================================================================================
 
@@ -246,7 +246,7 @@ namespace CoreXT {
                     //?    global.Object.freeze($this); // (properties cannot be modified once set)
                     return $this;
                 }
-            }.register();
+            }.register(System);
 
             // -------------------------------------------------------------------------------------------------------------------------------
         }
@@ -342,7 +342,7 @@ namespace CoreXT {
                     $this._appID = appID;
                     return $this;
                 }
-            }.register();
+            }.register(System);
 
             protected _onAddToAppDomain(appDomain: IAppDomain, app: IApplication) {
             }

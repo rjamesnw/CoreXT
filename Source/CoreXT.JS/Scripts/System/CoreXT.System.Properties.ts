@@ -3,7 +3,7 @@
 // ###########################################################################################################################
 
 namespace CoreXT.System.Platform {
-    registerNamespace(CoreXT, "System", "Platform");
+    registerNamespace("CoreXT",  "System", "Platform");
     // ========================================================================================================================
 
     export interface PropertyChangedHandler { (item: IGraphNode, property: Property): void; }
@@ -153,7 +153,7 @@ namespace CoreXT.System.Platform {
                 this.$__baseFactory.init($this, isnew);
                 return $this;
             }
-        }.register();
+        }.register(Platform);
 
         // -------------------------------------------------------------------------------------------------------------------
     }
@@ -193,7 +193,7 @@ namespace CoreXT.System.Platform {
                 $this.isVisual = isVisual;
                 return $this;
             }
-        }.register();
+        }.register(Platform);
 
         // -------------------------------------------------------------------------------------------------------------------
 

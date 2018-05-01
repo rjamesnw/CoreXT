@@ -67,7 +67,7 @@ namespace CoreXT {
         init<T extends object>(...args: any[]): T;
     }
 
-    export interface IType<TInstance> {
+    export interface IType<TInstance = object> {
         new(...args: any[]): TInstance;
     }
 

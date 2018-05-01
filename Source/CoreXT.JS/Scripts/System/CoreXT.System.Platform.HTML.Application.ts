@@ -3,6 +3,8 @@
 // ############################################################################################################################
 
 namespace CoreXT.System.Platform.HTML.Application {
+    registerNamespace("CoreXT", "System", "Platform", "HTML", "Application");
+
     // ========================================================================================================================
 
     export class HTMLApplication extends UIApplication.$__type {
@@ -55,7 +57,7 @@ namespace CoreXT.System.Platform.HTML.Application {
                 $this.targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
                 return $this;
             }
-        }.register();
+        }.register(Application);
 
         // -------------------------------------------------------------------------------------------------------------------------------
 

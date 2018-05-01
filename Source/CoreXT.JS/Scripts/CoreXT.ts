@@ -134,6 +134,7 @@ namespace CoreXT {
         HTMLElement: typeof HTMLElement;
         Text: typeof Text;
         Window: typeof Window;
+        CoreXT: typeof CoreXT;
     }
 
     /** A reference to the host's global environment (convenient for nested TypeScript code, or when using strict mode [where this=undefined]).
@@ -246,9 +247,8 @@ namespace CoreXT {
       * @param {string} title A title for this log message.
       * @param {string} message The message to log.
       * @param {LogTypes} type The type of message to log.
-      * @param {boolean} throwOnError If true (the default) then an 'Error' with the message is thrown..
-      * If 'userLogger' is true (default) then 'System.Diagnostics.log' is also called.
-      * If 'throwOnError' is true (default) then the .
+      * @param {boolean} throwOnError If true (the default) then an 'Error' with the message is thrown.
+      * @param {boolean} useLogger If true (default) then 'System.Diagnostics.log()' is also called in addition to the console output.
       */
     export function log(title: string, message: string, type: LogTypes = LogTypes.Normal, throwOnError = true, useLogger = true): string {
         if (title === null && message === null) return null;
@@ -406,7 +406,7 @@ namespace CoreXT {
         if (object === void 0 || object === null) return void 0;
         typeInfo = <ITypeInfo>object;
         if (typeInfo.$__name === void 0 || typeInfo.$__name === null) {
-            if (typeof object == FUNCTION)
+            if (typeof object == 'function')
                 if (cacheTypeName)
                     return typeInfo.$__name = Utilities.getFunctionName(object as Function);
                 else
@@ -441,7 +441,7 @@ namespace CoreXT {
      * Contains some basic static values and calculations used by time related functions within the system.
      */
     export namespace Time {
-        registerNamespace(CoreXT, "Time");
+        registerNamespace("CoreXT", "Time");
 
         export var __millisecondsPerSecond = 1000;
         export var __secondsPerMinute = 60;
@@ -479,26 +479,59 @@ namespace CoreXT {
             /** 
              * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
              * 
-             * @param {modules} parentModules A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
+             * @param {modules} namespace A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
              * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
              * applied (using the IFunctionInfo interface).
             */
             static register<TClass extends IType<object>, TFactory extends { new(): IFactory }>(this: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass },
-                parentModules?: object[], addMemberTypeInfo = true): InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
-                return Types.__registerFactoryType(<TFactory & ITypeInfo & IFactoryTypeInfo>this, parentModules, addMemberTypeInfo);
+                namespace: object, addMemberTypeInfo = true): InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
+                return Types.__registerFactoryType(<TFactory & ITypeInfo & IFactoryTypeInfo>this, namespace, addMemberTypeInfo);
             }
         };
         return <typeof fb & ITypeInfo>fb;
     }
 
-    export function registerNamespace<T extends any, A extends keyof T, B extends keyof T[A]=any, C extends keyof T[A][B]=any, D extends keyof T[A][B][C]=any>(root: T, ns1: A, ns2?: B, ns3?: C): void {
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<Z extends keyof T, T extends object = typeof CoreXT.global>(firstNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, Z extends keyof T[A], T extends object = typeof CoreXT.global>(ns1: A, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], Z extends keyof T[A][B], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], Z extends keyof T[A][B][C], T extends object = typeof CoreXT>(ns1: A, ns2?: B, ns3?: C, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], Z extends keyof T[A][B][C][D], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], Z extends keyof T[A][B][C][D][E], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], Z extends keyof T[A][B][C][D][E][F], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], Z extends keyof T[A][B][C][D][E][F][G], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], Z extends keyof T[A][B][C][D][E][F][G][H], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], I extends keyof T[A][B][C][D][E][F][G][H], Z extends keyof T[A][B][C][D][E][F][G][H][I], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, ns9?: I, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
+    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], I extends keyof T[A][B][C][D][E][F][G][H], J extends keyof T[A][B][C][D][E][F][G][H][I], Z extends keyof T[A][B][C][D][E][F][G][H][I][J]= any, T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, ns9?: I, ns10?: J, lastNsOrClassName?: Z, root?: T): void;
+    export function registerNamespace(...args: any[]): void {
+        var root = args[args.length - 1];
+        var lastIndex = (typeof root == 'object' ? args.length - 1 : args.length);
+        Types.__registerNamespace(root || global, global.Array.prototype.slice.call(arguments, 0, lastIndex));
     }
 
     export namespace Types {
-        registerNamespace(CoreXT, "Types");
+        registerNamespace("CoreXT", "Types");
 
-        /** Holds all the types registered globally by calling 'registerType()'. */
-        export var _types: { [fullTypeName: string]: ITypeInfo } = {};
+        /** Returns the root type object from nested type objects. Use this to get the root namespace  */
+        export function getRoot(type: ITypeInfo): ITypeInfo {
+            var _type: ITypeInfo = type.$__fullname ? type : <any>type['constructor']
+            if (_type.$__parent) return getRoot(_type.$__parent);
+            return _type;
+        }
+
+        /** Holds all the types registered globally by calling one of the 'Types.__register???()' functions. Types are not app-domain specific. */
+        export var __types: { [fullTypeName: string]: ITypeInfo } = {};
+
         /** Holds all disposed objects that can be reused. */
         export var __disposedObjects: { [fulltypename: string]: IDomainObjectInfo[]; } = {}; // (can be reused by any AppDomain instance! [global pool for better efficiency])
 
@@ -558,11 +591,11 @@ namespace CoreXT {
          * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
          * 
          * @param {IType} factoryType The factory type to associated with the type.
-         * @param {modules} parentModules A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
+         * @param {modules} namespace A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
         */
-        export function __registerFactoryType<TClass extends IType<object>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, parentModules: object[], addMemberTypeInfo = true)
+        export function __registerFactoryType<TClass extends IType<object>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, namespace: object, addMemberTypeInfo = true)
             : InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
             if (typeof factoryType !== FUNCTION)
                 throw System.Exception.error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
@@ -620,7 +653,7 @@ namespace CoreXT {
             //x if ('__register' in _factoryType)
             //x     _factoryType['__register'] == noop;
 
-            __registerType(factoryType.$__type, parentModules, addMemberTypeInfo);
+            __registerType(factoryType.$__type, namespace, addMemberTypeInfo);
 
             return <any>_factoryInstance;
         }
@@ -641,56 +674,18 @@ namespace CoreXT {
          *
          * @param {IType} type The type (constructor function) to register.
          * @param {modules} parentNamespaces A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
-         * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
-         * applied (using the IFunctionInfo interface).
+         * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type will have type information applied (using the IFunctionInfo interface).
          */
-        export function __registerType<T extends IType<any>>(type: T, parentNamespaces: object[], addMemberTypeInfo = true): T {
+        export function __registerType<T extends IType<any>, TNamespaceParent extends object>(type: T, namespace: TNamespaceParent, addMemberTypeInfo = true): T {
 
-            if (parentNamespaces === void 0)
-                throw System.Exception.error("registerType()", "A list of namespace modules is required, up to but not including the class type.", type);
-            if (!parentNamespaces)
-                parentNamespaces = []; // (null was given perhaps to force global scope)
-            else
-                parentNamespaces = parentNamespaces.slice(); // (use copy only just in case, since we will be modifying it)
+            var _namespace = <ITypeInfo>namespace;
 
-            //if (type != null) {
-            var _type = <ITypeInfo>type, namespaceItem: {} = CoreXT.global, mod: INamespaceInfo, pname: string, name: string, fullname: string;
-            if (!_type.$__name)
-                _type.$__name = getTypeName(_type);
+            if (_namespace.$__fullname === void 0)
+                throw System.Exception.error("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", type);
 
-            parentNamespaces.push(type); // (put the type on the end so we can include this in the loop also)
+            // ... register the type with the parent namespace ...
 
-            if (!_type.$__parent || !_type.$__fullname) {
-                // ... refresh the type information by cycling through the given modules ...
-
-                for (var i = 0, n = parentNamespaces.length; i < n; ++i) {
-                    mod = <INamespaceInfo>parentNamespaces[i];
-                    if (!mod.$__parent) {
-                        // ... module type info missing, add it now; first, find the reference to get the name ...
-                        name = "";
-                        for (pname in namespaceItem)
-                            if (namespaceItem[pname] === mod) {
-                                name = pname;
-                                break;
-                            }
-                        if (!name)
-                            throw System.Exception.error("registerType()", ((i == n - 1) ? "The type to be registered" : (i == 0 ? "The first module" : "Module " + (1 + i))) + " cannot be found in the" + ((i == 0) ? " root scope." : " preceding module.")
-                                + " Please double check you have the correct modules that precede the type being registered.", _type);
-                        fullname = fullname ? fullname + "." + name : name;
-                        mod.$__parent = <INamespaceInfo>namespaceItem; // (each module will have a reference to its parent module [object], and its local and full type names; note: the CoreXT parent will be pointing to 'CoreXT.global')
-                        if (mod != _type) // (modules cannot be nested in class types)
-                            mod.$__namespaces = <any>mod; // ('$__modules' just provides an easy way to navigate TypeScript type information by module name)
-                        else
-                            mod.$__namespaces = <any>mod.$__parent; // ('$__modules', when accessed on a class type, will reference the parent module)
-                        mod.$__name = name; // (the local module name)
-                        mod.$__fullname = fullname; // (the fully qualified namespace name for this module)
-                    }
-                    namespaceItem = mod;
-                }
-
-                _type.$__fullname = fullname = fullname ? fullname + "." + _type.$__name : _type.$__name;
-            }
-            else fullname = _type.$__fullname;
+            var _type = __registerNamespace(namespace, getTypeName(type));
 
             // ... scan the type's prototype functions and update the type information (only function names at this time) ...
             // TODO: Consider parsing the function parameters as well and add this information for developers.
@@ -700,47 +695,61 @@ namespace CoreXT {
 
                 for (var pname in prototype) {
                     func = prototype[pname];
-                    if (typeof func == FUNCTION) {
-                        func.$__parent = <INamespaceInfo>_type;
-                        func.$__name = pname;
-                        func.$__fullname = fullname + "." + pname;
-                    }
+                    if (typeof func == 'function')
+                        __registerNamespace(type, pname);
                 }
             }
+
             // ... register the type ...
             // (all registered type names will be made available here globally, since types are not AppDomain specific)
 
-            _types[fullname] = <ITypeInfo><any>type;
-            //}
+            __types[_type.$__fullname] = _type;
 
-            return <T>_type;
+            return type;
         }
 
-        export function __registerNamespace(...namespaces: object[]): void {
-            for (var i = 0, n = namespaces.length; i < n; ++i) {
-                var ns = <INamespaceInfo>namespaces[i];
-                if (!ns.$__parent) {
-                    // ... module type info missing, add it now; first, find the reference to get the name ...
-                    var name = "";
-                    for (var pname in namespaceItem)
-                        if (namespaceItem[pname] === ns) {
-                            name = pname;
-                            break;
-                        }
-                    if (!name)
-                        throw System.Exception.error("registerType()", ((i == n - 1) ? "The type to be registered" : (i == 0 ? "The first module" : "Module " + (1 + i))) + " cannot be found in the" + ((i == 0) ? " root scope." : " preceding module.")
-                            + " Please double check you have the correct modules that precede the type being registered.", _type);
-                    fullname = fullname ? fullname + "." + name : name;
-                    ns.$__parent = <INamespaceInfo>namespaceItem; // (each module will have a reference to its parent module [object], and its local and full type names; note: the CoreXT parent will be pointing to 'CoreXT.global')
-                    if (ns != _type) // (modules cannot be nested in class types)
-                        ns.$__namespaces = <any>ns; // ('$__modules' just provides an easy way to navigate TypeScript type information by module name)
-                    else
-                        ns.$__namespaces = <any>ns.$__parent; // ('$__modules', when accessed on a class type, will reference the parent module)
-                    ns.$__name = name; // (the local module name)
-                    ns.$__fullname = fullname; // (the fully qualified namespace name for this module)
-                }
-                namespaceItem = ns;
+        /**
+         * Registers nested namespaces and adds type information.
+         * @param {IType} namespaces A list of namespaces to register.
+         * @param {IType} type An optional type (function constructor) to specify at the end of the name space list.
+         */
+        export function __registerNamespace(root: {}, ...namespaces: string[]): ITypeInfo {
+            function exception(msg: String) {
+                return System.Exception.error("Types.__registerNamespace()", (i == 0 ? "The first namespace name" : i == namespaces.length - 1 ? "The last namespace name" : "The namespace name") + " '" + nsOrTypeName + "' " + msg + "."
+                    + " Please double check you have the correct namespace names.", root);
             }
+
+            if (!root) root = global;
+
+            var rootTypeName = getTypeName(root);
+            log("Registering namespace for root '" + rootTypeName + "'", namespaces.join());
+
+            var currentNamespace = <INamespaceInfo>root;
+            var fullname: string;
+
+            for (var i = 0, n = namespaces.length; i < n; ++i) {
+                var nsOrTypeName = namespaces[i];
+                var trimmedName = nsOrTypeName.trim();
+                if (!nsOrTypeName || !trimmedName) exception("is not a valid namespace name. A namespace must not be empty or only whitespace");
+                nsOrTypeName = trimmedName; // (storing the trimmed name at this point allows showing any whitespace-only characters in the error)
+                if (root == CoreXT && nsOrTypeName == "CoreXT") exception("is not valid - 'CoreXT' must not exist as a nested name under CoreXT");
+
+                var subNS = <INamespaceInfo>currentNamespace[nsOrTypeName];
+                if (!subNS) exception("cannot be found in the" + ((i == 0) ? " root scope" : " preceding namespace"));
+
+                fullname = fullname ? fullname + "." + nsOrTypeName : nsOrTypeName;
+
+                subNS.$__parent = <INamespaceInfo>currentNamespace; // (each namespace will have a reference to its parent namespace [object], and its local and full type names; note: the CoreXT parent will be pointing to 'CoreXT.global')
+                subNS.$__name = nsOrTypeName; // (the local namespace name)
+                subNS.$__fullname = fullname; // (the fully qualified namespace name for this namespace)
+                (currentNamespace.$__namespaces || (currentNamespace.$__namespaces = []))[nsOrTypeName] = subNS;
+
+                currentNamespace = subNS;
+            }
+
+            log("Registered namespace for root '" + rootTypeName + "'", fullname, LogTypes.Info);
+
+            return currentNamespace;
         }
 
         /** Disposes a specific object in this AppDomain instance.
@@ -854,7 +863,7 @@ namespace CoreXT {
 
     /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
     export namespace System {
-        registerNamespace(CoreXT, "System");
+        registerNamespace("CoreXT", "System");
         // =======================================================================================================================
 
         class $Exception extends Error {
@@ -1007,7 +1016,7 @@ namespace CoreXT {
                     if (log || log === void 0) Diagnostics.log("Exception", message, LogTypes.Error);
                     return $this;
                 }
-            }.register();
+            }.register(System);
 
             // ----------------------------------------------------------------------------------------------------------------
         }
@@ -1157,7 +1166,7 @@ namespace CoreXT {
                         }
                         return $this;
                     }
-                }.register();
+                }.register(Diagnostics);
 
                 // ------------------------------------------------------------------------------------------------------------
             }
@@ -1293,7 +1302,7 @@ namespace CoreXT {
 
     /** The loader namespace contains low level functions for loading/bootstrapping the whole system. */
     export namespace Loader {
-        registerNamespace(CoreXT, "Loader");
+        registerNamespace("CoreXT", "Loader");
 
         // ... polyfill some XHR 'readyState' constants ...
 
@@ -1997,7 +2006,7 @@ namespace CoreXT {
 
                     return $this;
                 }
-            }.register();
+            }.register(Loader);
 
             // ----------------------------------------------------------------------------------------------------------------
         }
@@ -2103,8 +2112,6 @@ CoreXT.globalEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { 
 // (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
 
 // ===========================================================================================================================
-
-interface ICoreXT extends CoreXT { }
 
 /** (See 'CoreXT') */
 var corext = CoreXT; // (allow all lower case usage)

@@ -82,7 +82,7 @@ namespace CoreXT {
                     this.$__baseFactory.init($this, isnew, url, Loader.ResourceTypes.Application_Script);
                     return $this;
                 }
-            }.register();
+            }.register(Scripts);
 
             // ----------------------------------------------------------------------------------------------------------------
         }
@@ -109,7 +109,7 @@ namespace CoreXT {
                     this.$__baseFactory.init($this, isnew, url);
                     return $this;
                 }
-            }.register();
+            }.register(Scripts);
 
             // ----------------------------------------------------------------------------------------------------------------
         }
@@ -313,7 +313,7 @@ namespace CoreXT {
 
                     return $this;
                 }
-            }.register();
+            }.register(Scripts);
 
             // ----------------------------------------------------------------------------------------------------------------
         }

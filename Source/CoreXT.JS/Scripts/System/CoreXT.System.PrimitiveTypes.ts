@@ -6,7 +6,7 @@
 
 namespace CoreXT {
     export namespace System {
-        registerNamespace(CoreXT, "System");
+        registerNamespace("CoreXT",  "System");
 
         // =======================================================================================================================
 
@@ -147,7 +147,7 @@ namespace CoreXT {
 
                     return $this;
                 }
-            }.register();
+            }.register(System);
 
             // -------------------------------------------------------------------------------------------------------------------
         }
@@ -297,7 +297,7 @@ namespace CoreXT {
                     for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                     return $this;
                 }
-            }.register();
+            }.register(System);
 
             // -------------------------------------------------------------------------------------------------------------------
         }
@@ -349,7 +349,7 @@ namespace CoreXT {
                         for (var i = 0; i < $this.length; ++i) $this[i] = $this.charAt(i);
                         return $this;
                     }
-                }.register();
+                }.register(System);
             }();
 
             /* ------------------------------------------------------- */

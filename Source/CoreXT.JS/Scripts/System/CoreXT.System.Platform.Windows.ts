@@ -50,7 +50,7 @@ namespace CoreXT.System.Platform {
                 $this._url = url;
                 return $this;
             }
-        }.register();
+        }.register(Platform);
 
         // ----------------------------------------------------------------------------------------------------------------
 

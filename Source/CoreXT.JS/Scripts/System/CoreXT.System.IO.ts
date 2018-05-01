@@ -7,7 +7,7 @@ namespace CoreXT.System.IO {
 
     /** Path/URL based utilities. */
     export namespace Path {
-        registerNamespace(CoreXT, "System", "IO", "Path");
+        registerNamespace("CoreXT", "System", "IO", "Path");
 
         // ===================================================================================================================
 
@@ -77,7 +77,7 @@ namespace CoreXT.System.IO {
                     }
                     return $this;
                 }
-            }.register();
+            }.register(Path);
 
             // ----------------------------------------------------------------------------------------------------------------
 
