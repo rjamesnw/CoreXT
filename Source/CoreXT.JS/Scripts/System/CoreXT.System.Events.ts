@@ -65,11 +65,11 @@ namespace CoreXT {
 
                     var onEventProxy = function (): $EventDispatcher<object, EventHandler> {
                         var instance = <object>this; // (instance is the object instance on which this event property reference was made)
-                        if (typeof instance !== OBJECT) //?  || !(instance instanceof DomainObject.$type))
+                        if (typeof instance !== 'object') //?  || !(instance instanceof DomainObject.$type))
                             throw Exception.error("{Object}." + eventName, "Must be called on an object instance.", instance);
                         // ... check if the instance already created the event property for registering events specific to this instance ...
                         var eventProperty: $EventDispatcher<object, EventHandler> = instance[privateEventName];
-                        if (typeof eventProperty !== OBJECT) // (undefined or not valid, so attempt to create one now)
+                        if (typeof eventProperty !== 'object') // (undefined or not valid, so attempt to create one now)
                             instance[privateEventName] = eventProperty = EventDispatcher.new<object, EventHandler>(instance, eventName, removeOnTrigger, eventTriggerCallback, canCancel);
                         eventProperty.__eventPropertyName = customEventPropName;
                         eventProperty.__eventPrivatePropertyName = privateEventName;
@@ -401,7 +401,7 @@ namespace CoreXT {
 
                             this.$__baseFactory.init($this, isnew);
 
-                            if (typeof eventName !== STRING) eventName = '' + eventName;
+                            if (typeof eventName !== 'string') eventName = '' + eventName;
                             if (!eventName) throw "An event name is required.";
 
                             $this.__eventName = eventName;

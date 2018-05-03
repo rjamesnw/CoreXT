@@ -47,7 +47,7 @@ namespace CoreXT.System.Data {
 
     export class PropertyPathEndpoint {
         /** The object that is the target of this property path (which is the SOURCE of a binding). */
-        object: IIndexableObject;
+        object: IndexedObject;
         /** The property name on the end object for this property path. */
         propertyName: string;
         /** An index (number/string, if any) for the end property of this path.  Leave this undefined to ignore.
@@ -60,7 +60,7 @@ namespace CoreXT.System.Data {
         */
         arguments: any[];
 
-        constructor(object?: IIndexableObject, propertyName?: string, propertyIndex?: any, parameters?: any[]) {
+        constructor(object?: IndexedObject, propertyName?: string, propertyIndex?: any, parameters?: any[]) {
             this.object = object;
             this.propertyName = propertyName;
             this.propertyIndex = propertyIndex;
@@ -69,7 +69,7 @@ namespace CoreXT.System.Data {
 
         /** Returns the value referenced by the associated endpoint information. */
         getValue(): any {
-            if (this.object === void 0) return UNDEFINED;
+            if (this.object === void 0) return void 0;
             var value = this.object[this.propertyName];
             if (this.arguments) { // (if no parameter list, then only the function value itself will be returned)
                 if (!this.arguments.length)

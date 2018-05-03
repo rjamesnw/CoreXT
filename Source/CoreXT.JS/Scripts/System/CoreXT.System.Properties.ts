@@ -198,7 +198,7 @@ namespace CoreXT.System.Platform {
         // -------------------------------------------------------------------------------------------------------------------
 
         createPropertyInstance(owner: IGraphNode, value?: any) {
-            return new Property(owner, this, value === UNDEFINED ? this.defaultValue : value);
+            return new Property(owner, this, value === void 0 ? this.defaultValue : value);
         }
 
         toString(): string { return this.name; }

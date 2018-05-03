@@ -52,7 +52,7 @@ namespace CoreXT.Globals { //http://jsperf.com/string-concat-vs-nested-object-lo
     export function register<T>(namespace: string, name: string, initialValue: T, asHostGlobal?: boolean): string;
     export function register<T>(namespace: any, name: string, initialValue: T, asHostGlobal: boolean = false): string {
         var nsID: string, nsglobals: { [index: string]: any }, alreadyRegistered: boolean = false;
-        if (typeof namespace == OBJECT && namespace.url)
+        if (typeof namespace == 'object' && namespace.url)
             namespace = namespace.url;
         if (!(namespace in _namespaces))
             _namespaces[namespace] = nsID = '_' + _nsCount++;

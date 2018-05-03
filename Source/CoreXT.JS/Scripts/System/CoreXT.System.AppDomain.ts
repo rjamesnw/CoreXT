@@ -241,7 +241,7 @@ namespace CoreXT {
                 init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, application?: $Application): InstanceType<typeof Factory.$__type> {
                     this.$__baseFactory.init($this, isnew);
                     (<IDomainObjectInfo><any>$this).$__appDomain = $this;
-                    $this.applications = typeof application == OBJECT ? [application] : [];
+                    $this.applications = typeof application == 'object' ? [application] : [];
                     //? if (global.Object.freeze)
                     //?    global.Object.freeze($this); // (properties cannot be modified once set)
                     return $this;
@@ -282,7 +282,7 @@ namespace CoreXT {
             static set focused(value: IApplication) {
                 if ($Application._focused !== value) {
                     $Application._focused = value;
-                    if (typeof value == OBJECT && typeof (<$Application>value).focus == FUNCTION)
+                    if (typeof value == 'object' && typeof (<$Application>value).focus == 'function')
                         (<IApplication>value).focus();
                 }
             }

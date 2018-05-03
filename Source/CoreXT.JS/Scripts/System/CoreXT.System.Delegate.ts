@@ -196,7 +196,7 @@ namespace CoreXT.System {
         }
 
         equal(value: any): boolean {
-            return typeof value == OBJECT && value instanceof $Delegate
+            return typeof value == 'object' && value instanceof $Delegate
                 && (<$Delegate<any, any>>value).object === this.object && (<$Delegate<any, any>>value).func === this.func;
         }
 

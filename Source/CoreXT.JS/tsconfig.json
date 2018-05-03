@@ -11,9 +11,11 @@
     "removeComments": true,
     //"typeRoots": [ "typings" ],
     "sourceMap": true,
-    "target": "es2015", // ES6
+    "target": "es5", // IE11=es5, Edge+ es2015=ES6
     "outDir": "wwwroot/js",
-    "rootDir": "Scripts"
+    "downlevelIteration": true,
+    "rootDir": "Scripts",
+    "lib": [ "dom", "es6", "dom.iterable", "scripthost" ] // (target es5 but use es6 libs, since there is partial support of some es6 in es5; lib options: https://www.typescriptlang.org/docs/handbook/compiler-options.html)
   },
   "include": [
     "typings/**/*.ts",

@@ -292,7 +292,7 @@ namespace CoreXT {
         // -------------------------------------------------------------------------------------------------------------------
 
         if (typeof Array.isArray != 'function') // Performance investigations: http://jsperf.com/array-isarray-vs-instanceof-array/5
-            Array.isArray = function (arg: any): arg is Array<any> { return typeof arg == OBJECT && arg instanceof Array; };
+            Array.isArray = function (arg: any): arg is Array<any> { return typeof arg == 'object' && arg instanceof Array; };
 
         // -------------------------------------------------------------------------------------------------------------------
         // (Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)

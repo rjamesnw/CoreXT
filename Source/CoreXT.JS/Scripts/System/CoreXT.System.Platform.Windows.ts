@@ -31,7 +31,7 @@ namespace CoreXT.System.Platform {
 
         '$Window init'(isnew: boolean, rootElement?: HTMLElement, url?: string): $Window {
             super[''](this, isnew);
-            if (typeof rootElement !== OBJECT || !rootElement.style) rootElement = null;
+            if (typeof rootElement !== 'object' || !rootElement.style) rootElement = null;
             if (rootElement != null) rootElement.style.display = "none";
             this._target = rootElement;
             this._url = url;
@@ -44,7 +44,7 @@ namespace CoreXT.System.Platform {
 
             init($this: $Window, isnew: boolean, rootElement?: HTMLElement, url?: string): $Window {
                 this.$__baseFactory.init($this, isnew);
-                if (typeof rootElement !== OBJECT || !rootElement.style) rootElement = null;
+                if (typeof rootElement !== 'object' || !rootElement.style) rootElement = null;
                 if (rootElement != null) rootElement.style.display = "none";
                 $this._target = rootElement;
                 $this._url = url;

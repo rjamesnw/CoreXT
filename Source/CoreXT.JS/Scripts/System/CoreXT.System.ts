@@ -77,7 +77,7 @@ namespace CoreXT {
 
     /** Type-cast CoreXT namespace objects to this interface to access namespace specific type information. */
     export interface INamespaceInfo extends ITypeInfo {
-        $__namespaces: { [namespaceName: string]: ITypeInfo; };
+        $__namespaces: NativeTypes.IArray<object>;
     }
 
     /** Type-cast function objects to this interface to access type specific information. */
@@ -93,29 +93,31 @@ namespace CoreXT {
 
     export interface InitDelegate<TInstance extends object> { ($this: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
+    /** Represents the static properties on a factory type. */
     export interface IFactoryTypeInfo<TCLass extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TCLass>> = NewDelegate<InstanceType<TCLass>>, TInit extends InitDelegate<InstanceType<TCLass>> = InitDelegate<InstanceType<TCLass>>> {
+        new(...args: any[]): IFactory;
         /** The underlying type for this factory object. */
         $__type: TCLass;
-       ///** The underlying instance type for this factory. */
-        //$InstanceType?: TInstance;
+        /** The underlying instance type for this factory. */
+        $__factory?: IFactory;
         /** The factory from the inherited base type, or null if this object does not inherit from an object with a factory pattern. */
         $__baseFactoryType: { new(): IFactory } & ITypeInfo;
-    }
+     }
 
     export interface IFactory<TCLass extends new () => object = any, TNew extends NewDelegate<InstanceType<TCLass>> = NewDelegate<InstanceType<TCLass>>, TInit extends InitDelegate<InstanceType<TCLass>> = InitDelegate<InstanceType<TCLass>>> {
         /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
-        * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
-        * also makes sure the object is associated with an application domain.
-        * Objects that derive from 'DomainObject' should register the type and supply a custom 'init' function instead of a
-        * constructor (in fact, only a default constructor should exist). This is done by creating a static property on the class
-        * that uses 'AppDomain.registerCall()' to register the type. See 'NativeTypes.IObject.__register' for more information.
-        *
-        * Performance note: When creating thousands of objects continually, proper CoreXT object disposal (and subsequent cache of the
-        * instances) means the GC doesn't have to keep engaging to clear up the abandoned objects.  While using the "new" operator may
-        * be faster than using "{type}.new()" at first, the application actually becomes very lagged while the GC keeps eventually kicking
-        * in. This is why CoreXT objects are cached and reused as much as possible, and why you should try to refrain from using the 'new',
-        * operator, or any other operation that creates objects that the GC has to manage on a blocking thread.
-        */
+          * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
+          * also makes sure the object is associated with an application domain.
+          * Objects that derive from 'DomainObject' should register the type and supply a custom 'init' function instead of a
+          * constructor (in fact, only a default constructor should exist). This is done by creating a static property on the class
+          * that uses 'AppDomain.registerCall()' to register the type. See 'NativeTypes.IObject.__register' for more information.
+          *
+          * Performance note: When creating thousands of objects continually, proper CoreXT object disposal (and subsequent cache of the
+          * instances) means the GC doesn't have to keep engaging to clear up the abandoned objects.  While using the "new" operator may
+          * be faster than using "{type}.new()" at first, the application actually becomes very lagged while the GC keeps eventually kicking
+          * in. This is why CoreXT objects are cached and reused as much as possible, and why you should try to refrain from using the 'new',
+          * operator, or any other operation that creates objects that the GC has to manage on a blocking thread.
+          */
         'new'?: TNew;
 
         /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
@@ -129,7 +131,7 @@ namespace CoreXT {
         $__type: TClass & InstanceType<TFactory> & { $__type: TClass };
         /** The factory instance containing the methods for creating instances of the underlying type '$__type'. */
         $__factory?: InstanceType<TFactory>;
-       /** The underlying factory type. */
+        /** The underlying factory type. */
         $__factoryType: TFactory;
     }
 
@@ -195,6 +197,44 @@ namespace CoreXT {
     }
 
     // ========================================================================================================================
+
+    //interface Symbol {
+    //    /** Returns a string representation of an object. */
+    //    toString(): string;
+
+    //    /** Returns the primitive value of the specified object. */
+    //    valueOf(): symbol;
+    //}
+    //declare var Symbol: SymbolConstructor;
+    //interface Symbol {
+    //    readonly [Symbol.toStringTag]: "Symbol";
+    //}
+    //interface SymbolConstructor {
+    //    /**
+    //     * A method that returns the default iterator for an object. Called by the semantics of the
+    //     * for-of statement.
+    //     */
+    //    readonly iterator: symbol;
+    //}
+
+    //interface IteratorResult<T> {
+    //    done: boolean;
+    //    value: T;
+    //}
+
+    //interface Iterator<T> {
+    //    next(value?: any): IteratorResult<T>;
+    //    return?(value?: any): IteratorResult<T>;
+    //    throw?(e?: any): IteratorResult<T>;
+    //}
+
+    //interface Iterable<T> {
+    //    [Symbol.iterator](): Iterator<T>;
+    //}
+
+    //interface IterableIterator<T> extends Iterator<T> {
+    //    [Symbol.iterator](): IterableIterator<T>;
+    //}
 
     /**
      * Supports Iteration for ES5/ES3. To use, create a new type derived from this one, or implement the IEnumerable<T> interface.

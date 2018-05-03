@@ -32,16 +32,19 @@
       This package holds a JS based bootstrapping and UI development framework for client side development (using TypeScript).
     </Description>
   </PropertyGroup>
-
+  
   <ItemGroup>
+    <Folder Include="wwwroot\js\" />
+    <TypeScriptCompile Include="Scripts\**\*.ts" />
     <None Include="wwwroot\**\*.*" />
-    <None Include="scripts\**\*.*" />
-    <None Remove="scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
-    <None Remove="Scripts\Twitter\CoreXT.System.Platform.UI.Bootstrap.ts" />
-    <None Remove="scripts\Twitter\manifest.ts" />
-    <None Remove="Scripts\Twitter\manifest.ts" />
-    <None Remove="scripts\__references.ts" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Remove="Scripts\__references.ts" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <TypeScriptCompile Remove="Scripts\__references.ts" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,9 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>

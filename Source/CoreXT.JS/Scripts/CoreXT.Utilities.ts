@@ -5,29 +5,13 @@
 namespace CoreXT.Utilities {
     // -------------------------------------------------------------------------------------------------------------------
 
-    export var FUNC_NAME_REGEX = /^function\s*(\S+)\s*\(/i; // (note: never use the 'g' flag here, or '{regex}.exec()' will only work once every two calls [attempts to traverse])
-
-    /** Attempts to pull the function name from the function text, and returns 'undefined' for anonymous functions. */
-    export function getFunctionName(func: Function): string {
-        var name = (<ITypeInfo><any>func).$__name || func['name'];
-        if (name == void 0) {
-            var fstr = func.toString();
-            var results = (FUNC_NAME_REGEX).exec(fstr); // (note: for function expression object contexts, the constructor (type) name is always 'Function')
-            name = (results && results.length > 1) ? results[1] : UNDEFINED;
-        }
-        return name;
-
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
-
     /** This locates names of properties where only a reference and the object context is known.
     * If a reference match is found, the property name is returned, otherwise the result is 'undefined'.
     */
     export function getReferenceName(obj: {}, reference: object): string {
         for (var p in obj)
             if (obj[p] === reference) return p;
-        return UNDEFINED;
+        return void 0;
     }
 
     // -------------------------------------------------------------------------------------------------------------------

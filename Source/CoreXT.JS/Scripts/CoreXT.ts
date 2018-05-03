@@ -67,7 +67,7 @@ if (typeof host === 'object' && host.isDebugMode && host.isDebugMode())
 
 // ===========================================================================================================================
 
-declare var siteBaseURL: string;
+var siteBaseURL: string;
 
 // ===========================================================================================================================
 
@@ -79,11 +79,13 @@ namespace CoreXT {
     // =======================================================================================================================
     // Integrate native types
 
-    export interface IIndexableObject { [index: string]: any }
+    export interface IndexedObject {
+        [name: string]: any;
+    }
 
-    export declare module NativeTypes {
+    export declare namespace NativeTypes {
         export interface IFunction extends Function { }
-        export interface IObject extends Object, IIndexableObject { }
+        export interface IObject extends Object, IndexedObject { }
         export interface IArray<T> extends Array<T> { }
         export interface IString extends String { }
         export interface INumber extends Number { }
@@ -140,7 +142,7 @@ namespace CoreXT {
     /** A reference to the host's global environment (convenient for nested TypeScript code, or when using strict mode [where this=undefined]).
     * This provides a faster, cleaner, consistent, and reliable method of referencing the global environment scope without having to resort to workarounds.
     */
-    export var global: IStaticGlobals = (function () { return function () { }.constructor("return this"); })(); // (note: this is named as 'global' to support the NodeJS "global" object as well [for compatibility, or to ease portability])
+    export var global: IStaticGlobals = (function () { }.constructor("return this"))(); // (note: this is named as 'global' to support the NodeJS "global" object as well [for compatibility, or to ease portability])
 
     export var host: IHostBridge = (() => {
         // ... make sure the host object is valid for at least checking client/server/studio states
@@ -151,18 +153,6 @@ namespace CoreXT {
     })();
 
     // =======================================================================================================================
-    /** A constant value for 'undefined' (eg. if (typeof value == UNDEFINED)...). */
-    export const UNDEFINED = 'undefined';
-    /** A constant value for 'function' (eg. if (typeof value == FUNCTION)...). */
-    export const FUNCTION = 'function';
-    /** A constant value for 'object' (eg. if (typeof value == OBJECT)...). */
-    export const OBJECT = 'object';
-    /** A constant value for 'string' (eg. if (typeof value == STRING)...). */
-    export const STRING = 'string';
-    /** A constant value for 'number' (eg. if (typeof value == NUMBER)...). */
-    export const NUMBER = 'number';
-    /** A constant value for 'boolean' (eg. if (typeof value == BOOLEAN)...). */
-    export const BOOLEAN = 'boolean';
 
     /** The root namespace name as the string constant. */
     export const ROOT_NAMESPACE = "CoreXT";
@@ -200,7 +190,7 @@ namespace CoreXT {
       * For scripts running on the serve side, this will be set to 'Environments.Server'.
       */
     export var Environment = (function (): Environments {
-        if (typeof navigator !== OBJECT) {
+        if (typeof navigator !== 'object') {
             // On the server side, create a basic "shell" to maintain some compatibility with some system functions.
             window = <any>{};
             (<any>window).document = <any>{ title: "SERVER" }
@@ -216,7 +206,7 @@ namespace CoreXT {
                 protocol: "https:"
             };
             return Environments.Server;
-        } else if (typeof window == OBJECT && window.document)
+        } else if (typeof window == 'object' && window.document)
             return Environments.Browser;
         else
             return Environments.Worker;
@@ -246,11 +236,12 @@ namespace CoreXT {
     /** Logs the message to the console (if available) and returns the logged message.
       * @param {string} title A title for this log message.
       * @param {string} message The message to log.
+      * @param {object} source An optional object to associate with log.
       * @param {LogTypes} type The type of message to log.
       * @param {boolean} throwOnError If true (the default) then an 'Error' with the message is thrown.
       * @param {boolean} useLogger If true (default) then 'System.Diagnostics.log()' is also called in addition to the console output.
       */
-    export function log(title: string, message: string, type: LogTypes = LogTypes.Normal, throwOnError = true, useLogger = true): string {
+    export function log(title: string, message: string, type: LogTypes = LogTypes.Normal, source?: object, throwOnError = true, useLogger = true): string {
         if (title === null && message === null) return null;
         if (title !== null) title = ('' + title).trim();
         if (message !== null) message = ('' + message).trim();
@@ -288,17 +279,21 @@ namespace CoreXT {
                     break;
             }
 
-        if (useLogger) {
+        if (useLogger && System) {
             if (type == LogTypes.Error) {
-                var ex = System.Exception.error(title, message); // (logged automatically)
-                if (throwOnError) throw ex;
+                if (throwOnError)
+                    if (System.Exception) {
+                        throw System.Exception.error(title, message, source); // (logs automatically)
+                    }
+                    else
+                        throw new Error(compositeMessage); // (fallback, then try the diagnostics debugger)
             }
-            else
-                System.Diagnostics.log(void 0, message, type, false);
+            if (System.Diagnostics)
+                System.Diagnostics.log(title, message, type, false); // (if 'System.Exception' is thrown it will also auto log and this line is never reached)
         }
         else
             if (throwOnError && type == LogTypes.Error)
-                throw new Error(message);
+                throw new Error(compositeMessage);
 
         return compositeMessage;
     }
@@ -363,9 +358,9 @@ namespace CoreXT {
       * a formatted Exception or Error object, or 'errorSource.message' if the source is an object with a 'message' property.
       */
     export function getErrorMessage(errorSource: any): string { // TODO: Test how this works with the logging system items.
-        if (typeof errorSource == STRING)
+        if (typeof errorSource == 'string')
             return errorSource;
-        else if (typeof errorSource == OBJECT) {
+        else if (typeof errorSource == 'object') {
             if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem) {
                 return errorSource.toString();
             } else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
@@ -392,6 +387,34 @@ namespace CoreXT {
 
     // =======================================================================================================================
 
+    export var FUNC_NAME_REGEX = /^function\s*(\S+)\s*\(/i; // (note: never use the 'g' flag here, or '{regex}.exec()' will only work once every two calls [attempts to traverse])
+
+    /** Attempts to pull the function name from the function object, and returns an empty string if none could be determined. */
+    export function getFunctionName(func: Function): string {
+        // ... if an internal name is already set return it now ...
+        var name = (<ITypeInfo><any>func).$__name || func['name'];
+        if (name == void 0) {
+            // ... check the type (this quickly detects internal/native Browser types) ...
+            var typeString: string = Object.prototype.toString.call(func);
+            // (typeString is formated like "[object SomeType]")
+            if (typeString.charAt(0) == '[' && typeString.charAt(typeString.length - 1) == ']')
+                name = typeString.substring(1, typeString.length - 1).split(' ')[1];
+            if (!name || name == "Function" || name == "Object") { // (a basic function/object was found)
+                if (typeof func == 'function') {
+                    // ... if this has a function text get the name as defined (in IE, Window+'' returns '[object Window]' but in Chrome it returns 'function Window() { [native code] }') ...
+                    var fstr = Function.prototype.toString.call(func);
+                    var results = (FUNC_NAME_REGEX).exec(fstr); // (note: for function expression object contexts, the constructor (type) name is always 'Function')
+                    name = (results && results.length > 1) ? results[1] : void 0;
+                }
+                else name = void 0;
+            }
+        }
+        return name || "";
+
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     /** Returns the type name for an object instance registered with 'AppDomain.registerType()'.  If the object does not have
     * type information, and the object is a function, then an attempt is made to pull the function name (if one exists).
     * Note: This function returns the type name ONLY (not the FULL type name [no namespace path]).
@@ -408,15 +431,15 @@ namespace CoreXT {
         if (typeInfo.$__name === void 0 || typeInfo.$__name === null) {
             if (typeof object == 'function')
                 if (cacheTypeName)
-                    return typeInfo.$__name = Utilities.getFunctionName(object as Function);
+                    return typeInfo.$__name = getFunctionName(object as Function);
                 else
-                    return Utilities.getFunctionName(object as Function);
+                    return getFunctionName(object as Function);
             var typeInfo = <ITypeInfo><any>object.constructor;
             if (typeInfo.$__name === void 0 || typeInfo.$__name === null) {
                 if (cacheTypeName)
-                    return typeInfo.$__name = Utilities.getFunctionName(object.constructor);
+                    return typeInfo.$__name = getFunctionName(object.constructor);
                 else
-                    return Utilities.getFunctionName(object.constructor);
+                    return getFunctionName(object.constructor);
             }
             else
                 return typeInfo.$__name;
@@ -428,8 +451,8 @@ namespace CoreXT {
     export function isEmpty(obj: any): boolean {
         if (obj === void 0 || obj === null) return true;
         // (note 'DontEnum flag' enumeration bug in IE<9 [on toString, valueOf, etc.])
-        if (typeof obj == STRING || Array.isArray(obj)) return !obj.length;
-        if (typeof obj != OBJECT) return isNaN(obj);
+        if (typeof obj == 'string' || Array.isArray(obj)) return !obj.length;
+        if (typeof obj != 'object') return isNaN(obj);
         for (var key in obj)
             if (global.Object.prototype.hasOwnProperty.call(obj, key)) return false;
         return true;
@@ -438,43 +461,62 @@ namespace CoreXT {
     // =======================================================================================================================
 
     /**
-     * Contains some basic static values and calculations used by time related functions within the system.
-     */
-    export namespace Time {
-        registerNamespace("CoreXT", "Time");
+    * A TypeScript decorator used to seal a function and its prototype. Properties cannot be added, but existing ones can be updated.
+    */
+    export function sealed<T extends {}>(target: T, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): T {
+        if (typeof target == 'object')
+            Object.seal(target);
+        if (typeof (<Object>target).prototype == 'object')
+            Object.seal((<Object>target).prototype);
+        return target;
+    }
 
-        export var __millisecondsPerSecond = 1000;
-        export var __secondsPerMinute = 60;
-        export var __minsPerHour = 60;
-        export var __hoursPerDay = 24;
-        export var __daysPerYear = 365;
-        export var __actualDaysPerYear = 365.2425;
-        export var __EpochYear = 1970;
-        export var __millisecondsPerMinute = __secondsPerMinute * __millisecondsPerSecond;
-        export var __millisecondsPerHour = __minsPerHour * __millisecondsPerMinute;
-        export var __millisecondsPerDay = __hoursPerDay * __millisecondsPerHour;
-        export var __millisecondsPerYear = __daysPerYear * __millisecondsPerDay;
-
-        export var __ISO8601RegEx = /^\d{4}-\d\d-\d\d(?:[Tt]\d\d:\d\d(?::\d\d(?:\.\d+?(?:[+-]\d\d?(?::\d\d(?::\d\d(?:.\d+)?)?)?)?)?)?[Zz]?)?$/;
-        export var __SQLDateTimeRegEx = /^\d{4}-\d\d-\d\d(?: \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?)?$/; // (Standard SQL Date/Time Format)
-        export var __SQLDateTimeStrictRegEx = /^\d{4}-\d\d-\d\d \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?$/; // (Standard SQL Date/Time Format)
-
-        /** The time zone offset in milliseconds ({Date}.getTimezoneOffset() returns it in minutes). */
-        export var __localTimeZoneOffset = (new Date()).getTimezoneOffset() * __millisecondsPerMinute; // ('getTimezoneOffset()' returns minutes, which is converted to ms for '__localTimeZoneOffset')
+    /**
+    * A TypeScript decorator used to freeze a function and its prototype.  Properties cannot be added, and existing ones cannot be changed.
+    */
+    export function frozen<T extends {}>(target: T, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): T {
+        if (typeof target == 'object')
+            Object.freeze(target);
+        if (typeof (<Object>target).prototype == 'object')
+            Object.freeze((<Object>target).prototype);
+        return target;
     }
 
     // =======================================================================================================================
+    // Function Parameter Dependency Injection Support
+    // TODO: Consider DI suppport at some point.
+
+    /**
+     * A decorator used to add DI information for a function parameter.
+     * @param args A list of items which are either fully qualified type names, or references to the type functions.
+     * The order specified is important.  A new (transient) or existing (singleton) instance of the first matching type found is returned.
+     */
+    export function $(...args: (CoreXT.IType<any> | string)[]) { // this is the decorator factory
+        return function (target: any, paramName: string, index: number) { // this is the decorator
+            var _target = <CoreXT.IFunctionInfo>target;
+            _target.$__argumentTypes[index] = args;
+        }
+    }
+
+    // ========================================================================================================================================
 
     /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
     export function FactoryBase<TInstance extends IType<object>, TBaseClass extends IType<object>, TBaseFactory extends { new(): IFactory }>(type: TInstance,
         registeredBaseFactoryType: IRegisteredFactoryType<TBaseClass, TBaseFactory>) {
         var fb = class FactoryBase {
+            /** The underlying type associated with this factory type. */
             static $__type = type;
-            static $__baseFactoryType = registeredBaseFactoryType.$__factoryType;
+            /** The factory type instance for the underlying type '$__type'. */
             static $__factory: IFactory;
+            /** The base factory type, if any. */
+            static $__baseFactoryType = registeredBaseFactoryType && registeredBaseFactoryType.$__factoryType || null;
+
+            /** The underlying type. */
             protected get $__type() { return FactoryBase.$__type; }
+            /** The factory instance for the underlying type '$__type'. */
             protected get $__factory() { return FactoryBase.$__factory; }
-            protected get $__baseFactory() { return registeredBaseFactoryType.$__factory; }
+            /** The base factory instance. */
+            protected get $__baseFactory() { return registeredBaseFactoryType && registeredBaseFactoryType.$__factory || null; }
 
             /** 
              * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
@@ -515,13 +557,11 @@ namespace CoreXT {
     export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], I extends keyof T[A][B][C][D][E][F][G][H], J extends keyof T[A][B][C][D][E][F][G][H][I], Z extends keyof T[A][B][C][D][E][F][G][H][I][J]= any, T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, ns9?: I, ns10?: J, lastNsOrClassName?: Z, root?: T): void;
     export function registerNamespace(...args: any[]): void {
         var root = args[args.length - 1];
-        var lastIndex = (typeof root == 'object' ? args.length - 1 : args.length);
-        Types.__registerNamespace(root || global, global.Array.prototype.slice.call(arguments, 0, lastIndex));
+        var lastIndex = (typeof root == 'object' ? args.length - 1 : (root = global, args.length));
+        Types.__registerNamespace(root, ...global.Array.prototype.slice.call(arguments, 0, lastIndex));
     }
 
     export namespace Types {
-        registerNamespace("CoreXT", "Types");
-
         /** Returns the root type object from nested type objects. Use this to get the root namespace  */
         export function getRoot(type: ITypeInfo): ITypeInfo {
             var _type: ITypeInfo = type.$__fullname ? type : <any>type['constructor']
@@ -557,7 +597,7 @@ namespace CoreXT {
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
             var bridge = <System.IADBridge>this; // (note: this should be either a bridge, or a class/factory object, or undefined)
             var type = <ITypeInfo & IFactory & IType<NativeTypes.IObject>>this;
-            if (this !== void 0 && isEmpty(this) || typeof this != FUNCTION)
+            if (this !== void 0 && isEmpty(this) || typeof this != 'function')
                 throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the 'SomeType.new()' factory *function* without the 'new' operator.", this);
             var appDomain = bridge.$__appDomain || System.AppDomain.default;
             var instance: NativeTypes.IObject;
@@ -571,7 +611,7 @@ namespace CoreXT {
                 instance = new (<IType<NativeTypes.IObject>>type)();
                 isNew = true;
             }
-            if (typeof instance.init == FUNCTION)
+            if (typeof instance.init == 'function')
                 System.Delegate.fastCall(instance.init, instance, isNew, ...arguments);
             return instance;
         }
@@ -597,13 +637,14 @@ namespace CoreXT {
         */
         export function __registerFactoryType<TClass extends IType<object>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, namespace: object, addMemberTypeInfo = true)
             : InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
-            if (typeof factoryType !== FUNCTION)
-                throw System.Exception.error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+
+            if (typeof factoryType !== 'function')
+                log("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", LogTypes.Error, classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
             var classType = <IRegisteredFactoryType<TClass, TFactory> & ITypeInfo & Object>factoryType.$__type;
 
-            if (typeof classType !== FUNCTION)
-                throw System.Exception.error("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+            if (typeof classType !== 'function')
+                log("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", LogTypes.Error, classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
             classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
             classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
@@ -619,16 +660,16 @@ namespace CoreXT {
             // ... create the 'init' and 'new' hooks ...
 
             if (!Object.prototype.hasOwnProperty.call(classType.prototype, "init"))
-                if (_factoryInstance.prototype.init && typeof _factoryInstance.prototype.init == FUNCTION)
-                    classType.prototype.init = _factoryInstance.prototype.init;
-                else if (!classType.prototype.init || typeof classType.prototype.init != FUNCTION)
+                if (_factoryInstance.init && typeof _factoryInstance.init == 'function')
+                    classType.prototype.init = _factoryInstance.init;
+                else if (!classType.prototype.init || typeof classType.prototype.init != 'function')
                     classType.prototype.init = noop;
 
             if (!Object.prototype.hasOwnProperty.call(classType, "new"))
-                if (_factoryInstance.new && typeof _factoryInstance.new == FUNCTION)
+                if (_factoryInstance.new && typeof _factoryInstance.new == 'function')
                     classType.new = function _firstTimeNewTest() {
                         var result = _factoryInstance.new.call(this, ...arguments);
-                        if (result && typeof result == OBJECT) {
+                        if (result && typeof result == 'object') {
                             // (the call returned a valid value, so next time, just use that one as is)
                             classType.new = _factoryInstance.new;
                             return result;
@@ -639,7 +680,7 @@ namespace CoreXT {
                             return _factoryInstance.new.call(this, ...arguments);
                         }
                     };
-                else if (!classType.new || typeof classType.new != FUNCTION) // (normally the default 'new' function should exist behind the scenes on the base Object type)
+                else if (!classType.new || typeof classType.new != 'function') // (normally the default 'new' function should exist behind the scenes on the base Object type)
                     classType.new = () => {
                         throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(_factoryInstance, false) + "'. This exists on the DomainObject base type, and is required.";
                     }
@@ -681,7 +722,7 @@ namespace CoreXT {
             var _namespace = <ITypeInfo>namespace;
 
             if (_namespace.$__fullname === void 0)
-                throw System.Exception.error("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", type);
+                log("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", LogTypes.Error, type);
 
             // ... register the type with the parent namespace ...
 
@@ -715,8 +756,8 @@ namespace CoreXT {
          */
         export function __registerNamespace(root: {}, ...namespaces: string[]): ITypeInfo {
             function exception(msg: String) {
-                return System.Exception.error("Types.__registerNamespace()", (i == 0 ? "The first namespace name" : i == namespaces.length - 1 ? "The last namespace name" : "The namespace name") + " '" + nsOrTypeName + "' " + msg + "."
-                    + " Please double check you have the correct namespace names.", root);
+                return log("Types.__registerNamespace(" + rootTypeName + ", " + namespaces.join() + ")", "The namespace/type name '" + nsOrTypeName + "' " + msg + "."
+                    + " Please double check you have the correct namespace/type names.", LogTypes.Error, root);
             }
 
             if (!root) root = global;
@@ -730,19 +771,20 @@ namespace CoreXT {
             for (var i = 0, n = namespaces.length; i < n; ++i) {
                 var nsOrTypeName = namespaces[i];
                 var trimmedName = nsOrTypeName.trim();
+                if (trimmedName.charAt(0) == '$') trimmedName = trimmedName.substr(1); // (the convention assumes a '$' before the class name and the exported name will it removed)
                 if (!nsOrTypeName || !trimmedName) exception("is not a valid namespace name. A namespace must not be empty or only whitespace");
                 nsOrTypeName = trimmedName; // (storing the trimmed name at this point allows showing any whitespace-only characters in the error)
                 if (root == CoreXT && nsOrTypeName == "CoreXT") exception("is not valid - 'CoreXT' must not exist as a nested name under CoreXT");
 
                 var subNS = <INamespaceInfo>currentNamespace[nsOrTypeName];
-                if (!subNS) exception("cannot be found in the" + ((i == 0) ? " root scope" : " preceding namespace"));
+                if (!subNS) exception("cannot be found under namespace '" + currentNamespace.$__fullname + "'");
 
                 fullname = fullname ? fullname + "." + nsOrTypeName : nsOrTypeName;
 
                 subNS.$__parent = <INamespaceInfo>currentNamespace; // (each namespace will have a reference to its parent namespace [object], and its local and full type names; note: the CoreXT parent will be pointing to 'CoreXT.global')
                 subNS.$__name = nsOrTypeName; // (the local namespace name)
                 subNS.$__fullname = fullname; // (the fully qualified namespace name for this namespace)
-                (currentNamespace.$__namespaces || (currentNamespace.$__namespaces = []))[nsOrTypeName] = subNS;
+                (currentNamespace.$__namespaces || (currentNamespace.$__namespaces = [])).push(subNS);
 
                 currentNamespace = subNS;
             }
@@ -793,7 +835,7 @@ namespace CoreXT {
                     var type: ITypeInfo = <any>_object.constructor;
 
                     if (!type.$__fullname)
-                        log("dispose()", "The object type is not registered.  Please see one of the AppDomain 'registerClass()/registerType()' functions for more details.", LogTypes.Error);
+                        log("dispose()", "The object type is not registered.  Please see one of the AppDomain 'registerClass()/registerType()' functions for more details.", LogTypes.Error, object);
 
                     var funcList = __disposedObjects[type.$__fullname];
 
@@ -820,43 +862,35 @@ namespace CoreXT {
         }
     }
 
-    // =======================================================================================================================
+    registerNamespace("CoreXT", "Types");
+
+    // ========================================================================================================================================
 
     /**
-    * A TypeScript decorator used to seal a function and its prototype. Properties cannot be added, but existing ones can be updated.
-    */
-    export function sealed<T extends {}>(target: T, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): T {
-        if (typeof target == CoreXT.OBJECT)
-            Object.seal(target);
-        if (typeof (<Object>target).prototype == CoreXT.OBJECT)
-            Object.seal((<Object>target).prototype);
-        return target;
-    }
-
-    /**
-    * A TypeScript decorator used to freeze a function and its prototype.  Properties cannot be added, and existing ones cannot be changed.
-    */
-    export function frozen<T extends {}>(target: T, propertyName?: string, descriptor?: TypedPropertyDescriptor<any>): T {
-        if (typeof target == CoreXT.OBJECT)
-            Object.freeze(target);
-        if (typeof (<Object>target).prototype == CoreXT.OBJECT)
-            Object.freeze((<Object>target).prototype);
-        return target;
-    }
-
-    // =======================================================================================================================
-    // Function Parameter Dependency Injection Support
-
-    /**
-     * A decorator used to add DI information for a function parameter.
-     * @param args A list of items which are either fully qualified type names, or references to the type functions.
-     * The order specified is important.  A new (transient) or existing (singleton) instance of the first matching type found is returned.
+     * Contains some basic static values and calculations used by time related functions within the system.
      */
-    export function $(...args: (CoreXT.IType<any> | string)[]) { // this is the decorator factory
-        return function (target: any, paramName: string, index: number) { // this is the decorator
-            var _target = <CoreXT.IFunctionInfo>target;
-            _target.$__argumentTypes[index] = args;
-        }
+    export namespace Time {
+        registerNamespace("CoreXT", "Time");
+        // =======================================================================================================================
+
+        export var __millisecondsPerSecond = 1000;
+        export var __secondsPerMinute = 60;
+        export var __minsPerHour = 60;
+        export var __hoursPerDay = 24;
+        export var __daysPerYear = 365;
+        export var __actualDaysPerYear = 365.2425;
+        export var __EpochYear = 1970;
+        export var __millisecondsPerMinute = __secondsPerMinute * __millisecondsPerSecond;
+        export var __millisecondsPerHour = __minsPerHour * __millisecondsPerMinute;
+        export var __millisecondsPerDay = __hoursPerDay * __millisecondsPerHour;
+        export var __millisecondsPerYear = __daysPerYear * __millisecondsPerDay;
+
+        export var __ISO8601RegEx = /^\d{4}-\d\d-\d\d(?:[Tt]\d\d:\d\d(?::\d\d(?:\.\d+?(?:[+-]\d\d?(?::\d\d(?::\d\d(?:.\d+)?)?)?)?)?)?[Zz]?)?$/;
+        export var __SQLDateTimeRegEx = /^\d{4}-\d\d-\d\d(?: \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?)?$/; // (Standard SQL Date/Time Format)
+        export var __SQLDateTimeStrictRegEx = /^\d{4}-\d\d-\d\d \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?$/; // (Standard SQL Date/Time Format)
+
+        /** The time zone offset in milliseconds ({Date}.getTimezoneOffset() returns it in minutes). */
+        export var __localTimeZoneOffset = (new Date()).getTimezoneOffset() * __millisecondsPerMinute; // ('getTimezoneOffset()' returns minutes, which is converted to ms for '__localTimeZoneOffset')
     }
 
     // =======================================================================================================================
@@ -1018,7 +1052,7 @@ namespace CoreXT {
                 }
             }.register(System);
 
-            // ----------------------------------------------------------------------------------------------------------------
+            // -------------------------------------------------------------------------------------------------------------------------------
         }
 
         export interface IException extends $Exception { }
@@ -1028,10 +1062,13 @@ namespace CoreXT {
         */
         export var Exception = $Exception['$Exception Factory'].$__type;
 
-        // ==========================================================================================
+        // ===================================================================================================================================
 
         /** Contains diagnostic based functions, such as those needed for logging purposes. */
         export namespace Diagnostics {
+            registerNamespace("CoreXT", "System", "Diagnostics");
+            // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
             export var __logItems: ILogItem[] = [];
             var __logItemsSequenceCounter = 0;
             var __logCaptureStack: ILogItem[] = [];
@@ -1053,6 +1090,8 @@ namespace CoreXT {
 
             /** Returns true if CoreXT is running in debug mode. */
             export function isDebugging() { return debug != DebugModes.Release; }
+
+            // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
             class $LogItem {
                 /** The parent log item. */
@@ -1140,7 +1179,7 @@ namespace CoreXT {
                                 throw System.Exception.from("LogItem(): A message is required if no title is given.", $this);
                             title = "";
                         }
-                        else if (typeof title != STRING)
+                        else if (typeof title != 'string')
                             if ((<ITypeInfo>title).$__fullname)
                                 title = (<ITypeInfo>title).$__fullname;
                             else
@@ -1162,7 +1201,7 @@ namespace CoreXT {
                             while (parent) { parent = parent.parent; margin += "  "; }
                             var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
                                 + " " + margin + $this.title + ": " + $this.message;
-                            CoreXT.log(null, consoleText, type, false, false);
+                            CoreXT.log(null, consoleText, type, void 0, false, false);
                         }
                         return $this;
                     }
@@ -1174,9 +1213,11 @@ namespace CoreXT {
             export interface ILogItem extends $LogItem { }
             export var LogItem = $LogItem['$LogItem Factory'].$__type;
 
-            /** Starts a new log entry. */
+            // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+            /** Starts a new diagnostics-based log entry. */
             export function log(title: string, message: string, type?: LogTypes, outputToConsole?: boolean): $LogItem;
-            /** Starts a new log entry. */
+            /** Starts a new diagnostics-based log entry. */
             export function log(title: any, message: any, type?: LogTypes, outputToConsole?: boolean): $LogItem;
             export function log(title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): $LogItem {
                 if (__logCaptureStack.length) {
@@ -1289,12 +1330,13 @@ namespace CoreXT {
                 return String.replaceTags(String.replace(getLogAsHTML(), "&nbsp;", " "));
             }
 
+            // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
         }
 
-        // ====================================================================================================================
+        // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     }
 
-    // =======================================================================================================================
+    // ========================================================================================================================================
 
     export interface ICallback<TSender> { (sender?: TSender): void }
     export interface IResultCallback<TSender> { (sender?: TSender, result?: any): any }
@@ -1303,6 +1345,7 @@ namespace CoreXT {
     /** The loader namespace contains low level functions for loading/bootstrapping the whole system. */
     export namespace Loader {
         registerNamespace("CoreXT", "Loader");
+        // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
         // ... polyfill some XHR 'readyState' constants ...
 
@@ -1530,7 +1573,7 @@ namespace CoreXT {
             }
 
             then(success: ICallback<IResourceRequest>, error?: IErrorCallback<IResourceRequest>) {
-                if (success !== void 0 && success !== null && typeof success != FUNCTION || error !== void 0 && error !== null && typeof error !== FUNCTION)
+                if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
                     throw "A handler function given is not a function.";
                 else {
                     this._promiseChain.push({ onLoaded: success, onError: error });
@@ -1562,7 +1605,7 @@ namespace CoreXT {
              * @param handler
              */
             ready(handler: ICallback<IResourceRequest>) {
-                if (typeof handler == FUNCTION) {
+                if (typeof handler == 'function') {
                     if (!this._onReady)
                         this._onReady = [];
                     this._onReady.push(handler);
@@ -1573,7 +1616,7 @@ namespace CoreXT {
 
             /** Adds a hook into the resource load progress event. */
             while(progressHandler: ICallback<IResourceRequest>) {
-                if (typeof progressHandler == FUNCTION) {
+                if (typeof progressHandler == 'function') {
                     if (!this._onProgress)
                         this._onProgress = [];
                     this._onProgress.push(progressHandler);
@@ -1593,7 +1636,7 @@ namespace CoreXT {
              * Provide a handler to catch any errors from this request.
              */
             catch(errorHandler: IErrorCallback<IResourceRequest>) {
-                if (typeof errorHandler == FUNCTION) {
+                if (typeof errorHandler == 'function') {
                     this._promiseChain.push({ onError: errorHandler });
                     this._requeueHandlersIfNeeded();
                 } else
@@ -1605,7 +1648,7 @@ namespace CoreXT {
              * Provide a handler which should execute on success OR failure, regardless.
              */
             finally(cleanupHandler: ICallback<IResourceRequest>) {
-                if (typeof cleanupHandler == FUNCTION) {
+                if (typeof cleanupHandler == 'function') {
                     this._promiseChain.push({ onFinally: cleanupHandler });
                     this._requeueHandlersIfNeeded();
                 } else
@@ -1633,7 +1676,7 @@ namespace CoreXT {
                     // ... this request has not been started yet; attempt to load the resource ...
                     // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
 
-                    if (typeof Storage !== UNDEFINED)
+                    if (typeof Storage !== void 0)
                         try {
                             this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
                             if (this.data !== null && this.data !== void 0) {
@@ -1672,7 +1715,7 @@ namespace CoreXT {
                                     this.setError("Resource type mismatch: expected type was '" + this.type + "', but received '" + xhr.responseType + "'.\r\n");
                                 }
                                 else {
-                                    if (typeof Storage !== UNDEFINED)
+                                    if (typeof Storage !== void 0)
                                         try {
                                             localStorage.setItem("resource:" + this.url, this.data);
                                             this.message = "Resource '" + this.url + "' loaded from local storage.";
@@ -1810,7 +1853,7 @@ namespace CoreXT {
                             this._doError();
                             return;
                         }
-                        if (typeof data === OBJECT && data instanceof $ResourceRequest) {
+                        if (typeof data === 'object' && data instanceof $ResourceRequest) {
                             // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
                             if ((<$ResourceRequest>data).status == RequestStatuses.Error) {
                                 this.setError("Rejected request returned.");
@@ -1910,7 +1953,7 @@ namespace CoreXT {
                         } catch (e) {
                             this.setError("Error handler failed:", e);
                         }
-                        if (typeof newData === OBJECT && newData instanceof $ResourceRequest) {
+                        if (typeof newData === 'object' && newData instanceof $ResourceRequest) {
                             // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
                             if ((<$ResourceRequest>newData).status == RequestStatuses.Error)
                                 return; // (no correction made, still in error; terminate the event chain here)
@@ -2092,16 +2135,11 @@ namespace CoreXT {
 
             CoreXT.Loader.bootstrap = <any>noop(); // (prevent this function from being called again)
         }
+
+        // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     }
 
-    // =======================================================================================================================
-
-    export interface IndexedObject {
-        [name: string]: any;
-    }
-
-    /** Internal: used when initializing CoreXT. */
-    export var __$: IndexedObject = CoreXT;
+    // ========================================================================================================================================
 }
 
 CoreXT.safeEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return eval(exp); };
@@ -2111,18 +2149,18 @@ CoreXT.safeEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { re
 CoreXT.globalEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return (<any>0, eval)(exp); };
 // (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
 
-// ===========================================================================================================================
+// ========================================================================================================================================
 
 /** (See 'CoreXT') */
 var corext = CoreXT; // (allow all lower case usage)
 
-if (typeof $X == CoreXT.UNDEFINED)
+if (typeof $X === void 0)
     /** A shorthand form to use for the 'CoreXT' global reference. */
     var $X = CoreXT;
 
 // ... users will need to make sure 'System' and/or 'using' are not in use (undefined or set to null before this script is executed) in order to use it as a valid type reference ...
 
-if (typeof System == CoreXT.UNDEFINED || System === null) { // (users should reference "System.", but "CoreXT.System" can be used if the global 'System' is needed for something else)
+if (typeof System === void 0 || System === null) { // (users should reference "System.", but "CoreXT.System" can be used if the global 'System' is needed for something else)
     /** The base module for all CoreXT System namespace types. */
     var System = CoreXT.System; // (try to make this global, unless otherwise predefined ...)
 }
