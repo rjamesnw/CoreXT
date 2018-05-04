@@ -2,6 +2,38 @@
 // Application Windows
 // ###########################################################################################################################
 
+function Factory<TFactory extends CoreXT.IType, TClass extends CoreXT.IType>(type: TFactory & { $__type: TClass }): TClass {
+    return <any>type;
+}
+
+class $Test1 {
+    a: number;
+}
+
+interface IInit {
+    init(...args: any[]): any;
+    $__type: CoreXT.IType;
+}
+interface IInit1 {
+    init(n: number): $Test1; $__type: typeof $Test1;
+}
+var Test1: typeof $Test1 & IInit1;
+
+var t: Exclude<typeof Test1, IInit1>; //{ New(...args:any[]): any }
+class TX extends t { }
+
+class $Test2 extends Factory(Test1) {
+    b: number;
+}
+
+var Test2: typeof $Test2 & { init(n: string): $Test2; $__type: typeof $Test2; };
+
+class $Test3 extends Factory(Test2) {
+    a: number;
+}
+
+var Test3: typeof $Test3 & { init(n: boolean): $Test3; $__type: typeof $Test3; };
+
 namespace CoreXT.System.IO {
     // =======================================================================================================================
 
@@ -49,7 +81,7 @@ namespace CoreXT.System.IO {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            protected static '$Query Factory' = class Factory extends FactoryBase($Query, null) implements IFactory {
+            protected static '$Query Factory' = class Factory extends FactoryBase($Query, null) {
                 /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
                     * @param {string} searchString A URI or 'location.search' string.
                     * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).

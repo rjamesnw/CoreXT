@@ -191,7 +191,7 @@ module CoreXT.System.Platform {
 
             // ----------------------------------------------------------------------------------------------------------------
 
-            protected static '$HTMLElement Factory' = class Factory extends FactoryBase($HTMLElement, $HTMLElement['$UIElement Factory']) implements IFactory {
+            protected static '$HTMLElement Factory' = class Factory extends FactoryBase($HTMLElement, $HTMLElement['$UIElement Factory']) {
                 'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> { return null; }
 
                 init<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>($this: $HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> {
@@ -208,7 +208,7 @@ module CoreXT.System.Platform {
                     });
                     return $this;
                 }
-            }.register(HTML);
+            };
 
             // ----------------------------------------------------------------------------------------------------------------
 

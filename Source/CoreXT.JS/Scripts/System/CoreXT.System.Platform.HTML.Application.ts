@@ -45,9 +45,9 @@ namespace CoreXT.System.Platform.HTML.Application {
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        protected static '$ApplicationElement Factory' = class Factory extends FactoryBase($ApplicationElement, $ApplicationElement['$HTML Factory']) implements IFactory {
+        protected static '$ApplicationElement Factory' = class Factory extends FactoryBase($ApplicationElement, $ApplicationElement['$HTMLElement Factory']) {
             'new'(title: string, description: string, targetElement: HTMLElement = null): InstanceType<typeof Factory.$__type> { return null; }
-
+            
             init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, targetElement: HTMLElement = null): InstanceType<typeof Factory.$__type> {
                 this.$__baseFactory.init($this, isnew, null);
                 if (typeof title == "undefined" || "" + title == "")
@@ -57,7 +57,7 @@ namespace CoreXT.System.Platform.HTML.Application {
                 $this.targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
                 return $this;
             }
-        }.register(Application);
+        };
 
         // -------------------------------------------------------------------------------------------------------------------------------
 
@@ -194,7 +194,10 @@ namespace CoreXT.System.Platform.HTML.Application {
         // --------------------------------------------------------------------------------------------------------------------
     }
 
-    // ========================================================================================================================
+    export interface IApplicationElement extends $ApplicationElement { }
+    export var ApplicationElement = $ApplicationElement['$ApplicationElement Factory'].$__type;
+
+   // ========================================================================================================================
 }
 
 // ############################################################################################################################

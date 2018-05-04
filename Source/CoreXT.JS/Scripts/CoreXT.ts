@@ -503,7 +503,7 @@ namespace CoreXT {
     /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
     export function FactoryBase<TInstance extends IType<object>, TBaseClass extends IType<object>, TBaseFactory extends { new(): IFactory }>(type: TInstance,
         registeredBaseFactoryType: IRegisteredFactoryType<TBaseClass, TBaseFactory>) {
-        var fb = class FactoryBase {
+        var fb = class FactoryBase implements IFactory {
             /** The underlying type associated with this factory type. */
             static $__type = type;
             /** The factory type instance for the underlying type '$__type'. */
@@ -517,6 +517,9 @@ namespace CoreXT {
             protected get $__factory() { return FactoryBase.$__factory; }
             /** The base factory instance. */
             protected get $__baseFactory() { return registeredBaseFactoryType && registeredBaseFactoryType.$__factory || null; }
+
+            'new'?(...args: any[]): any;
+            init?($this: InstanceType<TInstance>, isnew: boolean, ...args: any[]): any;
 
             /** 
              * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
@@ -893,12 +896,12 @@ namespace CoreXT {
         export var __localTimeZoneOffset = (new Date()).getTimezoneOffset() * __millisecondsPerMinute; // ('getTimezoneOffset()' returns minutes, which is converted to ms for '__localTimeZoneOffset')
     }
 
-    // =======================================================================================================================
+    // ========================================================================================================================================
 
     /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
     export namespace System {
         registerNamespace("CoreXT", "System");
-        // =======================================================================================================================
+        // ===================================================================================================================================
 
         class $Exception extends Error {
 

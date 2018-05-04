@@ -123,7 +123,7 @@ namespace CoreXT {
         /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
           * constructor function to get new instances, and 'dispose()' to release them when done.
           */
-        init: TInit
+        init?: TInit
     }
 
     export interface IRegisteredFactoryType<TClass extends IType<object> = IType<object>, TFactory extends { new(): IFactory } = { new(): IFactory }> {
