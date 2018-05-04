@@ -2,37 +2,43 @@
 // Application Windows
 // ###########################################################################################################################
 
-function Factory<TFactory extends CoreXT.IType, TClass extends CoreXT.IType>(type: TFactory & { $__type: TClass }): TClass {
-    return <any>type;
+namespace Test {
+    interface ITypeInfo<T extends new () => any> {
+        $__type: T;
+    }
+
+    function Factory<
+        TFactory extends CoreXT.IType,
+        TClass extends CoreXT.IType
+        >
+        (type: TFactory & { $__type: TClass }): TClass {
+        return <any>type;
+    }
+
+    function register<TNamespace extends object, TExportProp extends keyof TNamespace, TType extends TNamespace[TExportProp]>(ns: TNamespace, type: TType, name: TExportProp) {
+        return (cls: CoreXT.IType) => { };
+    }
+
+    class $Test1 {
+        a: number;
+        static T: object = Test1;
+    };
+    register(Test, $Test1, "Test1") // (register the Test1 factory un the Test namespace) - make last name optional, assume from private class name.
+
+    export declare var Test1: typeof $Test1 & { init(n: number): $Test1; } & ITypeInfo<typeof $Test1>;
+
+    class $Test2 extends Factory(Test1) {
+        b: number;
+    }
+
+    export declare var Test2: typeof $Test2 & { init(n: string): $Test2; } & ITypeInfo<typeof $Test2>;
+
+    class $Test3 extends Factory(Test2) {
+        a: number;
+    }
+
+    export declare var Test3: typeof $Test3 & { init(n: boolean): $Test3; } & ITypeInfo<typeof $Test3>;
 }
-
-class $Test1 {
-    a: number;
-}
-
-interface IInit {
-    init(...args: any[]): any;
-    $__type: CoreXT.IType;
-}
-interface IInit1 {
-    init(n: number): $Test1; $__type: typeof $Test1;
-}
-var Test1: typeof $Test1 & IInit1;
-
-var t: Exclude<typeof Test1, IInit1>; //{ New(...args:any[]): any }
-class TX extends t { }
-
-class $Test2 extends Factory(Test1) {
-    b: number;
-}
-
-var Test2: typeof $Test2 & { init(n: string): $Test2; $__type: typeof $Test2; };
-
-class $Test3 extends Factory(Test2) {
-    a: number;
-}
-
-var Test3: typeof $Test3 & { init(n: boolean): $Test3; $__type: typeof $Test3; };
 
 namespace CoreXT.System.IO {
     // =======================================================================================================================
