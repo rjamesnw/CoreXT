@@ -5,6 +5,7 @@
 namespace Test {
     interface ITypeInfo<T extends new () => any> {
         $__type: T;
+        $__factory: any;
     }
 
     function Factory<
@@ -15,17 +16,16 @@ namespace Test {
         return <any>type;
     }
 
-    function register<TNamespace extends object, TExportProp extends keyof TNamespace, TType extends TNamespace[TExportProp]>(ns: TNamespace, type: TType, name: TExportProp) {
-        return (cls: CoreXT.IType) => { };
+    function registerClass<TNamespace extends object, TExportProp extends keyof TNamespace, TType extends CoreXT.IType>(ns: TNamespace, type: TType, name?: TExportProp): any {
+        return null;
     }
 
     class $Test1 {
         a: number;
         static T: object = Test1;
     };
-    register(Test, $Test1, "Test1") // (register the Test1 factory un the Test namespace) - make last name optional, assume from private class name.
 
-    export declare var Test1: typeof $Test1 & { init(n: number): $Test1; } & ITypeInfo<typeof $Test1>;
+    export var Test1 = registerClass(Test, $Test1); // (register the Test1 factory un the Test namespace) - make last name optional, assume from private class name.
 
     class $Test2 extends Factory(Test1) {
         b: number;

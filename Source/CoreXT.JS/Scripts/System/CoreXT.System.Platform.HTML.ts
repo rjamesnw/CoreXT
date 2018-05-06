@@ -10,7 +10,7 @@ module CoreXT.System.Platform {
         * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
         * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
         */
-        class $BrowserContext extends Context.$__type {
+        class $BrowserContext extends Factory(Context) {
             private _target: any; // (iframe or worker)
             private _iframe: HTMLIFrameElement;
             private _worker: Worker;
@@ -95,7 +95,7 @@ module CoreXT.System.Platform {
         export var BrowserContext = $BrowserContext['$BrowserContext Factory'].$__type;
 
         // ====================================================================================================================
-        class $HTMLNode extends GraphNode.$__type {
+        class $HTMLNode extends Factory(GraphNode) {
             // ----------------------------------------------------------------------------------------------------------------
 
             // ----------------------------------------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ module CoreXT.System.Platform {
         /** Represents an HTML node graph item that renders the content in the 'innerHTML of the default '__htmlTag' element (which is set to 'GraphItem.defaultHTMLTag' [DIV] initially).
         * This object has no element restrictions, so you can create any element you need by setting the '__htmlTag' tag before the UI element gets created.
         */
-        class $HTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends HTMLNode.$__type {
+        class $HTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends Factory(HTMLNode) {
             // ----------------------------------------------------------------------------------------------------------------
 
             /* When extending 'GraphItem' with additional observable properties, it is considered good practice to create a
@@ -372,7 +372,7 @@ module CoreXT.System.Platform {
           * Represents a basic text node graph item that renders plain text (no HTML). For HTML use 'HTMLText'.
           * This is inline with the standard which declares that all DOM elements with text should have text-ONLY nodes.
           */
-        class $PlainText extends HTMLNode.$__type { // (https://developer.mozilla.org/en-US/docs/Web/API/Text)
+        class $PlainText extends Factory(HTMLNode) { // (https://developer.mozilla.org/en-US/docs/Web/API/Text)
             // ----------------------------------------------------------------------------------------------------------------
 
             static Text: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$PlainText, "text", true);

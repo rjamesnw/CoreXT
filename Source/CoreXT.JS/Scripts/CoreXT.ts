@@ -500,6 +500,14 @@ namespace CoreXT {
 
     // ========================================================================================================================================
 
+    export function Factory<
+        TFactory extends IType,
+        TClass extends IType
+        >
+        (type: TFactory & { $__type: TClass }): TClass {
+        return <any>type;
+    }
+
     /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
     export function FactoryBase<TInstance extends IType<object>, TBaseClass extends IType<object>, TBaseFactory extends { new(): IFactory }>(type: TInstance,
         registeredBaseFactoryType: IRegisteredFactoryType<TBaseClass, TBaseFactory>) {
