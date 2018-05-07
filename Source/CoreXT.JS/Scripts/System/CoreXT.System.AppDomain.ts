@@ -15,7 +15,7 @@ namespace CoreXT {
 
         // ====================================================================================================================================
 
-        //x export class $DomainObject extends Object.$__type {
+        //x export class $DomainObject extends Factory(Object) {
         //    //static ' '?= class FactoryRoot {
         //    //    static DomainObject_factory?: IFactoryType<$DomainObject> = {
 
@@ -36,7 +36,7 @@ namespace CoreXT {
 
         // ====================================================================================================================================
 
-        export abstract class DependencyObject extends Object.$__type {
+        export abstract class DependencyObject extends Factory(Object) {
             get parent() { return this.__parent; }
             protected __parent: DependencyObject; // (note: EvenDispatcher expects '__parent' chains also)
         }
@@ -50,7 +50,7 @@ namespace CoreXT {
              * Note: While script isolation is the default, trusted scripts can run in the system context, and are thus not secured.
              */
         @frozen
-        class $AppDomain extends Object.$__type {
+        class $AppDomain extends Factory(Object) {
 
             private _applications: $Application[]; // (allows nesting/embedding child applications which usually run in their own global execution environment)
             private _modules: Scripts.IModule[];
@@ -266,7 +266,7 @@ namespace CoreXT {
           * applications in a single AppDomain.
           */
         @frozen
-        class $Application extends Object.$__type {
+        class $Application extends Factory(Object) {
             // ----------------------------------------------------------------------------------------------------------------
 
             /** References the current running application that owns the current running environment. */

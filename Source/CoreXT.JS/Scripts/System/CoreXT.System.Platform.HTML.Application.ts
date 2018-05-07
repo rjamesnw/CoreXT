@@ -7,7 +7,7 @@ namespace CoreXT.System.Platform.HTML.Application {
 
     // ========================================================================================================================
 
-    export class HTMLApplication extends UIApplication.$__type {
+    export class HTMLApplication extends Factory(UIApplication) {
     }
 
     // ========================================================================================================================

@@ -97,10 +97,10 @@ namespace CoreXT {
          * 'Manifest' inherits from 'ScriptResource', providing the loaded manifests the ability to register globals for the
          * CoreXT context, instead of the global 'window' context.
          */
-        class $Manifest extends ScriptResource.$__type {
+        export var Manifest = class Manifest extends Factory(ScriptResource) {
             // ----------------------------------------------------------------------------------------------------------------
-
-            protected static '$Manifest Factory' = class Factory extends FactoryBase($Manifest, $Manifest['$ScriptResource Factory']) implements IFactory {
+            private x = 1;
+            protected static ManifestFactory = class Factory extends FactoryBase(Manifest, Manifest['$ScriptResource Factory']) {
                 /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
                 'new'(url: string): InstanceType<typeof Factory.$__type> { return null; }
 
@@ -109,13 +109,13 @@ namespace CoreXT {
                     this.$__baseFactory.init($this, isnew, url);
                     return $this;
                 }
-            }.register(Scripts);
+            }
 
             // ----------------------------------------------------------------------------------------------------------------
-        }
+        }.register(cls => cls["ManifestFactory"], Scripts);
 
-        export interface IManifest extends $Manifest { }
-        export var Manifest = $Manifest['$Manifest Factory'].$__type;
+        export interface IManifest extends InstanceType<typeof Manifest.$__type> { }
+        //export var Manifest = $Manifest['$ManifestFactory'].register(Scripts);
 
         // ====================================================================================================================
 
@@ -202,7 +202,7 @@ namespace CoreXT {
         interface _IModuleAccessors { get: (varName: string) => any; set: (varName: string, value: any) => any }
 
         /** Contains static module properties and functions. */
-        class $Module extends ScriptResource.$__type {
+        class $Module extends Factory(ScriptResource) {
             /** The full type name for this module. */
             fullname: string;
 

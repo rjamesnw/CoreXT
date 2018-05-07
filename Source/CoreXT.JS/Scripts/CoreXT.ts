@@ -500,11 +500,14 @@ namespace CoreXT {
 
     // ========================================================================================================================================
 
+    /** Specifies the base factory type to inherit from when creating new derived factory types. */
     export function Factory<
         TFactory extends IType,
         TClass extends IType
         >
-        (type: TFactory & { $__type: TClass }): TClass {
+        (type: TFactory & { $__type: TClass }, factory?: IFactory): TClass & {
+            register<TClass extends CoreXT.IType, TNamespace extends object, TExportProp extends keyof TNamespace, TFactorySelector extends (cls: TClass) => IFactoryTypeInfo<TClass>>(this: TClass, factorySelector: TFactorySelector, ns: TNamespace, exportName?: TExportProp): TClass & { $__type: TClass } & InstanceType<ReturnType<TFactorySelector>>
+        } {
         return <any>type;
     }
 

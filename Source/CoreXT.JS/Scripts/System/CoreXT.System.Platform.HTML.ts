@@ -420,7 +420,7 @@ module CoreXT.System.Platform {
 
         /** Represents an HTML text node graph item that renders the content in the 'innerHTML of a SPAN element. For plain text nodes use 'PlainText'.
           */
-        class $HTMLText extends HTMLElement.$__type<HTMLSpanElement> {
+        class $HTMLText extends Factory(HTMLElement)<HTMLSpanElement> {
             // ----------------------------------------------------------------------------------------------------------------
 
             protected static '$HTMLText Factory' = class Factory extends FactoryBase($HTMLText, $HTMLText['$HTMLElement Factory']) implements IFactory {
@@ -484,7 +484,7 @@ module CoreXT.System.Platform {
         * it does not dictate exactly HOW the text will actually look like. For instance, "<STRONG>" tags usually render as
         * bold text, but someone can decide to color and increase font size instead using CSS for all such elements. This is
         * actually a good thing, as it allows flexible web design in a way that can allow applying themes at a later time. */
-        class $Phrase extends HTMLText.$__type {
+        class $Phrase extends Factory(HTMLText) {
             // ----------------------------------------------------------------------------------------------------------------
 
             static PhraseType: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Phrase, "phraseType", true);
@@ -546,7 +546,7 @@ module CoreXT.System.Platform {
 
         /** Represents an HTML header element. 
         */
-        class $Header extends HTMLElement.$__type {
+        class $Header extends Factory(HTMLElement) {
             // ----------------------------------------------------------------------------------------------------------------
 
             static HeaderLevel: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Header, "headerLevel", true);
@@ -595,7 +595,7 @@ module CoreXT.System.Platform {
         // ===================================================================================================================
 
         //x /** Represents a row on a table type in Bootstrap. */
-        //x export class Table extends HTMLNode.$__type {
+        //x export class Table extends Factory(HTMLNode) {
         //    // ----------------------------------------------------------------------------------------------------------------
 
         //    constructor(parent: IGraphNode) {
@@ -616,7 +616,7 @@ module CoreXT.System.Platform {
         //// =====================================================================================================================================
 
         ///** Represents a row on a table type in Bootstrap. */
-        // export class TableRow extends HTMLNode.$__type {
+        // export class TableRow extends Factory(HTMLNode) {
         //    // -------------------------------------------------------------------------------------------------------------------------------
 
         //    constructor(parent: IGraphNode) {
@@ -637,7 +637,7 @@ module CoreXT.System.Platform {
         //// =====================================================================================================================================
 
         ///** Represents a row on a table type in Bootstrap. */
-        //export class TableColumn extends HTMLNode.$__type {
+        //export class TableColumn extends Factory(HTMLNode) {
         //    // -------------------------------------------------------------------------------------------------------------------------------
 
         //    constructor(parent: IGraphNode) {
@@ -658,7 +658,7 @@ module CoreXT.System.Platform {
         //// =====================================================================================================================================
 
         ///** Represents a row on a table type in Bootstrap. */
-        //export class TableHeader extends HTMLNode.$__type {
+        //export class TableHeader extends Factory(HTMLNode) {
         //    // -------------------------------------------------------------------------------------------------------------------------------
 
         //    constructor(parent: IGraphNode) {

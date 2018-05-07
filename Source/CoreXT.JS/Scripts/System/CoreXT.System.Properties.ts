@@ -33,7 +33,7 @@ namespace CoreXT.System.Platform {
 
     // ========================================================================================================================
 
-    class $PropertyEventBase extends EventObject.$__type {
+    class $PropertyEventBase extends Factory(EventObject) {
         // -------------------------------------------------------------------------------------------------------------------
 
         /** A list of callbacks to execute BEFORE a value changes. */
@@ -163,7 +163,7 @@ namespace CoreXT.System.Platform {
 
     // =======================================================================================================================
 
-    class $StaticProperty extends PropertyEventBase.$__type {
+    class $StaticProperty extends Factory(PropertyEventBase) {
         owner: typeof GraphNode;
 
         /** An internal name for the property.  This will also be the attribute set on the underlying UI element (so a name

@@ -8,7 +8,7 @@ namespace CoreXT.System.Platform {
     export interface IEvents { [index: string]: Events.IEventDispatcher<$GraphNode, (ev: Event) => any>; }
 
     /** A graph item represents a single node on the application graph. */
-    class $GraphNode extends PropertyEventBase.$__type {
+    class $GraphNode extends Factory(PropertyEventBase) {
 
         /** The UI map is week mapping used to associate graph nodes with UI elements. */
         static get uiElementMap() { return this._uiElementMap; }

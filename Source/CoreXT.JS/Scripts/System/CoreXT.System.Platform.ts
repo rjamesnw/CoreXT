@@ -32,7 +32,7 @@ namespace CoreXT.System.Platform {
      * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
      * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
      */
-    class $Context extends Object.$__type {
+    class $Context extends Factory(Object) {
         protected _contextType: Contexts;
         protected _url: string;
 
@@ -78,7 +78,7 @@ namespace CoreXT.System.Platform {
       * logins, private information, etc.
       * Note: While script isolation is the default, trusted scripts can run in the system context, and are thus not secured.
       */
-    class $UIApplication extends Application.$__type {
+    class $UIApplication extends Factory(Application) {
         /** Returns the global context reference for the nested application. Each application gets their own virtual global scope. */
         get global(): typeof global { return null; }
 
