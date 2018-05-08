@@ -2,43 +2,43 @@
 // Application Windows
 // ###########################################################################################################################
 
-namespace Test {
-    interface ITypeInfo<T extends new () => any> {
-        $__type: T;
-        $__factory: any;
-    }
+//namespace Test {
+//    interface ITypeInfo<T extends new () => any> {
+//        $__type: T;
+//        $__factory: any;
+//    }
 
-    function Factory<
-        TFactory extends CoreXT.IType,
-        TClass extends CoreXT.IType
-        >
-        (type: TFactory & { $__type: TClass }): TClass {
-        return <any>type;
-    }
+//    function Factory<
+//        TFactory extends CoreXT.IType,
+//        TClass extends CoreXT.IType
+//        >
+//        (type: TFactory & { $__type: TClass }): TClass {
+//        return <any>type;
+//    }
 
-    function registerClass<TNamespace extends object, TExportProp extends keyof TNamespace, TType extends CoreXT.IType>(ns: TNamespace, type: TType, name?: TExportProp): any {
-        return null;
-    }
+//    function registerClass<TNamespace extends object, TExportProp extends keyof TNamespace, TType extends CoreXT.IType>(ns: TNamespace, type: TType, name?: TExportProp): any {
+//        return null;
+//    }
 
-    class $Test1 {
-        a: number;
-        static T: object = Test1;
-    };
+//    class $Test1 {
+//        a: number;
+//        static T: object = Test1;
+//    };
 
-    export var Test1 = registerClass(Test, $Test1); // (register the Test1 factory un the Test namespace) - make last name optional, assume from private class name.
+//    export var Test1 = registerClass(Test, $Test1); // (register the Test1 factory un the Test namespace) - make last name optional, assume from private class name.
 
-    class $Test2 extends Factory(Test1) {
-        b: number;
-    }
+//    class $Test2 extends Factory(Test1) {
+//        b: number;
+//    }
 
-    export declare var Test2: typeof $Test2 & { init(n: string): $Test2; } & ITypeInfo<typeof $Test2>;
+//    export declare var Test2: typeof $Test2 & { init(n: string): $Test2; } & ITypeInfo<typeof $Test2>;
 
-    class $Test3 extends Factory(Test2) {
-        a: number;
-    }
+//    class $Test3 extends Factory(Test2) {
+//        a: number;
+//    }
 
-    export declare var Test3: typeof $Test3 & { init(n: boolean): $Test3; } & ITypeInfo<typeof $Test3>;
-}
+//    export declare var Test3: typeof $Test3 & { init(n: boolean): $Test3; } & ITypeInfo<typeof $Test3>;
+//}
 
 namespace CoreXT.System.IO {
     // =======================================================================================================================

@@ -40,7 +40,7 @@ namespace CoreXT {
         $__argumentTypes?: (IType<any> | string)[][];
 
         /** The factory type containing the factory methods for creating instances of the underlying type. */
-        $__factory?: IFactory & IRegisteredFactoryType;
+        $__factory?: IFactory & IFactoryInstance;
 
         /** The base factory type of the factory in '$__factory'. This is provided to maintain a factory inheritance chain. */
         $__baseFactoryType?: { new(): IFactory } & ITypeInfo;
@@ -91,18 +91,18 @@ namespace CoreXT {
 
     export interface NewDelegate<TInstance extends object> { (...args: any[]): TInstance }
 
-    export interface InitDelegate<TInstance extends object> { ($this: TInstance, isnew: boolean, ...args: any[]): TInstance }
+    export interface InitDelegate<TInstance extends object> { (o: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
     /** Represents the static properties on a factory type. */
-    export interface IFactoryTypeInfo<TCLass extends new () => NativeTypes.IObject = any, TNew extends NewDelegate<InstanceType<TCLass>> = NewDelegate<InstanceType<TCLass>>, TInit extends InitDelegate<InstanceType<TCLass>> = InitDelegate<InstanceType<TCLass>>> {
-        new(...args: any[]): IFactory;
-        /** The underlying type for this factory object. */
-        $__type: TCLass;
-        /** The underlying instance type for this factory. */
-        $__factory?: IFactory;
-        /** The factory from the inherited base type, or null if this object does not inherit from an object with a factory pattern. */
+    export interface IFactoryTypeInfo<TClass extends IType<object> = IType<object>, TFactory extends IFactory = IFactory> {
+        new(...args: any[]): TFactory;
+        /** The underlying type for this factory type. */
+        $__type: TClass;
+        /** A factory instance created from this factory type which serves as a singleton for creating instances of the underlying 'TClass' type. */
+        $__factory?: TFactory;
+        /** The factory from the inherited base type, or null/undefined if this object does not inherit from an object with a factory pattern. */
         $__baseFactoryType: { new(): IFactory } & ITypeInfo;
-     }
+    }
 
     export interface IFactory<TCLass extends new () => object = any, TNew extends NewDelegate<InstanceType<TCLass>> = NewDelegate<InstanceType<TCLass>>, TInit extends InitDelegate<InstanceType<TCLass>> = InitDelegate<InstanceType<TCLass>>> {
         /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
@@ -126,13 +126,13 @@ namespace CoreXT {
         init?: TInit
     }
 
-    export interface IRegisteredFactoryType<TClass extends IType<object> = IType<object>, TFactory extends { new(): IFactory } = { new(): IFactory }> {
-        /** The instance type to be exported for public use. */
-        $__type: TClass & InstanceType<TFactory> & { $__type: TClass };
-        /** The factory instance containing the methods for creating instances of the underlying type '$__type'. */
-        $__factory?: InstanceType<TFactory>;
-        /** The underlying factory type. */
-        $__factoryType: TFactory;
+    export interface IFactoryInstance<TClass extends IType<object> = IType<object>, TFactory extends { new(): IFactory } = { new(): IFactory }> {
+        /** The underlying type associated with this factory instance. */
+        type: TClass & InstanceType<TFactory> & { $__type: TClass };
+        ///** The factory instance containing the methods for creating instances of the underlying type '$__type'. */
+        //x $__factory?: InstanceType<TFactory>;
+        /** The immediate base factory type to this factory. */
+        super: TFactory;
     }
 
     ///** Represents a static property on a class module. */
