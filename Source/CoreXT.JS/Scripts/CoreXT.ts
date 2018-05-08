@@ -1510,8 +1510,6 @@ namespace CoreXT {
 
         // ====================================================================================================================
 
-        export interface IResourceRequest { }
-
         /** 
          * Creates a new resource request object, which allows loaded resources using a "promise" style pattern (this is a custom
          * implementation designed to work better with the CoreXT system specifically, and to support parallel loading).
@@ -2076,8 +2074,8 @@ namespace CoreXT {
                             if (url === void 0 || url === null) throw "A resource URL is required.";
                             if (type === void 0) throw "The resource type is required.";
 
-                            if (_resourceRequestByURL[url])
-                                return _resourceRequestByURL[url]; // (abandon this new object instance in favor of the one already existing and returned it)
+                            if ((<any>_resourceRequestByURL)[url])
+                                return (<any>_resourceRequestByURL)[url]; // (abandon this new object instance in favor of the one already existing and returned it)
 
                             o.url = url;
                             o.type = type;

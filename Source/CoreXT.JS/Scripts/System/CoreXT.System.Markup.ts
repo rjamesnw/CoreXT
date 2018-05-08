@@ -118,7 +118,7 @@ namespace CoreXT.System {
 
             private html: string;
 
-            protected static '$HTMLReader Factory' = class Factory extends FactoryBase($HTMLReader, $HTMLReader['$Object Factory']) implements IFactory {
+            protected static '$HTMLReader Factory' = class Factory extends FactoryBase($HTMLReader, $HTMLReader['ObjectFactory']) implements IFactory {
                 /**
                  * Create a new HTMLReader instance to parse the given HTML text.
                  * @param html The HTML text to parse.

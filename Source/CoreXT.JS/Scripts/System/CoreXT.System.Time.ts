@@ -330,7 +330,7 @@ namespace CoreXT.System {
 
         //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
 
-        protected static '$TimeSpan Factory' = class Factory extends FactoryBase($TimeSpan, $TimeSpan['$Object Factory']) implements IFactory {
+        protected static '$TimeSpan Factory' = class Factory extends FactoryBase($TimeSpan, $TimeSpan['ObjectFactory']) implements IFactory {
             'new'(timeInMS: number): $TimeSpan;
             'new'(year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan;
             'new'(year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): $TimeSpan { return null; }

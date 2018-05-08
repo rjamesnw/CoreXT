@@ -18,58 +18,50 @@ namespace CoreXT.System.Platform {
     //    Native
     //}
 
-    class $Window extends Factory(Object) {
-        private _guid: string = Utilities.createGUID(false);
-        private _target: any; // (this is either a DIV element [for system windows], IFrame element, or native popup Window reference)
-        private _header: HTMLElement; // (the HTML-style header contents for this window)
-        private _body: HTMLElement; // (the body content to display)
-        private _url: string;
+    export var Window = ClassFactory(Platform, Object,
+        (base) => {
+            class Window extends base {
+                private _guid: string = Utilities.createGUID(false);
+                private _target: any; // (this is either a DIV element [for system windows], IFrame element, or native pop-up Window reference)
+                private _header: HTMLElement; // (the HTML-style header contents for this window)
+                private _body: HTMLElement; // (the body content to display)
+                private _url: string;
 
-        // ----------------------------------------------------------------------------------------------------------------
+                // ----------------------------------------------------------------------------------------------------------------
 
-        static '$Window new'(rootElement?: HTMLElement, url?: string): $Window { return null; }
+                protected static 'WindowFactory' = class Factory extends FactoryBase(Window, Window['ObjectFactory']) {
+                    /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
+                    'new'(rootElement?: HTMLElement, url?: string): Window { return null; }
 
-        '$Window init'(isnew: boolean, rootElement?: HTMLElement, url?: string): $Window {
-            super[''](this, isnew);
-            if (typeof rootElement !== 'object' || !rootElement.style) rootElement = null;
-            if (rootElement != null) rootElement.style.display = "none";
-            this._target = rootElement;
-            this._url = url;
-            return this;
-        }
+                    init(o: Window, isnew: boolean, rootElement?: HTMLElement, url?: string) {
+                        this.super.init(o, isnew);
+                        if (typeof rootElement !== 'object' || !rootElement.style) rootElement = null;
+                        if (rootElement != null) rootElement.style.display = "none";
+                        o._target = rootElement;
+                        o._url = url;
+                        return o;
+                    }
+                };
 
-        protected static '$Window Factory' = class Factory extends FactoryBase($Window, $Window['$Object Factory']) implements IFactory {
-            /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
-            'new'(rootElement?: HTMLElement, url?: string): $Window { return null; }
+                // ----------------------------------------------------------------------------------------------------------------
 
-            init($this: $Window, isnew: boolean, rootElement?: HTMLElement, url?: string): $Window {
-                this.$__baseFactory.init($this, isnew);
-                if (typeof rootElement !== 'object' || !rootElement.style) rootElement = null;
-                if (rootElement != null) rootElement.style.display = "none";
-                $this._target = rootElement;
-                $this._url = url;
-                return $this;
+                show() {
+                    if (!this._target)
+                        this._target = window.open(this._url, this._guid);
+                }
+
+                // ----------------------------------------------------------------------------------------------------------------
+
+                public moveTo(x: number, y: number) { }
+                public moveby(deltaX: number, deltaY: number) { }
+
+                // ----------------------------------------------------------------------------------------------------------------
             }
-        }.register(Platform);
-
-        // ----------------------------------------------------------------------------------------------------------------
-
-        show() {
-            if (!this._target)
-                this._target = window.open(this._url, this._guid);
-        }
-
-        // ----------------------------------------------------------------------------------------------------------------
-
-        public moveTo(x: number, y: number) { }
-        public moveby(deltaX: number, deltaY: number) { }
-
-        // ----------------------------------------------------------------------------------------------------------------
-    }
-
-    export interface IWindow extends $Window { }
-
-    export var Window = $Window['$Window Factory'].$__type;
+            return [Window, Window["WindowFactory"]];
+        },
+        "Window"
+    );
+    export interface IWindow extends InstanceType<typeof Window> { }
 
     // ====================================================================================================================
 }

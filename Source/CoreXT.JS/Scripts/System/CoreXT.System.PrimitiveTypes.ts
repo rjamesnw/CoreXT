@@ -114,18 +114,18 @@ namespace CoreXT {
 
                     protected static readonly 'ObjectFactory' = class Factory extends FactoryBase(Object, null) {
                         /**
-                         * Create a new basic object type.
-                         * @param value If specified, the value will be wrapped in the created object.
-                         * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
-                         */
+                             * Create a new basic object type.
+                             * @param value If specified, the value will be wrapped in the created object.
+                             * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
+                             */
                         'new'(value?: any, makeValuePrivate: boolean = false): InstanceType<typeof Factory.$__type> {
                             return Types.__new.call(this, value, makeValuePrivate);
                         }
 
                         //? /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
                         /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
-                          * constructor function to get new instances, and 'dispose()' to release them when done.
-                          */
+                             * constructor function to get new instances, and 'dispose()' to release them when done.
+                             */
                         init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any, makePrivate: boolean = false) {
                             if (!isnew)
                                 o.$__reset();
@@ -155,7 +155,8 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
                 }
                 return [Object, Object["ObjectFactory"]];
-            }
+            },
+            "Object"
         );
 
         export interface IObject extends InstanceType<typeof Object> { }
@@ -283,7 +284,7 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
                     // This part uses the CoreXT factory pattern
 
-                    protected static 'StringFactory' = class Factory extends FactoryBase(String, null) {
+                    protected static readonly 'StringFactory' = class Factory extends FactoryBase(String, null) {
                         /** Returns a new string object instance. */
                         'new'(value?: any): InstanceType<typeof Factory.$__type> { return null; }
 
@@ -308,7 +309,8 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
                 }
                 return [String, String["StringFactory"]];
-            }
+            },
+            "String"
         );
 
         export interface IString extends InstanceType<typeof String> { }
@@ -320,7 +322,7 @@ namespace CoreXT {
         * manually setting an array item by index past the end will not modify the length property (this may changed as
         * new features are introduce in future EcmaScript versions [such as 'Object.observe()' in ES7]).
         */
-        export var Array = ClassFactory(Scripts, void 0,
+        export var Array = ClassFactory(System, void 0,
             (base) => {
                 class Array<T> extends global.Array<T> {
                     [index: number]: T;
@@ -328,7 +330,7 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
                     /* ------ This part uses the CoreXT factory pattern ------ */
 
-                    protected static readonly 'ArrayFactory' = class Factory extends FactoryBase(Array, null) implements IFactory {
+                    protected static readonly 'ArrayFactory' = class Factory extends FactoryBase(Array, null) {
                         $Type = Array;
                         $BaseFactory = <IFactory>null;
 
@@ -363,7 +365,8 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
                 }
                 return [Array, Array["ArrayFactory"]];
-            }
+            },
+            "Array"
         );
 
         export interface IArray extends InstanceType<typeof Array.$__type> { }

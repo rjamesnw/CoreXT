@@ -106,7 +106,7 @@ namespace CoreXT {
                 @sealed
                 class Manifest extends base {
                     // ----------------------------------------------------------------------------------------------------------------
-
+                    
                     protected static readonly ManifestFactory = class Factory extends FactoryBase(ScriptResource, ScriptResource["ScriptResourceFactory"]) {
                         /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
                         'new'(url: string): Manifest { return null; }
@@ -121,10 +121,11 @@ namespace CoreXT {
                     // ----------------------------------------------------------------------------------------------------------------
                 }
                 return [Manifest, Manifest["ManifestFactory"]];
-            }
+            },
+            "Manifest"
         );
-        export interface IManifest extends InstanceType<typeof Manifest.$__type> { }
-
+        export interface IManifest extends InstanceType<typeof Manifest> { }
+        
         // ====================================================================================================================
 
         var _manifests: IManifest[] = []; // (holds a list of all 
@@ -328,7 +329,8 @@ namespace CoreXT {
                     // ----------------------------------------------------------------------------------------------------------------
                 }
                 return [Module, Module["ModuleFactory"]];
-            }
+            },
+            "Module"
         );
         export interface IModule extends InstanceType<typeof Module.$__type> { }
 
