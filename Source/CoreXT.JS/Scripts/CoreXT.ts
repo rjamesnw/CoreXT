@@ -1586,7 +1586,7 @@ namespace CoreXT {
                     /** The requested resource URL. */
                     url: string;
                     /** The requested resource type (to match against the server returned MIME type for data type verification). */
-                    type: ResourceTypes;
+                    type: ResourceTypes | string;
 
                     /** The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
                       * developers should be able to use it if necessary to further configure the request for advanced reasons.
