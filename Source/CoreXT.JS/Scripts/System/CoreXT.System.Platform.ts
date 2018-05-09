@@ -40,15 +40,15 @@ namespace CoreXT.System.Platform {
 
                 // ----------------------------------------------------------------------------------------------------------------
 
-                protected static 'ContextFactory' = function () {
-                    var factoryType = class Factory extends FactoryBase(Context, Context['ObjectFactory']) {
+                protected static readonly 'ContextFactory' = function () {
+                    var factoryType = class Factory extends FactoryBase(Context, base['ObjectFactory']) {
 
                         //? static 'new'?(context: Contexts = Contexts.Secure): typeof _InstanceType { throw Exception.from("You cannot create instances of the abstract Context class.", this); }
 
-                        init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, context: Contexts = Contexts.Secure): InstanceType<typeof Factory.$__type> {
-                            this.super.init($this, isnew);
-                            $this._contextType = context;
-                            return $this;
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, context: Contexts = Contexts.Secure) {
+                            this.super.init(o, isnew);
+                            o._contextType = context;
+                            return o;
                         }
                     };
                     factoryType['new'] = (context: Contexts = Contexts.Secure): InstanceType<typeof factoryType.$__type> => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
@@ -96,12 +96,12 @@ namespace CoreXT.System.Platform {
 
                 // -------------------------------------------------------------------------------------------------------------------
 
-                protected static readonly '$UIApplication Factory' = class Factory extends FactoryBase(UIApplication, UIApplication['ApplicationFactory']) {
+                protected static readonly '$UIApplication Factory' = class Factory extends FactoryBase(UIApplication, base['ApplicationFactory']) {
                     'new'(title: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number): InstanceType<typeof Factory.$__type> {
-                        this.super.init($this, isnew, title, description, appID);
-                        return $this;
+                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number) {
+                        this.super.init(o, isnew, title, description, appID);
+                        return o;
                     }
                 };
 

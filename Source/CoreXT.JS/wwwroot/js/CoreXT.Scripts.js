@@ -84,7 +84,7 @@ var CoreXT;
                         return o;
                     };
                     return Factory;
-                }(CoreXT.FactoryBase(Scripts.ScriptResource, Scripts.ScriptResource["ScriptResourceFactory"])));
+                }(CoreXT.FactoryBase(Scripts.ScriptResource, base["ScriptResourceFactory"])));
                 Manifest = __decorate([
                     CoreXT.sealed
                 ], Manifest);
@@ -222,7 +222,7 @@ var CoreXT;
                         return o;
                     };
                     return Factory;
-                }(CoreXT.FactoryBase(Module, Module['ScriptResourceFactory'])));
+                }(CoreXT.FactoryBase(Module, base['ScriptResourceFactory'])));
                 return Module;
             }(base));
             return [Module, Module["ModuleFactory"]];

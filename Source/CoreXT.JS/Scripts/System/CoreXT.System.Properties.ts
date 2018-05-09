@@ -184,7 +184,7 @@ namespace CoreXT.System.Platform {
                 // -------------------------------------------------------------------------------------------------------------------
                 // This part uses the CoreXT factory pattern
 
-                protected static readonly 'StaticPropertyFactory' = class Factory extends FactoryBase(StaticProperty, StaticProperty['PropertyEventBaseFactory']) {
+                protected static readonly 'StaticPropertyFactory' = class Factory extends FactoryBase(StaticProperty, base['PropertyEventBaseFactory']) {
                     /**
                        * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
                        * layout that can render a view, or partial view.
@@ -192,11 +192,11 @@ namespace CoreXT.System.Platform {
                        */
                     'new'(name: string, isVisual: boolean): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, name: string, isVisual: boolean): InstanceType<typeof Factory.$__type> {
-                        this.super.init($this, isnew);
-                        $this.name = name;
-                        $this.isVisual = isVisual;
-                        return $this;
+                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, name: string, isVisual: boolean) {
+                        this.super.init(o, isnew);
+                        o.name = name;
+                        o.isVisual = isVisual;
+                        return o;
                     }
                 };
 
@@ -241,7 +241,7 @@ namespace CoreXT.System.Platform {
 
                 // --------------------------------------------------------------------------------------------------------------------------
 
-                protected static readonly PropertyFactory = class Factory extends FactoryBase(Property, Property["PropertyEventBaseFactory"]) {
+                protected static readonly PropertyFactory = class Factory extends FactoryBase(Property, base["PropertyEventBaseFactory"]) {
                     'new'(owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any): InstanceType<typeof Factory.$__type> { return null; }
 
                     init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any) {

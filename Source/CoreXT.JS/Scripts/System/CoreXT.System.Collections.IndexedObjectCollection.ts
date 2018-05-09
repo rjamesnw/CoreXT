@@ -111,7 +111,7 @@ namespace CoreXT.System.Collections {
 
                 // --------------------------------------------------------------------------------------------------------------------------
 
-                protected static readonly 'IndexedObjectCollectionFactory' = class Factory extends FactoryBase(IndexedObjectCollection, IndexedObjectCollection['ArrayFactory']) implements IFactory {
+                protected static readonly 'IndexedObjectCollectionFactory' = class Factory extends FactoryBase(IndexedObjectCollection, base['ArrayFactory']) implements IFactory {
                     /** @param {TObject[]} objects Initial objects to add to the collection. */
                     'new'<TObject extends object>(...objects: TObject[]): IndexedObjectCollection<TObject> { return null; }
 

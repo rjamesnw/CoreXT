@@ -12,6 +12,7 @@ var CoreXT;
 (function (CoreXT) {
     var System;
     (function (System) {
+        CoreXT.registerNamespace("CoreXT", "System");
         ;
         System.Delegate = CoreXT.ClassFactory(System, System.Object, function (base) {
             var Delegate = (function (_super) {
@@ -154,7 +155,7 @@ var CoreXT;
                             return o;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(Delegate, Delegate['ObjectFactory'])));
+                    }(CoreXT.FactoryBase(Delegate, base['ObjectFactory'])));
                 }();
                 return Delegate;
             }(base));

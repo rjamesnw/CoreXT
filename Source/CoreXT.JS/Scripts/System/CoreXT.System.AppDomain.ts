@@ -235,20 +235,20 @@ namespace CoreXT {
 
                     // -------------------------------------------------------------------------------------------------------------------------------
 
-                    protected static 'AppDomainFactory' = class Factory extends FactoryBase(AppDomain, AppDomain['ObjectFactory']) implements IFactory {
+                    protected static readonly 'AppDomainFactory' = class Factory extends FactoryBase(AppDomain, base['ObjectFactory']) implements IFactory {
                         /** Get a new app domain instance.
                             * @param application An optional application to add to the new domain.
                             */
                         'new'(application?: IApplication): InstanceType<typeof Factory.$__type> { return null; }
 
                         /** Constructs an application domain for the specific application instance. */
-                        init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, application?: IApplication) {
-                            this.super.init($this, isnew);
-                            (<IDomainObjectInfo><any>$this).$__appDomain = $this;
-                            $this.applications = typeof application == 'object' ? [application] : [];
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, application?: IApplication) {
+                            this.super.init(o, isnew);
+                            (<IDomainObjectInfo><any>o).$__appDomain = o;
+                            o.applications = typeof application == 'object' ? [application] : [];
                             //? if (global.Object.freeze)
                             //?    global.Object.freeze($this); // (properties cannot be modified once set)
-                            return $this;
+                            return o;
                         }
                     };
 
@@ -338,16 +338,16 @@ namespace CoreXT {
 
                     // -------------------------------------------------------------------------------------------------------------------------------
 
-                    protected static 'ApplicationFactory' = class Factory extends FactoryBase(Application, Application['ObjectFactory']) implements IFactory {
+                    protected static readonly 'ApplicationFactory' = class Factory extends FactoryBase(Application, base['ObjectFactory']) implements IFactory {
                         'new'(title: string, description: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number): InstanceType<typeof Factory.$__type> {
-                            this.super.init($this, isnew);
-                            (<IDomainObjectInfo><any>$this).$__app = $this;
-                            $this._title = title;
-                            $this._description = description;
-                            $this._appID = appID;
-                            return $this;
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number) {
+                            this.super.init(o, isnew);
+                            (<IDomainObjectInfo><any>o).$__app = o;
+                            o._title = title;
+                            o._description = description;
+                            o._appID = appID;
+                            return o;
                         }
                     };
 

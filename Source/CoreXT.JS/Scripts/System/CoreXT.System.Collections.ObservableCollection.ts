@@ -27,7 +27,7 @@ namespace CoreXT.System.Collections {
 
                 // --------------------------------------------------------------------------------------------------------------------------
 
-                protected static readonly 'ObservableCollectionFactory' = class Factory extends FactoryBase(ObservableCollection, ObservableCollection['ArrayFactory']) {
+                protected static readonly 'ObservableCollectionFactory' = class Factory extends FactoryBase(ObservableCollection, base['ArrayFactory']) {
                     'new'<TOwner extends object, T>(...items: T[]): ObservableCollection<TOwner, T> { return null; }
 
                     init<TOwner extends object, T>(o: ObservableCollection<TOwner, T>, isnew: boolean, ...items: T[]): ObservableCollection<TOwner, T> {

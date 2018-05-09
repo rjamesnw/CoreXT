@@ -8,6 +8,7 @@ namespace CoreXT.System {
      * Contains types and functions to deal with HTML markup textual data.
      */
     export namespace Markup {
+    registerNamespace("CoreXT", "System", "Markup");
         // ========================================================================================================================
 
         export enum HTMLReaderModes {
@@ -120,20 +121,20 @@ namespace CoreXT.System {
 
                     private html: string;
 
-                    protected static readonly 'HTMLReaderFactory' = class Factory extends FactoryBase(HTMLReader, HTMLReader['ObjectFactory']) {
+                    protected static readonly 'HTMLReaderFactory' = class Factory extends FactoryBase(HTMLReader, base['ObjectFactory']) {
                         /**
                              * Create a new HTMLReader instance to parse the given HTML text.
                              * @param html The HTML text to parse.
                              */
                         'new'(html: string): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, html: string): InstanceType<typeof Factory.$__type> {
-                            this.super.init($this, isnew);
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, html: string){
+                            this.super.init(o, isnew);
                             // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
-                            $this.html = html;
-                            $this.delimiters = html.match(HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
-                            $this.nonDelimiters = (<any>$this.html).split(HTMLReader.__splitRegEx, void 0, $this.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
-                            return $this;
+                            o.html = html;
+                            o.delimiters = html.match(HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
+                            o.nonDelimiters = (<any>o.html).split(HTMLReader.__splitRegEx, void 0, o.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
+                            return o;
                         }
                     };
 

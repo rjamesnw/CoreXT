@@ -3,6 +3,7 @@
 // ###########################################################################################################################
 
 namespace CoreXT.System {
+    registerNamespace("CoreXT", "System");
     // =======================================================================================================================
 
     export interface DelegateFunction<TObj extends object> { (...args: any[]): any };
@@ -207,7 +208,7 @@ namespace CoreXT.System {
 
                 protected static readonly 'DelegateFactory' = function () {
                     type Instance<TObj extends object, TFunc extends DelegateFunction<object>> = Delegate<TObj, TFunc>;
-                    return class Factory extends FactoryBase(Delegate, Delegate['ObjectFactory']) {
+                    return class Factory extends FactoryBase(Delegate, base['ObjectFactory']) {
                         /**
                           * Constructs a new Delegate object.
                           * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.

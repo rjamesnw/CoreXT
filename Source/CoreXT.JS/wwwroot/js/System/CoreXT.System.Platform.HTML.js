@@ -93,7 +93,7 @@ var CoreXT;
                                 return o;
                             };
                             return Factory;
-                        }(CoreXT.FactoryBase(BrowserContext, BrowserContext['ContextFactory'])));
+                        }(CoreXT.FactoryBase(BrowserContext, base['ContextFactory'])));
                         return BrowserContext;
                     }(base));
                     return [BrowserContext, BrowserContext["BrowserContextFactory"]];

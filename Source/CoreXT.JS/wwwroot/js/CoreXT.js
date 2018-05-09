@@ -151,7 +151,7 @@ var CoreXT;
                     else
                         throw new Error(compositeMessage);
             }
-            if (System.Diagnostics)
+            if (System.Diagnostics && System.Diagnostics.log)
                 System.Diagnostics.log(title, message, type, false);
         }
         else if (throwOnError && type == LogTypes.Error)
@@ -165,70 +165,6 @@ var CoreXT;
         return log(title, message, LogTypes.Error, source, throwException, useLogger);
     }
     CoreXT.error = error;
-    CoreXT.BaseURI = (function () { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/')
-        u += '/'; return u; })();
-    log("Base URI", CoreXT.BaseURI);
-    function getErrorCallStack(errorSource) {
-        var _e = errorSource;
-        if (_e.stacktrace && _e.stack)
-            return _e.stacktrace.split(/\n/g);
-        var callstack = [];
-        var isCallstackPopulated = false;
-        var stack = _e.stack || _e.message;
-        if (stack) {
-            var lines = stack.split(/\n/g);
-            if (lines.length) {
-                for (var i = 0, len = lines.length; i < len; ++i)
-                    if (/.*?:\d+:\d+/.test(lines[i]))
-                        callstack.push(lines[i]);
-                if (lines.length && !callstack.length)
-                    callstack.push.apply(callstack, lines);
-                isCallstackPopulated = true;
-            }
-        }
-        if (!isCallstackPopulated && arguments.callee) {
-            var currentFunction = arguments.callee.caller;
-            while (currentFunction) {
-                var fn = currentFunction.toString();
-                var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
-                callstack.push(fname);
-                currentFunction = currentFunction.caller;
-            }
-        }
-        return callstack;
-    }
-    CoreXT.getErrorCallStack = getErrorCallStack;
-    function getErrorMessage(errorSource) {
-        if (typeof errorSource == 'string')
-            return errorSource;
-        else if (typeof errorSource == 'object') {
-            if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem) {
-                return errorSource.toString();
-            }
-            else if ('message' in errorSource) {
-                var error = errorSource;
-                var msg = error.message;
-                if (error.lineno !== undefined)
-                    error.lineNumber = error.lineno;
-                if (error.lineNumber !== undefined) {
-                    msg += "\r\non line " + error.lineNumber + ", column " + error.columnNumber;
-                    if (error.fileName !== undefined)
-                        msg += ", of file '" + error.fileName + "'";
-                }
-                else if (error.fileName !== undefined)
-                    msg += "\r\nin file '" + error.fileName + "'";
-                var stack = getErrorCallStack(error);
-                if (stack && stack.length)
-                    msg += "\r\nStack trace:\r\n" + stack.join("\r\n") + "\r\n";
-                return msg;
-            }
-            else
-                return '' + errorSource;
-        }
-        else
-            return '' + errorSource;
-    }
-    CoreXT.getErrorMessage = getErrorMessage;
     CoreXT.FUNC_NAME_REGEX = /^function\s*(\S+)\s*\(/i;
     function getFunctionName(func) {
         var name = func.$__name || func['name'];
@@ -321,6 +257,198 @@ var CoreXT;
         };
     }
     CoreXT.$ = $;
+    var Types;
+    (function (Types) {
+        function getRoot(type) {
+            var _type = type.$__fullname ? type : type['constructor'];
+            if (_type.$__parent)
+                return getRoot(_type.$__parent);
+            return _type;
+        }
+        Types.getRoot = getRoot;
+        Types.__types = {};
+        Types.__disposedObjects = {};
+        function __new() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            var bridge = this;
+            var type = this;
+            if (this !== void 0 && isEmpty(this) || typeof this != 'function')
+                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the 'SomeType.new()' factory *function* without the 'new' operator.", this);
+            var appDomain = bridge.$__appDomain || System.AppDomain.default;
+            var instance;
+            var isNew = false;
+            var fullTypeName = type.$__fullname;
+            var objectPool = fullTypeName && Types.__disposedObjects[fullTypeName];
+            if (!objectPool && objectPool.length)
+                instance = objectPool.pop();
+            else {
+                instance = new type();
+                isNew = true;
+            }
+            if (typeof instance.init == 'function')
+                (_a = System.Delegate).fastCall.apply(_a, __spread([instance.init, instance, isNew], arguments));
+            return instance;
+            var _a;
+        }
+        Types.__new = __new;
+        function __registerFactoryType(cls, factoryType, namespace, addMemberTypeInfo, exportName) {
+            if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
+            if (typeof factoryType !== 'function')
+                error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType);
+            var classType = cls;
+            if (typeof classType !== 'function')
+                error("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", classType);
+            var _exportName = exportName || getTypeName(cls);
+            if (_exportName.charAt(0) == '$')
+                _exportName = _exportName.substr(1);
+            namespace[_exportName] = cls;
+            classType.$__type = classType;
+            classType.$__factoryType = factoryType;
+            var _factoryInstance = new factoryType();
+            factoryType.$__factory = _factoryInstance;
+            classType.$__factory = _factoryInstance;
+            frozen(factoryType);
+            frozen(_factoryInstance);
+            if (!Object.prototype.hasOwnProperty.call(classType.prototype, "init"))
+                if (_factoryInstance.init && typeof _factoryInstance.init == 'function')
+                    classType.prototype.init = _factoryInstance.init;
+                else if (!classType.prototype.init || typeof classType.prototype.init != 'function')
+                    classType.prototype.init = noop;
+            if (!Object.prototype.hasOwnProperty.call(classType, "new"))
+                if (_factoryInstance.new && typeof _factoryInstance.new == 'function')
+                    classType.new = function _firstTimeNewTest() {
+                        var result = (_a = _factoryInstance.new).call.apply(_a, __spread([this], arguments));
+                        if (result && typeof result == 'object') {
+                            classType.new = _factoryInstance.new;
+                            return result;
+                        }
+                        else {
+                            _factoryInstance.new = classType.new = __new;
+                            return (_b = _factoryInstance.new).call.apply(_b, __spread([this], arguments));
+                        }
+                        var _a, _b;
+                    };
+                else if (!classType.new || typeof classType.new != 'function')
+                    classType.new = function () {
+                        throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(_factoryInstance, false) + "'. This exists on the DomainObject base type, and is required.";
+                    };
+            for (var p in _factoryInstance)
+                if (_factoryInstance.hasOwnProperty(p) && !classType.hasOwnProperty(p))
+                    classType[p] = _factoryInstance[p];
+            __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
+            return _factoryInstance;
+        }
+        Types.__registerFactoryType = __registerFactoryType;
+        function __registerType(type, namespace, addMemberTypeInfo, exportName) {
+            if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
+            var _namespace = namespace;
+            if (_namespace.$__fullname === void 0)
+                error("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", type);
+            var _type = __registerNamespace(namespace, exportName || getTypeName(type));
+            if (addMemberTypeInfo) {
+                var prototype = type['prototype'], func;
+                for (var pname in prototype) {
+                    func = prototype[pname];
+                    if (typeof func == 'function') {
+                        func.$__argumentTypes = [];
+                        func.$__fullname = _type.$__fullname + ".prototype." + pname;
+                        func.$__name = pname;
+                        func.$__parent = _type;
+                        if (!func.name)
+                            func.name = pname;
+                    }
+                }
+            }
+            Types.__types[_type.$__fullname] = _type;
+            return type;
+        }
+        Types.__registerType = __registerType;
+        function __registerNamespace(root) {
+            var namespaces = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                namespaces[_i - 1] = arguments[_i];
+            }
+            function exception(msg) {
+                return error("Types.__registerNamespace(" + rootTypeName + ", " + namespaces.join() + ")", "The namespace/type name '" + nsOrTypeName + "' " + msg + "."
+                    + " Please double check you have the correct namespace/type names.", root);
+            }
+            if (!root)
+                root = CoreXT.global;
+            var rootTypeName = getTypeName(root);
+            var nsOrTypeName = rootTypeName;
+            log("Registering namespace for root '" + rootTypeName + "'", namespaces.join());
+            var currentNamespace = root;
+            var fullname = root.$__fullname || "";
+            if (root != CoreXT.global && !fullname)
+                exception("has not been registered in the type system. Make sure to call 'registerNamespace()' at the top of namespace scopes before defining classes.");
+            for (var i = 0, n = namespaces.length; i < n; ++i) {
+                nsOrTypeName = namespaces[i];
+                var trimmedName = nsOrTypeName.trim();
+                if (trimmedName.charAt(0) == '$')
+                    trimmedName = trimmedName.substr(1);
+                if (!nsOrTypeName || !trimmedName)
+                    exception("is not a valid namespace name. A namespace must not be empty or only whitespace");
+                nsOrTypeName = trimmedName;
+                if (root == CoreXT && nsOrTypeName == "CoreXT")
+                    exception("is not valid - 'CoreXT' must not exist as a nested name under CoreXT");
+                var subNS = currentNamespace[nsOrTypeName];
+                if (!subNS)
+                    exception("cannot be found under namespace '" + currentNamespace.$__fullname + "'");
+                fullname = fullname ? fullname + "." + nsOrTypeName : nsOrTypeName;
+                subNS.$__parent = currentNamespace;
+                subNS.$__name = nsOrTypeName;
+                subNS.$__fullname = fullname;
+                (currentNamespace.$__namespaces || (currentNamespace.$__namespaces = [])).push(subNS);
+                currentNamespace = subNS;
+            }
+            log("Registered namespace for root '" + rootTypeName + "'", fullname, LogTypes.Info);
+            return currentNamespace;
+        }
+        Types.__registerNamespace = __registerNamespace;
+        function dispose(object, release) {
+            if (release === void 0) { release = true; }
+            var _object = object;
+            if (_object !== void 0) {
+                if (_object.dispose != noop) {
+                    _object.dispose = noop;
+                    dispose(_object, release);
+                }
+                var appDomain = _object.$__appDomain;
+                if (appDomain) {
+                    _object.dispose = noop;
+                    appDomain.dispose(_object);
+                }
+                CoreXT.Utilities.erase(this, release);
+                if (!release)
+                    _object.$__appDomain = this;
+                else {
+                    var type = _object.constructor;
+                    if (!type.$__fullname)
+                        error("dispose()", "The object type is not registered.  Please see one of the AppDomain 'registerClass()/registerType()' functions for more details.", object);
+                    var funcList = Types.__disposedObjects[type.$__fullname];
+                    if (!funcList)
+                        Types.__disposedObjects[type.$__fullname] = funcList = [];
+                    funcList.push(_object);
+                }
+            }
+            else {
+                for (var i = this._applications.length - 1; i >= 0; --i)
+                    dispose(this._applications[i]);
+                this._applications.length = 0;
+                for (var i = this._windows.length - 1; i >= 0; --i)
+                    dispose(this._windows[i]);
+                this._windows.length = 0;
+            }
+            for (var i = this._windows.length - 1; i >= 0; --i)
+                if (this._windows[i].target != CoreXT.global)
+                    this._windows[i].close();
+            CoreXT.global.close();
+        }
+        Types.dispose = dispose;
+    })(Types = CoreXT.Types || (CoreXT.Types = {}));
     function ClassFactory(namespace, base, getType, exportName, addMemberTypeInfo) {
         if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
         function _error(msg) {
@@ -378,335 +506,9 @@ var CoreXT;
         Types.__registerNamespace.apply(Types, __spread([root], CoreXT.global.Array.prototype.slice.call(arguments, 0, lastIndex)));
     }
     CoreXT.registerNamespace = registerNamespace;
-    var Types;
-    (function (Types) {
-        function getRoot(type) {
-            var _type = type.$__fullname ? type : type['constructor'];
-            if (_type.$__parent)
-                return getRoot(_type.$__parent);
-            return _type;
-        }
-        Types.getRoot = getRoot;
-        Types.__types = {};
-        Types.__disposedObjects = {};
-        function __new() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            var bridge = this;
-            var type = this;
-            if (this !== void 0 && isEmpty(this) || typeof this != 'function')
-                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the 'SomeType.new()' factory *function* without the 'new' operator.", this);
-            var appDomain = bridge.$__appDomain || System.AppDomain.default;
-            var instance;
-            var isNew = false;
-            var fullTypeName = type.$__fullname;
-            var objectPool = fullTypeName && Types.__disposedObjects[fullTypeName];
-            if (!objectPool && objectPool.length)
-                instance = objectPool.pop();
-            else {
-                instance = new type();
-                isNew = true;
-            }
-            if (typeof instance.init == 'function')
-                (_a = System.Delegate).fastCall.apply(_a, __spread([instance.init, instance, isNew], arguments));
-            return instance;
-            var _a;
-        }
-        Types.__new = __new;
-        function __registerFactoryType(cls, factoryType, namespace, addMemberTypeInfo, exportName) {
-            if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
-            if (typeof factoryType !== 'function')
-                log("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", LogTypes.Error, classType);
-            var classType = cls;
-            if (typeof classType !== 'function')
-                log("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", LogTypes.Error, classType);
-            var _exportName = exportName || getTypeName(cls);
-            if (_exportName.charAt(0) == '$')
-                _exportName = _exportName.substr(1);
-            namespace[_exportName] = cls;
-            classType.$__type = classType;
-            classType.$__factoryType = factoryType;
-            var _factoryInstance = new factoryType();
-            factoryType.$__factory = _factoryInstance;
-            classType.$__factory = _factoryInstance;
-            frozen(factoryType);
-            frozen(_factoryInstance);
-            if (!Object.prototype.hasOwnProperty.call(classType.prototype, "init"))
-                if (_factoryInstance.init && typeof _factoryInstance.init == 'function')
-                    classType.prototype.init = _factoryInstance.init;
-                else if (!classType.prototype.init || typeof classType.prototype.init != 'function')
-                    classType.prototype.init = noop;
-            if (!Object.prototype.hasOwnProperty.call(classType, "new"))
-                if (_factoryInstance.new && typeof _factoryInstance.new == 'function')
-                    classType.new = function _firstTimeNewTest() {
-                        var result = (_a = _factoryInstance.new).call.apply(_a, __spread([this], arguments));
-                        if (result && typeof result == 'object') {
-                            classType.new = _factoryInstance.new;
-                            return result;
-                        }
-                        else {
-                            _factoryInstance.new = classType.new = __new;
-                            return (_b = _factoryInstance.new).call.apply(_b, __spread([this], arguments));
-                        }
-                        var _a, _b;
-                    };
-                else if (!classType.new || typeof classType.new != 'function')
-                    classType.new = function () {
-                        throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(_factoryInstance, false) + "'. This exists on the DomainObject base type, and is required.";
-                    };
-            for (var p in _factoryInstance)
-                if (_factoryInstance.hasOwnProperty(p) && !classType.hasOwnProperty(p))
-                    classType[p] = _factoryInstance[p];
-            __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
-            return _factoryInstance;
-        }
-        Types.__registerFactoryType = __registerFactoryType;
-        function __registerType(type, namespace, addMemberTypeInfo, exportName) {
-            if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
-            var _namespace = namespace;
-            if (_namespace.$__fullname === void 0)
-                log("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", LogTypes.Error, type);
-            var _type = __registerNamespace(namespace, exportName || getTypeName(type));
-            if (addMemberTypeInfo) {
-                var prototype = type['prototype'], func;
-                for (var pname in prototype) {
-                    func = prototype[pname];
-                    if (typeof func == 'function')
-                        __registerNamespace(type, pname);
-                }
-            }
-            Types.__types[_type.$__fullname] = _type;
-            return type;
-        }
-        Types.__registerType = __registerType;
-        function __registerNamespace(root) {
-            var namespaces = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                namespaces[_i - 1] = arguments[_i];
-            }
-            function exception(msg) {
-                return log("Types.__registerNamespace(" + rootTypeName + ", " + namespaces.join() + ")", "The namespace/type name '" + nsOrTypeName + "' " + msg + "."
-                    + " Please double check you have the correct namespace/type names.", LogTypes.Error, root);
-            }
-            if (!root)
-                root = CoreXT.global;
-            var rootTypeName = getTypeName(root);
-            var nsOrTypeName = rootTypeName;
-            log("Registering namespace for root '" + rootTypeName + "'", namespaces.join());
-            var currentNamespace = root;
-            var fullname = root.$__fullname || "";
-            if (root == CoreXT.global && !fullname)
-                exception("has not been registered in the type system. Make sure to call 'registerNamespace()' at the top of namespace scopes before defining classes.");
-            for (var i = 0, n = namespaces.length; i < n; ++i) {
-                nsOrTypeName = namespaces[i];
-                var trimmedName = nsOrTypeName.trim();
-                if (trimmedName.charAt(0) == '$')
-                    trimmedName = trimmedName.substr(1);
-                if (!nsOrTypeName || !trimmedName)
-                    exception("is not a valid namespace name. A namespace must not be empty or only whitespace");
-                nsOrTypeName = trimmedName;
-                if (root == CoreXT && nsOrTypeName == "CoreXT")
-                    exception("is not valid - 'CoreXT' must not exist as a nested name under CoreXT");
-                var subNS = currentNamespace[nsOrTypeName];
-                if (!subNS)
-                    exception("cannot be found under namespace '" + currentNamespace.$__fullname + "'");
-                fullname = fullname ? fullname + "." + nsOrTypeName : nsOrTypeName;
-                subNS.$__parent = currentNamespace;
-                subNS.$__name = nsOrTypeName;
-                subNS.$__fullname = fullname;
-                (currentNamespace.$__namespaces || (currentNamespace.$__namespaces = [])).push(subNS);
-                currentNamespace = subNS;
-            }
-            log("Registered namespace for root '" + rootTypeName + "'", fullname, LogTypes.Info);
-            return currentNamespace;
-        }
-        Types.__registerNamespace = __registerNamespace;
-        function dispose(object, release) {
-            if (release === void 0) { release = true; }
-            var _object = object;
-            if (_object !== void 0) {
-                if (_object.dispose != noop) {
-                    _object.dispose = noop;
-                    dispose(_object, release);
-                }
-                var appDomain = _object.$__appDomain;
-                if (appDomain) {
-                    _object.dispose = noop;
-                    appDomain.dispose(_object);
-                }
-                CoreXT.Utilities.erase(this, release);
-                if (!release)
-                    _object.$__appDomain = this;
-                else {
-                    var type = _object.constructor;
-                    if (!type.$__fullname)
-                        log("dispose()", "The object type is not registered.  Please see one of the AppDomain 'registerClass()/registerType()' functions for more details.", LogTypes.Error, object);
-                    var funcList = Types.__disposedObjects[type.$__fullname];
-                    if (!funcList)
-                        Types.__disposedObjects[type.$__fullname] = funcList = [];
-                    funcList.push(_object);
-                }
-            }
-            else {
-                for (var i = this._applications.length - 1; i >= 0; --i)
-                    dispose(this._applications[i]);
-                this._applications.length = 0;
-                for (var i = this._windows.length - 1; i >= 0; --i)
-                    dispose(this._windows[i]);
-                this._windows.length = 0;
-            }
-            for (var i = this._windows.length - 1; i >= 0; --i)
-                if (this._windows[i].target != CoreXT.global)
-                    this._windows[i].close();
-            CoreXT.global.close();
-        }
-        Types.dispose = dispose;
-    })(Types = CoreXT.Types || (CoreXT.Types = {}));
     registerNamespace("CoreXT", "Types");
-    var Time;
-    (function (Time) {
-        registerNamespace("CoreXT", "Time");
-        Time.__millisecondsPerSecond = 1000;
-        Time.__secondsPerMinute = 60;
-        Time.__minsPerHour = 60;
-        Time.__hoursPerDay = 24;
-        Time.__daysPerYear = 365;
-        Time.__actualDaysPerYear = 365.2425;
-        Time.__EpochYear = 1970;
-        Time.__millisecondsPerMinute = Time.__secondsPerMinute * Time.__millisecondsPerSecond;
-        Time.__millisecondsPerHour = Time.__minsPerHour * Time.__millisecondsPerMinute;
-        Time.__millisecondsPerDay = Time.__hoursPerDay * Time.__millisecondsPerHour;
-        Time.__millisecondsPerYear = Time.__daysPerYear * Time.__millisecondsPerDay;
-        Time.__ISO8601RegEx = /^\d{4}-\d\d-\d\d(?:[Tt]\d\d:\d\d(?::\d\d(?:\.\d+?(?:[+-]\d\d?(?::\d\d(?::\d\d(?:.\d+)?)?)?)?)?)?[Zz]?)?$/;
-        Time.__SQLDateTimeRegEx = /^\d{4}-\d\d-\d\d(?: \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?)?$/;
-        Time.__SQLDateTimeStrictRegEx = /^\d{4}-\d\d-\d\d \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?$/;
-        Time.__localTimeZoneOffset = (new Date()).getTimezoneOffset() * Time.__millisecondsPerMinute;
-    })(Time = CoreXT.Time || (CoreXT.Time = {}));
     var System;
     (function (System) {
-        registerNamespace("CoreXT", "System");
-        System.Exception = ClassFactory(System, void 0, function (base) {
-            var Exception = (function (_super) {
-                __extends(Exception, _super);
-                function Exception() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                Exception.prototype.toString = function () { return this.message; };
-                Exception.prototype.valueOf = function () { return this.message; };
-                Exception.printStackTrace = function () {
-                    var callstack = [];
-                    var isCallstackPopulated = false;
-                    try {
-                        throw "";
-                    }
-                    catch (e) {
-                        if (e.stack) {
-                            var lines = e.stack.split('\n');
-                            for (var i = 0, len = lines.length; i < len; ++i) {
-                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                    callstack.push(lines[i]);
-                                }
-                            }
-                            callstack.shift();
-                            isCallstackPopulated = true;
-                        }
-                        else if (CoreXT.global["opera"] && e.message) {
-                            var lines = e.message.split('\n');
-                            for (var i = 0, len = lines.length; i < len; ++i) {
-                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                    var entry = lines[i];
-                                    if (lines[i + 1]) {
-                                        entry += ' at ' + lines[i + 1];
-                                        i++;
-                                    }
-                                    callstack.push(entry);
-                                }
-                            }
-                            callstack.shift();
-                            isCallstackPopulated = true;
-                        }
-                    }
-                    if (!isCallstackPopulated) {
-                        var currentFunction = arguments.callee.caller;
-                        while (currentFunction) {
-                            var fn = currentFunction.toString();
-                            var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
-                            callstack.push(fname);
-                            currentFunction = currentFunction.caller;
-                        }
-                    }
-                    return callstack;
-                };
-                Exception.from = function (message, source) {
-                    if (source === void 0) { source = null; }
-                    var createLog = true;
-                    if (typeof message == 'object' && (message.title || message.message)) {
-                        createLog = false;
-                        if (source != void 0)
-                            message.source = source;
-                        source = message;
-                        message = "";
-                        if (message.title)
-                            message += message.title;
-                        if (message.message) {
-                            if (message)
-                                message += ": ";
-                            message += message.message;
-                        }
-                    }
-                    var callerFunction = System.Exception.from.caller;
-                    var callerFunctionInfo = callerFunction;
-                    var callerName = callerFunctionInfo.$__name;
-                    var args = Exception.from.caller.arguments;
-                    var _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
-                    var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
-                    message = (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
-                    message += callerFunction + "\r\n\r\nStack:\r\n";
-                    var caller = callerFunction.caller;
-                    while (caller) {
-                        callerName = caller.$__name;
-                        args = caller.arguments;
-                        _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
-                        if (callerName)
-                            message += callerName + "(" + _args + ")\r\n";
-                        else
-                            message += callerFunction + (_args ? " using arguments (" + _args + ")" : "") + "\r\n";
-                        caller = caller.caller != caller ? caller.caller : null;
-                        caller = caller.caller;
-                    }
-                    return System.Exception.new(message, source, createLog);
-                };
-                Exception.error = function (title, message, source) {
-                    var logItem = System.Diagnostics.log(title, message, LogTypes.Error);
-                    return System.Exception.from(logItem, source);
-                };
-                Exception.notImplemented = function (functionNameOrTitle, source, message) {
-                    var logItem = System.Diagnostics.log(functionNameOrTitle, "The function is not implemented." + (message ? " " + message : ""), LogTypes.Error);
-                    return System.Exception.from(logItem, source);
-                };
-                Exception['ExceptionFactory'] = (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    Factory.prototype['new'] = function (message, source, log) { return null; };
-                    Factory.prototype.init = function ($this, isnew, message, source, log) {
-                        if (CoreXT.Browser.ES6)
-                            safeEval("var _super = function() { return null; }");
-                        $this.message = message;
-                        $this.source = source;
-                        if (log || log === void 0)
-                            Diagnostics.log("Exception", message, LogTypes.Error);
-                        return $this;
-                    };
-                    return Factory;
-                }(FactoryBase(Exception, null)));
-                return Exception;
-            }(Error));
-            return [Exception, Exception["ExceptionFactory"]];
-        });
         var Diagnostics;
         (function (Diagnostics) {
             registerNamespace("CoreXT", "System", "Diagnostics");
@@ -762,7 +564,7 @@ var CoreXT;
                         var txt = "[" + this.sequence + "] (" + timeStr + ") " + this.title + ": " + this.message;
                         return txt;
                     };
-                    LogItem['$LogItem Factory'] = (function (_super) {
+                    LogItem['LogItemFactory'] = (function (_super) {
                         __extends(Factory, _super);
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
@@ -772,12 +574,12 @@ var CoreXT;
                             if (outputToConsole === void 0) { outputToConsole = true; }
                             return null;
                         };
-                        Factory.prototype.init = function ($this, isnew, parent, title, message, type, outputToConsole) {
+                        Factory.prototype.init = function (o, isnew, parent, title, message, type, outputToConsole) {
                             if (type === void 0) { type = LogTypes.Normal; }
                             if (outputToConsole === void 0) { outputToConsole = true; }
                             if (title === void 0 || title === null) {
                                 if (isEmpty(message))
-                                    throw System.Exception.from("LogItem(): A message is required if no title is given.", $this);
+                                    throw System.Exception.from("LogItem(): A message is required if no title is given.", o);
                                 title = "";
                             }
                             else if (typeof title != 'string')
@@ -789,22 +591,22 @@ var CoreXT;
                                 message = "";
                             else
                                 message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
-                            $this.parent = parent;
-                            $this.title = title;
-                            $this.message = message;
-                            $this.time = Date.now();
-                            $this.type = type;
+                            o.parent = parent;
+                            o.title = title;
+                            o.message = message;
+                            o.time = Date.now();
+                            o.type = type;
                             if (console && outputToConsole) {
-                                var time = System.TimeSpan.utcTimeToLocalTime($this.time), margin = "";
+                                var time = System.TimeSpan.utcTimeToLocalTime(o.time), margin = "";
                                 while (parent) {
                                     parent = parent.parent;
                                     margin += "  ";
                                 }
                                 var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                    + " " + margin + $this.title + ": " + $this.message;
+                                    + " " + margin + o.title + ": " + o.message;
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
-                            return $this;
+                            return o;
                         };
                         return Factory;
                     }(FactoryBase(LogItem, null)));
@@ -919,6 +721,221 @@ var CoreXT;
             }
             Diagnostics.getLogAsText = getLogAsText;
         })(Diagnostics = System.Diagnostics || (System.Diagnostics = {}));
+    })(System = CoreXT.System || (CoreXT.System = {}));
+    function getErrorCallStack(errorSource) {
+        var _e = errorSource;
+        if (_e.stacktrace && _e.stack)
+            return _e.stacktrace.split(/\n/g);
+        var callstack = [];
+        var isCallstackPopulated = false;
+        var stack = _e.stack || _e.message;
+        if (stack) {
+            var lines = stack.split(/\n/g);
+            if (lines.length) {
+                for (var i = 0, len = lines.length; i < len; ++i)
+                    if (/.*?:\d+:\d+/.test(lines[i]))
+                        callstack.push(lines[i]);
+                if (lines.length && !callstack.length)
+                    callstack.push.apply(callstack, lines);
+                isCallstackPopulated = true;
+            }
+        }
+        if (!isCallstackPopulated && arguments.callee) {
+            var currentFunction = arguments.callee.caller;
+            while (currentFunction) {
+                var fn = currentFunction.toString();
+                var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
+                callstack.push(fname);
+                currentFunction = currentFunction.caller;
+            }
+        }
+        return callstack;
+    }
+    CoreXT.getErrorCallStack = getErrorCallStack;
+    function getErrorMessage(errorSource) {
+        if (typeof errorSource == 'string')
+            return errorSource;
+        else if (typeof errorSource == 'object') {
+            if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem) {
+                return errorSource.toString();
+            }
+            else if ('message' in errorSource) {
+                var error = errorSource;
+                var msg = error.message;
+                if (error.lineno !== undefined)
+                    error.lineNumber = error.lineno;
+                if (error.lineNumber !== undefined) {
+                    msg += "\r\non line " + error.lineNumber + ", column " + error.columnNumber;
+                    if (error.fileName !== undefined)
+                        msg += ", of file '" + error.fileName + "'";
+                }
+                else if (error.fileName !== undefined)
+                    msg += "\r\nin file '" + error.fileName + "'";
+                var stack = getErrorCallStack(error);
+                if (stack && stack.length)
+                    msg += "\r\nStack trace:\r\n" + stack.join("\r\n") + "\r\n";
+                return msg;
+            }
+            else
+                return '' + errorSource;
+        }
+        else
+            return '' + errorSource;
+    }
+    CoreXT.getErrorMessage = getErrorMessage;
+    CoreXT.BaseURI = (function () { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/')
+        u += '/'; return u; })();
+    log("Base URI", CoreXT.BaseURI);
+    var Time;
+    (function (Time) {
+        registerNamespace("CoreXT", "Time");
+        Time.__millisecondsPerSecond = 1000;
+        Time.__secondsPerMinute = 60;
+        Time.__minsPerHour = 60;
+        Time.__hoursPerDay = 24;
+        Time.__daysPerYear = 365;
+        Time.__actualDaysPerYear = 365.2425;
+        Time.__EpochYear = 1970;
+        Time.__millisecondsPerMinute = Time.__secondsPerMinute * Time.__millisecondsPerSecond;
+        Time.__millisecondsPerHour = Time.__minsPerHour * Time.__millisecondsPerMinute;
+        Time.__millisecondsPerDay = Time.__hoursPerDay * Time.__millisecondsPerHour;
+        Time.__millisecondsPerYear = Time.__daysPerYear * Time.__millisecondsPerDay;
+        Time.__ISO8601RegEx = /^\d{4}-\d\d-\d\d(?:[Tt]\d\d:\d\d(?::\d\d(?:\.\d+?(?:[+-]\d\d?(?::\d\d(?::\d\d(?:.\d+)?)?)?)?)?)?[Zz]?)?$/;
+        Time.__SQLDateTimeRegEx = /^\d{4}-\d\d-\d\d(?: \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?)?$/;
+        Time.__SQLDateTimeStrictRegEx = /^\d{4}-\d\d-\d\d \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?$/;
+        Time.__localTimeZoneOffset = (new Date()).getTimezoneOffset() * Time.__millisecondsPerMinute;
+    })(Time = CoreXT.Time || (CoreXT.Time = {}));
+    (function (System) {
+        registerNamespace("CoreXT", "System");
+        System.Exception = ClassFactory(System, void 0, function (base) {
+            var Exception = (function (_super) {
+                __extends(Exception, _super);
+                function Exception() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                Exception.prototype.toString = function () { return this.message; };
+                Exception.prototype.valueOf = function () { return this.message; };
+                Exception.printStackTrace = function () {
+                    var callstack = [];
+                    var isCallstackPopulated = false;
+                    try {
+                        throw "";
+                    }
+                    catch (e) {
+                        if (e.stack) {
+                            var lines = e.stack.split('\n');
+                            for (var i = 0, len = lines.length; i < len; ++i) {
+                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
+                                    callstack.push(lines[i]);
+                                }
+                            }
+                            callstack.shift();
+                            isCallstackPopulated = true;
+                        }
+                        else if (CoreXT.global["opera"] && e.message) {
+                            var lines = e.message.split('\n');
+                            for (var i = 0, len = lines.length; i < len; ++i) {
+                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
+                                    var entry = lines[i];
+                                    if (lines[i + 1]) {
+                                        entry += ' at ' + lines[i + 1];
+                                        i++;
+                                    }
+                                    callstack.push(entry);
+                                }
+                            }
+                            callstack.shift();
+                            isCallstackPopulated = true;
+                        }
+                    }
+                    if (!isCallstackPopulated) {
+                        var currentFunction = arguments.callee.caller;
+                        while (currentFunction) {
+                            var fn = currentFunction.toString();
+                            var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
+                            callstack.push(fname);
+                            currentFunction = currentFunction.caller;
+                        }
+                    }
+                    return callstack;
+                };
+                Exception.from = function (message, source) {
+                    if (source === void 0) { source = null; }
+                    var createLog = true;
+                    if (typeof message == 'object' && (message.title || message.message)) {
+                        createLog = false;
+                        if (source != void 0)
+                            message.source = source;
+                        source = message;
+                        message = "";
+                        if (message.title)
+                            message += message.title;
+                        if (message.message) {
+                            if (message)
+                                message += ": ";
+                            message += message.message;
+                        }
+                    }
+                    var callerFunction = System.Exception.from.caller;
+                    var callerFunctionInfo = callerFunction;
+                    var callerName = callerFunctionInfo.$__name;
+                    var args = Exception.from.caller.arguments;
+                    var _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
+                    var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
+                    message = (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
+                    message += callerFunction + "\r\n\r\nStack:\r\n";
+                    var caller = callerFunction.caller;
+                    while (caller) {
+                        callerName = caller.$__name;
+                        args = caller.arguments;
+                        _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
+                        if (callerName)
+                            message += callerName + "(" + _args + ")\r\n";
+                        else
+                            message += callerFunction + (_args ? " using arguments (" + _args + ")" : "") + "\r\n";
+                        caller = caller.caller != caller ? caller.caller : null;
+                        caller = caller.caller;
+                    }
+                    return System.Exception.new(message, source, createLog);
+                };
+                Exception.error = function (title, message, source) {
+                    if (System.Diagnostics && System.Diagnostics.log) {
+                        var logItem = System.Diagnostics.log(title, message, LogTypes.Error);
+                        return Exception.from(logItem, source);
+                    }
+                    else
+                        return Exception.from(error(title, message, source, false, false), source);
+                };
+                Exception.notImplemented = function (functionNameOrTitle, source, message) {
+                    var msg = "The function is not implemented." + (message ? " " + message : "");
+                    if (System.Diagnostics && System.Diagnostics.log) {
+                        var logItem = System.Diagnostics.log(functionNameOrTitle, msg, LogTypes.Error);
+                        return Exception.from(logItem, source);
+                    }
+                    else
+                        return Exception.from(error(functionNameOrTitle, msg, source, false, false), source);
+                };
+                Exception['ExceptionFactory'] = (function (_super) {
+                    __extends(Factory, _super);
+                    function Factory() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Factory.prototype['new'] = function (message, source, log) { return null; };
+                    Factory.prototype.init = function (o, isnew, message, source, log) {
+                        if (CoreXT.Browser.ES6)
+                            safeEval("var _super = function() { return null; }");
+                        o.message = message;
+                        o.source = source;
+                        if (log || log === void 0)
+                            System.Diagnostics.log("Exception", message, LogTypes.Error);
+                        return o;
+                    };
+                    return Factory;
+                }(FactoryBase(Exception, null)));
+                return Exception;
+            }(Error));
+            return [Exception, Exception["ExceptionFactory"]];
+        });
     })(System = CoreXT.System || (CoreXT.System = {}));
     var Loader;
     (function (Loader) {

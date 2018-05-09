@@ -21,7 +21,7 @@ module CoreXT.System.Platform {
 
                     // -----------------------------------------------------------------------------------------------------------------
 
-                    protected static readonly 'BrowserContextFactory' = class Factory extends FactoryBase(BrowserContext, BrowserContext['ContextFactory']) {
+                    protected static readonly 'BrowserContextFactory' = class Factory extends FactoryBase(BrowserContext, base['ContextFactory']) {
                         'new'(context: Contexts = Contexts.Secure): BrowserContext { return null; }
 
                         init(o: BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure) {
@@ -354,11 +354,11 @@ module CoreXT.System.Platform {
         //    protected static readonly '$Anchor Factory' = class Factory extends FactoryBase($Anchor, base['$HTMLElement Factory']) implements IFactory {
         //        'new'(parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-        //        init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> {
-        //            this.$__baseFactory.init($this, isnew, parent, "a", html);
-        //            $this.name = name;
-        //            $this.href = href;
-        //            return $this;
+        //        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, name: string = "", href: string = "", html: string = "") {
+        //            this.super.init($this, isnew, parent, "a", html);
+        //            o.name = name;
+        //            o.href = href;
+        //            return o;
         //        }
         //    };
 

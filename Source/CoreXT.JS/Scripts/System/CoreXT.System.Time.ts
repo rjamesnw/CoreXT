@@ -335,7 +335,7 @@ namespace CoreXT.System {
 
                 //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
 
-                protected static readonly 'TimeSpanFactory' = class Factory extends FactoryBase(TimeSpan, TimeSpan['ObjectFactory']) {
+                protected static readonly 'TimeSpanFactory' = class Factory extends FactoryBase(TimeSpan, base['ObjectFactory']) {
                     'new'(timeInMS: number): TimeSpan;
                     'new'(year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan;
                     'new'(year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan { return null; }

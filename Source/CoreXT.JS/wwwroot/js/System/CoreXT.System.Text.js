@@ -6,6 +6,7 @@ var CoreXT;
         (function (Text) {
             var RegEx;
             (function (RegEx) {
+                CoreXT.registerNamespace("CoreXT", "System", "Text", "RegEx");
                 function escapeRegex(regExStr) {
                     return regExStr.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
                 }
@@ -145,6 +146,7 @@ var CoreXT;
             })(Encoding = Text.Encoding || (Text.Encoding = {}));
             var HTML;
             (function (HTML) {
+                CoreXT.registerNamespace("CoreXT", "System", "Text", "HTML");
                 function uncommentHTML(html) {
                     var content = ("" + html).trim();
                     var i1 = 0, i2 = content.length;

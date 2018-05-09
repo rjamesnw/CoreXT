@@ -244,7 +244,7 @@ var CoreXT;
                         return o;
                     };
                     return Factory;
-                }(CoreXT.FactoryBase(TimeSpan, TimeSpan['ObjectFactory'])));
+                }(CoreXT.FactoryBase(TimeSpan, base['ObjectFactory'])));
                 return TimeSpan;
             }(base));
             return [TimeSpan, TimeSpan["TimeSpanFactory"]];

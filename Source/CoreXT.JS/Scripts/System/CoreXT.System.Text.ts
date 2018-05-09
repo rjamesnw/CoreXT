@@ -6,6 +6,7 @@ namespace CoreXT.System.Text {
     // =======================================================================================================================
 
     export namespace RegEx {
+        registerNamespace("CoreXT", "System", "Text", "RegEx");
         // -------------------------------------------------------------------------------------------------------------------
 
         /** Escapes a RegEx string so it behaves like a normal string. This is useful for RexEx string based operations, such as 'replace()'. */
@@ -194,6 +195,7 @@ namespace CoreXT.System.Text {
     // =======================================================================================================================
 
     export namespace HTML {
+        registerNamespace("CoreXT", "System", "Text", "HTML");
         // -------------------------------------------------------------------------------------------------------------------
 
         // Removes the '<!-- -->' comment sequence from the ends of the specified HTML.

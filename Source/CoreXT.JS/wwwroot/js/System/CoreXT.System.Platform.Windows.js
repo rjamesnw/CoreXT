@@ -14,6 +14,7 @@ var CoreXT;
     (function (System) {
         var Platform;
         (function (Platform) {
+            CoreXT.registerNamespace("CoreXT", "System", "Platform");
             Platform.Window = CoreXT.ClassFactory(Platform, System.Object, function (base) {
                 var Window = (function (_super) {
                     __extends(Window, _super);
@@ -45,7 +46,7 @@ var CoreXT;
                             return o;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(Window, Window['ObjectFactory'])));
+                    }(CoreXT.FactoryBase(Window, base['ObjectFactory'])));
                     return Window;
                 }(base));
                 return [Window, Window["WindowFactory"]];

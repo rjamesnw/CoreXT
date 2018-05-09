@@ -129,14 +129,14 @@ var CoreXT;
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         Factory.prototype['new'] = function (name, isVisual) { return null; };
-                        Factory.prototype.init = function ($this, isnew, name, isVisual) {
-                            this.super.init($this, isnew);
-                            $this.name = name;
-                            $this.isVisual = isVisual;
-                            return $this;
+                        Factory.prototype.init = function (o, isnew, name, isVisual) {
+                            this.super.init(o, isnew);
+                            o.name = name;
+                            o.isVisual = isVisual;
+                            return o;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(StaticProperty, StaticProperty['PropertyEventBaseFactory'])));
+                    }(CoreXT.FactoryBase(StaticProperty, base['PropertyEventBaseFactory'])));
                     return StaticProperty;
                 }(base));
                 return [StaticProperty, StaticProperty["StaticPropertyFactory"]];
@@ -209,7 +209,7 @@ var CoreXT;
                             return o;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(Property, Property["PropertyEventBaseFactory"])));
+                    }(CoreXT.FactoryBase(Property, base["PropertyEventBaseFactory"])));
                     return Property;
                 }(base));
                 return [Property, Property["PropertyFactory"]];

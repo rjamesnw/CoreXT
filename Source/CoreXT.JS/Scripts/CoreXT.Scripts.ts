@@ -108,7 +108,7 @@ namespace CoreXT {
                 class Manifest extends base {
                     // ----------------------------------------------------------------------------------------------------------------
                     
-                    protected static readonly ManifestFactory = class Factory extends FactoryBase(ScriptResource, ScriptResource["ScriptResourceFactory"]) {
+                    protected static readonly ManifestFactory = class Factory extends FactoryBase(ScriptResource, base["ScriptResourceFactory"]) {
                         /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
                         'new'(url: string): Manifest { return null; }
 
@@ -306,7 +306,7 @@ namespace CoreXT {
 
                     // ----------------------------------------------------------------------------------------------------------------
 
-                    protected static 'ModuleFactory' = class Factory extends FactoryBase(Module, Module['ScriptResourceFactory']) {
+                    protected static 'ModuleFactory' = class Factory extends FactoryBase(Module, base['ScriptResourceFactory']) {
                         /** Returns a new module object only - does not load it. */
                         'new'(fullname: string, path: string, minifiedPath?: string): InstanceType<typeof Factory.$__type> { return null; }
 

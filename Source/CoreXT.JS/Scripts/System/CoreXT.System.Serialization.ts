@@ -3,11 +3,13 @@
 // ###########################################################################################################################
 
 namespace CoreXT.System {
+    registerNamespace("CoreXT", "System");
     // =======================================================================================================================
 
     /** An empty object that contains prototype methods for serializing data.
     */
     export class SerializedData {
+
         /** Add a string value as a serialized data property. */
         addValue(name: string, value: string): void;
         /** Add a numerical value as a serialized data property. */

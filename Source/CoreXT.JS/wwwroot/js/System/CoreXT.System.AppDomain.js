@@ -111,14 +111,14 @@ var CoreXT;
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
                     Factory.prototype['new'] = function (application) { return null; };
-                    Factory.prototype.init = function ($this, isnew, application) {
-                        this.super.init($this, isnew);
-                        $this.$__appDomain = $this;
-                        $this.applications = typeof application == 'object' ? [application] : [];
-                        return $this;
+                    Factory.prototype.init = function (o, isnew, application) {
+                        this.super.init(o, isnew);
+                        o.$__appDomain = o;
+                        o.applications = typeof application == 'object' ? [application] : [];
+                        return o;
                     };
                     return Factory;
-                }(CoreXT.FactoryBase(AppDomain_1, AppDomain_1['ObjectFactory'])));
+                }(CoreXT.FactoryBase(AppDomain_1, base['ObjectFactory'])));
                 AppDomain = AppDomain_1 = __decorate([
                     CoreXT.frozen
                 ], AppDomain);
@@ -209,16 +209,16 @@ var CoreXT;
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
                     Factory.prototype['new'] = function (title, description, appID) { return null; };
-                    Factory.prototype.init = function ($this, isnew, title, description, appID) {
-                        this.super.init($this, isnew);
-                        $this.$__app = $this;
-                        $this._title = title;
-                        $this._description = description;
-                        $this._appID = appID;
-                        return $this;
+                    Factory.prototype.init = function (o, isnew, title, description, appID) {
+                        this.super.init(o, isnew);
+                        o.$__app = o;
+                        o._title = title;
+                        o._description = description;
+                        o._appID = appID;
+                        return o;
                     };
                     return Factory;
-                }(CoreXT.FactoryBase(Application_1, Application_1['ObjectFactory'])));
+                }(CoreXT.FactoryBase(Application_1, base['ObjectFactory'])));
                 Application = Application_1 = __decorate([
                     CoreXT.frozen
                 ], Application);

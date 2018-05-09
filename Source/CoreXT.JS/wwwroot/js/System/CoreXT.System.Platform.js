@@ -39,14 +39,14 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype.init = function ($this, isnew, context) {
+                            Factory.prototype.init = function (o, isnew, context) {
                                 if (context === void 0) { context = Contexts.Secure; }
-                                this.super.init($this, isnew);
-                                $this._contextType = context;
-                                return $this;
+                                this.super.init(o, isnew);
+                                o._contextType = context;
+                                return o;
                             };
                             return Factory;
-                        }(CoreXT.FactoryBase(Context, Context['ObjectFactory'])));
+                        }(CoreXT.FactoryBase(Context, base['ObjectFactory'])));
                         factoryType['new'] = function (context) {
                             if (context === void 0) { context = Contexts.Secure; }
                             throw System.Exception.from("You cannot create instances of the abstract Context class.", _this);
@@ -99,12 +99,12 @@ var CoreXT;
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         Factory.prototype['new'] = function (title, appID) { return null; };
-                        Factory.prototype.init = function ($this, isnew, title, description, appID) {
-                            this.super.init($this, isnew, title, description, appID);
-                            return $this;
+                        Factory.prototype.init = function (o, isnew, title, description, appID) {
+                            this.super.init(o, isnew, title, description, appID);
+                            return o;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(UIApplication, UIApplication['ApplicationFactory'])));
+                    }(CoreXT.FactoryBase(UIApplication, base['ApplicationFactory'])));
                     return UIApplication;
                 }(base));
                 return [UIApplication, UIApplication["UIApplicationFactory"]];

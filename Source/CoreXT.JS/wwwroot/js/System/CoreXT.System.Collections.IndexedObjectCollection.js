@@ -114,7 +114,7 @@ var CoreXT;
                             return o;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(IndexedObjectCollection, IndexedObjectCollection['ArrayFactory'])));
+                    }(CoreXT.FactoryBase(IndexedObjectCollection, base['ArrayFactory'])));
                     return IndexedObjectCollection;
                 }(base));
                 return [IndexedObjectCollection, IndexedObjectCollection["IndexedObjectCollectionFactory"]];

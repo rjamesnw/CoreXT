@@ -18,19 +18,19 @@ namespace CoreXT {
     /** Type-cast class references to this interface to access type specific information, where available. */
     export interface ITypeInfo {
         /** The parent namespace object that contains the type (function instance).
-        * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
-        */
-        $__parent?: INamespaceInfo & ITypeInfo;
+          * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
+          */
+        $__parent?: ITypeInfo | INamespaceInfo | IClassInfo | IFunctionInfo;
 
         /** Returns the name of this type.
-        * Note: This is the object type name taken from the constructor (if one exists), and is not the FULL type name (no namespace).
-        * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
-        */
+          * Note: This is the object type name taken from the constructor (if one exists), and is not the FULL type name (no namespace).
+          * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
+          */
         $__name?: string;
 
         /** Returns the full name of this type (includes the namespace).
-        * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
-        */
+          * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
+          */
         $__fullname?: string;
     }
 

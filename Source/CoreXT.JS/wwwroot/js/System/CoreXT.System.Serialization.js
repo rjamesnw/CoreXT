@@ -2,6 +2,7 @@ var CoreXT;
 (function (CoreXT) {
     var System;
     (function (System) {
+        CoreXT.registerNamespace("CoreXT", "System");
         var SerializedData = (function () {
             function SerializedData() {
             }

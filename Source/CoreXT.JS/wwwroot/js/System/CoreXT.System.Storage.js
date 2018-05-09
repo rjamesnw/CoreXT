@@ -4,6 +4,7 @@ var CoreXT;
     (function (System) {
         var Storage;
         (function (Storage) {
+            CoreXT.registerNamespace("CoreXT", "System", "Storage");
             function _storageAvailable(storageType) {
                 try {
                     var storage = window[storageType], x = '$__storage_test__$';

@@ -6,6 +6,7 @@ var CoreXT;
         (function (Data) {
             var JSON;
             (function (JSON) {
+                CoreXT.registerNamespace("CoreXT", "System", "Data", "JSON");
                 function ToObject(jsonText) {
                     if (typeof jsonText !== "string" || !jsonText)
                         return null;

@@ -14,6 +14,7 @@ var CoreXT;
     (function (System) {
         var Markup;
         (function (Markup) {
+            CoreXT.registerNamespace("CoreXT", "System", "Markup");
             var HTMLReaderModes;
             (function (HTMLReaderModes) {
                 HTMLReaderModes[HTMLReaderModes["End"] = -1] = "End";
@@ -192,15 +193,15 @@ var CoreXT;
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
                         Factory.prototype['new'] = function (html) { return null; };
-                        Factory.prototype.init = function ($this, isnew, html) {
-                            this.super.init($this, isnew);
-                            $this.html = html;
-                            $this.delimiters = html.match(HTMLReader.__splitRegEx);
-                            $this.nonDelimiters = $this.html.split(HTMLReader.__splitRegEx, void 0, $this.delimiters);
-                            return $this;
+                        Factory.prototype.init = function (o, isnew, html) {
+                            this.super.init(o, isnew);
+                            o.html = html;
+                            o.delimiters = html.match(HTMLReader.__splitRegEx);
+                            o.nonDelimiters = o.html.split(HTMLReader.__splitRegEx, void 0, o.delimiters);
+                            return o;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(HTMLReader, HTMLReader['ObjectFactory'])));
+                    }(CoreXT.FactoryBase(HTMLReader, base['ObjectFactory'])));
                     return HTMLReader;
                 }(base));
                 return [HTMLReader, HTMLReader["HTMLReaderFactory"]];

@@ -14,6 +14,7 @@ var CoreXT;
     (function (System) {
         var Events;
         (function (Events) {
+            CoreXT.registerNamespace("CoreXT", "System", "Events");
             ;
             ;
             var EventModes;
@@ -23,8 +24,7 @@ var CoreXT;
                 EventModes[EventModes["CaptureAndBubble"] = 2] = "CaptureAndBubble";
             })(EventModes = Events.EventModes || (Events.EventModes = {}));
             ;
-            var InternalTypes;
-            (function (InternalTypes) {
+            Events.EventDispatcher = CoreXT.ClassFactory(CoreXT.Scripts, void 0, function (base) {
                 var EventDispatcher = (function (_super) {
                     __extends(EventDispatcher, _super);
                     function EventDispatcher() {
@@ -270,15 +270,19 @@ var CoreXT;
                                 return o;
                             };
                             return Factory;
-                        }(CoreXT.FactoryBase(EventDispatcher, EventDispatcher['ObjectFactory'])));
+                        }(CoreXT.FactoryBase(EventDispatcher, System.DependencyObject['ObjectFactory'])));
                     }();
                     return EventDispatcher;
                 }(System.DependencyObject));
-                InternalTypes.EventDispatcher = EventDispatcher;
-            })(InternalTypes || (InternalTypes = {}));
-            Events.EventDispatcher = CoreXT.ClassFactory(CoreXT.Scripts, System.Object, function (base) {
-                return [InternalTypes.EventDispatcher, InternalTypes.EventDispatcher["EventDispatcherFactory"]];
+                return [EventDispatcher, EventDispatcher["EventDispatcherFactory"]];
             });
+            var EventDispatcherClass = (function (_super) {
+                __extends(EventDispatcherClass, _super);
+                function EventDispatcherClass() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                return EventDispatcherClass;
+            }(Events.EventDispatcher.$__type));
         })(Events = System.Events || (System.Events = {}));
         System.EventObject = CoreXT.ClassFactory(System, System.Object, function (base) {
             var EventObject = (function (_super) {
@@ -302,9 +306,9 @@ var CoreXT;
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
                     Factory.prototype['new'] = function () { return null; };
-                    Factory.prototype.init = function ($this, isnew) {
-                        this.super.init($this, isnew);
-                        return $this;
+                    Factory.prototype.init = function (o, isnew) {
+                        this.super.init(o, isnew);
+                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(EventObject, base['ObjectFactory'])));

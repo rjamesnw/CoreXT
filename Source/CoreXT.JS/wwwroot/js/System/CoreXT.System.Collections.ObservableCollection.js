@@ -62,7 +62,7 @@ var CoreXT;
                             var _a;
                         };
                         return Factory;
-                    }(CoreXT.FactoryBase(ObservableCollection, ObservableCollection['ArrayFactory'])));
+                    }(CoreXT.FactoryBase(ObservableCollection, base['ArrayFactory'])));
                     return ObservableCollection;
                 }(base));
                 return [ObservableCollection, ObservableCollection["ObservableCollectionFactory"]];

@@ -3,6 +3,7 @@
 // ###########################################################################################################################
 
 namespace CoreXT.System.Platform {
+    registerNamespace("CoreXT", "System", "Platform");
     // =======================================================================================================================
 
     //?export enum WindowTypes {
@@ -29,7 +30,7 @@ namespace CoreXT.System.Platform {
 
                 // ----------------------------------------------------------------------------------------------------------------
 
-                protected static 'WindowFactory' = class Factory extends FactoryBase(Window, Window['ObjectFactory']) {
+                protected static 'WindowFactory' = class Factory extends FactoryBase(Window, base['ObjectFactory']) {
                     /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
                     'new'(rootElement?: HTMLElement, url?: string): Window { return null; }
 
