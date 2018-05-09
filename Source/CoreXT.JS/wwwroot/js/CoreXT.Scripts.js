@@ -8,6 +8,12 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var CoreXT;
 (function (CoreXT) {
     var Scripts;
@@ -21,64 +27,71 @@ var CoreXT;
             return parts.join('/');
         }
         Scripts.fullTypeNameToFolderPath = fullTypeNameToFolderPath;
-        var $ScriptResource = (function (_super) {
-            __extends($ScriptResource, _super);
-            function $ScriptResource() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            $ScriptResource.prototype.registerGlobal = function (name, initialValue, asHostGlobal) {
-                return CoreXT.Globals.register(this, name, initialValue, asHostGlobal);
-            };
-            $ScriptResource.prototype.globalExists = function (name) {
-                return CoreXT.Globals.exists(this, name);
-            };
-            $ScriptResource.prototype.eraseGlobal = function (name) {
-                return CoreXT.Globals.erase(this, name);
-            };
-            $ScriptResource.prototype.clearGlobals = function () {
-                return CoreXT.Globals.clear(this);
-            };
-            $ScriptResource.prototype.setGlobalValue = function (name, value) {
-                return CoreXT.Globals.setValue(this, name, value);
-            };
-            $ScriptResource.prototype.getGlobalValue = function (name) {
-                return CoreXT.Globals.getValue(this, name);
-            };
-            $ScriptResource['$ScriptResource Factory'] = (function (_super) {
-                __extends(Factory, _super);
-                function Factory() {
+        Scripts.ScriptResource = CoreXT.ClassFactory(Scripts, CoreXT.Loader.ResourceRequest, function (base) {
+            var ScriptResource = (function (_super) {
+                __extends(ScriptResource, _super);
+                function ScriptResource() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
-                Factory.prototype['new'] = function (url) { return null; };
-                Factory.prototype.init = function ($this, isnew, url) {
-                    this.$__baseFactory.init($this, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
-                    return $this;
+                ScriptResource.prototype.registerGlobal = function (name, initialValue, asHostGlobal) {
+                    return CoreXT.Globals.register(this, name, initialValue, asHostGlobal);
                 };
-                return Factory;
-            }(CoreXT.FactoryBase($ScriptResource, $ScriptResource['$ResourceRequest Factory']))).register(Scripts);
-            return $ScriptResource;
-        }(CoreXT.Loader.ResourceRequest.$__type));
-        Scripts.ScriptResource = $ScriptResource['$ScriptResource Factory'].$__type;
-        var $Manifest = (function (_super) {
-            __extends($Manifest, _super);
-            function $Manifest() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            $Manifest['$Manifest Factory'] = (function (_super) {
-                __extends(Factory, _super);
-                function Factory() {
+                ScriptResource.prototype.globalExists = function (name) {
+                    return CoreXT.Globals.exists(this, name);
+                };
+                ScriptResource.prototype.eraseGlobal = function (name) {
+                    return CoreXT.Globals.erase(this, name);
+                };
+                ScriptResource.prototype.clearGlobals = function () {
+                    return CoreXT.Globals.clear(this);
+                };
+                ScriptResource.prototype.setGlobalValue = function (name, value) {
+                    return CoreXT.Globals.setValue(this, name, value);
+                };
+                ScriptResource.prototype.getGlobalValue = function (name) {
+                    return CoreXT.Globals.getValue(this, name);
+                };
+                ScriptResource.ScriptResourceFactory = (function (_super) {
+                    __extends(Factory, _super);
+                    function Factory() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Factory.prototype['new'] = function (url) { return null; };
+                    Factory.prototype.init = function (o, isnew, url) {
+                        this.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
+                        return o;
+                    };
+                    return Factory;
+                }(CoreXT.FactoryBase(ScriptResource, base["ResourceRequestFactory"])));
+                return ScriptResource;
+            }(base));
+            return [ScriptResource, ScriptResource["ScriptResourceFactory"]];
+        }, "ScriptResource");
+        Scripts.Manifest = CoreXT.ClassFactory(Scripts, Scripts.ScriptResource, function (base) {
+            var Manifest = (function (_super) {
+                __extends(Manifest, _super);
+                function Manifest() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
-                Factory.prototype['new'] = function (url) { return null; };
-                Factory.prototype.init = function ($this, isnew, url) {
-                    this.$__baseFactory.init($this, isnew, url);
-                    return $this;
-                };
-                return Factory;
-            }(CoreXT.FactoryBase($Manifest, $Manifest['$ScriptResource Factory']))).register(Scripts);
-            return $Manifest;
-        }(Scripts.ScriptResource.$__type));
-        Scripts.Manifest = $Manifest['$Manifest Factory'].$__type;
+                Manifest.ManifestFactory = (function (_super) {
+                    __extends(Factory, _super);
+                    function Factory() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Factory.prototype['new'] = function (url) { return null; };
+                    Factory.prototype.init = function (o, isnew, url) {
+                        this.super.init(o, isnew, url);
+                        return o;
+                    };
+                    return Factory;
+                }(CoreXT.FactoryBase(Scripts.ScriptResource, Scripts.ScriptResource["ScriptResourceFactory"])));
+                Manifest = __decorate([
+                    CoreXT.sealed
+                ], Manifest);
+                return Manifest;
+            }(base));
+            return [Manifest, Manifest["ManifestFactory"]];
+        }, "Manifest");
         var _manifests = [];
         var _manifestsByURL = {};
         function getManifest(path) {
@@ -138,80 +151,82 @@ var CoreXT;
         })(ModuleLoadStatus = Scripts.ModuleLoadStatus || (Scripts.ModuleLoadStatus = {}));
         var _modules = {};
         var _appModule = null;
-        var $Module = (function (_super) {
-            __extends($Module, _super);
-            function $Module() {
-                var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.required = false;
-                _this.customWait = false;
-                _this.getVar = CoreXT.noop;
-                _this.setVar = CoreXT.noop;
-                _this.exports = {};
-                return _this;
-            }
-            $Module.prototype.isInclude = function () { return this.url && this.fullname == this.url; };
-            $Module.prototype.__onLoaded = function () {
-                return this;
-            };
-            $Module.prototype.__onReady = function (request) {
-                if (this.fullname == "app" || this.fullname == "application") {
-                    _appModule = this;
-                    if (_runMode)
-                        _tryRunApp();
+        Scripts.Module = CoreXT.ClassFactory(Scripts, Scripts.ScriptResource, function (base) {
+            var Module = (function (_super) {
+                __extends(Module, _super);
+                function Module() {
+                    var _this = _super !== null && _super.apply(this, arguments) || this;
+                    _this.required = false;
+                    _this.customWait = false;
+                    _this.getVar = CoreXT.noop;
+                    _this.setVar = CoreXT.noop;
+                    _this.exports = {};
+                    return _this;
                 }
-                return this;
-            };
-            $Module.prototype.toString = function () { return this.fullname; };
-            $Module.prototype.toValue = function () { return this.fullname; };
-            $Module.prototype.start = function () {
-                if (this.status == CoreXT.Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) {
-                    this.url = CoreXT.System.Diagnostics.debug ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL);
-                    return _super.prototype.start.call(this);
-                }
-                return this;
-            };
-            $Module.prototype.execute = function (useGlobalScope) {
-                if (useGlobalScope === void 0) { useGlobalScope = false; }
-                if (this.status == CoreXT.Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
-                    for (var i = 0, n = this._dependents.length, dep; i < n; ++i)
-                        if ((dep = this._dependents[i]).status == CoreXT.Loader.RequestStatuses.Ready)
-                            dep.execute();
-                    var accessors;
-                    if (useGlobalScope) {
-                        this.$__modFunc = new Function("module", "exports", this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
-                        this._moduleGlobalAccessors = this.$__modFunc(this, this.exports);
-                    }
-                    else {
-                        this._moduleGlobalAccessors = (CoreXT.safeEval(this.data), $Module._globalaccessors);
-                    }
-                    this.getVar = this._moduleGlobalAccessors.get;
-                    this.setVar = this._moduleGlobalAccessors.set;
-                    this.status = CoreXT.Loader.RequestStatuses.Executed;
-                }
-            };
-            $Module._globalaccessors = (function () { return CoreXT.safeEval("({ get: function(varName) { return CoreXT.global[varName]; }, set: function(varName, val) { return CoreXT.global[varName] = val; } })"); })();
-            $Module['$Module Factory'] = (function (_super) {
-                __extends(Factory, _super);
-                function Factory() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                Factory.prototype['new'] = function (fullname, path, minifiedPath) { return null; };
-                Factory.prototype.init = function ($this, isnew, fullname, url, minifiedURL) {
-                    if (minifiedURL === void 0) { minifiedURL = null; }
-                    this.$__baseFactory.init($this, isnew, CoreXT.System.Diagnostics.debug ? url : (minifiedURL || url));
-                    if (!$this.type)
-                        throw CoreXT.System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", $this);
-                    $this.fullname = fullname;
-                    $this.nonMinifiedURL = url;
-                    $this.minifiedURL = minifiedURL;
-                    $this.then($this.__onLoaded).ready($this.__onReady);
-                    return $this;
+                Module.prototype.isInclude = function () { return this.url && this.fullname == this.url; };
+                Module.prototype.__onLoaded = function () {
+                    return this;
                 };
-                return Factory;
-            }(CoreXT.FactoryBase($Module, $Module['$ScriptResource Factory']))).register(Scripts);
-            return $Module;
-        }(Scripts.ScriptResource.$__type));
-        Scripts.Module = $Module['$Module Factory'].$__type;
+                Module.prototype.__onReady = function (request) {
+                    if (this.fullname == "app" || this.fullname == "application") {
+                        _appModule = this;
+                        if (_runMode)
+                            _tryRunApp();
+                    }
+                    return this;
+                };
+                Module.prototype.toString = function () { return this.fullname; };
+                Module.prototype.toValue = function () { return this.fullname; };
+                Module.prototype.start = function () {
+                    if (this.status == CoreXT.Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) {
+                        this.url = CoreXT.System.Diagnostics.debug ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL);
+                        return _super.prototype.start.call(this);
+                    }
+                    return this;
+                };
+                Module.prototype.execute = function (useGlobalScope) {
+                    if (useGlobalScope === void 0) { useGlobalScope = false; }
+                    if (this.status == CoreXT.Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
+                        for (var i = 0, n = this._dependents.length, dep; i < n; ++i)
+                            if ((dep = this._dependents[i]).status == CoreXT.Loader.RequestStatuses.Ready)
+                                dep.execute();
+                        var accessors;
+                        if (useGlobalScope) {
+                            this.$__modFunc = new Function("module", "exports", this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
+                            this._moduleGlobalAccessors = this.$__modFunc(this, this.exports);
+                        }
+                        else {
+                            this._moduleGlobalAccessors = (CoreXT.safeEval(this.data), Module._globalaccessors);
+                        }
+                        this.getVar = this._moduleGlobalAccessors.get;
+                        this.setVar = this._moduleGlobalAccessors.set;
+                        this.status = CoreXT.Loader.RequestStatuses.Executed;
+                    }
+                };
+                Module._globalaccessors = (function () { return CoreXT.safeEval("({ get: function(varName) { return CoreXT.global[varName]; }, set: function(varName, val) { return CoreXT.global[varName] = val; } })"); })();
+                Module['ModuleFactory'] = (function (_super) {
+                    __extends(Factory, _super);
+                    function Factory() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Factory.prototype['new'] = function (fullname, path, minifiedPath) { return null; };
+                    Factory.prototype.init = function (o, isnew, fullname, url, minifiedURL) {
+                        if (minifiedURL === void 0) { minifiedURL = null; }
+                        this.super.init(o, isnew, CoreXT.System.Diagnostics.debug ? url : (minifiedURL || url));
+                        if (!o.type)
+                            throw CoreXT.System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", o);
+                        o.fullname = fullname;
+                        o.nonMinifiedURL = url;
+                        o.minifiedURL = minifiedURL;
+                        o.then(o.__onLoaded).ready(o.__onReady);
+                        return o;
+                    };
+                    return Factory;
+                }(CoreXT.FactoryBase(Module, Module['ScriptResourceFactory'])));
+                return Module;
+            }(base));
+            return [Module, Module["ModuleFactory"]];
+        }, "Module");
         var _runMode = 0;
         function _tryRunApp() {
             if (_runMode < 2)

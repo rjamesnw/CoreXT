@@ -491,7 +491,7 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
                     // This part uses the CoreXT factory pattern
 
-                    protected static 'EventObjectFactory' = class Factory extends FactoryBase(EventObject, EventObject['ObjectFactory']) {
+                    protected static 'EventObjectFactory' = class Factory extends FactoryBase(EventObject, base['ObjectFactory']) {
                         /**
                             * Constructs a new Delegate object.
                             * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.

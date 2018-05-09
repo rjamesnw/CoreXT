@@ -2,313 +2,328 @@ module CoreXT.System.Platform {
 
     /** Contains a series of core CoreXT HTML-based UI elements. Each element extends the GraphNode type. */
     export namespace HTML {
-        registerNamespace("CoreXT",  "System", "Platform", "HTML")
+        registerNamespace("CoreXT", "System", "Platform", "HTML")
         // ===================================================================================================================
 
         /** A context is a container that manages a reference to a global script environment. Each new context creates a new 
-        * execution environment that keeps scripts from accidentally (or maliciously) populating/corrupting the host environment.
-        * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
-        * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
-        */
-        class $BrowserContext extends Factory(Context) {
-            private _target: any; // (iframe or worker)
-            private _iframe: HTMLIFrameElement;
-            private _worker: Worker;
-            private _window: IWindow;
-            private _global: IStaticGlobals;
+          * execution environment that keeps scripts from accidentally (or maliciously) populating/corrupting the host environment.
+          * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
+          * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
+          */
+        export var BrowserContext = ClassFactory(HTML, Context,
+            (base) => {
+                class BrowserContext extends base {
+                    private _target: any; // (iframe or worker)
+                    private _iframe: HTMLIFrameElement;
+                    private _worker: Worker;
+                    private _window: IWindow;
+                    private _global: IStaticGlobals;
 
-            // -----------------------------------------------------------------------------------------------------------------
+                    // -----------------------------------------------------------------------------------------------------------------
 
-            protected static '$BrowserContext Factory' = class Factory extends FactoryBase($BrowserContext, $BrowserContext['$Context Factory']) implements IFactory {
-                'new'(context: Contexts = Contexts.Secure): $BrowserContext { return null; }
+                    protected static readonly 'BrowserContextFactory' = class Factory extends FactoryBase(BrowserContext, BrowserContext['ContextFactory']) {
+                        'new'(context: Contexts = Contexts.Secure): BrowserContext { return null; }
 
-                init($this: $BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure): $BrowserContext {
-                    this.$__baseFactory.init($this, isnew, context);
-                    return $this;
-                }
-            }.register(HTML);
+                        init(o: BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure) {
+                            this.super.init(o, isnew, context);
+                            return o;
+                        }
+                    };
 
-            // -----------------------------------------------------------------------------------------------------------------
+                    // -----------------------------------------------------------------------------------------------------------------
 
-            _setupIFrame() {
-                this._target = this._iframe = document.createElement("iframe");
-                this._iframe.style.display = "none";
-                this._iframe.src = this._url;
-                global.document.body.appendChild(this._iframe);
-                this._global = <IStaticGlobals>this._iframe.contentWindow;
-            }
+                    _setupIFrame() {
+                        this._target = this._iframe = document.createElement("iframe");
+                        this._iframe.style.display = "none";
+                        this._iframe.src = this._url;
+                        global.document.body.appendChild(this._iframe);
+                        this._global = <IStaticGlobals>this._iframe.contentWindow;
+                    }
 
-            _setupWorker() {
-                this._target = this._worker = new Worker(this._url);
-            }
+                    _setupWorker() {
+                        this._target = this._worker = new Worker(this._url);
+                    }
 
-            _setupWindow() {
-                this._target = this._window = Window.new(null, this._url);
-            }
+                    _setupWindow() {
+                        this._target = this._window = Window.new(null, this._url);
+                    }
 
-            // -----------------------------------------------------------------------------------------------------------------
+                    // -----------------------------------------------------------------------------------------------------------------
 
-            /** Load a resource (usually a script or page) into this context. */
-            load(url: string) {
-                var contextType = this._contextType;
+                    /** Load a resource (usually a script or page) into this context. */
+                    load(url: string) {
+                        var contextType = this._contextType;
 
-                switch (Environment) {
-                    case Environments.Browser:
-                        switch (contextType) {
-                            case Contexts.Secure:
-                            case Contexts.Unsecure:
-                                this._setupIFrame();
-                                if (Environment == Environments.Browser) {
-                                } else if (Environment == Environments.Browser) {
-                                } else {
-                                    this._target = this._worker = new Worker("CoreXT.js");
+                        switch (Environment) {
+                            case Environments.Browser:
+                                switch (contextType) {
+                                    case Contexts.Secure:
+                                    case Contexts.Unsecure:
+                                        this._setupIFrame();
+                                        if (Environment == Environments.Browser) {
+                                        } else if (Environment == Environments.Browser) {
+                                        } else {
+                                            this._target = this._worker = new Worker("CoreXT.js");
+                                        }
+                                        break;
+                                    case Contexts.SecureWindow:
+                                    case Contexts.UnsecureWindow:
+                                        if (Environment == Environments.Browser) {
+                                            this._target = this._iframe = document.createElement("iframe");
+                                            this._iframe.style.display = "none";
+                                            this._iframe.src = "index.html";
+                                            global.document.body.appendChild(this._iframe);
+                                            this._global = <IStaticGlobals>this._iframe.contentWindow;
+                                        } else if (Environment == Environments.Browser) {
+                                        } else {
+                                            this._target = this._worker = new Worker("CoreXT.js");
+                                        }
+                                        break;
+                                    case Contexts.Local:
+                                        this._target = this._global = global;
+                                        break;
                                 }
-                                break;
-                            case Contexts.SecureWindow:
-                            case Contexts.UnsecureWindow:
-                                if (Environment == Environments.Browser) {
-                                    this._target = this._iframe = document.createElement("iframe");
-                                    this._iframe.style.display = "none";
-                                    this._iframe.src = "index.html";
-                                    global.document.body.appendChild(this._iframe);
-                                    this._global = <IStaticGlobals>this._iframe.contentWindow;
-                                } else if (Environment == Environments.Browser) {
-                                } else {
-                                    this._target = this._worker = new Worker("CoreXT.js");
-                                }
-                                break;
-                            case Contexts.Local:
-                                this._target = this._global = global;
                                 break;
                         }
-                        break;
+
+                        if (this._contextType == Contexts.Unsecure)
+                            url = "/";
+                        else
+                            this._iframe.src = location.protocol + "//ctx" + (Math.random() * 0x7FFFFF | 0) + "." + location.hostname; // (all sub-domains go to the same location)
+                    }
                 }
+                return [BrowserContext, BrowserContext["BrowserContextFactory"]];
+            },
+            "BrowserContext"
+        );
 
-                if (this._contextType == Contexts.Unsecure)
-                    url = "/";
-                else
-                    this._iframe.src = location.protocol + "//ctx" + (Math.random() * 0x7FFFFF | 0) + "." + location.hostname; // (all sub-domains go to the same location)
-            }
-        }
-
-        export interface IBrowserContext extends $BrowserContext { }
-        export var BrowserContext = $BrowserContext['$BrowserContext Factory'].$__type;
+        export interface IBrowserContext extends InstanceType<typeof BrowserContext.$__type> { }
 
         // ====================================================================================================================
-        class $HTMLNode extends Factory(GraphNode) {
-            // ----------------------------------------------------------------------------------------------------------------
 
-            // ----------------------------------------------------------------------------------------------------------------
-
-            protected static '$HTMLNode Factory' = class Factory extends FactoryBase($HTMLNode, $HTMLNode['$GraphNode Factory']) implements IFactory {
-                'new'(parent: IGraphNode, id?: string, name?: string): InstanceType<typeof Factory.$__type> { return null; }
-
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, id?: string, name?: string): InstanceType<typeof Factory.$__type> {
-                    this.$__baseFactory.init($this, isnew, parent);
-                    if (id !== void 0 && id !== null) $this.id = id;
-                    if (name !== void 0 && name !== null) $this.name = name;
-                    return $this;
-                }
-            }.register(HTML);
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            onRedraw(recursive: boolean = true) {
-                super.onRedraw(recursive);
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-        }
-
-        export interface IHTMLNode extends $HTMLNode { }
         /** Represents the base of a CoreXT UI object of various UI types. The default implementation extends this to implement HTML elements. */
-        export var HTMLNode = $HTMLNode['$HTMLNode Factory'].$__type;
+        export var HTMLNode = ClassFactory(HTML, GraphNode,
+            (base) => {
+                class HTMLNode extends base {
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    protected static readonly 'HTMLNodeFactory' = class Factory extends FactoryBase(HTMLNode, base['GraphNodeFactory']) {
+                        'new'(parent: IGraphNode, id?: string, name?: string): InstanceType<typeof Factory.$__type> { return null; }
+
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, id?: string, name?: string) {
+                            this.super.init(o, isnew, parent);
+                            if (id !== void 0 && id !== null) o.id = id;
+                            if (name !== void 0 && name !== null) o.name = name;
+                            return o;
+                        }
+                    };
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    onRedraw(recursive: boolean = true) {
+                        super.onRedraw(recursive);
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
+                }
+                return [HTMLNode, HTMLNode["HTMLNodeFactory"]];
+            }
+        );
+
+        export interface IHTMLNode extends InstanceType<typeof HTMLNode.$__type> { }
 
         // ===================================================================================================================
 
         /** Represents an HTML node graph item that renders the content in the 'innerHTML of the default '__htmlTag' element (which is set to 'GraphItem.defaultHTMLTag' [DIV] initially).
-        * This object has no element restrictions, so you can create any element you need by setting the '__htmlTag' tag before the UI element gets created.
-        */
-        class $HTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends Factory(HTMLNode) {
-            // ----------------------------------------------------------------------------------------------------------------
+          * This object has no element restrictions, so you can create any element you need by setting the '__htmlTag' tag before the UI element gets created.
+          */
+        export var HTMLElement = ClassFactory(HTML, HTMLNode,
+            (base) => {
+                class HTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends base {
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            /* When extending 'GraphItem' with additional observable properties, it is considered good practice to create a
-              * static type with a list of possible vales that can be set by end users (to promote code completion mechanisms).
-              */
+                    /* When extending 'GraphItem' with additional observable properties, it is considered good practice to create a
+                      * static type with a list of possible vales that can be set by end users (to promote code completion mechanisms).
+                      */
 
-            static ID: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLNode, "id");
-            static Name: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLNode, "name");
-            static Class: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLElement, "class", true);
-            static Style: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLElement, "style", true);
-            static InnerHTML: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$HTMLElement, "innerHTML", true);
+                    static ID: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTMLElement, "id");
+                    static Name: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTMLElement, "name");
+                    static Class: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTMLElement, "class", true);
+                    static Style: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTMLElement, "style", true);
+                    static InnerHTML: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTMLElement, "innerHTML", true);
 
-            /** Each new graph item instance will initially set its '__htmlTag' property to this value. */
-            static defaultHTMLTag: string = "div";
+                    /** Each new graph item instance will initially set its '__htmlTag' property to this value. */
+                    static defaultHTMLTag: string = "div";
 
-            /*
-              * (Note: This static property registration also updates the internal '__UIProeprties' static list with UI-specific
-              * properties (that will trigger redraw events). Derived types should update this to their own values)
-              */
-            // ----------------------------------------------------------------------------------------------------------------
+                    /*
+                      * (Note: This static property registration also updates the internal '__UIProeprties' static list with UI-specific
+                      * properties (that will trigger redraw events). Derived types should update this to their own values)
+                      */
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            id: string;
-            name: string;
-            class: string; // (auto generated getter/setter based on static property) //x = GraphNode.accessor($UIElement.Class);
-            style: string;
-            innerHTML: string;
+                    id: string;
+                    name: string;
+                    class: string; // (auto generated getter/setter based on static property) //x = GraphNode.accessor($UIElement.Class);
+                    style: string;
+                    innerHTML: string;
 
-            /** Sets a value on this HTML element object and returns the element (to allow chaining calls). If a DOM element is also associated it's attributes are updated with the specified value. */
-            set<N extends keyof TElement, V extends TElement[N]>(name: N, value: V): this {
-                return this.setValue(name, value); // (triggers '_onPropertyValueSet()' in this class, which will update the attributes)
-            }
-
-            /** 
-             * Gets a value on this HTML element object. Any associated DOM element is ignored if 'tryElement' is false (the default,
-             * which means only local values are returned). Set 'tryElement' to true to always read from the DOM element first, then
-             * fallback to reading locally.
-             * 
-             * Local value reading is always the default because of possible DOM-to-JS bridge performance issues.
-             * For more information you can:
-             *   * See this book: https://goo.gl/DWKhJc (page 36 [Chapter 3])
-             *   * Read this article: https://calendar.perfplanet.com/2009/dom-access-optimization/
-             */
-            get<N extends keyof TElement, V extends TElement[N]>(name: N, tryElement = false): V {
-                if (tryElement && this.__htmlElement) {
-                    var attr = this.__htmlElement.attributes.getNamedItem(name);
-                    if (attr) return <any>attr.value;
-                }
-                return this.getValue(name);
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            /** Represents the HTML element tag to use for this graph item.  The default value is set when a derived graph item is constructed.
-            * Not all objects support this property, and changing it is only valid BEFORE the layout is updated for the first time.
-            */
-            tagName: string = HTMLElement.defaultHTMLTag; // (warning: this may already be set from parsing an HTML template)
-            protected __element: Node = null;
-            protected __htmlElement: TElement = null;
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            protected static '$HTMLElement Factory' = class Factory extends FactoryBase($HTMLElement, $HTMLElement['$UIElement Factory']) {
-                'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> { return null; }
-
-                init<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>($this: $HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): $HTMLElement<TElement> {
-                    this.$__baseFactory.init($this, isnew, parent, id, name);
-                    $this.tagName = tagName;
-                    $this.set("innerHTML", html);
-                    $this.getProperty($HTMLElement.InnerHTML).registerListener((property: Property, initialValue: boolean): void => {
-                        if (!initialValue || !$this.__children.length) {
-                            if ($this.__children.length)
-                                $this.removeAllChildren();
-                            try { $this.__htmlElement.innerHTML = property.getValue(); }
-                            catch (ex) { /*(setting inner HTML/text is not supported on this element [eg. <img> tags])*/ }
-                        }
-                    });
-                    return $this;
-                }
-            };
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            onRedraw(recursive: boolean = true) {
-                super.onRedraw(recursive);
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            /** Attaches an event handler to the specified event name. */
-            on(eventName: string, handler: (ev: Event) => any) {
-                var event = super.on(eventName, handler);
-                if (this.__htmlElement && !event.isAssociated(this.__htmlElement)) {
-                    if (this.__htmlElement.addEventListener)
-                        this.__htmlElement.addEventListener(eventName, (ev: any): any => { return event.dispatch(ev); }, false);
-                    else if (this.__htmlElement['attachEvent']) {
-                        this.__htmlElement['attachEvent']("on" + eventName, (ev: any): any => { return event.dispatch(ev); });
-                    } else {
-                        // (in a server or other environment, do nothing)
+                    /** Sets a value on this HTML element object and returns the element (to allow chaining calls). If a DOM element is also associated it's attributes are updated with the specified value. */
+                    set<N extends keyof TElement, V extends TElement[N]>(name: N, value: V): this {
+                        return this.setValue(name, value); // (triggers '_onPropertyValueSet()' in this class, which will update the attributes)
                     }
-                    event.associate(this.__htmlElement);
-                }
-                return event;
-            }
 
-            // ----------------------------------------------------------------------------------------------------------------
+                    /** 
+                     * Gets a value on this HTML element object. Any associated DOM element is ignored if 'tryElement' is false (the default,
+                     * which means only local values are returned). Set 'tryElement' to true to always read from the DOM element first, then
+                     * fallback to reading locally.
+                     * 
+                     * Local value reading is always the default because of possible DOM-to-JS bridge performance issues.
+                     * For more information you can:
+                     *   * See this book: https://goo.gl/DWKhJc (page 36 [Chapter 3])
+                     *   * Read this article: https://calendar.perfplanet.com/2009/dom-access-optimization/
+                     */
+                    get<N extends keyof TElement, V extends TElement[N]>(name: N, tryElement = false): V {
+                        if (tryElement && this.__htmlElement) {
+                            var attr = this.__htmlElement.attributes.getNamedItem(name);
+                            if (attr) return <any>attr.value;
+                        }
+                        return this.getValue(name);
+                    }
 
-            /** Updates the associated HTML element attribute when a property value changes on this HTML element graph node. */
-            protected onPropertyValueSet?(name: string, value: any) {
-                if (super.onPropertyValueSet) super.onPropertyValueSet(name, value);
-                // ... setting a local observable property will also set any corresponding element property ...
-                if (this.__htmlElement && this.__htmlElement.setAttribute)
-                    this.__htmlElement.setAttribute(name, value);
-            }
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            // --------------------------------------------------------------------------------------------------------------------
+                    /** Represents the HTML element tag to use for this graph item.  The default value is set when a derived graph item is constructed.
+                    * Not all objects support this property, and changing it is only valid BEFORE the layout is updated for the first time.
+                    */
+                    tagName: string = HTMLElement.defaultHTMLTag; // (warning: this may already be set from parsing an HTML template)
+                    protected __element: Node = null;
+                    protected __htmlElement: TElement = null;
 
-            /** The function is called in order to produce an HTML element that represents the graph item.
-                * The base class, by default, simply returns a new 'HTMLDivElement' element (which doesn't display anything).
-                * It is expected that implementers will override this function in derived classes if any custom UI is to be generated.
-                * If the derived type doesn't represent a UI element, don't override this function.
-                */
-            createUIElement(): Node {
-                return document.createElement(this.htmlTag || HTMLElement.defaultHTMLTag || "div");
-            }
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            // --------------------------------------------------------------------------------------------------------------------
+                    protected static readonly 'HTMLElementFactory' = class Factory extends FactoryBase(HTMLElement, base['HTMLNodeFactory']) {
+                        'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): HTMLElement<TElement> { return null; }
 
-            /** 
-             * The function is called by the graph node base during layout updates in order to generate/update the initial properties and HTML elements for display.
-             */
-            protected onUpdateLayout() {
+                        init<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(o: HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string) {
+                            this.super.init(o, isnew, parent, id, name);
+                            o.tagName = tagName;
+                            o.set("innerHTML", html);
+                            o.getProperty(HTMLElement.InnerHTML).registerListener((property: IProperty, initialValue: boolean): void => {
+                                if (!initialValue || !o.__children.length) {
+                                    if (o.__children.length)
+                                        o.removeAllChildren();
+                                    try { o.__htmlElement.innerHTML = property.getValue(); }
+                                    catch (ex) { /*(setting inner HTML/text is not supported on this element [eg. <img> tags])*/ }
+                                }
+                            });
+                            return o;
+                        }
+                    };
 
-                if (host.isClient()) { // (the server has no UI!)
-                    // ... create this item's element before the child items get updated ...
+                    // ----------------------------------------------------------------------------------------------------------------
 
-                    var parentElement: Node = this.__parent ? this.__parent.__element : null;
-                    var i: number, n: number;
-                    var doRedraw = false;
+                    onRedraw(recursive: boolean = true) {
+                        super.onRedraw(recursive);
+                    }
 
-                    if (this.__element == null || this.__element.nodeName != this.tagName) {
-                        if (this.__element != null && parentElement != null)
-                            parentElement.removeChild(this.__element);
+                    // ----------------------------------------------------------------------------------------------------------------
 
-                        this.__element = this.createUIElement();
-                        this.tagName = this.__element.nodeName; // (keep this the same, just in case it changes internally)
-
-                        if (typeof this.__element['innerHTML'] !== 'undefined') { // (more info at http://www.w3schools.com/dom/dom_nodetype.asp)
-                            this.__htmlElement = <TElement>this.__element;
-
-                            // ... apply properties as attributes ...
-
-                            for (var pname in this.__properties) {
-                                var prop = this.__properties[pname];
-                                if (prop.hasValue())
-                                    this.__htmlElement.setAttribute(pname, prop.getValue());
+                    /** Attaches an event handler to the specified event name. */
+                    on(eventName: string, handler: (ev: Event) => any) {
+                        var event = super.on(eventName, handler);
+                        if (this.__htmlElement && !event.isAssociated(this.__htmlElement)) {
+                            if (this.__htmlElement.addEventListener)
+                                this.__htmlElement.addEventListener(eventName, (ev: any): any => { return event.dispatch(ev); }, false);
+                            else if (this.__htmlElement['attachEvent']) {
+                                this.__htmlElement['attachEvent']("on" + eventName, (ev: any): any => { return event.dispatch(ev); });
+                            } else {
+                                // (in a server or other environment, do nothing)
                             }
-                        } else
-                            this.__htmlElement = null;
-
-                        if (this.__element != null && parentElement != null)
-                            parentElement.appendChild(this.__element);
+                            event.associate(this.__htmlElement);
+                        }
+                        return event;
                     }
-                    else if (parentElement != null && this.__element.parentNode != parentElement) {
-                        // ... the parent element is different for the existing element, so *move* it to the new parent ...
-                        if (this.__element.parentNode != null)
-                            this.__element.parentNode.removeChild(this.__element);
-                        try {
-                            parentElement.appendChild(this.__element);
-                        } catch (e) {
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    /** Updates the associated HTML element attribute when a property value changes on this HTML element graph node. */
+                    protected onPropertyValueSet?(name: string, value: any) {
+                        if (super.onPropertyValueSet) super.onPropertyValueSet(name, value);
+                        // ... setting a local observable property will also set any corresponding element property ...
+                        if (this.__htmlElement && this.__htmlElement.setAttribute)
+                            this.__htmlElement.setAttribute(name, value);
+                    }
+
+                    // --------------------------------------------------------------------------------------------------------------------
+
+                    /** The function is called in order to produce an HTML element that represents the graph item.
+                        * The base class, by default, simply returns a new 'HTMLDivElement' element (which doesn't display anything).
+                        * It is expected that implementers will override this function in derived classes if any custom UI is to be generated.
+                        * If the derived type doesn't represent a UI element, don't override this function.
+                        */
+                    createUIElement(): Node {
+                        return document.createElement(this.htmlTag || HTMLElement.defaultHTMLTag || "div");
+                    }
+
+                    // --------------------------------------------------------------------------------------------------------------------
+
+                    /** 
+                     * The function is called by the graph node base during layout updates in order to generate/update the initial properties and HTML elements for display.
+                     */
+                    protected onUpdateLayout() {
+
+                        if (host.isClient()) { // (the server has no UI!)
+                            // ... create this item's element before the child items get updated ...
+
+                            var parentElement: Node = this.__parent ? this.__parent.__element : null;
+                            var i: number, n: number;
+                            var doRedraw = false;
+
+                            if (this.__element == null || this.__element.nodeName != this.tagName) {
+                                if (this.__element != null && parentElement != null)
+                                    parentElement.removeChild(this.__element);
+
+                                this.__element = this.createUIElement();
+                                this.tagName = this.__element.nodeName; // (keep this the same, just in case it changes internally)
+
+                                if (typeof this.__element['innerHTML'] !== 'undefined') { // (more info at http://www.w3schools.com/dom/dom_nodetype.asp)
+                                    this.__htmlElement = <TElement>this.__element;
+
+                                    // ... apply properties as attributes ...
+
+                                    for (var pname in this.__properties) {
+                                        var prop = this.__properties[pname];
+                                        if (prop.hasValue())
+                                            this.__htmlElement.setAttribute(pname, prop.getValue());
+                                    }
+                                } else
+                                    this.__htmlElement = null;
+
+                                if (this.__element != null && parentElement != null)
+                                    parentElement.appendChild(this.__element);
+                            }
+                            else if (parentElement != null && this.__element.parentNode != parentElement) {
+                                // ... the parent element is different for the existing element, so *move* it to the new parent ...
+                                if (this.__element.parentNode != null)
+                                    this.__element.parentNode.removeChild(this.__element);
+                                try {
+                                    parentElement.appendChild(this.__element);
+                                } catch (e) {
+                                }
+                            }
                         }
                     }
+
+                    // --------------------------------------------------------------------------------------------------------------------
                 }
+                return [HTMLElement, HTMLElement["HTMLNodeFactory"]];
             }
+        );
 
-            // --------------------------------------------------------------------------------------------------------------------
-        }
-
-        export interface IHTMLElement<TElement extends InstanceType<typeof global.HTMLElement>> extends $HTMLElement<TElement> { }
-        export var HTMLElement = $HTMLElement['$HTMLElement Factory'].$__type;
+        declare class HTMLElementClass<TElement extends InstanceType<typeof global.HTMLElement>> extends HTMLElement.$__type<TElement> { }
+        export interface IHTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends HTMLElementClass<TElement> { }
 
         // ===================================================================================================================
 
@@ -336,7 +351,7 @@ module CoreXT.System.Platform {
 
         //    // ----------------------------------------------------------------------------------------------------------------
 
-        //    protected static '$Anchor Factory' = class Factory extends FactoryBase($Anchor, $Anchor['$HTMLElement Factory']) implements IFactory {
+        //    protected static readonly '$Anchor Factory' = class Factory extends FactoryBase($Anchor, base['$HTMLElement Factory']) implements IFactory {
         //        'new'(parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
         //        init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, name: string = "", href: string = "", html: string = ""): InstanceType<typeof Factory.$__type> {
@@ -345,7 +360,7 @@ module CoreXT.System.Platform {
         //            $this.href = href;
         //            return $this;
         //        }
-        //    }.register(HTML);
+        //    };
 
         //    // ----------------------------------------------------------------------------------------------------------------
 
@@ -372,85 +387,93 @@ module CoreXT.System.Platform {
           * Represents a basic text node graph item that renders plain text (no HTML). For HTML use 'HTMLText'.
           * This is inline with the standard which declares that all DOM elements with text should have text-ONLY nodes.
           */
-        class $PlainText extends Factory(HTMLNode) { // (https://developer.mozilla.org/en-US/docs/Web/API/Text)
-            // ----------------------------------------------------------------------------------------------------------------
+        export var PlainText = ClassFactory(HTML, HTMLNode,
+            (base) => {
+                class PlainText extends base { // (https://developer.mozilla.org/en-US/docs/Web/API/Text)
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            static Text: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$PlainText, "text", true);
+                    static Text: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>PlainText, "text", true);
 
-            // ----------------------------------------------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            text: (text?: string) => string = GraphNode.accessor($PlainText.Text);
+                    text: (text?: string) => string = GraphNode.accessor(PlainText.Text);
 
-            // ----------------------------------------------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            protected static '$PlainText Factory' = class Factory extends FactoryBase($PlainText, $PlainText['$UIElement Factory']) implements IFactory {
-                'new'(parent: IGraphNode, text: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                    protected static readonly 'PlainTextFactory' = class Factory extends FactoryBase(PlainText, base['HTMLNodeFactory']) implements IFactory {
+                        'new'(parent: IGraphNode, text: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, text: string = ""): InstanceType<typeof Factory.$__type> {
-                    this.$__baseFactory.init($this, isnew, parent);
-                    $this.text(text);
-                    $this.htmlTag = "";
-                    $this.getProperty($PlainText.Text).registerListener((property: Property, initialValue: boolean): void => {
-                        (<Text>$this.__element).data = property.getValue();
-                    });
-                    return $this;
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, text: string = "") {
+                            this.super.init(o, isnew, parent);
+                            o.text(text);
+                            o.htmlTag = "";
+                            o.getProperty(PlainText.Text).registerListener((property: IProperty, initialValue: boolean): void => {
+                                (<Text>o.__element).data = property.getValue();
+                            });
+                            return o;
+                        }
+                    };
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    createUIElement(): Node {
+                        this.assertSupportedElementTypes("", "Text");
+                        return document.createTextNode("");
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    onRedraw(recursive: boolean = true) {
+                        super.onRedraw(recursive);
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
                 }
-            }.register(HTML);
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            createUIElement(): Node {
-                this.assertSupportedElementTypes("", "Text");
-                return document.createTextNode("");
+                return [PlainText, PlainText["PlainTextFactory"]];
             }
+        );
 
-            // ----------------------------------------------------------------------------------------------------------------
-
-            onRedraw(recursive: boolean = true) {
-                super.onRedraw(recursive);
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-        }
-
-        export interface IPlainText extends $PlainText { }
-        export var PlainText = $PlainText['$PlainText Factory'].$__type;
+        export interface IPlainText extends InstanceType<typeof PlainText.$__type> { }
 
         // ===================================================================================================================
 
         /** Represents an HTML text node graph item that renders the content in the 'innerHTML of a SPAN element. For plain text nodes use 'PlainText'.
           */
-        class $HTMLText extends Factory(HTMLElement)<HTMLSpanElement> {
-            // ----------------------------------------------------------------------------------------------------------------
+        export var HTMLText = ClassFactory(HTML, HTMLElement,
+            (base) => {
+                class HTMLText extends base<HTMLSpanElement> {
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            protected static '$HTMLText Factory' = class Factory extends FactoryBase($HTMLText, $HTMLText['$HTMLElement Factory']) implements IFactory {
-                'new'(parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                    protected static readonly 'HTMLTextFactory' = class Factory extends FactoryBase(HTMLText, base['HTMLElementFactory']) implements IFactory {
+                        'new'(parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> {
-                    this.$__baseFactory.init($this, isnew, parent, html);
-                    $this.htmlTag = "span"; global
-                    return $this;
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, html: string = "") {
+                            this.super.init(o, isnew, parent, html);
+                            o.htmlTag = "span"; global
+                            return o;
+                        }
+                    };
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    createUIElement(): Node {
+                        this.assertUnsupportedElementTypes("html", "head", "body", "script", "audio", "canvas", "object");
+                        return super.createUIElement();
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    onRedraw(recursive: boolean = true) {
+                        super.onRedraw(recursive);
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
                 }
-            }.register(HTML);
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            createUIElement(): Node {
-                this.assertUnsupportedElementTypes("html", "head", "body", "script", "audio", "canvas", "object");
-                return super.createUIElement();
+                return [HTMLText, HTMLText["HTMLTextFactory"]];
             }
+        );
 
-            // ----------------------------------------------------------------------------------------------------------------
-
-            onRedraw(recursive: boolean = true) {
-                super.onRedraw(recursive);
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-        }
-
-        export interface IHTMLText extends $HTMLText { }
-        export var HTMLText = $HTMLText['$HTMLText Factory'].$__type;
+        export interface IHTMLText extends InstanceType<typeof HTMLText.$__type> { }
 
         // ===================================================================================================================
 
@@ -479,118 +502,126 @@ module CoreXT.System.Platform {
         }
 
         /** Represents a basic phrase node graph item that renders phrase elements (a term used by w3.org to describe adding
-        * "structural information to text fragments").  This is basically just text formatting in most cases. 
-        * It's important to note the word "structural" here, as it is a suggestion on how to process text, but, unlike CSS,
-        * it does not dictate exactly HOW the text will actually look like. For instance, "<STRONG>" tags usually render as
-        * bold text, but someone can decide to color and increase font size instead using CSS for all such elements. This is
-        * actually a good thing, as it allows flexible web design in a way that can allow applying themes at a later time. */
-        class $Phrase extends Factory(HTMLText) {
-            // ----------------------------------------------------------------------------------------------------------------
+          * "structural information to text fragments").  This is basically just text formatting in most cases. 
+          * It's important to note the word "structural" here, as it is a suggestion on how to process text, but, unlike CSS,
+          * it does not dictate exactly HOW the text will actually look like. For instance, "<STRONG>" tags usually render as
+          * bold text, but someone can decide to color and increase font size instead using CSS for all such elements. This is
+          * actually a good thing, as it allows flexible web design in a way that can allow applying themes at a later time. */
+        export var Phrase = ClassFactory(HTML, HTMLElement,
+            (base) => {
+                class Phrase extends base {
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            static PhraseType: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Phrase, "phraseType", true);
+                    static PhraseType: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Phrase, "phraseType", true);
 
-            // ----------------------------------------------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            phraseType: (phraseType?: PhraseTypes) => PhraseTypes = GraphNode.accessor($Phrase.PhraseType);
+                    phraseType: (phraseType?: PhraseTypes) => PhraseTypes = GraphNode.accessor(Phrase.PhraseType);
 
-            // ----------------------------------------------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            protected static '$Phrase Factory' = class Factory extends FactoryBase($Phrase, $Phrase['$HTMLElement Factory']) implements IFactory {
-                'new'(parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                    protected static readonly 'PhraseFactory' = class Factory extends FactoryBase(Phrase, base['HTMLElementFactory']) {
+                        'new'(parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> {
-                    this.$__baseFactory.init($this, isnew, parent, html);
-                    $this.phraseType(phraseTypeFlags);
-                    var pInfo: Property = $this.getProperty($HTMLElement.InnerHTML);
-                    pInfo.registerFilter($this.createPhrase);
-                    return $this;
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = "") {
+                            this.super.init(o, isnew, parent, html);
+                            o.phraseType(phraseTypeFlags);
+                            var pInfo: IProperty = o.getProperty(HTMLElement.InnerHTML);
+                            pInfo.registerFilter(o.createPhrase);
+                            return o;
+                        }
+                    };
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    createUIElement(): Node {
+                        return super.createUIElement();
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    createPhrase(property: IProperty, value: any): any {
+                        var leftTags = "", rightTags = "", phraseType = this.phraseType();
+                        if ((phraseType & PhraseTypes.Emphasis) > 0) { leftTags = "<em>" + leftTags; rightTags += "</em>"; }
+                        if ((phraseType & PhraseTypes.Strong) > 0) { leftTags = "<strong>" + leftTags; rightTags += "</strong>"; }
+                        if ((phraseType & PhraseTypes.Cite) > 0) { leftTags = "<cite>" + leftTags; rightTags += "</cite>"; }
+                        if ((phraseType & PhraseTypes.Defining) > 0) { leftTags = "<dfn>" + leftTags; rightTags += "</dfn>"; }
+                        if ((phraseType & PhraseTypes.Code) > 0) { leftTags = "<code>" + leftTags; rightTags += "</code>"; }
+                        if ((phraseType & PhraseTypes.Sample) > 0) { leftTags = "<samp>" + leftTags; rightTags += "</samp>"; }
+                        if ((phraseType & PhraseTypes.Keyboard) > 0) { leftTags = "<kbd>" + leftTags; rightTags += "</kbd>"; }
+                        if ((phraseType & PhraseTypes.Variable) > 0) { leftTags = "<var>" + leftTags; rightTags += "</var>"; }
+                        if ((phraseType & PhraseTypes.Abbreviation) > 0) { leftTags = "<abbr>" + leftTags; rightTags += "</abbr>"; }
+                        if ((phraseType & PhraseTypes.Acronym) > 0) { leftTags = "<acronym>" + leftTags; rightTags += "</acronym>"; }
+                        return leftTags + value + rightTags;
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    onRedraw(recursive: boolean = true) {
+                        super.onRedraw(recursive); // (note: the innerHTML property will have been updated after this call to the 'html' property)
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
                 }
-            }.register(HTML);
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            createUIElement(): Node {
-                return super.createUIElement();
+                return [Phrase, Phrase["PhraseFactory"]];
             }
+        );
 
-            // ----------------------------------------------------------------------------------------------------------------
-
-            createPhrase(property: Property, value: any): any {
-                var leftTags = "", rightTags = "", phraseType = this.phraseType();
-                if ((phraseType & PhraseTypes.Emphasis) > 0) { leftTags = "<em>" + leftTags; rightTags += "</em>"; }
-                if ((phraseType & PhraseTypes.Strong) > 0) { leftTags = "<strong>" + leftTags; rightTags += "</strong>"; }
-                if ((phraseType & PhraseTypes.Cite) > 0) { leftTags = "<cite>" + leftTags; rightTags += "</cite>"; }
-                if ((phraseType & PhraseTypes.Defining) > 0) { leftTags = "<dfn>" + leftTags; rightTags += "</dfn>"; }
-                if ((phraseType & PhraseTypes.Code) > 0) { leftTags = "<code>" + leftTags; rightTags += "</code>"; }
-                if ((phraseType & PhraseTypes.Sample) > 0) { leftTags = "<samp>" + leftTags; rightTags += "</samp>"; }
-                if ((phraseType & PhraseTypes.Keyboard) > 0) { leftTags = "<kbd>" + leftTags; rightTags += "</kbd>"; }
-                if ((phraseType & PhraseTypes.Variable) > 0) { leftTags = "<var>" + leftTags; rightTags += "</var>"; }
-                if ((phraseType & PhraseTypes.Abbreviation) > 0) { leftTags = "<abbr>" + leftTags; rightTags += "</abbr>"; }
-                if ((phraseType & PhraseTypes.Acronym) > 0) { leftTags = "<acronym>" + leftTags; rightTags += "</acronym>"; }
-                return leftTags + value + rightTags;
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            onRedraw(recursive: boolean = true) {
-                super.onRedraw(recursive); // (note: the innerHTML property will have been updated after this call to the 'html' property)
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-        }
-
-        export interface IPhrase extends $Phrase { }
-        export var Phrase = $Phrase['$Phrase Factory'].$__type;
+        export interface IPhrase extends InstanceType<typeof Phrase.$__type> { }
 
         // ===================================================================================================================
 
         /** Represents an HTML header element. 
-        */
-        class $Header extends Factory(HTMLElement) {
-            // ----------------------------------------------------------------------------------------------------------------
+          */
+        export var Header = ClassFactory(HTML, HTMLElement,
+            (base) => {
+                class Header extends base {
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            static HeaderLevel: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>$Header, "headerLevel", true);
+                    static HeaderLevel: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>Header, "headerLevel", true);
 
-            // ----------------------------------------------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            headerLevel: (headerLevel?: number) => number = GraphNode.accessor($Header.HeaderLevel);
+                    headerLevel: (headerLevel?: number) => number = GraphNode.accessor(Header.HeaderLevel);
 
-            // ----------------------------------------------------------------------------------------------------------------
+                    // ----------------------------------------------------------------------------------------------------------------
 
-            protected static '$Header Factory' = class Factory extends FactoryBase($Header, $Header['$HTMLElement Factory']) implements IFactory {
-                'new'(parent: IGraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                    protected static readonly 'HeaderFactory' = class Factory extends FactoryBase(Header, base['HTMLElementFactory']) {
+                        'new'(parent: IGraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                init($this: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> {
-                    this.$__baseFactory.init($this, isnew, parent, html);
-                    if (headerLevel < 1 || headerLevel > 6)
-                        throw Exception.from("HTML only supports header levels 1 through 6.");
-                    $this.setValue($Header.HeaderLevel, headerLevel);
-                    return $this;
+                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, headerLevel: number = 1, html: string = "") {
+                            this.super.init(o, isnew, parent, html);
+                            if (headerLevel < 1 || headerLevel > 6)
+                                throw Exception.from("HTML only supports header levels 1 through 6.");
+                            o.setValue(Header.HeaderLevel, headerLevel);
+                            return o;
+                        }
+                    };
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    createUIElement(): Node {
+                        var headerLevel = this.getValue(Header.HeaderLevel);
+                        if (headerLevel < 1 || headerLevel > 6)
+                            throw Exception.from("HTML only supports header levels 1 through 6.");
+                        this.tagName = "h" + headerLevel;
+                        this.assertSupportedElementTypes("h1", "h2", "h3", "h4", "h5", "h6");
+                        return super.createUIElement();
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
+
+                    onRedraw(recursive: boolean = true) {
+                        super.onRedraw(recursive);
+                    }
+
+                    // ----------------------------------------------------------------------------------------------------------------
                 }
-            }.register(HTML);
-
-            // ----------------------------------------------------------------------------------------------------------------
-
-            createUIElement(): Node {
-                var headerLevel = this.getValue($Header.HeaderLevel);
-                if (headerLevel < 1 || headerLevel > 6)
-                    throw Exception.from("HTML only supports header levels 1 through 6.");
-                this.tagName = "h" + headerLevel;
-                this.assertSupportedElementTypes("h1", "h2", "h3", "h4", "h5", "h6");
-                return super.createUIElement();
+                return [Header, Header["HeaderFactory"]];
             }
+        );
 
-            // ----------------------------------------------------------------------------------------------------------------
-
-            onRedraw(recursive: boolean = true) {
-                super.onRedraw(recursive);
-            }
-
-            // ----------------------------------------------------------------------------------------------------------------
-        }
-
-        export interface IHeader extends $Header { }
-        export var Header = $Header['$Header Factory'].$__type;
+        export interface IHeader extends InstanceType<typeof Header.$__type> { }
 
         // ===================================================================================================================
 
@@ -835,7 +866,7 @@ module CoreXT.System.Platform {
                                         if (graphItemTypePrefix == '.')
                                             graphItemType = "DreamSpace.System.UI" + graphItemType;
 
-                                        var graphFactory = GraphNode['$GraphNode Factory'];
+                                        var graphFactory = GraphNode['GraphNodeFactory'];
                                         graphType = <TGraphNodeFactoryType>Utilities.dereferencePropertyPath(Scripts.translateModuleTypeName(graphItemType), (<ITypeInfo>CoreXT).$__parent);
 
                                         if (graphType === void 0)

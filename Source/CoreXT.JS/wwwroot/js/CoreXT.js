@@ -159,6 +159,12 @@ var CoreXT;
         return compositeMessage;
     }
     CoreXT.log = log;
+    function error(title, message, source, throwException, useLogger) {
+        if (throwException === void 0) { throwException = true; }
+        if (useLogger === void 0) { useLogger = true; }
+        return log(title, message, LogTypes.Error, source, throwException, useLogger);
+    }
+    CoreXT.error = error;
     CoreXT.BaseURI = (function () { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/')
         u += '/'; return u; })();
     log("Base URI", CoreXT.BaseURI);
@@ -268,6 +274,13 @@ var CoreXT;
             return typeInfo.$__name;
     }
     CoreXT.getTypeName = getTypeName;
+    function getFullTypeName(object, cacheTypeName) {
+        if (cacheTypeName === void 0) { cacheTypeName = true; }
+        if (object.$__fullname)
+            return object.$__fullname;
+        return getTypeName(object, cacheTypeName);
+    }
+    CoreXT.getFullTypeName = getFullTypeName;
     function isEmpty(obj) {
         if (obj === void 0 || obj === null)
             return true;
@@ -308,33 +321,48 @@ var CoreXT;
         };
     }
     CoreXT.$ = $;
-    function FactoryBase(type, registeredBaseFactoryType) {
+    function ClassFactory(namespace, base, getType, exportName, addMemberTypeInfo) {
+        if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
+        function _error(msg) {
+            error("ClassFactory()", msg, namespace);
+        }
+        if (!getType)
+            _error("A 'getType' selector function is required.");
+        if (!namespace)
+            _error("A 'namespace' value is required.");
+        var types = getType(base && base.$__type || base);
+        var cls = types[0];
+        var factory = types[1];
+        if (!cls)
+            _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class instance, which is required.");
+        if (typeof cls != 'function')
+            _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class (function) type object, which is required.");
+        var name = exportName || getTypeName(cls);
+        if (name.charAt(0) == '$')
+            name = name.substr(1);
+        if (!factory)
+            log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
+        return Types.__registerFactoryType(cls, factory, namespace, addMemberTypeInfo, exportName);
+    }
+    CoreXT.ClassFactory = ClassFactory;
+    function FactoryBase(type, baseFactoryType) {
         var fb = (_a = (function () {
                 function FactoryBase() {
                 }
-                Object.defineProperty(FactoryBase.prototype, "$__type", {
+                Object.defineProperty(FactoryBase.prototype, "type", {
                     get: function () { return FactoryBase.$__type; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(FactoryBase.prototype, "$__factory", {
-                    get: function () { return FactoryBase.$__factory; },
+                Object.defineProperty(FactoryBase.prototype, "super", {
+                    get: function () { return baseFactoryType && baseFactoryType.$__factory || null; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(FactoryBase.prototype, "$__baseFactory", {
-                    get: function () { return registeredBaseFactoryType && registeredBaseFactoryType.$__factory || null; },
-                    enumerable: true,
-                    configurable: true
-                });
-                FactoryBase.register = function (namespace, addMemberTypeInfo) {
-                    if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
-                    return Types.__registerFactoryType(this, namespace, addMemberTypeInfo);
-                };
                 return FactoryBase;
             }()),
             _a.$__type = type,
-            _a.$__baseFactoryType = registeredBaseFactoryType && registeredBaseFactoryType.$__factoryType || null,
+            _a.$__baseFactoryType = baseFactoryType,
             _a);
         return fb;
         var _a;
@@ -387,13 +415,17 @@ var CoreXT;
             var _a;
         }
         Types.__new = __new;
-        function __registerFactoryType(factoryType, namespace, addMemberTypeInfo) {
+        function __registerFactoryType(cls, factoryType, namespace, addMemberTypeInfo, exportName) {
             if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
             if (typeof factoryType !== 'function')
                 log("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", LogTypes.Error, classType);
-            var classType = factoryType.$__type;
+            var classType = cls;
             if (typeof classType !== 'function')
                 log("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", LogTypes.Error, classType);
+            var _exportName = exportName || getTypeName(cls);
+            if (_exportName.charAt(0) == '$')
+                _exportName = _exportName.substr(1);
+            namespace[_exportName] = cls;
             classType.$__type = classType;
             classType.$__factoryType = factoryType;
             var _factoryInstance = new factoryType();
@@ -415,7 +447,7 @@ var CoreXT;
                             return result;
                         }
                         else {
-                            classType.new = _factoryInstance.new = __new;
+                            _factoryInstance.new = classType.new = __new;
                             return (_b = _factoryInstance.new).call.apply(_b, __spread([this], arguments));
                         }
                         var _a, _b;
@@ -427,16 +459,16 @@ var CoreXT;
             for (var p in _factoryInstance)
                 if (_factoryInstance.hasOwnProperty(p) && !classType.hasOwnProperty(p))
                     classType[p] = _factoryInstance[p];
-            __registerType(factoryType.$__type, namespace, addMemberTypeInfo);
+            __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
             return _factoryInstance;
         }
         Types.__registerFactoryType = __registerFactoryType;
-        function __registerType(type, namespace, addMemberTypeInfo) {
+        function __registerType(type, namespace, addMemberTypeInfo, exportName) {
             if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
             var _namespace = namespace;
             if (_namespace.$__fullname === void 0)
                 log("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", LogTypes.Error, type);
-            var _type = __registerNamespace(namespace, getTypeName(type));
+            var _type = __registerNamespace(namespace, exportName || getTypeName(type));
             if (addMemberTypeInfo) {
                 var prototype = type['prototype'], func;
                 for (var pname in prototype) {
@@ -461,11 +493,14 @@ var CoreXT;
             if (!root)
                 root = CoreXT.global;
             var rootTypeName = getTypeName(root);
+            var nsOrTypeName = rootTypeName;
             log("Registering namespace for root '" + rootTypeName + "'", namespaces.join());
             var currentNamespace = root;
-            var fullname;
+            var fullname = root.$__fullname || "";
+            if (root == CoreXT.global && !fullname)
+                exception("has not been registered in the type system. Make sure to call 'registerNamespace()' at the top of namespace scopes before defining classes.");
             for (var i = 0, n = namespaces.length; i < n; ++i) {
-                var nsOrTypeName = namespaces[i];
+                nsOrTypeName = namespaces[i];
                 var trimmedName = nsOrTypeName.trim();
                 if (trimmedName.charAt(0) == '$')
                     trimmedName = trimmedName.substr(1);
@@ -552,124 +587,126 @@ var CoreXT;
     var System;
     (function (System) {
         registerNamespace("CoreXT", "System");
-        var $Exception = (function (_super) {
-            __extends($Exception, _super);
-            function $Exception() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            $Exception.prototype.toString = function () { return this.message; };
-            $Exception.prototype.valueOf = function () { return this.message; };
-            $Exception.printStackTrace = function () {
-                var callstack = [];
-                var isCallstackPopulated = false;
-                try {
-                    throw "";
-                }
-                catch (e) {
-                    if (e.stack) {
-                        var lines = e.stack.split('\n');
-                        for (var i = 0, len = lines.length; i < len; ++i) {
-                            if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                callstack.push(lines[i]);
-                            }
-                        }
-                        callstack.shift();
-                        isCallstackPopulated = true;
-                    }
-                    else if (CoreXT.global["opera"] && e.message) {
-                        var lines = e.message.split('\n');
-                        for (var i = 0, len = lines.length; i < len; ++i) {
-                            if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                var entry = lines[i];
-                                if (lines[i + 1]) {
-                                    entry += ' at ' + lines[i + 1];
-                                    i++;
-                                }
-                                callstack.push(entry);
-                            }
-                        }
-                        callstack.shift();
-                        isCallstackPopulated = true;
-                    }
-                }
-                if (!isCallstackPopulated) {
-                    var currentFunction = arguments.callee.caller;
-                    while (currentFunction) {
-                        var fn = currentFunction.toString();
-                        var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
-                        callstack.push(fname);
-                        currentFunction = currentFunction.caller;
-                    }
-                }
-                return callstack;
-            };
-            $Exception.from = function (message, source) {
-                if (source === void 0) { source = null; }
-                var createLog = true;
-                if (typeof message == 'object' && (message.title || message.message)) {
-                    createLog = false;
-                    if (source != void 0)
-                        message.source = source;
-                    source = message;
-                    message = "";
-                    if (message.title)
-                        message += message.title;
-                    if (message.message) {
-                        if (message)
-                            message += ": ";
-                        message += message.message;
-                    }
-                }
-                var callerFunction = System.Exception.from.caller;
-                var callerFunctionInfo = callerFunction;
-                var callerName = callerFunctionInfo.$__name;
-                var args = $Exception.from.caller.arguments;
-                var _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
-                var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
-                message = (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
-                message += callerFunction + "\r\n\r\nStack:\r\n";
-                var caller = callerFunction.caller;
-                while (caller) {
-                    callerName = caller.$__name;
-                    args = caller.arguments;
-                    _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
-                    if (callerName)
-                        message += callerName + "(" + _args + ")\r\n";
-                    else
-                        message += callerFunction + (_args ? " using arguments (" + _args + ")" : "") + "\r\n";
-                    caller = caller.caller != caller ? caller.caller : null;
-                    caller = caller.caller;
-                }
-                return System.Exception.new(message, source, createLog);
-            };
-            $Exception.error = function (title, message, source) {
-                var logItem = System.Diagnostics.log(title, message, LogTypes.Error);
-                return System.Exception.from(logItem, source);
-            };
-            $Exception.notImplemented = function (functionNameOrTitle, source, message) {
-                var logItem = System.Diagnostics.log(functionNameOrTitle, "The function is not implemented." + (message ? " " + message : ""), LogTypes.Error);
-                return System.Exception.from(logItem, source);
-            };
-            $Exception['$Exception Factory'] = (function (_super) {
-                __extends(Factory, _super);
-                function Factory() {
+        System.Exception = ClassFactory(System, void 0, function (base) {
+            var Exception = (function (_super) {
+                __extends(Exception, _super);
+                function Exception() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
-                Factory.prototype['new'] = function (message, source, log) { return null; };
-                Factory.prototype.init = function ($this, isnew, message, source, log) {
-                    if (CoreXT.Browser.ES6)
-                        safeEval("var _super = function() { return null; }");
-                    $this.message = message;
-                    $this.source = source;
-                    if (log || log === void 0)
-                        Diagnostics.log("Exception", message, LogTypes.Error);
-                    return $this;
+                Exception.prototype.toString = function () { return this.message; };
+                Exception.prototype.valueOf = function () { return this.message; };
+                Exception.printStackTrace = function () {
+                    var callstack = [];
+                    var isCallstackPopulated = false;
+                    try {
+                        throw "";
+                    }
+                    catch (e) {
+                        if (e.stack) {
+                            var lines = e.stack.split('\n');
+                            for (var i = 0, len = lines.length; i < len; ++i) {
+                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
+                                    callstack.push(lines[i]);
+                                }
+                            }
+                            callstack.shift();
+                            isCallstackPopulated = true;
+                        }
+                        else if (CoreXT.global["opera"] && e.message) {
+                            var lines = e.message.split('\n');
+                            for (var i = 0, len = lines.length; i < len; ++i) {
+                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
+                                    var entry = lines[i];
+                                    if (lines[i + 1]) {
+                                        entry += ' at ' + lines[i + 1];
+                                        i++;
+                                    }
+                                    callstack.push(entry);
+                                }
+                            }
+                            callstack.shift();
+                            isCallstackPopulated = true;
+                        }
+                    }
+                    if (!isCallstackPopulated) {
+                        var currentFunction = arguments.callee.caller;
+                        while (currentFunction) {
+                            var fn = currentFunction.toString();
+                            var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
+                            callstack.push(fname);
+                            currentFunction = currentFunction.caller;
+                        }
+                    }
+                    return callstack;
                 };
-                return Factory;
-            }(FactoryBase($Exception, null))).register(System);
-            return $Exception;
-        }(Error));
-        System.Exception = $Exception['$Exception Factory'].$__type;
+                Exception.from = function (message, source) {
+                    if (source === void 0) { source = null; }
+                    var createLog = true;
+                    if (typeof message == 'object' && (message.title || message.message)) {
+                        createLog = false;
+                        if (source != void 0)
+                            message.source = source;
+                        source = message;
+                        message = "";
+                        if (message.title)
+                            message += message.title;
+                        if (message.message) {
+                            if (message)
+                                message += ": ";
+                            message += message.message;
+                        }
+                    }
+                    var callerFunction = System.Exception.from.caller;
+                    var callerFunctionInfo = callerFunction;
+                    var callerName = callerFunctionInfo.$__name;
+                    var args = Exception.from.caller.arguments;
+                    var _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
+                    var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
+                    message = (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
+                    message += callerFunction + "\r\n\r\nStack:\r\n";
+                    var caller = callerFunction.caller;
+                    while (caller) {
+                        callerName = caller.$__name;
+                        args = caller.arguments;
+                        _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
+                        if (callerName)
+                            message += callerName + "(" + _args + ")\r\n";
+                        else
+                            message += callerFunction + (_args ? " using arguments (" + _args + ")" : "") + "\r\n";
+                        caller = caller.caller != caller ? caller.caller : null;
+                        caller = caller.caller;
+                    }
+                    return System.Exception.new(message, source, createLog);
+                };
+                Exception.error = function (title, message, source) {
+                    var logItem = System.Diagnostics.log(title, message, LogTypes.Error);
+                    return System.Exception.from(logItem, source);
+                };
+                Exception.notImplemented = function (functionNameOrTitle, source, message) {
+                    var logItem = System.Diagnostics.log(functionNameOrTitle, "The function is not implemented." + (message ? " " + message : ""), LogTypes.Error);
+                    return System.Exception.from(logItem, source);
+                };
+                Exception['ExceptionFactory'] = (function (_super) {
+                    __extends(Factory, _super);
+                    function Factory() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Factory.prototype['new'] = function (message, source, log) { return null; };
+                    Factory.prototype.init = function ($this, isnew, message, source, log) {
+                        if (CoreXT.Browser.ES6)
+                            safeEval("var _super = function() { return null; }");
+                        $this.message = message;
+                        $this.source = source;
+                        if (log || log === void 0)
+                            Diagnostics.log("Exception", message, LogTypes.Error);
+                        return $this;
+                    };
+                    return Factory;
+                }(FactoryBase(Exception, null)));
+                return Exception;
+            }(Error));
+            return [Exception, Exception["ExceptionFactory"]];
+        });
         var Diagnostics;
         (function (Diagnostics) {
             registerNamespace("CoreXT", "System", "Diagnostics");
@@ -685,94 +722,96 @@ var CoreXT;
             Diagnostics.debug = DebugModes.Debug_Run;
             function isDebugging() { return Diagnostics.debug != DebugModes.Release; }
             Diagnostics.isDebugging = isDebugging;
-            var $LogItem = (function () {
-                function $LogItem() {
-                    this.parent = null;
-                    this.sequence = __logItemsSequenceCounter++;
-                    this.marginIndex = void 0;
-                }
-                $LogItem.prototype.write = function (message, type, outputToConsole) {
-                    if (type === void 0) { type = LogTypes.Normal; }
-                    if (outputToConsole === void 0) { outputToConsole = true; }
-                    var logItem = Diagnostics.LogItem.new(this, null, message, type);
-                    if (!this.subItems)
-                        this.subItems = [];
-                    this.subItems.push(logItem);
-                    return this;
-                };
-                $LogItem.prototype.log = function (title, message, type, outputToConsole) {
-                    if (type === void 0) { type = LogTypes.Normal; }
-                    if (outputToConsole === void 0) { outputToConsole = true; }
-                    var logItem = Diagnostics.LogItem.new(this, title, message, type, outputToConsole);
-                    if (!this.subItems)
-                        this.subItems = [];
-                    this.subItems.push(logItem);
-                    return logItem;
-                };
-                $LogItem.prototype.beginCapture = function () {
-                    __logCaptureStack.push(this);
-                    return this;
-                };
-                $LogItem.prototype.endCapture = function () {
-                    var item = __logCaptureStack.pop();
-                    if (item != null)
-                        throw $Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);
-                };
-                $LogItem.prototype.toString = function () {
-                    var time = System.TimeSpan && System.TimeSpan.utcTimeToLocalTime(this.time) || null;
-                    var timeStr = time && (time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)) || "" + new Date(this.time).toLocaleTimeString();
-                    var txt = "[" + this.sequence + "] (" + timeStr + ") " + this.title + ": " + this.message;
-                    return txt;
-                };
-                $LogItem['$LogItem Factory'] = (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
+            Diagnostics.LogItem = ClassFactory(Diagnostics, void 0, function (base) {
+                var LogItem = (function () {
+                    function LogItem() {
+                        this.parent = null;
+                        this.sequence = __logItemsSequenceCounter++;
+                        this.marginIndex = void 0;
                     }
-                    Factory.prototype['new'] = function (parent, title, message, type, outputToConsole) {
+                    LogItem.prototype.write = function (message, type, outputToConsole) {
                         if (type === void 0) { type = LogTypes.Normal; }
                         if (outputToConsole === void 0) { outputToConsole = true; }
-                        return null;
+                        var logItem = Diagnostics.LogItem.new(this, null, message, type);
+                        if (!this.subItems)
+                            this.subItems = [];
+                        this.subItems.push(logItem);
+                        return this;
                     };
-                    Factory.prototype.init = function ($this, isnew, parent, title, message, type, outputToConsole) {
+                    LogItem.prototype.log = function (title, message, type, outputToConsole) {
                         if (type === void 0) { type = LogTypes.Normal; }
                         if (outputToConsole === void 0) { outputToConsole = true; }
-                        if (title === void 0 || title === null) {
-                            if (isEmpty(message))
-                                throw System.Exception.from("LogItem(): A message is required if no title is given.", $this);
-                            title = "";
+                        var logItem = Diagnostics.LogItem.new(this, title, message, type, outputToConsole);
+                        if (!this.subItems)
+                            this.subItems = [];
+                        this.subItems.push(logItem);
+                        return logItem;
+                    };
+                    LogItem.prototype.beginCapture = function () {
+                        __logCaptureStack.push(this);
+                        return this;
+                    };
+                    LogItem.prototype.endCapture = function () {
+                        var item = __logCaptureStack.pop();
+                        if (item != null)
+                            throw System.Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);
+                    };
+                    LogItem.prototype.toString = function () {
+                        var time = System.TimeSpan && System.TimeSpan.utcTimeToLocalTime(this.time) || null;
+                        var timeStr = time && (time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)) || "" + new Date(this.time).toLocaleTimeString();
+                        var txt = "[" + this.sequence + "] (" + timeStr + ") " + this.title + ": " + this.message;
+                        return txt;
+                    };
+                    LogItem['$LogItem Factory'] = (function (_super) {
+                        __extends(Factory, _super);
+                        function Factory() {
+                            return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        else if (typeof title != 'string')
-                            if (title.$__fullname)
-                                title = title.$__fullname;
-                            else
-                                title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
-                        if (message === void 0 || message === null)
-                            message = "";
-                        else
-                            message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
-                        $this.parent = parent;
-                        $this.title = title;
-                        $this.message = message;
-                        $this.time = Date.now();
-                        $this.type = type;
-                        if (console && outputToConsole) {
-                            var time = System.TimeSpan.utcTimeToLocalTime($this.time), margin = "";
-                            while (parent) {
-                                parent = parent.parent;
-                                margin += "  ";
+                        Factory.prototype['new'] = function (parent, title, message, type, outputToConsole) {
+                            if (type === void 0) { type = LogTypes.Normal; }
+                            if (outputToConsole === void 0) { outputToConsole = true; }
+                            return null;
+                        };
+                        Factory.prototype.init = function ($this, isnew, parent, title, message, type, outputToConsole) {
+                            if (type === void 0) { type = LogTypes.Normal; }
+                            if (outputToConsole === void 0) { outputToConsole = true; }
+                            if (title === void 0 || title === null) {
+                                if (isEmpty(message))
+                                    throw System.Exception.from("LogItem(): A message is required if no title is given.", $this);
+                                title = "";
                             }
-                            var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                + " " + margin + $this.title + ": " + $this.message;
-                            CoreXT.log(null, consoleText, type, void 0, false, false);
-                        }
-                        return $this;
-                    };
-                    return Factory;
-                }(FactoryBase($LogItem, null))).register(Diagnostics);
-                return $LogItem;
-            }());
-            Diagnostics.LogItem = $LogItem['$LogItem Factory'].$__type;
+                            else if (typeof title != 'string')
+                                if (title.$__fullname)
+                                    title = title.$__fullname;
+                                else
+                                    title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
+                            if (message === void 0 || message === null)
+                                message = "";
+                            else
+                                message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
+                            $this.parent = parent;
+                            $this.title = title;
+                            $this.message = message;
+                            $this.time = Date.now();
+                            $this.type = type;
+                            if (console && outputToConsole) {
+                                var time = System.TimeSpan.utcTimeToLocalTime($this.time), margin = "";
+                                while (parent) {
+                                    parent = parent.parent;
+                                    margin += "  ";
+                                }
+                                var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
+                                    + " " + margin + $this.title + ": " + $this.message;
+                                CoreXT.log(null, consoleText, type, void 0, false, false);
+                            }
+                            return $this;
+                        };
+                        return Factory;
+                    }(FactoryBase(LogItem, null)));
+                    return LogItem;
+                }());
+                return [LogItem, LogItem["LogItemFactory"]];
+            });
             function log(title, message, type, outputToConsole) {
                 if (type === void 0) { type = LogTypes.Normal; }
                 if (outputToConsole === void 0) { outputToConsole = true; }
@@ -984,460 +1023,462 @@ var CoreXT;
             RequestStatuses[RequestStatuses["Ready"] = 5] = "Ready";
             RequestStatuses[RequestStatuses["Executed"] = 6] = "Executed";
         })(RequestStatuses = Loader.RequestStatuses || (Loader.RequestStatuses = {}));
-        var $ResourceRequest = (function () {
-            function $ResourceRequest() {
-                this.$__transformedData = noop;
-                this.responseCode = 0;
-                this.responseMessage = "";
-                this.status = RequestStatuses.Pending;
-                this.messages = [];
-                this._promiseChain = [];
-                this._promiseChainIndex = 0;
-                this._dependentCompletedCount = 0;
-                this._paused = false;
-            }
-            Object.defineProperty($ResourceRequest.prototype, "transformedData", {
-                get: function () {
-                    return this.$__transformedData === noop ? this.data : this.$__transformedData;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty($ResourceRequest.prototype, "message", {
-                get: function () {
-                    return this.$__message;
-                },
-                set: function (value) {
-                    this.$__message = value;
-                    this.messages.push(this.$__message);
-                    if (console && console.log)
-                        console.log(this.$__message);
-                },
-                enumerable: true,
-                configurable: true
-            });
-            $ResourceRequest.prototype._queueDoNext = function (data) {
-                var _this = this;
-                setTimeout(function () {
-                    _this._doNext();
-                }, 0);
-            };
-            $ResourceRequest.prototype._queueDoError = function () {
-                var _this = this;
-                setTimeout(function () { _this._doError(); }, 0);
-            };
-            $ResourceRequest.prototype._requeueHandlersIfNeeded = function () {
-                if (this.status == RequestStatuses.Error)
-                    this._queueDoError();
-                else if (this.status >= RequestStatuses.Waiting) {
-                    this._queueDoNext(this.data);
+        Loader.ResourceRequest = ClassFactory(Loader, void 0, function (base) {
+            var ResourceRequest = (function () {
+                function ResourceRequest() {
+                    this.$__transformedData = noop;
+                    this.responseCode = 0;
+                    this.responseMessage = "";
+                    this.status = RequestStatuses.Pending;
+                    this.messages = [];
+                    this._promiseChain = [];
+                    this._promiseChainIndex = 0;
+                    this._dependentCompletedCount = 0;
+                    this._paused = false;
                 }
-            };
-            $ResourceRequest.prototype.then = function (success, error) {
-                if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
-                    throw "A handler function given is not a function.";
-                else {
-                    this._promiseChain.push({ onLoaded: success, onError: error });
-                    this._requeueHandlersIfNeeded();
-                }
-                if (this.status == RequestStatuses.Waiting || this.status == RequestStatuses.Ready) {
-                    this.status = RequestStatuses.Loaded;
-                    this.message = "New 'then' handler added.";
-                }
-                return this;
-            };
-            $ResourceRequest.prototype.include = function (request) {
-                if (!request._dependents)
-                    request._dependents = [];
-                if (!this._dependants)
-                    this._dependants = [];
-                request._dependents.push(this);
-                this._dependants.push(request);
-                return request;
-            };
-            $ResourceRequest.prototype.ready = function (handler) {
-                if (typeof handler == 'function') {
-                    if (!this._onReady)
-                        this._onReady = [];
-                    this._onReady.push(handler);
-                    this._requeueHandlersIfNeeded();
-                }
-                else
-                    throw "Handler is not a function.";
-                return this;
-            };
-            $ResourceRequest.prototype.while = function (progressHandler) {
-                if (typeof progressHandler == 'function') {
-                    if (!this._onProgress)
-                        this._onProgress = [];
-                    this._onProgress.push(progressHandler);
-                    this._requeueHandlersIfNeeded();
-                }
-                else
-                    throw "Handler is not a function.";
-                return this;
-            };
-            $ResourceRequest.prototype.abort = function () {
-                if (this._xhr.readyState > XMLHttpRequest.UNSENT && this._xhr.readyState < XMLHttpRequest.DONE) {
-                    this._xhr.abort();
-                }
-            };
-            $ResourceRequest.prototype.catch = function (errorHandler) {
-                if (typeof errorHandler == 'function') {
-                    this._promiseChain.push({ onError: errorHandler });
-                    this._requeueHandlersIfNeeded();
-                }
-                else
-                    throw "Handler is not a function.";
-                return this;
-            };
-            $ResourceRequest.prototype.finally = function (cleanupHandler) {
-                if (typeof cleanupHandler == 'function') {
-                    this._promiseChain.push({ onFinally: cleanupHandler });
-                    this._requeueHandlersIfNeeded();
-                }
-                else
-                    throw "Handler is not a function.";
-                return this;
-            };
-            $ResourceRequest.prototype.start = function () {
-                var _this = this;
-                if (this.async)
-                    setTimeout(function () { _this._Start(); }, 0);
-                else
-                    this._Start();
-                return this;
-            };
-            $ResourceRequest.prototype._Start = function () {
-                var _this = this;
-                if (this._dependents)
-                    for (var i = 0, n = this._dependents.length; i < n; ++i)
-                        this._dependents[i].start();
-                if (this.status == RequestStatuses.Pending) {
-                    this.status = RequestStatuses.Loading;
-                    this.message = "Loading resource '" + this.url + "' ...";
-                    if (typeof Storage !== void 0)
-                        try {
-                            this.data = localStorage.getItem("resource:" + this.url);
-                            if (this.data !== null && this.data !== void 0) {
-                                this.status = RequestStatuses.Loaded;
-                                this._doNext();
-                                return;
+                Object.defineProperty(ResourceRequest.prototype, "transformedData", {
+                    get: function () {
+                        return this.$__transformedData === noop ? this.data : this.$__transformedData;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ResourceRequest.prototype, "message", {
+                    get: function () {
+                        return this.$__message;
+                    },
+                    set: function (value) {
+                        this.$__message = value;
+                        this.messages.push(this.$__message);
+                        if (console && console.log)
+                            console.log(this.$__message);
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                ResourceRequest.prototype._queueDoNext = function (data) {
+                    var _this = this;
+                    setTimeout(function () {
+                        _this._doNext();
+                    }, 0);
+                };
+                ResourceRequest.prototype._queueDoError = function () {
+                    var _this = this;
+                    setTimeout(function () { _this._doError(); }, 0);
+                };
+                ResourceRequest.prototype._requeueHandlersIfNeeded = function () {
+                    if (this.status == RequestStatuses.Error)
+                        this._queueDoError();
+                    else if (this.status >= RequestStatuses.Waiting) {
+                        this._queueDoNext(this.data);
+                    }
+                };
+                ResourceRequest.prototype.then = function (success, error) {
+                    if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
+                        throw "A handler function given is not a function.";
+                    else {
+                        this._promiseChain.push({ onLoaded: success, onError: error });
+                        this._requeueHandlersIfNeeded();
+                    }
+                    if (this.status == RequestStatuses.Waiting || this.status == RequestStatuses.Ready) {
+                        this.status = RequestStatuses.Loaded;
+                        this.message = "New 'then' handler added.";
+                    }
+                    return this;
+                };
+                ResourceRequest.prototype.include = function (request) {
+                    if (!request._dependents)
+                        request._dependents = [];
+                    if (!this._dependants)
+                        this._dependants = [];
+                    request._dependents.push(this);
+                    this._dependants.push(request);
+                    return request;
+                };
+                ResourceRequest.prototype.ready = function (handler) {
+                    if (typeof handler == 'function') {
+                        if (!this._onReady)
+                            this._onReady = [];
+                        this._onReady.push(handler);
+                        this._requeueHandlersIfNeeded();
+                    }
+                    else
+                        throw "Handler is not a function.";
+                    return this;
+                };
+                ResourceRequest.prototype.while = function (progressHandler) {
+                    if (typeof progressHandler == 'function') {
+                        if (!this._onProgress)
+                            this._onProgress = [];
+                        this._onProgress.push(progressHandler);
+                        this._requeueHandlersIfNeeded();
+                    }
+                    else
+                        throw "Handler is not a function.";
+                    return this;
+                };
+                ResourceRequest.prototype.abort = function () {
+                    if (this._xhr.readyState > XMLHttpRequest.UNSENT && this._xhr.readyState < XMLHttpRequest.DONE) {
+                        this._xhr.abort();
+                    }
+                };
+                ResourceRequest.prototype.catch = function (errorHandler) {
+                    if (typeof errorHandler == 'function') {
+                        this._promiseChain.push({ onError: errorHandler });
+                        this._requeueHandlersIfNeeded();
+                    }
+                    else
+                        throw "Handler is not a function.";
+                    return this;
+                };
+                ResourceRequest.prototype.finally = function (cleanupHandler) {
+                    if (typeof cleanupHandler == 'function') {
+                        this._promiseChain.push({ onFinally: cleanupHandler });
+                        this._requeueHandlersIfNeeded();
+                    }
+                    else
+                        throw "Handler is not a function.";
+                    return this;
+                };
+                ResourceRequest.prototype.start = function () {
+                    var _this = this;
+                    if (this.async)
+                        setTimeout(function () { _this._Start(); }, 0);
+                    else
+                        this._Start();
+                    return this;
+                };
+                ResourceRequest.prototype._Start = function () {
+                    var _this = this;
+                    if (this._dependents)
+                        for (var i = 0, n = this._dependents.length; i < n; ++i)
+                            this._dependents[i].start();
+                    if (this.status == RequestStatuses.Pending) {
+                        this.status = RequestStatuses.Loading;
+                        this.message = "Loading resource '" + this.url + "' ...";
+                        if (typeof Storage !== void 0)
+                            try {
+                                this.data = localStorage.getItem("resource:" + this.url);
+                                if (this.data !== null && this.data !== void 0) {
+                                    this.status = RequestStatuses.Loaded;
+                                    this._doNext();
+                                    return;
+                                }
                             }
-                        }
-                        catch (e) {
-                        }
-                    if (!this._xhr) {
-                        this._xhr = new XMLHttpRequest();
-                        var xhr = this._xhr;
-                        var loaded = function () {
-                            if (xhr.status == 200 || xhr.status == 304) {
-                                _this.data = xhr.response;
-                                _this.status == RequestStatuses.Loaded;
-                                _this.message = "Loading completed.";
-                                if (_this.type != xhr.responseType) {
-                                    _this.setError("Resource type mismatch: expected type was '" + _this.type + "', but received '" + xhr.responseType + "'.\r\n");
+                            catch (e) {
+                            }
+                        if (!this._xhr) {
+                            this._xhr = new XMLHttpRequest();
+                            var xhr = this._xhr;
+                            var loaded = function () {
+                                if (xhr.status == 200 || xhr.status == 304) {
+                                    _this.data = xhr.response;
+                                    _this.status == RequestStatuses.Loaded;
+                                    _this.message = "Loading completed.";
+                                    if (_this.type != xhr.responseType) {
+                                        _this.setError("Resource type mismatch: expected type was '" + _this.type + "', but received '" + xhr.responseType + "'.\r\n");
+                                    }
+                                    else {
+                                        if (typeof Storage !== void 0)
+                                            try {
+                                                localStorage.setItem("resource:" + _this.url, _this.data);
+                                                _this.message = "Resource '" + _this.url + "' loaded from local storage.";
+                                            }
+                                            catch (e) {
+                                            }
+                                        _this._doNext();
+                                    }
                                 }
                                 else {
-                                    if (typeof Storage !== void 0)
-                                        try {
-                                            localStorage.setItem("resource:" + _this.url, _this.data);
-                                            _this.message = "Resource '" + _this.url + "' loaded from local storage.";
-                                        }
-                                        catch (e) {
-                                        }
-                                    _this._doNext();
+                                    _this.setError("There was a problem loading the resource '" + _this.url + "' (status code " + xhr.status + ": " + xhr.statusText + ").\r\n");
                                 }
-                            }
-                            else {
-                                _this.setError("There was a problem loading the resource '" + _this.url + "' (status code " + xhr.status + ": " + xhr.statusText + ").\r\n");
-                            }
-                        };
-                        xhr.onreadystatechange = function () {
-                            switch (xhr.readyState) {
-                                case XMLHttpRequest.UNSENT: break;
-                                case XMLHttpRequest.OPENED:
-                                    _this.message = "Opened connection to '" + _this.url + "'.";
-                                    break;
-                                case XMLHttpRequest.HEADERS_RECEIVED:
-                                    _this.message = "Headers received for '" + _this.url + "'.";
-                                    break;
-                                case XMLHttpRequest.LOADING: break;
-                                case XMLHttpRequest.DONE:
-                                    loaded();
-                                    break;
-                            }
-                        };
-                        xhr.onerror = function (ev) { _this.setError(void 0, ev); _this._doError(); };
-                        xhr.onabort = function () { _this.setError("Request aborted"); };
-                        xhr.ontimeout = function () { _this.setError("Request timed out."); };
-                        xhr.onprogress = function (evt) {
-                            _this.message = "Loaded " + Math.round(evt.loaded / evt.total * 100) + "%.";
-                            if (_this._onProgress && _this._onProgress.length)
-                                _this._doOnProgress(evt.loaded / evt.total * 100);
-                        };
+                            };
+                            xhr.onreadystatechange = function () {
+                                switch (xhr.readyState) {
+                                    case XMLHttpRequest.UNSENT: break;
+                                    case XMLHttpRequest.OPENED:
+                                        _this.message = "Opened connection to '" + _this.url + "'.";
+                                        break;
+                                    case XMLHttpRequest.HEADERS_RECEIVED:
+                                        _this.message = "Headers received for '" + _this.url + "'.";
+                                        break;
+                                    case XMLHttpRequest.LOADING: break;
+                                    case XMLHttpRequest.DONE:
+                                        loaded();
+                                        break;
+                                }
+                            };
+                            xhr.onerror = function (ev) { _this.setError(void 0, ev); _this._doError(); };
+                            xhr.onabort = function () { _this.setError("Request aborted"); };
+                            xhr.ontimeout = function () { _this.setError("Request timed out."); };
+                            xhr.onprogress = function (evt) {
+                                _this.message = "Loaded " + Math.round(evt.loaded / evt.total * 100) + "%.";
+                                if (_this._onProgress && _this._onProgress.length)
+                                    _this._doOnProgress(evt.loaded / evt.total * 100);
+                            };
+                        }
                     }
-                }
-                else {
-                    return;
-                }
-                if (xhr.readyState != 0)
-                    xhr.abort();
-                xhr.open("get", this.url, this.async);
-            };
-            $ResourceRequest.prototype.pause = function () {
-                if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
-                    || this.status == RequestStatuses.Ready && this._onReady.length)
-                    this._paused = true;
-                return this;
-            };
-            $ResourceRequest.prototype.continue = function () {
-                if (this._paused) {
-                    this._paused = false;
-                    this._requeueHandlersIfNeeded();
-                }
-                return this;
-            };
-            $ResourceRequest.prototype._doOnProgress = function (percent) {
-                if (this._onProgress) {
-                    for (var i = 0, n = this._onProgress.length; i < n; ++i)
-                        try {
-                            var cb = this._onProgress[i];
-                            if (cb)
-                                cb.call(this, this);
-                        }
-                        catch (e) {
-                            this._onProgress[i] = null;
-                            this.setError("'on progress' callback #" + i + " has thrown an error:", e);
-                        }
-                }
-            };
-            $ResourceRequest.prototype.setError = function (message, error) {
-                var msg = message;
-                if (error) {
-                    if (msg)
-                        msg += " ";
-                    if (error.name)
-                        msg = "(" + error.name + ") " + msg;
-                    message += error.message || "";
-                    if (error.stack)
-                        msg += "\r\nStack: \r\n" + error.stack + "\r\n";
-                }
-                this.message = msg;
-                this.messages.push(this.message);
-                this.status = RequestStatuses.Error;
-                if (console)
-                    if (console.error)
-                        console.error(msg);
-                    else if (console.log)
-                        console.log(msg);
-            };
-            $ResourceRequest.prototype._doNext = function () {
-                var _this = this;
-                if (this.status == RequestStatuses.Error) {
-                    this._doError();
-                    return;
-                }
-                if (this._onProgress && this._onProgress.length) {
-                    this._doOnProgress(100);
-                    this._onProgress.length = 0;
-                }
-                for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
-                    if (this._paused)
+                    else {
                         return;
-                    var handlers = this._promiseChain[this._promiseChainIndex];
-                    if (handlers.onLoaded) {
-                        try {
-                            var data = handlers.onLoaded.call(this, this.transformedData);
-                        }
-                        catch (e) {
-                            this.setError("Success handler failed:", e);
-                            ++this._promiseChainIndex;
-                            this._doError();
+                    }
+                    if (xhr.readyState != 0)
+                        xhr.abort();
+                    xhr.open("get", this.url, this.async);
+                };
+                ResourceRequest.prototype.pause = function () {
+                    if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
+                        || this.status == RequestStatuses.Ready && this._onReady.length)
+                        this._paused = true;
+                    return this;
+                };
+                ResourceRequest.prototype.continue = function () {
+                    if (this._paused) {
+                        this._paused = false;
+                        this._requeueHandlersIfNeeded();
+                    }
+                    return this;
+                };
+                ResourceRequest.prototype._doOnProgress = function (percent) {
+                    if (this._onProgress) {
+                        for (var i = 0, n = this._onProgress.length; i < n; ++i)
+                            try {
+                                var cb = this._onProgress[i];
+                                if (cb)
+                                    cb.call(this, this);
+                            }
+                            catch (e) {
+                                this._onProgress[i] = null;
+                                this.setError("'on progress' callback #" + i + " has thrown an error:", e);
+                            }
+                    }
+                };
+                ResourceRequest.prototype.setError = function (message, error) {
+                    var msg = message;
+                    if (error) {
+                        if (msg)
+                            msg += " ";
+                        if (error.name)
+                            msg = "(" + error.name + ") " + msg;
+                        message += error.message || "";
+                        if (error.stack)
+                            msg += "\r\nStack: \r\n" + error.stack + "\r\n";
+                    }
+                    this.message = msg;
+                    this.messages.push(this.message);
+                    this.status = RequestStatuses.Error;
+                    if (console)
+                        if (console.error)
+                            console.error(msg);
+                        else if (console.log)
+                            console.log(msg);
+                };
+                ResourceRequest.prototype._doNext = function () {
+                    var _this = this;
+                    if (this.status == RequestStatuses.Error) {
+                        this._doError();
+                        return;
+                    }
+                    if (this._onProgress && this._onProgress.length) {
+                        this._doOnProgress(100);
+                        this._onProgress.length = 0;
+                    }
+                    for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
+                        if (this._paused)
                             return;
-                        }
-                        if (typeof data === 'object' && data instanceof $ResourceRequest) {
-                            if (data.status == RequestStatuses.Error) {
-                                this.setError("Rejected request returned.");
+                        var handlers = this._promiseChain[this._promiseChainIndex];
+                        if (handlers.onLoaded) {
+                            try {
+                                var data = handlers.onLoaded.call(this, this.transformedData);
+                            }
+                            catch (e) {
+                                this.setError("Success handler failed:", e);
                                 ++this._promiseChainIndex;
                                 this._doError();
                                 return;
                             }
-                            else {
-                                var newResReq = data;
-                                if (newResReq.status >= RequestStatuses.Ready) {
-                                    if (newResReq === this)
-                                        continue;
-                                    data = newResReq.transformedData;
-                                }
-                                else {
-                                    newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
-                                        .catch(function (sender) { _this.setError("Resource returned from next handler has failed to load:", sender); _this._doError(); });
+                            if (typeof data === 'object' && data instanceof ResourceRequest) {
+                                if (data.status == RequestStatuses.Error) {
+                                    this.setError("Rejected request returned.");
+                                    ++this._promiseChainIndex;
+                                    this._doError();
                                     return;
                                 }
+                                else {
+                                    var newResReq = data;
+                                    if (newResReq.status >= RequestStatuses.Ready) {
+                                        if (newResReq === this)
+                                            continue;
+                                        data = newResReq.transformedData;
+                                    }
+                                    else {
+                                        newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
+                                            .catch(function (sender) { _this.setError("Resource returned from next handler has failed to load:", sender); _this._doError(); });
+                                        return;
+                                    }
+                                }
+                            }
+                            this.$__transformedData = data;
+                        }
+                        else if (handlers.onFinally) {
+                            try {
+                                handlers.onFinally.call(this);
+                            }
+                            catch (e) {
+                                this.setError("Cleanup handler failed:", e);
+                                ++this._promiseChainIndex;
+                                this._doError();
                             }
                         }
-                        this.$__transformedData = data;
                     }
-                    else if (handlers.onFinally) {
-                        try {
-                            handlers.onFinally.call(this);
-                        }
-                        catch (e) {
-                            this.setError("Cleanup handler failed:", e);
-                            ++this._promiseChainIndex;
-                            this._doError();
-                        }
-                    }
-                }
-                this._promiseChain.length = 0;
-                this._promiseChainIndex = 0;
-                if (this.status < RequestStatuses.Waiting)
-                    this.status = RequestStatuses.Waiting;
-                this._doReady();
-            };
-            $ResourceRequest.prototype._doReady = function () {
-                if (this._paused)
-                    return;
-                if (this.status < RequestStatuses.Waiting)
-                    return;
-                if (this.status == RequestStatuses.Waiting)
-                    if (!this._dependents || !this._dependents.length) {
-                        this.status = RequestStatuses.Ready;
-                        this.message = "Resource '" + this.url + "' has no dependencies, and is now ready.";
-                    }
-                    else if (this._dependentCompletedCount == this._dependents.length) {
-                        this.status = RequestStatuses.Ready;
-                        this.message = "All dependencies for resource '" + this.url + "' have loaded, and are now ready.";
-                    }
-                    else {
-                        this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._dependentCompletedCount + "/" + this._dependents.length + " ready so far)...";
-                        return;
-                    }
-                if (this.status == RequestStatuses.Ready) {
-                    if (this._onReady && this._onReady.length) {
-                        try {
-                            this._onReady.shift().call(this, this);
-                            if (this._paused)
-                                return;
-                        }
-                        catch (e) {
-                            this.setError("Error in ready handler:", e);
-                        }
-                    }
-                    for (var i = 0, n = this._dependants.length; i < n; ++i) {
-                        ++this._dependants[i]._dependentCompletedCount;
-                        this._dependants[i]._doReady();
-                    }
-                }
-            };
-            $ResourceRequest.prototype._doError = function () {
-                var _this = this;
-                if (this._paused)
-                    return;
-                if (this.status != RequestStatuses.Error) {
-                    this._doNext();
-                    return;
-                }
-                for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
+                    this._promiseChain.length = 0;
+                    this._promiseChainIndex = 0;
+                    if (this.status < RequestStatuses.Waiting)
+                        this.status = RequestStatuses.Waiting;
+                    this._doReady();
+                };
+                ResourceRequest.prototype._doReady = function () {
                     if (this._paused)
                         return;
-                    var handlers = this._promiseChain[this._promiseChainIndex];
-                    if (handlers.onError) {
-                        try {
-                            var newData = handlers.onError.call(this, this, this.message);
+                    if (this.status < RequestStatuses.Waiting)
+                        return;
+                    if (this.status == RequestStatuses.Waiting)
+                        if (!this._dependents || !this._dependents.length) {
+                            this.status = RequestStatuses.Ready;
+                            this.message = "Resource '" + this.url + "' has no dependencies, and is now ready.";
                         }
-                        catch (e) {
-                            this.setError("Error handler failed:", e);
+                        else if (this._dependentCompletedCount == this._dependents.length) {
+                            this.status = RequestStatuses.Ready;
+                            this.message = "All dependencies for resource '" + this.url + "' have loaded, and are now ready.";
                         }
-                        if (typeof newData === 'object' && newData instanceof $ResourceRequest) {
-                            if (newData.status == RequestStatuses.Error)
-                                return;
-                            else {
-                                var newResReq = newData;
-                                if (newResReq.status >= RequestStatuses.Ready)
-                                    newData = newResReq.transformedData;
-                                else {
-                                    newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
-                                        .catch(function (sender) { _this.setError("Resource returned from error handler has failed to load:", sender); _this._doError(); });
+                        else {
+                            this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._dependentCompletedCount + "/" + this._dependents.length + " ready so far)...";
+                            return;
+                        }
+                    if (this.status == RequestStatuses.Ready) {
+                        if (this._onReady && this._onReady.length) {
+                            try {
+                                this._onReady.shift().call(this, this);
+                                if (this._paused)
                                     return;
-                                }
+                            }
+                            catch (e) {
+                                this.setError("Error in ready handler:", e);
                             }
                         }
-                        this.status = RequestStatuses.Loaded;
-                        this.$__message = void 0;
-                        ++this._promiseChainIndex;
-                        this.$__transformedData = newData;
+                        for (var i = 0, n = this._dependants.length; i < n; ++i) {
+                            ++this._dependants[i]._dependentCompletedCount;
+                            this._dependants[i]._doReady();
+                        }
+                    }
+                };
+                ResourceRequest.prototype._doError = function () {
+                    var _this = this;
+                    if (this._paused)
+                        return;
+                    if (this.status != RequestStatuses.Error) {
                         this._doNext();
                         return;
                     }
-                    else if (handlers.onFinally) {
-                        try {
-                            handlers.onFinally.call(this);
+                    for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
+                        if (this._paused)
+                            return;
+                        var handlers = this._promiseChain[this._promiseChainIndex];
+                        if (handlers.onError) {
+                            try {
+                                var newData = handlers.onError.call(this, this, this.message);
+                            }
+                            catch (e) {
+                                this.setError("Error handler failed:", e);
+                            }
+                            if (typeof newData === 'object' && newData instanceof ResourceRequest) {
+                                if (newData.status == RequestStatuses.Error)
+                                    return;
+                                else {
+                                    var newResReq = newData;
+                                    if (newResReq.status >= RequestStatuses.Ready)
+                                        newData = newResReq.transformedData;
+                                    else {
+                                        newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
+                                            .catch(function (sender) { _this.setError("Resource returned from error handler has failed to load:", sender); _this._doError(); });
+                                        return;
+                                    }
+                                }
+                            }
+                            this.status = RequestStatuses.Loaded;
+                            this.$__message = void 0;
+                            ++this._promiseChainIndex;
+                            this.$__transformedData = newData;
+                            this._doNext();
+                            return;
                         }
-                        catch (e) {
-                            this.setError("Cleanup handler failed:", e);
+                        else if (handlers.onFinally) {
+                            try {
+                                handlers.onFinally.call(this);
+                            }
+                            catch (e) {
+                                this.setError("Cleanup handler failed:", e);
+                            }
                         }
                     }
-                }
-                if (this.status == RequestStatuses.Error) {
-                    var msgs = this.messages.join("\r\n� ");
-                    if (msgs)
-                        msgs = ":\r\n� " + msgs;
-                    else
-                        msgs = ".";
-                    throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
-                }
-            };
-            $ResourceRequest.prototype.reload = function (includeDependentResources) {
-                if (includeDependentResources === void 0) { includeDependentResources = true; }
-                if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
-                    this.data = void 0;
-                    this.status = RequestStatuses.Pending;
-                    this.responseCode = 0;
-                    this.responseMessage = "";
-                    this.$__message = "";
-                    this.messages = [];
-                    if (includeDependentResources)
-                        for (var i = 0, n = this._dependents.length; i < n; ++i)
-                            this._dependents[i].reload(includeDependentResources);
-                    if (this._onProgress)
-                        this._onProgress.length = 0;
-                    if (this._onReady)
-                        this._onReady.length = 0;
-                    if (this._promiseChain)
-                        this._promiseChain.length = 0;
-                    this.start();
-                }
-                return this;
-            };
-            $ResourceRequest['$ResourceRequest Factory'] = (function (_super) {
-                __extends(Factory, _super);
-                function Factory() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                Factory.prototype['new'] = function (url, type, async) { return null; };
-                Factory.prototype.init = function ($this, isnew, url, type, async) {
-                    if (async === void 0) { async = true; }
-                    if (url === void 0 || url === null)
-                        throw "A resource URL is required.";
-                    if (type === void 0)
-                        throw "The resource type is required.";
-                    if (_resourceRequestByURL[url])
-                        return _resourceRequestByURL[url];
-                    $this.url = url;
-                    $this.type = type;
-                    $this.async = async;
-                    $this.$__index = _resourceRequests.length;
-                    _resourceRequests.push($this);
-                    _resourceRequestByURL[$this.url] = $this;
-                    return $this;
+                    if (this.status == RequestStatuses.Error) {
+                        var msgs = this.messages.join("\r\n� ");
+                        if (msgs)
+                            msgs = ":\r\n� " + msgs;
+                        else
+                            msgs = ".";
+                        throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
+                    }
                 };
-                return Factory;
-            }(FactoryBase($ResourceRequest, null))).register(Loader);
-            return $ResourceRequest;
-        }());
-        Loader.ResourceRequest = $ResourceRequest['$ResourceRequest Factory'].$__type;
+                ResourceRequest.prototype.reload = function (includeDependentResources) {
+                    if (includeDependentResources === void 0) { includeDependentResources = true; }
+                    if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
+                        this.data = void 0;
+                        this.status = RequestStatuses.Pending;
+                        this.responseCode = 0;
+                        this.responseMessage = "";
+                        this.$__message = "";
+                        this.messages = [];
+                        if (includeDependentResources)
+                            for (var i = 0, n = this._dependents.length; i < n; ++i)
+                                this._dependents[i].reload(includeDependentResources);
+                        if (this._onProgress)
+                            this._onProgress.length = 0;
+                        if (this._onReady)
+                            this._onReady.length = 0;
+                        if (this._promiseChain)
+                            this._promiseChain.length = 0;
+                        this.start();
+                    }
+                    return this;
+                };
+                ResourceRequest['ResourceRequestFactory'] = (function (_super) {
+                    __extends(Factory, _super);
+                    function Factory() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Factory.prototype['new'] = function (url, type, async) { return null; };
+                    Factory.prototype.init = function (o, isnew, url, type, async) {
+                        if (async === void 0) { async = true; }
+                        if (url === void 0 || url === null)
+                            throw "A resource URL is required.";
+                        if (type === void 0)
+                            throw "The resource type is required.";
+                        if (_resourceRequestByURL[url])
+                            return _resourceRequestByURL[url];
+                        o.url = url;
+                        o.type = type;
+                        o.async = async;
+                        o.$__index = _resourceRequests.length;
+                        _resourceRequests.push(o);
+                        _resourceRequestByURL[o.url] = o;
+                        return o;
+                    };
+                    return Factory;
+                }(FactoryBase(ResourceRequest, null)));
+                return ResourceRequest;
+            }());
+            return [ResourceRequest, ResourceRequest["ResourceRequestFactory"]];
+        });
         var _resourceRequests = [];
         var _resourceRequestByURL = {};
         function get(url, type, asyc) {

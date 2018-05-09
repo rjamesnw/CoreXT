@@ -53,7 +53,7 @@ namespace CoreXT.System.Platform {
                 /**
                 * @param {Property} property The source of this event.
                 */
-                __DoOnPropertyChanging(owner: PropertyEventBase, property: IProperty, newValue: any): any {
+                __DoOnPropertyChanging(owner: IPropertyEventBase, property: IProperty, newValue: any): any {
                     if (this.interceptors != null)
                         for (var i = 0, n = this.interceptors.length; i < n; ++i)
                             newValue = this.interceptors[i].call(owner, property, newValue);
@@ -63,7 +63,7 @@ namespace CoreXT.System.Platform {
                 /**
                 * @param {Property} property The source of this event.
                 */
-                __DoOnPropertyChanged(owner: PropertyEventBase, property: IProperty, initialValue: boolean): void {
+                __DoOnPropertyChanged(owner: IPropertyEventBase, property: IProperty, initialValue: boolean): void {
                     if (this.listeners != null)
                         for (var i = 0, n = this.listeners.length; i < n; ++i)
                             this.listeners[i].call(owner, property, initialValue);
@@ -73,7 +73,7 @@ namespace CoreXT.System.Platform {
                 * @param {Property} property The source of this event.
                 * @param {any} value The result of each filter call is passed into this parameter for each successive call (in filter creation order).
                 */
-                __FilerValue(owner: PropertyEventBase, property: IProperty, value: any): void {
+                __FilerValue(owner: IPropertyEventBase, property: IProperty, value: any): void {
                     if (this.filters != null)
                         for (var i = 0, n = this.filters.length; i < n; ++i)
                             value = this.filters[i].call(owner, property, value);
@@ -143,7 +143,7 @@ namespace CoreXT.System.Platform {
                 // -------------------------------------------------------------------------------------------------------------------
                 // This part uses the CoreXT factory pattern
 
-                protected static 'PropertyEventBaseFactory' = class Factory extends FactoryBase(PropertyEventBase, PropertyEventBase['EventObjectFactory']) implements IFactory {
+                protected static readonly 'PropertyEventBaseFactory' = class Factory extends FactoryBase(PropertyEventBase, base['EventObjectFactory']) {
                     /**
                        * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
                        * layout that can render a view, or partial view.
@@ -151,9 +151,9 @@ namespace CoreXT.System.Platform {
                        */
                     'new'(): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init($this: InstanceType<typeof Factory.$__type>, isnew: boolean): InstanceType<typeof Factory.$__type> {
-                        this.super.init($this, isnew);
-                        return $this;
+                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean) {
+                        this.super.init(o, isnew);
+                        return o;
                     }
                 };
 
@@ -169,7 +169,7 @@ namespace CoreXT.System.Platform {
     export var StaticProperty = ClassFactory(Platform, PropertyEventBase,
         (base) => {
             class StaticProperty extends base {
-                owner: typeof GraphNode;
+                owner: typeof GraphNode.$__type;
 
                 /** An internal name for the property.  This will also be the attribute set on the underlying UI element (so a name
                 * of 'id' would set the 'id' attribute of the element). */
@@ -223,8 +223,8 @@ namespace CoreXT.System.Platform {
             class Property extends base {
                 // -------------------------------------------------------------------------------------------------------------------
 
-                /** The 'GraphItem' instance or static type that this property belongs to. */
-                owner: IGraphNode;
+                /** The 'GraphItem' instance that this property belongs to. */
+                owner: IPropertyEventBase;
 
                 /** A reference to the static property information for the property instance. */
                 staticProperty: IStaticProperty; // WARNING: This is null for non-registered "ad-hoc" properties.
@@ -242,9 +242,9 @@ namespace CoreXT.System.Platform {
                 // --------------------------------------------------------------------------------------------------------------------------
 
                 protected static readonly PropertyFactory = class Factory extends FactoryBase(Property, Property["PropertyEventBaseFactory"]) {
-                    'new'(owner: IGraphNode, staticProperty: IStaticProperty, value: any): InstanceType<typeof Factory.$__type> { return null; }
+                    'new'(owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, owner: IGraphNode, staticProperty: IStaticProperty, value: any) {
+                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any) {
                         this.super.init(o, isnew);
                         o.owner = owner;
                         o.staticProperty = staticProperty;

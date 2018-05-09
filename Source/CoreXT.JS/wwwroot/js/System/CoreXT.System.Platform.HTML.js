@@ -17,306 +17,316 @@ var CoreXT;
             var HTML;
             (function (HTML) {
                 CoreXT.registerNamespace("CoreXT", "System", "Platform", "HTML");
-                var $BrowserContext = (function (_super) {
-                    __extends($BrowserContext, _super);
-                    function $BrowserContext() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    $BrowserContext.prototype._setupIFrame = function () {
-                        this._target = this._iframe = document.createElement("iframe");
-                        this._iframe.style.display = "none";
-                        this._iframe.src = this._url;
-                        CoreXT.global.document.body.appendChild(this._iframe);
-                        this._global = this._iframe.contentWindow;
-                    };
-                    $BrowserContext.prototype._setupWorker = function () {
-                        this._target = this._worker = new Worker(this._url);
-                    };
-                    $BrowserContext.prototype._setupWindow = function () {
-                        this._target = this._window = Platform.Window.new(null, this._url);
-                    };
-                    $BrowserContext.prototype.load = function (url) {
-                        var contextType = this._contextType;
-                        switch (CoreXT.Environment) {
-                            case CoreXT.Environments.Browser:
-                                switch (contextType) {
-                                    case Platform.Contexts.Secure:
-                                    case Platform.Contexts.Unsecure:
-                                        this._setupIFrame();
-                                        if (CoreXT.Environment == CoreXT.Environments.Browser) {
-                                        }
-                                        else if (CoreXT.Environment == CoreXT.Environments.Browser) {
-                                        }
-                                        else {
-                                            this._target = this._worker = new Worker("CoreXT.js");
-                                        }
-                                        break;
-                                    case Platform.Contexts.SecureWindow:
-                                    case Platform.Contexts.UnsecureWindow:
-                                        if (CoreXT.Environment == CoreXT.Environments.Browser) {
-                                            this._target = this._iframe = document.createElement("iframe");
-                                            this._iframe.style.display = "none";
-                                            this._iframe.src = "index.html";
-                                            CoreXT.global.document.body.appendChild(this._iframe);
-                                            this._global = this._iframe.contentWindow;
-                                        }
-                                        else if (CoreXT.Environment == CoreXT.Environments.Browser) {
-                                        }
-                                        else {
-                                            this._target = this._worker = new Worker("CoreXT.js");
-                                        }
-                                        break;
-                                    case Platform.Contexts.Local:
-                                        this._target = this._global = CoreXT.global;
-                                        break;
-                                }
-                                break;
-                        }
-                        if (this._contextType == Platform.Contexts.Unsecure)
-                            url = "/";
-                        else
-                            this._iframe.src = location.protocol + "//ctx" + (Math.random() * 0x7FFFFF | 0) + "." + location.hostname;
-                    };
-                    $BrowserContext['$BrowserContext Factory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
+                HTML.BrowserContext = CoreXT.ClassFactory(HTML, Platform.Context, function (base) {
+                    var BrowserContext = (function (_super) {
+                        __extends(BrowserContext, _super);
+                        function BrowserContext() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (context) {
-                            if (context === void 0) { context = Platform.Contexts.Secure; }
-                            return null;
+                        BrowserContext.prototype._setupIFrame = function () {
+                            this._target = this._iframe = document.createElement("iframe");
+                            this._iframe.style.display = "none";
+                            this._iframe.src = this._url;
+                            CoreXT.global.document.body.appendChild(this._iframe);
+                            this._global = this._iframe.contentWindow;
                         };
-                        Factory.prototype.init = function ($this, isnew, context) {
-                            if (context === void 0) { context = Platform.Contexts.Secure; }
-                            this.$__baseFactory.init($this, isnew, context);
-                            return $this;
+                        BrowserContext.prototype._setupWorker = function () {
+                            this._target = this._worker = new Worker(this._url);
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase($BrowserContext, $BrowserContext['$Context Factory']))).register(HTML);
-                    return $BrowserContext;
-                }(Platform.Context.$__type));
-                HTML.BrowserContext = $BrowserContext['$BrowserContext Factory'].$__type;
-                var $HTMLNode = (function (_super) {
-                    __extends($HTMLNode, _super);
-                    function $HTMLNode() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    $HTMLNode.prototype.onRedraw = function (recursive) {
-                        if (recursive === void 0) { recursive = true; }
-                        _super.prototype.onRedraw.call(this, recursive);
-                    };
-                    $HTMLNode['$HTMLNode Factory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory.prototype['new'] = function (parent, id, name) { return null; };
-                        Factory.prototype.init = function ($this, isnew, parent, id, name) {
-                            this.$__baseFactory.init($this, isnew, parent);
-                            if (id !== void 0 && id !== null)
-                                $this.id = id;
-                            if (name !== void 0 && name !== null)
-                                $this.name = name;
-                            return $this;
+                        BrowserContext.prototype._setupWindow = function () {
+                            this._target = this._window = Platform.Window.new(null, this._url);
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase($HTMLNode, $HTMLNode['$GraphNode Factory']))).register(HTML);
-                    return $HTMLNode;
-                }(Platform.GraphNode.$__type));
-                HTML.HTMLNode = $HTMLNode['$HTMLNode Factory'].$__type;
-                var $HTMLElement = (function (_super) {
-                    __extends($HTMLElement, _super);
-                    function $HTMLElement() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.tagName = HTML.HTMLElement.defaultHTMLTag;
-                        _this.__element = null;
-                        _this.__htmlElement = null;
-                        return _this;
-                    }
-                    $HTMLElement.prototype.set = function (name, value) {
-                        return this.setValue(name, value);
-                    };
-                    $HTMLElement.prototype.get = function (name, tryElement) {
-                        if (tryElement === void 0) { tryElement = false; }
-                        if (tryElement && this.__htmlElement) {
-                            var attr = this.__htmlElement.attributes.getNamedItem(name);
-                            if (attr)
-                                return attr.value;
-                        }
-                        return this.getValue(name);
-                    };
-                    $HTMLElement.prototype.onRedraw = function (recursive) {
-                        if (recursive === void 0) { recursive = true; }
-                        _super.prototype.onRedraw.call(this, recursive);
-                    };
-                    $HTMLElement.prototype.on = function (eventName, handler) {
-                        var event = _super.prototype.on.call(this, eventName, handler);
-                        if (this.__htmlElement && !event.isAssociated(this.__htmlElement)) {
-                            if (this.__htmlElement.addEventListener)
-                                this.__htmlElement.addEventListener(eventName, function (ev) { return event.dispatch(ev); }, false);
-                            else if (this.__htmlElement['attachEvent']) {
-                                this.__htmlElement['attachEvent']("on" + eventName, function (ev) { return event.dispatch(ev); });
-                            }
-                            else {
-                            }
-                            event.associate(this.__htmlElement);
-                        }
-                        return event;
-                    };
-                    $HTMLElement.prototype.onPropertyValueSet = function (name, value) {
-                        if (_super.prototype.onPropertyValueSet)
-                            _super.prototype.onPropertyValueSet.call(this, name, value);
-                        if (this.__htmlElement && this.__htmlElement.setAttribute)
-                            this.__htmlElement.setAttribute(name, value);
-                    };
-                    $HTMLElement.prototype.createUIElement = function () {
-                        return document.createElement(this.htmlTag || HTML.HTMLElement.defaultHTMLTag || "div");
-                    };
-                    $HTMLElement.prototype.onUpdateLayout = function () {
-                        if (CoreXT.host.isClient()) {
-                            var parentElement = this.__parent ? this.__parent.__element : null;
-                            var i, n;
-                            var doRedraw = false;
-                            if (this.__element == null || this.__element.nodeName != this.tagName) {
-                                if (this.__element != null && parentElement != null)
-                                    parentElement.removeChild(this.__element);
-                                this.__element = this.createUIElement();
-                                this.tagName = this.__element.nodeName;
-                                if (typeof this.__element['innerHTML'] !== 'undefined') {
-                                    this.__htmlElement = this.__element;
-                                    for (var pname in this.__properties) {
-                                        var prop = this.__properties[pname];
-                                        if (prop.hasValue())
-                                            this.__htmlElement.setAttribute(pname, prop.getValue());
+                        BrowserContext.prototype.load = function (url) {
+                            var contextType = this._contextType;
+                            switch (CoreXT.Environment) {
+                                case CoreXT.Environments.Browser:
+                                    switch (contextType) {
+                                        case Platform.Contexts.Secure:
+                                        case Platform.Contexts.Unsecure:
+                                            this._setupIFrame();
+                                            if (CoreXT.Environment == CoreXT.Environments.Browser) {
+                                            }
+                                            else if (CoreXT.Environment == CoreXT.Environments.Browser) {
+                                            }
+                                            else {
+                                                this._target = this._worker = new Worker("CoreXT.js");
+                                            }
+                                            break;
+                                        case Platform.Contexts.SecureWindow:
+                                        case Platform.Contexts.UnsecureWindow:
+                                            if (CoreXT.Environment == CoreXT.Environments.Browser) {
+                                                this._target = this._iframe = document.createElement("iframe");
+                                                this._iframe.style.display = "none";
+                                                this._iframe.src = "index.html";
+                                                CoreXT.global.document.body.appendChild(this._iframe);
+                                                this._global = this._iframe.contentWindow;
+                                            }
+                                            else if (CoreXT.Environment == CoreXT.Environments.Browser) {
+                                            }
+                                            else {
+                                                this._target = this._worker = new Worker("CoreXT.js");
+                                            }
+                                            break;
+                                        case Platform.Contexts.Local:
+                                            this._target = this._global = CoreXT.global;
+                                            break;
                                     }
-                                }
-                                else
-                                    this.__htmlElement = null;
-                                if (this.__element != null && parentElement != null)
-                                    parentElement.appendChild(this.__element);
+                                    break;
                             }
-                            else if (parentElement != null && this.__element.parentNode != parentElement) {
-                                if (this.__element.parentNode != null)
-                                    this.__element.parentNode.removeChild(this.__element);
-                                try {
-                                    parentElement.appendChild(this.__element);
-                                }
-                                catch (e) {
-                                }
+                            if (this._contextType == Platform.Contexts.Unsecure)
+                                url = "/";
+                            else
+                                this._iframe.src = location.protocol + "//ctx" + (Math.random() * 0x7FFFFF | 0) + "." + location.hostname;
+                        };
+                        BrowserContext['BrowserContextFactory'] = (function (_super) {
+                            __extends(Factory, _super);
+                            function Factory() {
+                                return _super !== null && _super.apply(this, arguments) || this;
                             }
-                        }
-                    };
-                    $HTMLElement.ID = Platform.GraphNode.registerProperty($HTMLNode, "id");
-                    $HTMLElement.Name = Platform.GraphNode.registerProperty($HTMLNode, "name");
-                    $HTMLElement.Class = Platform.GraphNode.registerProperty($HTMLElement, "class", true);
-                    $HTMLElement.Style = Platform.GraphNode.registerProperty($HTMLElement, "style", true);
-                    $HTMLElement.InnerHTML = Platform.GraphNode.registerProperty($HTMLElement, "innerHTML", true);
-                    $HTMLElement.defaultHTMLTag = "div";
-                    $HTMLElement['$HTMLElement Factory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
+                            Factory.prototype['new'] = function (context) {
+                                if (context === void 0) { context = Platform.Contexts.Secure; }
+                                return null;
+                            };
+                            Factory.prototype.init = function (o, isnew, context) {
+                                if (context === void 0) { context = Platform.Contexts.Secure; }
+                                this.super.init(o, isnew, context);
+                                return o;
+                            };
+                            return Factory;
+                        }(CoreXT.FactoryBase(BrowserContext, BrowserContext['ContextFactory'])));
+                        return BrowserContext;
+                    }(base));
+                    return [BrowserContext, BrowserContext["BrowserContextFactory"]];
+                }, "BrowserContext");
+                HTML.HTMLNode = CoreXT.ClassFactory(HTML, Platform.GraphNode, function (base) {
+                    var HTMLNode = (function (_super) {
+                        __extends(HTMLNode, _super);
+                        function HTMLNode() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (parent, id, name, tagName, html) {
-                            if (tagName === void 0) { tagName = "div"; }
-                            return null;
+                        HTMLNode.prototype.onRedraw = function (recursive) {
+                            if (recursive === void 0) { recursive = true; }
+                            _super.prototype.onRedraw.call(this, recursive);
                         };
-                        Factory.prototype.init = function ($this, isnew, parent, id, name, tagName, html) {
-                            if (tagName === void 0) { tagName = "div"; }
-                            this.$__baseFactory.init($this, isnew, parent, id, name);
-                            $this.tagName = tagName;
-                            $this.set("innerHTML", html);
-                            $this.getProperty($HTMLElement.InnerHTML).registerListener(function (property, initialValue) {
-                                if (!initialValue || !$this.__children.length) {
-                                    if ($this.__children.length)
-                                        $this.removeAllChildren();
+                        HTMLNode['HTMLNodeFactory'] = (function (_super) {
+                            __extends(Factory, _super);
+                            function Factory() {
+                                return _super !== null && _super.apply(this, arguments) || this;
+                            }
+                            Factory.prototype['new'] = function (parent, id, name) { return null; };
+                            Factory.prototype.init = function (o, isnew, parent, id, name) {
+                                this.super.init(o, isnew, parent);
+                                if (id !== void 0 && id !== null)
+                                    o.id = id;
+                                if (name !== void 0 && name !== null)
+                                    o.name = name;
+                                return o;
+                            };
+                            return Factory;
+                        }(CoreXT.FactoryBase(HTMLNode, base['GraphNodeFactory'])));
+                        return HTMLNode;
+                    }(base));
+                    return [HTMLNode, HTMLNode["HTMLNodeFactory"]];
+                });
+                HTML.HTMLElement = CoreXT.ClassFactory(HTML, HTML.HTMLNode, function (base) {
+                    var HTMLElement = (function (_super) {
+                        __extends(HTMLElement, _super);
+                        function HTMLElement() {
+                            var _this = _super !== null && _super.apply(this, arguments) || this;
+                            _this.tagName = HTMLElement.defaultHTMLTag;
+                            _this.__element = null;
+                            _this.__htmlElement = null;
+                            return _this;
+                        }
+                        HTMLElement.prototype.set = function (name, value) {
+                            return this.setValue(name, value);
+                        };
+                        HTMLElement.prototype.get = function (name, tryElement) {
+                            if (tryElement === void 0) { tryElement = false; }
+                            if (tryElement && this.__htmlElement) {
+                                var attr = this.__htmlElement.attributes.getNamedItem(name);
+                                if (attr)
+                                    return attr.value;
+                            }
+                            return this.getValue(name);
+                        };
+                        HTMLElement.prototype.onRedraw = function (recursive) {
+                            if (recursive === void 0) { recursive = true; }
+                            _super.prototype.onRedraw.call(this, recursive);
+                        };
+                        HTMLElement.prototype.on = function (eventName, handler) {
+                            var event = _super.prototype.on.call(this, eventName, handler);
+                            if (this.__htmlElement && !event.isAssociated(this.__htmlElement)) {
+                                if (this.__htmlElement.addEventListener)
+                                    this.__htmlElement.addEventListener(eventName, function (ev) { return event.dispatch(ev); }, false);
+                                else if (this.__htmlElement['attachEvent']) {
+                                    this.__htmlElement['attachEvent']("on" + eventName, function (ev) { return event.dispatch(ev); });
+                                }
+                                else {
+                                }
+                                event.associate(this.__htmlElement);
+                            }
+                            return event;
+                        };
+                        HTMLElement.prototype.onPropertyValueSet = function (name, value) {
+                            if (_super.prototype.onPropertyValueSet)
+                                _super.prototype.onPropertyValueSet.call(this, name, value);
+                            if (this.__htmlElement && this.__htmlElement.setAttribute)
+                                this.__htmlElement.setAttribute(name, value);
+                        };
+                        HTMLElement.prototype.createUIElement = function () {
+                            return document.createElement(this.htmlTag || HTMLElement.defaultHTMLTag || "div");
+                        };
+                        HTMLElement.prototype.onUpdateLayout = function () {
+                            if (CoreXT.host.isClient()) {
+                                var parentElement = this.__parent ? this.__parent.__element : null;
+                                var i, n;
+                                var doRedraw = false;
+                                if (this.__element == null || this.__element.nodeName != this.tagName) {
+                                    if (this.__element != null && parentElement != null)
+                                        parentElement.removeChild(this.__element);
+                                    this.__element = this.createUIElement();
+                                    this.tagName = this.__element.nodeName;
+                                    if (typeof this.__element['innerHTML'] !== 'undefined') {
+                                        this.__htmlElement = this.__element;
+                                        for (var pname in this.__properties) {
+                                            var prop = this.__properties[pname];
+                                            if (prop.hasValue())
+                                                this.__htmlElement.setAttribute(pname, prop.getValue());
+                                        }
+                                    }
+                                    else
+                                        this.__htmlElement = null;
+                                    if (this.__element != null && parentElement != null)
+                                        parentElement.appendChild(this.__element);
+                                }
+                                else if (parentElement != null && this.__element.parentNode != parentElement) {
+                                    if (this.__element.parentNode != null)
+                                        this.__element.parentNode.removeChild(this.__element);
                                     try {
-                                        $this.__htmlElement.innerHTML = property.getValue();
+                                        parentElement.appendChild(this.__element);
                                     }
-                                    catch (ex) { }
+                                    catch (e) {
+                                    }
                                 }
-                            });
-                            return $this;
+                            }
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase($HTMLElement, $HTMLElement['$UIElement Factory']))).register(HTML);
-                    return $HTMLElement;
-                }(HTML.HTMLNode.$__type));
-                HTML.HTMLElement = $HTMLElement['$HTMLElement Factory'].$__type;
-                var $PlainText = (function (_super) {
-                    __extends($PlainText, _super);
-                    function $PlainText() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.text = Platform.GraphNode.accessor($PlainText.Text);
-                        return _this;
-                    }
-                    $PlainText.prototype.createUIElement = function () {
-                        this.assertSupportedElementTypes("", "Text");
-                        return document.createTextNode("");
-                    };
-                    $PlainText.prototype.onRedraw = function (recursive) {
-                        if (recursive === void 0) { recursive = true; }
-                        _super.prototype.onRedraw.call(this, recursive);
-                    };
-                    $PlainText.Text = Platform.GraphNode.registerProperty($PlainText, "text", true);
-                    $PlainText['$PlainText Factory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
+                        HTMLElement.ID = Platform.GraphNode.registerProperty(HTMLElement, "id");
+                        HTMLElement.Name = Platform.GraphNode.registerProperty(HTMLElement, "name");
+                        HTMLElement.Class = Platform.GraphNode.registerProperty(HTMLElement, "class", true);
+                        HTMLElement.Style = Platform.GraphNode.registerProperty(HTMLElement, "style", true);
+                        HTMLElement.InnerHTML = Platform.GraphNode.registerProperty(HTMLElement, "innerHTML", true);
+                        HTMLElement.defaultHTMLTag = "div";
+                        HTMLElement['HTMLElementFactory'] = (function (_super) {
+                            __extends(Factory, _super);
+                            function Factory() {
+                                return _super !== null && _super.apply(this, arguments) || this;
+                            }
+                            Factory.prototype['new'] = function (parent, id, name, tagName, html) {
+                                if (tagName === void 0) { tagName = "div"; }
+                                return null;
+                            };
+                            Factory.prototype.init = function (o, isnew, parent, id, name, tagName, html) {
+                                if (tagName === void 0) { tagName = "div"; }
+                                this.super.init(o, isnew, parent, id, name);
+                                o.tagName = tagName;
+                                o.set("innerHTML", html);
+                                o.getProperty(HTMLElement.InnerHTML).registerListener(function (property, initialValue) {
+                                    if (!initialValue || !o.__children.length) {
+                                        if (o.__children.length)
+                                            o.removeAllChildren();
+                                        try {
+                                            o.__htmlElement.innerHTML = property.getValue();
+                                        }
+                                        catch (ex) { }
+                                    }
+                                });
+                                return o;
+                            };
+                            return Factory;
+                        }(CoreXT.FactoryBase(HTMLElement, base['HTMLNodeFactory'])));
+                        return HTMLElement;
+                    }(base));
+                    return [HTMLElement, HTMLElement["HTMLNodeFactory"]];
+                });
+                HTML.PlainText = CoreXT.ClassFactory(HTML, HTML.HTMLNode, function (base) {
+                    var PlainText = (function (_super) {
+                        __extends(PlainText, _super);
+                        function PlainText() {
+                            var _this = _super !== null && _super.apply(this, arguments) || this;
+                            _this.text = Platform.GraphNode.accessor(PlainText.Text);
+                            return _this;
+                        }
+                        PlainText.prototype.createUIElement = function () {
+                            this.assertSupportedElementTypes("", "Text");
+                            return document.createTextNode("");
+                        };
+                        PlainText.prototype.onRedraw = function (recursive) {
+                            if (recursive === void 0) { recursive = true; }
+                            _super.prototype.onRedraw.call(this, recursive);
+                        };
+                        PlainText.Text = Platform.GraphNode.registerProperty(PlainText, "text", true);
+                        PlainText['PlainTextFactory'] = (function (_super) {
+                            __extends(Factory, _super);
+                            function Factory() {
+                                return _super !== null && _super.apply(this, arguments) || this;
+                            }
+                            Factory.prototype['new'] = function (parent, text) {
+                                if (text === void 0) { text = ""; }
+                                return null;
+                            };
+                            Factory.prototype.init = function (o, isnew, parent, text) {
+                                if (text === void 0) { text = ""; }
+                                this.super.init(o, isnew, parent);
+                                o.text(text);
+                                o.htmlTag = "";
+                                o.getProperty(PlainText.Text).registerListener(function (property, initialValue) {
+                                    o.__element.data = property.getValue();
+                                });
+                                return o;
+                            };
+                            return Factory;
+                        }(CoreXT.FactoryBase(PlainText, base['HTMLNodeFactory'])));
+                        return PlainText;
+                    }(base));
+                    return [PlainText, PlainText["PlainTextFactory"]];
+                });
+                HTML.HTMLText = CoreXT.ClassFactory(HTML, HTML.HTMLElement, function (base) {
+                    var HTMLText = (function (_super) {
+                        __extends(HTMLText, _super);
+                        function HTMLText() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (parent, text) {
-                            if (text === void 0) { text = ""; }
-                            return null;
+                        HTMLText.prototype.createUIElement = function () {
+                            this.assertUnsupportedElementTypes("html", "head", "body", "script", "audio", "canvas", "object");
+                            return _super.prototype.createUIElement.call(this);
                         };
-                        Factory.prototype.init = function ($this, isnew, parent, text) {
-                            if (text === void 0) { text = ""; }
-                            this.$__baseFactory.init($this, isnew, parent);
-                            $this.text(text);
-                            $this.htmlTag = "";
-                            $this.getProperty($PlainText.Text).registerListener(function (property, initialValue) {
-                                $this.__element.data = property.getValue();
-                            });
-                            return $this;
+                        HTMLText.prototype.onRedraw = function (recursive) {
+                            if (recursive === void 0) { recursive = true; }
+                            _super.prototype.onRedraw.call(this, recursive);
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase($PlainText, $PlainText['$UIElement Factory']))).register(HTML);
-                    return $PlainText;
-                }(HTML.HTMLNode.$__type));
-                HTML.PlainText = $PlainText['$PlainText Factory'].$__type;
-                var $HTMLText = (function (_super) {
-                    __extends($HTMLText, _super);
-                    function $HTMLText() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    $HTMLText.prototype.createUIElement = function () {
-                        this.assertUnsupportedElementTypes("html", "head", "body", "script", "audio", "canvas", "object");
-                        return _super.prototype.createUIElement.call(this);
-                    };
-                    $HTMLText.prototype.onRedraw = function (recursive) {
-                        if (recursive === void 0) { recursive = true; }
-                        _super.prototype.onRedraw.call(this, recursive);
-                    };
-                    $HTMLText['$HTMLText Factory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory.prototype['new'] = function (parent, html) {
-                            if (html === void 0) { html = ""; }
-                            return null;
-                        };
-                        Factory.prototype.init = function ($this, isnew, parent, html) {
-                            if (html === void 0) { html = ""; }
-                            this.$__baseFactory.init($this, isnew, parent, html);
-                            $this.htmlTag = "span";
-                            CoreXT.global;
-                            return $this;
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase($HTMLText, $HTMLText['$HTMLElement Factory']))).register(HTML);
-                    return $HTMLText;
-                }(HTML.HTMLElement.$__type));
-                HTML.HTMLText = $HTMLText['$HTMLText Factory'].$__type;
+                        HTMLText['HTMLTextFactory'] = (function (_super) {
+                            __extends(Factory, _super);
+                            function Factory() {
+                                return _super !== null && _super.apply(this, arguments) || this;
+                            }
+                            Factory.prototype['new'] = function (parent, html) {
+                                if (html === void 0) { html = ""; }
+                                return null;
+                            };
+                            Factory.prototype.init = function (o, isnew, parent, html) {
+                                if (html === void 0) { html = ""; }
+                                this.super.init(o, isnew, parent, html);
+                                o.htmlTag = "span";
+                                CoreXT.global;
+                                return o;
+                            };
+                            return Factory;
+                        }(CoreXT.FactoryBase(HTMLText, base['HTMLElementFactory'])));
+                        return HTMLText;
+                    }(base));
+                    return [HTMLText, HTMLText["HTMLTextFactory"]];
+                });
                 var PhraseTypes;
                 (function (PhraseTypes) {
                     PhraseTypes[PhraseTypes["Emphasis"] = 1] = "Emphasis";
@@ -330,133 +340,137 @@ var CoreXT;
                     PhraseTypes[PhraseTypes["Abbreviation"] = 256] = "Abbreviation";
                     PhraseTypes[PhraseTypes["Acronym"] = 512] = "Acronym";
                 })(PhraseTypes = HTML.PhraseTypes || (HTML.PhraseTypes = {}));
-                var $Phrase = (function (_super) {
-                    __extends($Phrase, _super);
-                    function $Phrase() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.phraseType = Platform.GraphNode.accessor($Phrase.PhraseType);
-                        return _this;
-                    }
-                    $Phrase.prototype.createUIElement = function () {
-                        return _super.prototype.createUIElement.call(this);
-                    };
-                    $Phrase.prototype.createPhrase = function (property, value) {
-                        var leftTags = "", rightTags = "", phraseType = this.phraseType();
-                        if ((phraseType & PhraseTypes.Emphasis) > 0) {
-                            leftTags = "<em>" + leftTags;
-                            rightTags += "</em>";
+                HTML.Phrase = CoreXT.ClassFactory(HTML, HTML.HTMLElement, function (base) {
+                    var Phrase = (function (_super) {
+                        __extends(Phrase, _super);
+                        function Phrase() {
+                            var _this = _super !== null && _super.apply(this, arguments) || this;
+                            _this.phraseType = Platform.GraphNode.accessor(Phrase.PhraseType);
+                            return _this;
                         }
-                        if ((phraseType & PhraseTypes.Strong) > 0) {
-                            leftTags = "<strong>" + leftTags;
-                            rightTags += "</strong>";
-                        }
-                        if ((phraseType & PhraseTypes.Cite) > 0) {
-                            leftTags = "<cite>" + leftTags;
-                            rightTags += "</cite>";
-                        }
-                        if ((phraseType & PhraseTypes.Defining) > 0) {
-                            leftTags = "<dfn>" + leftTags;
-                            rightTags += "</dfn>";
-                        }
-                        if ((phraseType & PhraseTypes.Code) > 0) {
-                            leftTags = "<code>" + leftTags;
-                            rightTags += "</code>";
-                        }
-                        if ((phraseType & PhraseTypes.Sample) > 0) {
-                            leftTags = "<samp>" + leftTags;
-                            rightTags += "</samp>";
-                        }
-                        if ((phraseType & PhraseTypes.Keyboard) > 0) {
-                            leftTags = "<kbd>" + leftTags;
-                            rightTags += "</kbd>";
-                        }
-                        if ((phraseType & PhraseTypes.Variable) > 0) {
-                            leftTags = "<var>" + leftTags;
-                            rightTags += "</var>";
-                        }
-                        if ((phraseType & PhraseTypes.Abbreviation) > 0) {
-                            leftTags = "<abbr>" + leftTags;
-                            rightTags += "</abbr>";
-                        }
-                        if ((phraseType & PhraseTypes.Acronym) > 0) {
-                            leftTags = "<acronym>" + leftTags;
-                            rightTags += "</acronym>";
-                        }
-                        return leftTags + value + rightTags;
-                    };
-                    $Phrase.prototype.onRedraw = function (recursive) {
-                        if (recursive === void 0) { recursive = true; }
-                        _super.prototype.onRedraw.call(this, recursive);
-                    };
-                    $Phrase.PhraseType = Platform.GraphNode.registerProperty($Phrase, "phraseType", true);
-                    $Phrase['$Phrase Factory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory.prototype['new'] = function (parent, phraseTypeFlags, html) {
-                            if (phraseTypeFlags === void 0) { phraseTypeFlags = 0; }
-                            if (html === void 0) { html = ""; }
-                            return null;
+                        Phrase.prototype.createUIElement = function () {
+                            return _super.prototype.createUIElement.call(this);
                         };
-                        Factory.prototype.init = function ($this, isnew, parent, phraseTypeFlags, html) {
-                            if (phraseTypeFlags === void 0) { phraseTypeFlags = 0; }
-                            if (html === void 0) { html = ""; }
-                            this.$__baseFactory.init($this, isnew, parent, html);
-                            $this.phraseType(phraseTypeFlags);
-                            var pInfo = $this.getProperty($HTMLElement.InnerHTML);
-                            pInfo.registerFilter($this.createPhrase);
-                            return $this;
+                        Phrase.prototype.createPhrase = function (property, value) {
+                            var leftTags = "", rightTags = "", phraseType = this.phraseType();
+                            if ((phraseType & PhraseTypes.Emphasis) > 0) {
+                                leftTags = "<em>" + leftTags;
+                                rightTags += "</em>";
+                            }
+                            if ((phraseType & PhraseTypes.Strong) > 0) {
+                                leftTags = "<strong>" + leftTags;
+                                rightTags += "</strong>";
+                            }
+                            if ((phraseType & PhraseTypes.Cite) > 0) {
+                                leftTags = "<cite>" + leftTags;
+                                rightTags += "</cite>";
+                            }
+                            if ((phraseType & PhraseTypes.Defining) > 0) {
+                                leftTags = "<dfn>" + leftTags;
+                                rightTags += "</dfn>";
+                            }
+                            if ((phraseType & PhraseTypes.Code) > 0) {
+                                leftTags = "<code>" + leftTags;
+                                rightTags += "</code>";
+                            }
+                            if ((phraseType & PhraseTypes.Sample) > 0) {
+                                leftTags = "<samp>" + leftTags;
+                                rightTags += "</samp>";
+                            }
+                            if ((phraseType & PhraseTypes.Keyboard) > 0) {
+                                leftTags = "<kbd>" + leftTags;
+                                rightTags += "</kbd>";
+                            }
+                            if ((phraseType & PhraseTypes.Variable) > 0) {
+                                leftTags = "<var>" + leftTags;
+                                rightTags += "</var>";
+                            }
+                            if ((phraseType & PhraseTypes.Abbreviation) > 0) {
+                                leftTags = "<abbr>" + leftTags;
+                                rightTags += "</abbr>";
+                            }
+                            if ((phraseType & PhraseTypes.Acronym) > 0) {
+                                leftTags = "<acronym>" + leftTags;
+                                rightTags += "</acronym>";
+                            }
+                            return leftTags + value + rightTags;
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase($Phrase, $Phrase['$HTMLElement Factory']))).register(HTML);
-                    return $Phrase;
-                }(HTML.HTMLText.$__type));
-                HTML.Phrase = $Phrase['$Phrase Factory'].$__type;
-                var $Header = (function (_super) {
-                    __extends($Header, _super);
-                    function $Header() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.headerLevel = Platform.GraphNode.accessor($Header.HeaderLevel);
-                        return _this;
-                    }
-                    $Header.prototype.createUIElement = function () {
-                        var headerLevel = this.getValue($Header.HeaderLevel);
-                        if (headerLevel < 1 || headerLevel > 6)
-                            throw System.Exception.from("HTML only supports header levels 1 through 6.");
-                        this.tagName = "h" + headerLevel;
-                        this.assertSupportedElementTypes("h1", "h2", "h3", "h4", "h5", "h6");
-                        return _super.prototype.createUIElement.call(this);
-                    };
-                    $Header.prototype.onRedraw = function (recursive) {
-                        if (recursive === void 0) { recursive = true; }
-                        _super.prototype.onRedraw.call(this, recursive);
-                    };
-                    $Header.HeaderLevel = Platform.GraphNode.registerProperty($Header, "headerLevel", true);
-                    $Header['$Header Factory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
+                        Phrase.prototype.onRedraw = function (recursive) {
+                            if (recursive === void 0) { recursive = true; }
+                            _super.prototype.onRedraw.call(this, recursive);
+                        };
+                        Phrase.PhraseType = Platform.GraphNode.registerProperty(Phrase, "phraseType", true);
+                        Phrase['PhraseFactory'] = (function (_super) {
+                            __extends(Factory, _super);
+                            function Factory() {
+                                return _super !== null && _super.apply(this, arguments) || this;
+                            }
+                            Factory.prototype['new'] = function (parent, phraseTypeFlags, html) {
+                                if (phraseTypeFlags === void 0) { phraseTypeFlags = 0; }
+                                if (html === void 0) { html = ""; }
+                                return null;
+                            };
+                            Factory.prototype.init = function (o, isnew, parent, phraseTypeFlags, html) {
+                                if (phraseTypeFlags === void 0) { phraseTypeFlags = 0; }
+                                if (html === void 0) { html = ""; }
+                                this.super.init(o, isnew, parent, html);
+                                o.phraseType(phraseTypeFlags);
+                                var pInfo = o.getProperty(HTML.HTMLElement.InnerHTML);
+                                pInfo.registerFilter(o.createPhrase);
+                                return o;
+                            };
+                            return Factory;
+                        }(CoreXT.FactoryBase(Phrase, base['HTMLElementFactory'])));
+                        return Phrase;
+                    }(base));
+                    return [Phrase, Phrase["PhraseFactory"]];
+                });
+                HTML.Header = CoreXT.ClassFactory(HTML, HTML.HTMLElement, function (base) {
+                    var Header = (function (_super) {
+                        __extends(Header, _super);
+                        function Header() {
+                            var _this = _super !== null && _super.apply(this, arguments) || this;
+                            _this.headerLevel = Platform.GraphNode.accessor(Header.HeaderLevel);
+                            return _this;
                         }
-                        Factory.prototype['new'] = function (parent, headerLevel, html) {
-                            if (headerLevel === void 0) { headerLevel = 1; }
-                            if (html === void 0) { html = ""; }
-                            return null;
-                        };
-                        Factory.prototype.init = function ($this, isnew, parent, headerLevel, html) {
-                            if (headerLevel === void 0) { headerLevel = 1; }
-                            if (html === void 0) { html = ""; }
-                            this.$__baseFactory.init($this, isnew, parent, html);
+                        Header.prototype.createUIElement = function () {
+                            var headerLevel = this.getValue(Header.HeaderLevel);
                             if (headerLevel < 1 || headerLevel > 6)
                                 throw System.Exception.from("HTML only supports header levels 1 through 6.");
-                            $this.setValue($Header.HeaderLevel, headerLevel);
-                            return $this;
+                            this.tagName = "h" + headerLevel;
+                            this.assertSupportedElementTypes("h1", "h2", "h3", "h4", "h5", "h6");
+                            return _super.prototype.createUIElement.call(this);
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase($Header, $Header['$HTMLElement Factory']))).register(HTML);
-                    return $Header;
-                }(HTML.HTMLElement.$__type));
-                HTML.Header = $Header['$Header Factory'].$__type;
+                        Header.prototype.onRedraw = function (recursive) {
+                            if (recursive === void 0) { recursive = true; }
+                            _super.prototype.onRedraw.call(this, recursive);
+                        };
+                        Header.HeaderLevel = Platform.GraphNode.registerProperty(Header, "headerLevel", true);
+                        Header['HeaderFactory'] = (function (_super) {
+                            __extends(Factory, _super);
+                            function Factory() {
+                                return _super !== null && _super.apply(this, arguments) || this;
+                            }
+                            Factory.prototype['new'] = function (parent, headerLevel, html) {
+                                if (headerLevel === void 0) { headerLevel = 1; }
+                                if (html === void 0) { html = ""; }
+                                return null;
+                            };
+                            Factory.prototype.init = function (o, isnew, parent, headerLevel, html) {
+                                if (headerLevel === void 0) { headerLevel = 1; }
+                                if (html === void 0) { html = ""; }
+                                this.super.init(o, isnew, parent, html);
+                                if (headerLevel < 1 || headerLevel > 6)
+                                    throw System.Exception.from("HTML only supports header levels 1 through 6.");
+                                o.setValue(Header.HeaderLevel, headerLevel);
+                                return o;
+                            };
+                            return Factory;
+                        }(CoreXT.FactoryBase(Header, base['HTMLElementFactory'])));
+                        return Header;
+                    }(base));
+                    return [Header, Header["HeaderFactory"]];
+                });
                 function parse(html, strictMode) {
                     if (html === void 0) { html = null; }
                     var log = System.Diagnostics.log(HTML, "Parsing HTML template ...").beginCapture();
@@ -553,7 +567,7 @@ var CoreXT;
                                                     graphItemType = RegExp.lastMatch;
                                                 if (graphItemTypePrefix == '.')
                                                     graphItemType = "DreamSpace.System.UI" + graphItemType;
-                                                var graphFactory = Platform.GraphNode['$GraphNode Factory'];
+                                                var graphFactory = Platform.GraphNode['GraphNodeFactory'];
                                                 graphType = CoreXT.Utilities.dereferencePropertyPath(CoreXT.Scripts.translateModuleTypeName(graphItemType), CoreXT.$__parent);
                                                 if (graphType === void 0)
                                                     throw System.Exception.from("The graph item type '" + graphItemType + "' for tag '<" + currentTagName + "' on line " + htmlReader.getCurrentLineNumber() + " was not found.");

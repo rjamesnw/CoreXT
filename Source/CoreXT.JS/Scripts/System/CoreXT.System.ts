@@ -32,18 +32,6 @@ namespace CoreXT {
         * Note: This value is only set on types registered using '{AppDomain}.registerType()'.
         */
         $__fullname?: string;
-
-        /** If specified, defines the expected types to use for injection into the function's parameters.
-          * Each entry is for a single parameter, and is a array of items where each item is either a string, naming the fully-qualified type name, or an object reference to the type (function) that is expected.
-          * To declare the parameter types for a constructor function (or any function), use the @
-          */
-        $__argumentTypes?: (IType<any> | string)[][];
-
-        /** The factory type containing the factory methods for creating instances of the underlying type. */
-        $__factory?: IFactory & IFactoryInstance;
-
-        /** The base factory type of the factory in '$__factory'. This is provided to maintain a factory inheritance chain. */
-        $__baseFactoryType?: { new(): IFactory } & ITypeInfo;
     }
 
     /** Domain information for every CoreXT 'Object' instance. */
@@ -83,28 +71,50 @@ namespace CoreXT {
     /** Type-cast function objects to this interface to access type specific information. */
     export interface IFunctionInfo extends Function, ITypeInfo {
         (...args: any[]): any;
+
+        /** If specified, defines the expected types to use for injection into the function's parameters.
+         * Each entry is for a single parameter, and is a array of items where each item is either a string, naming the fully-qualified type name, or an object reference to the type (function) that is expected.
+         * To declare the parameter types for a constructor function (or any function), use the @
+         */
+        $__argumentTypes?: (IType<any> | string)[][];
     }
 
     /** Type-cast CoreXT classes (functions) to this interface to access class specific type information. */
-    export interface IClassInfo<TInstance extends NativeTypes.IObject> extends IType<TInstance> {
+    export interface IClassInfo<TInstance extends NativeTypes.IObject = NativeTypes.IObject> extends ITypeInfo, IType<TInstance> {
+        /** This is a reference to the underlying class type for this factory type. */
+        $__type: IType<TInstance>
+
+        /** The factory type containing the factory methods for creating instances of the underlying type. */
+        $__factory?: IFactory;
+
+        /** Represents the static properties on a factory type. */
+        $__factoryType?: IFactoryTypeInfo;
+
+        /** The base factory type of the factory in '$__factory'. This is provided to maintain a factory inheritance chain. */
+        $__baseFactoryType?: { new(): IFactory } & ITypeInfo;
     }
 
-    export interface NewDelegate<TInstance extends object> { (...args: any[]): TInstance }
+    export interface NewDelegate<TInstance extends NativeTypes.IObject> { (...args: any[]): TInstance }
 
-    export interface InitDelegate<TInstance extends object> { (o: TInstance, isnew: boolean, ...args: any[]): TInstance }
+    export interface InitDelegate<TInstance extends NativeTypes.IObject> { (o: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
     /** Represents the static properties on a factory type. */
-    export interface IFactoryTypeInfo<TClass extends IType<object> = IType<object>, TFactory extends IFactory = IFactory> {
+    export interface IFactoryTypeInfo<TClass extends IType = IType, TFactory extends IFactory = IFactory> {
         new(...args: any[]): TFactory;
+
         /** The underlying type for this factory type. */
         $__type: TClass;
+
         /** A factory instance created from this factory type which serves as a singleton for creating instances of the underlying 'TClass' type. */
         $__factory?: TFactory;
+
         /** The factory from the inherited base type, or null/undefined if this object does not inherit from an object with a factory pattern. */
-        $__baseFactoryType: { new(): IFactory } & ITypeInfo;
+        $__baseFactoryType?: { new(): IFactory } & ITypeInfo;
     }
 
-    export interface IFactory<TCLass extends new () => object = any, TNew extends NewDelegate<InstanceType<TCLass>> = NewDelegate<InstanceType<TCLass>>, TInit extends InitDelegate<InstanceType<TCLass>> = InitDelegate<InstanceType<TCLass>>> {
+    /** Represents the factory methods of a factory instance. */
+    export interface IFactory<TClass extends IType = IType, TNew extends NewDelegate<InstanceType<TClass>> = NewDelegate<InstanceType<TClass>>, TInit extends InitDelegate<InstanceType<TClass>> = InitDelegate<InstanceType<TClass>>> {
+
         /** Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
           * This allows the reuse of disposed objects to prevent garbage collection hits that may cause the application to lag, and
           * also makes sure the object is associated with an application domain.
@@ -126,11 +136,13 @@ namespace CoreXT {
         init?: TInit
     }
 
-    export interface IFactoryInstance<TClass extends IType<object> = IType<object>, TFactory extends { new(): IFactory } = { new(): IFactory }> {
+    /** Represents the factory methods of a factory instance, including other protected instance properties used by the factory methods. */
+    export interface IFactoryInternal<TClass extends IType<object> = IType<object>, TFactory extends { new(): IFactory } = { new(): IFactory }>
+        extends IFactory<TClass> {
         /** The underlying type associated with this factory instance. */
-        type: TClass & InstanceType<TFactory> & { $__type: TClass };
-        ///** The factory instance containing the methods for creating instances of the underlying type '$__type'. */
-        //x $__factory?: InstanceType<TFactory>;
+        type: TClass; //x & InstanceType<TFactory> & { $__type: TClass }
+        //x /** The factory instance containing the methods for creating instances of the underlying type '$__type'. */
+        //x factory?: InstanceType<TFactory>;
         /** The immediate base factory type to this factory. */
         super: TFactory;
     }

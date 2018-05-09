@@ -89,7 +89,8 @@ namespace CoreXT {
                     // ----------------------------------------------------------------------------------------------------------------
                 }
                 return [ScriptResource, ScriptResource["ScriptResourceFactory"]];
-            }
+            },
+            "ScriptResource"
         );
 
         export interface IScriptResource extends InstanceType<typeof ScriptResource.$__type> { }

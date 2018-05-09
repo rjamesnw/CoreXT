@@ -233,12 +233,13 @@ namespace CoreXT {
         Trace
     }
 
-    /** Logs the message to the console (if available) and returns the logged message.
+    /** Logs the message to the console (if available) and returns the message.
+      *  By default errors are thrown instead of being returned.  Set 'throwOnError' to false to return logged error messages.
       * @param {string} title A title for this log message.
       * @param {string} message The message to log.
       * @param {object} source An optional object to associate with log.
       * @param {LogTypes} type The type of message to log.
-      * @param {boolean} throwOnError If true (the default) then an 'Error' with the message is thrown.
+      * @param {boolean} throwOnError If true (the default) then an exception with the message is thrown.
       * @param {boolean} useLogger If true (default) then 'System.Diagnostics.log()' is also called in addition to the console output.
       */
     export function log(title: string, message: string, type: LogTypes = LogTypes.Normal, source?: object, throwOnError = true, useLogger = true): string {
@@ -296,6 +297,18 @@ namespace CoreXT {
                 throw new Error(compositeMessage);
 
         return compositeMessage;
+    }
+
+    /** Logs the error message to the console (if available) and throws the error.
+      *  By default errors are thrown instead of being returned.  Set 'throwException' to false to return logged error messages.
+      * @param {string} title A title for this log message.
+      * @param {string} message The message to log.
+      * @param {object} source An optional object to associate with log.
+      * @param {boolean} throwException If true (the default) then an exception with the message is thrown.
+      * @param {boolean} useLogger If true (default) then 'System.Diagnostics.log()' is also called in addition to the console output.
+      */
+    export function error(title: string, message: string, source?: object, throwException = true, useLogger = true): string {
+        return log(title, message, LogTypes.Error, source, throwException, useLogger);
     }
 
     // =======================================================================================================================
@@ -447,6 +460,15 @@ namespace CoreXT {
         else return typeInfo.$__name;
     }
 
+    /** 
+     * Returns the full type name of the type or namespace, if available, or the name o the object itself if the full name (with namespaces) is not known. 
+     * @see getTypeName()
+     */
+    export function getFullTypeName(object: object, cacheTypeName = true): string {
+        if ((<ITypeInfo>object).$__fullname) return (<ITypeInfo>object).$__fullname;
+        return getTypeName(object, cacheTypeName);
+    }
+
     /** Returns true if the given object is empty, or an invalid value (eg. NaN, or an empty object, array, or string). */
     export function isEmpty(obj: any): boolean {
         if (obj === void 0 || obj === null) return true;
@@ -484,7 +506,7 @@ namespace CoreXT {
 
     // =======================================================================================================================
     // Function Parameter Dependency Injection Support
-    // TODO: Consider DI suppport at some point.
+    // TODO: Consider DI support at some point.
 
     /**
      * A decorator used to add DI information for a function parameter.
@@ -512,10 +534,34 @@ namespace CoreXT {
 
     export interface IClassFactory { }
 
-    export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IType, TInterface extends object, TNamespace extends object>
-        (namespace: TNamespace, base: { $__type: TBaseClass }, getType: (base: TBaseClass) => [TClass, TFactory], exportName?: keyof TNamespace)
-        : TClass & IClassFactory & InstanceType<TFactory> & { $__type: TClass } {
-        return null;
+    export type ClassFactoryType<TClass extends IType = IType, TFactoryType extends IFactoryTypeInfo = IFactoryTypeInfo>
+        = TClass & IClassFactory & InstanceType<TFactoryType> & {
+            /** This is a reference to the underlying class type for this factory type. */
+            $__type: TClass
+        }
+
+    export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IFactoryTypeInfo, TInterface extends object, TNamespace extends object>
+        (namespace: TNamespace, base: IClassFactory & { $__type: TBaseClass }, getType: (base: TBaseClass) => [TClass, TFactory], exportName?: keyof TNamespace, addMemberTypeInfo = true)
+        : ClassFactoryType<TClass, TFactory> {
+        function _error(msg: string) {
+            error("ClassFactory()", msg, namespace);
+        }
+        if (!getType) _error("A 'getType' selector function is required.");
+        if (!namespace) _error("A 'namespace' value is required.");
+
+        var types = getType(base && base.$__type || <any>base); // ('$__type' is essentially the same reference as base, but with the original type)
+        var cls = types[0];
+        var factory = types[1];
+
+        if (!cls) _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class instance, which is required.");
+        if (typeof cls != 'function') _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class (function) type object, which is required.");
+
+        var name = exportName || getTypeName(cls);
+        if (name.charAt(0) == '$') name = name.substr(1); // TODO: May not need to do this anymore.
+
+        if (!factory) log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
+
+        return Types.__registerFactoryType(cls, factory, namespace, addMemberTypeInfo, exportName);
     }
 
     /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
@@ -531,8 +577,6 @@ namespace CoreXT {
 
             /** The underlying type. */
             protected get type() { return FactoryBase.$__type; }
-            //x /** The factory instance for the underlying type '$__type'. */
-            //x protected get factory() { return FactoryBase.$__factory; }
             /** The base factory instance. */
             protected get super(): TBaseFactoryInstance { return baseFactoryType && <any>baseFactoryType.$__factory || null; }
 
@@ -652,26 +696,31 @@ namespace CoreXT {
         /** 
          * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
          * 
-         * @param {IType} factoryType The factory type to associated with the type.
+         * @param {IType} factoryType The factory type to associate with the type.
          * @param {modules} namespace A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
         */
-        export function __registerFactoryType<TClass extends IType<object>, TFactory extends { new(): IFactory }>(factoryType: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass }, namespace: object, addMemberTypeInfo = true)
-            : InstanceType<TFactory> & IFactoryInstance<TClass, TFactory> {
+        export function __registerFactoryType<TClass extends IType<object>, TFactory extends IFactoryTypeInfo<TClass>, TNamespace extends object>
+            (cls: TClass, factoryType: TFactory & { $__type: TClass }, namespace: TNamespace, addMemberTypeInfo = true, exportName?: keyof TNamespace)
+            : ClassFactoryType<TClass, TFactory> {
 
             if (typeof factoryType !== 'function')
                 log("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", LogTypes.Error, classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-            var classType = <IFactoryInstance<TClass, TFactory> & ITypeInfo & Object>factoryType.$__type;
+            var classType = <IFactory<TClass> & IClassInfo><any>cls;
 
             if (typeof classType !== 'function')
                 log("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", LogTypes.Error, classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
+            var _exportName = exportName || getTypeName(cls);
+            if (_exportName.charAt(0) == '$') _exportName = _exportName.substr(1); // TODO: May not need to do this anymore.
+            namespace[_exportName] = cls; // (usually the name will be set upon return from this function, but the type registration system will need it NOW, so just set it)
+
             classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
             classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
 
-            var _factoryInstance = <IFactory & Object & IFactoryInstance>new factoryType();
+            var _factoryInstance = new (<TFactory>factoryType)();
 
             factoryType.$__factory = _factoryInstance; // (make sure the factory instance used to create instances of the underlying class type is set on both the factory type and the class type)
             classType.$__factory = <any>_factoryInstance;
@@ -693,12 +742,12 @@ namespace CoreXT {
                         var result = _factoryInstance.new.call(this, ...arguments);
                         if (result && typeof result == 'object') {
                             // (the call returned a valid value, so next time, just use that one as is)
-                            classType.new = _factoryInstance.new;
+                            classType.new = <any>_factoryInstance.new;
                             return result;
                         }
                         else {
                             // (an object is required, otherwise this is not valid and only a place holder; if so, revert to the generic 'new' implementation)
-                            classType.new = _factoryInstance.new = __new;
+                            _factoryInstance.new = classType.new = <any>__new;
                             return _factoryInstance.new.call(this, ...arguments);
                         }
                     };
@@ -716,7 +765,7 @@ namespace CoreXT {
             //x if ('__register' in _factoryType)
             //x     _factoryType['__register'] == noop;
 
-            __registerType(factoryType.$__type, namespace, addMemberTypeInfo);
+            __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
 
             return <any>_factoryInstance;
         }
@@ -738,8 +787,10 @@ namespace CoreXT {
          * @param {IType} type The type (constructor function) to register.
          * @param {modules} parentNamespaces A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type will have type information applied (using the IFunctionInfo interface).
+         * @param {boolean} exportName (optional) The name exported from the namespace for this type. By default the type (class) name is assumed.
+         * If the name exported from the namespace is different, specify it here.
          */
-        export function __registerType<T extends IType<any>, TNamespaceParent extends object>(type: T, namespace: TNamespaceParent, addMemberTypeInfo = true): T {
+        export function __registerType<T extends IType<any>, TNamespaceParent extends object>(type: T, namespace: TNamespaceParent, addMemberTypeInfo = true, exportName?: keyof TNamespaceParent): T {
 
             var _namespace = <ITypeInfo>namespace;
 
@@ -748,7 +799,7 @@ namespace CoreXT {
 
             // ... register the type with the parent namespace ...
 
-            var _type = __registerNamespace(namespace, getTypeName(type));
+            var _type = __registerNamespace(namespace, exportName || getTypeName(type));
 
             // ... scan the type's prototype functions and update the type information (only function names at this time) ...
             // TODO: Consider parsing the function parameters as well and add this information for developers.
@@ -785,15 +836,20 @@ namespace CoreXT {
             if (!root) root = global;
 
             var rootTypeName = getTypeName(root);
+            var nsOrTypeName = rootTypeName;
             log("Registering namespace for root '" + rootTypeName + "'", namespaces.join());
 
             var currentNamespace = <INamespaceInfo>root;
-            var fullname: string;
+            var fullname = (<ITypeInfo>root).$__fullname || "";
+
+            if (root == global && !fullname)
+                exception("has not been registered in the type system. Make sure to call 'registerNamespace()' at the top of namespace scopes before defining classes.");
 
             for (var i = 0, n = namespaces.length; i < n; ++i) {
-                var nsOrTypeName = namespaces[i];
+                nsOrTypeName = namespaces[i];
                 var trimmedName = nsOrTypeName.trim();
                 if (trimmedName.charAt(0) == '$') trimmedName = trimmedName.substr(1); // (the convention assumes a '$' before the class name and the exported name will it removed)
+                // TODO: The preceding line may be obsolete.
                 if (!nsOrTypeName || !trimmedName) exception("is not a valid namespace name. A namespace must not be empty or only whitespace");
                 nsOrTypeName = trimmedName; // (storing the trimmed name at this point allows showing any whitespace-only characters in the error)
                 if (root == CoreXT && nsOrTypeName == "CoreXT") exception("is not valid - 'CoreXT' must not exist as a nested name under CoreXT");
@@ -1158,7 +1214,7 @@ namespace CoreXT {
                         /** Write a message to the log without using a title and return the new log item instance, which can be used to start a related sub-log. */
                         log(title: any, message: any, type?: LogTypes, outputToConsole?: boolean): LogItem;
                         log(title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): LogItem {
-                            var logItem = Diagnostics.LogItem.new (this, title, message, type, outputToConsole);
+                            var logItem = Diagnostics.LogItem.new(this, title, message, type, outputToConsole);
                             if (!this.subItems)
                                 this.subItems = [];
                             this.subItems.push(logItem);
@@ -1184,7 +1240,8 @@ namespace CoreXT {
                             //var i = __logCaptureStack.lastIndexOf(this);
                             //if (i >= 0) __logCaptureStack.splice(i, 1);
                             var item = __logCaptureStack.pop();
-                            if (item != null) throw Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);                        }
+                            if (item != null) throw Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);
+                        }
 
                         toString(): string {
                             var time = TimeSpan && TimeSpan.utcTimeToLocalTime(this.time) || null;

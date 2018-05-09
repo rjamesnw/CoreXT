@@ -34,37 +34,39 @@ var CoreXT;
     (function (System) {
         var Collections;
         (function (Collections) {
-            var $ObservableCollection = (function (_super) {
-                __extends($ObservableCollection, _super);
-                function $ObservableCollection() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                $ObservableCollection['$ObservableCollection Factory'] = (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
+            Collections.ObservableCollection = CoreXT.ClassFactory(Collections, System.Array, function (base) {
+                var ObservableCollection = (function (_super) {
+                    __extends(ObservableCollection, _super);
+                    function ObservableCollection() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function () {
-                        var items = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            items[_i] = arguments[_i];
+                    ObservableCollection['ObservableCollectionFactory'] = (function (_super) {
+                        __extends(Factory, _super);
+                        function Factory() {
+                            return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        return null;
-                    };
-                    Factory.prototype.init = function ($this, isnew) {
-                        var items = [];
-                        for (var _i = 2; _i < arguments.length; _i++) {
-                            items[_i - 2] = arguments[_i];
-                        }
-                        (_a = this.$__baseFactory).init.apply(_a, __spread([$this, isnew], items));
-                        return $this;
-                        var _a;
-                    };
-                    return Factory;
-                }(CoreXT.FactoryBase($ObservableCollection, $ObservableCollection['$Array Factory']))).register(Collections);
-                return $ObservableCollection;
-            }(System.Array.$Type));
-            Collections.ObservableCollection = $ObservableCollection['$ObservableCollection Factory'].$__type;
+                        Factory.prototype['new'] = function () {
+                            var items = [];
+                            for (var _i = 0; _i < arguments.length; _i++) {
+                                items[_i] = arguments[_i];
+                            }
+                            return null;
+                        };
+                        Factory.prototype.init = function (o, isnew) {
+                            var items = [];
+                            for (var _i = 2; _i < arguments.length; _i++) {
+                                items[_i - 2] = arguments[_i];
+                            }
+                            (_a = this.super).init.apply(_a, __spread([o, isnew], items));
+                            return o;
+                            var _a;
+                        };
+                        return Factory;
+                    }(CoreXT.FactoryBase(ObservableCollection, ObservableCollection['ArrayFactory'])));
+                    return ObservableCollection;
+                }(base));
+                return [ObservableCollection, ObservableCollection["ObservableCollectionFactory"]];
+            }, "ObservableCollection");
         })(Collections = System.Collections || (System.Collections = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));
 })(CoreXT || (CoreXT = {}));

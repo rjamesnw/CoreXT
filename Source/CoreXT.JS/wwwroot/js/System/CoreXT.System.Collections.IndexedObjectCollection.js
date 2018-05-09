@@ -14,109 +14,111 @@ var CoreXT;
     (function (System) {
         var Collections;
         (function (Collections) {
-            var $IndexedObjectCollection = (function (_super) {
-                __extends($IndexedObjectCollection, _super);
-                function $IndexedObjectCollection() {
-                    var _this = _super !== null && _super.apply(this, arguments) || this;
-                    _this.__objects = _this;
-                    _this.__validIDs = [];
-                    _this.__validIDsReadIndex = -1;
-                    _this.__releasedIDs = [];
-                    _this.__releasedIDsReadIndex = -1;
-                    return _this;
-                }
-                $IndexedObjectCollection.prototype.addObject = function (obj) {
-                    if (obj === void 0 || obj === null)
-                        return void 0;
-                    var id = obj[$IndexedObjectCollection.__IDPropertyName];
-                    if (id >= this.__objects.length)
-                        throw "The object already has an ID, but that ID does no belong to this collection.";
-                    if (id === 0 || id >= 0) {
-                        var internalObj = this.__objects[id];
-                        if (internalObj == obj)
-                            return id;
-                        if (internalObj != null)
-                            throw "The object given is not the same object that currently exists at the same index.";
+            Collections.IndexedObjectCollection = CoreXT.ClassFactory(Collections, System.Array, function (base) {
+                var IndexedObjectCollection = (function (_super) {
+                    __extends(IndexedObjectCollection, _super);
+                    function IndexedObjectCollection() {
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
+                        _this.__objects = _this;
+                        _this.__validIDs = [];
+                        _this.__validIDsReadIndex = -1;
+                        _this.__releasedIDs = [];
+                        _this.__releasedIDsReadIndex = -1;
+                        return _this;
+                    }
+                    IndexedObjectCollection.prototype.addObject = function (obj) {
+                        if (obj === void 0 || obj === null)
+                            return void 0;
+                        var id = obj[IndexedObjectCollection.__IDPropertyName];
+                        if (id >= this.__objects.length)
+                            throw "The object already has an ID, but that ID does no belong to this collection.";
+                        if (id === 0 || id >= 0) {
+                            var internalObj = this.__objects[id];
+                            if (internalObj == obj)
+                                return id;
+                            if (internalObj != null)
+                                throw "The object given is not the same object that currently exists at the same index.";
+                            else
+                                throw "The object given has an ID, but it's reference does not exist in this collection.";
+                        }
+                        if (this.__releasedIDsReadIndex >= 0)
+                            id = this.__releasedIDs[this.__releasedIDsReadIndex--];
                         else
-                            throw "The object given has an ID, but it's reference does not exist in this collection.";
-                    }
-                    if (this.__releasedIDsReadIndex >= 0)
-                        id = this.__releasedIDs[this.__releasedIDsReadIndex--];
-                    else
-                        id = this.__objects.length;
-                    obj[$IndexedObjectCollection.__IDPropertyName] = id;
-                    this.__objects[id] = obj;
-                    this.__validIDs[++this.__validIDsReadIndex] = id;
-                    obj[$IndexedObjectCollection.__validIDIndexPropertyName] = this.__validIDsReadIndex;
-                };
-                $IndexedObjectCollection.prototype.removeObject = function (idOrObj) {
-                    var id, obj, objGiven = null;
-                    id = typeof idOrObj === 'number' ? idOrObj : (objGiven = idOrObj)[$IndexedObjectCollection.__IDPropertyName];
-                    if (!(id === 0 || id > 0 && id < this.__objects.length))
-                        return void 0;
-                    obj = this.__objects[id];
-                    if (obj == null)
-                        return void 0;
-                    if (objGiven != null && obj != objGiven)
-                        throw "The object given is not the same object that currently exists at the same index.";
-                    obj[$IndexedObjectCollection.__IDPropertyName] = -1;
-                    this.__objects[id] = null;
-                    this.__releasedIDs[++this.__releasedIDsReadIndex] = id;
-                    var validIDIndex = obj[$IndexedObjectCollection.__validIDIndexPropertyName];
-                    obj[$IndexedObjectCollection.__validIDIndexPropertyName] = -1;
-                    this.__validIDs[validIDIndex] = this.__validIDs[this.__validIDsReadIndex--];
-                };
-                $IndexedObjectCollection.prototype.getObject = function (id) {
-                    if (!(id === 0 || id > 0 && id < this.__objects.length))
-                        return void 0;
-                    return this.__objects[id] || void 0;
-                };
-                $IndexedObjectCollection.prototype.getObjectForceCast = function (id) { return this.getObject(id); };
-                $IndexedObjectCollection.prototype.count = function () { return this.__validIDs.length; };
-                $IndexedObjectCollection.prototype.getObjectAt = function (index) {
-                    if (index < 0 || index >= this.__validIDs.length)
-                        return void 0;
-                    return this.__objects[this.__validIDs[index]];
-                };
-                $IndexedObjectCollection.prototype.getItems = function () {
-                    var items = [];
-                    for (var i = 0, n = this.__validIDs.length; i < n; ++i)
-                        items[i] = this.__objects[this.__validIDs[i]];
-                    return items;
-                };
-                $IndexedObjectCollection.prototype.clear = function () {
-                    for (var i = 0, n = this.__validIDs.length; i < n; ++i)
-                        this.removeObject(this.__validIDs[i]);
-                };
-                $IndexedObjectCollection.__IDPropertyName = "$__id";
-                $IndexedObjectCollection.__validIDIndexPropertyName = "__.validIDIndex.__";
-                $IndexedObjectCollection['$IndexedObjectCollection Factory'] = (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    Factory.prototype['new'] = function () {
-                        var objects = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            objects[_i] = arguments[_i];
-                        }
-                        return null;
+                            id = this.__objects.length;
+                        obj[IndexedObjectCollection.__IDPropertyName] = id;
+                        this.__objects[id] = obj;
+                        this.__validIDs[++this.__validIDsReadIndex] = id;
+                        obj[IndexedObjectCollection.__validIDIndexPropertyName] = this.__validIDsReadIndex;
                     };
-                    Factory.prototype.init = function ($this, isnew) {
-                        var objects = [];
-                        for (var _i = 2; _i < arguments.length; _i++) {
-                            objects[_i - 2] = arguments[_i];
-                        }
-                        $this.clear();
-                        for (var i = 0, n = objects.length; i < n; ++i)
-                            $this.addObject(objects[i]);
-                        return $this;
+                    IndexedObjectCollection.prototype.removeObject = function (idOrObj) {
+                        var id, obj, objGiven = null;
+                        id = typeof idOrObj === 'number' ? idOrObj : (objGiven = idOrObj)[IndexedObjectCollection.__IDPropertyName];
+                        if (!(id === 0 || id > 0 && id < this.__objects.length))
+                            return void 0;
+                        obj = this.__objects[id];
+                        if (obj == null)
+                            return void 0;
+                        if (objGiven != null && obj != objGiven)
+                            throw "The object given is not the same object that currently exists at the same index.";
+                        obj[IndexedObjectCollection.__IDPropertyName] = -1;
+                        this.__objects[id] = null;
+                        this.__releasedIDs[++this.__releasedIDsReadIndex] = id;
+                        var validIDIndex = obj[IndexedObjectCollection.__validIDIndexPropertyName];
+                        obj[IndexedObjectCollection.__validIDIndexPropertyName] = -1;
+                        this.__validIDs[validIDIndex] = this.__validIDs[this.__validIDsReadIndex--];
                     };
-                    return Factory;
-                }(CoreXT.FactoryBase($IndexedObjectCollection, $IndexedObjectCollection['$Array Factory']))).register(Collections);
-                return $IndexedObjectCollection;
-            }(System.Array.$Type));
-            Collections.IndexedObjectCollection = $IndexedObjectCollection['$IndexedObjectCollection Factory'].$__type;
+                    IndexedObjectCollection.prototype.getObject = function (id) {
+                        if (!(id === 0 || id > 0 && id < this.__objects.length))
+                            return void 0;
+                        return this.__objects[id] || void 0;
+                    };
+                    IndexedObjectCollection.prototype.getObjectForceCast = function (id) { return this.getObject(id); };
+                    IndexedObjectCollection.prototype.count = function () { return this.__validIDs.length; };
+                    IndexedObjectCollection.prototype.getObjectAt = function (index) {
+                        if (index < 0 || index >= this.__validIDs.length)
+                            return void 0;
+                        return this.__objects[this.__validIDs[index]];
+                    };
+                    IndexedObjectCollection.prototype.getItems = function () {
+                        var items = [];
+                        for (var i = 0, n = this.__validIDs.length; i < n; ++i)
+                            items[i] = this.__objects[this.__validIDs[i]];
+                        return items;
+                    };
+                    IndexedObjectCollection.prototype.clear = function () {
+                        for (var i = 0, n = this.__validIDs.length; i < n; ++i)
+                            this.removeObject(this.__validIDs[i]);
+                    };
+                    IndexedObjectCollection.__IDPropertyName = "$__id";
+                    IndexedObjectCollection.__validIDIndexPropertyName = "__.validIDIndex.__";
+                    IndexedObjectCollection['IndexedObjectCollectionFactory'] = (function (_super) {
+                        __extends(Factory, _super);
+                        function Factory() {
+                            return _super !== null && _super.apply(this, arguments) || this;
+                        }
+                        Factory.prototype['new'] = function () {
+                            var objects = [];
+                            for (var _i = 0; _i < arguments.length; _i++) {
+                                objects[_i] = arguments[_i];
+                            }
+                            return null;
+                        };
+                        Factory.prototype.init = function (o, isnew) {
+                            var objects = [];
+                            for (var _i = 2; _i < arguments.length; _i++) {
+                                objects[_i - 2] = arguments[_i];
+                            }
+                            o.clear();
+                            for (var i = 0, n = objects.length; i < n; ++i)
+                                o.addObject(objects[i]);
+                            return o;
+                        };
+                        return Factory;
+                    }(CoreXT.FactoryBase(IndexedObjectCollection, IndexedObjectCollection['ArrayFactory'])));
+                    return IndexedObjectCollection;
+                }(base));
+                return [IndexedObjectCollection, IndexedObjectCollection["IndexedObjectCollectionFactory"]];
+            }, "IndexedObjectCollection");
         })(Collections = System.Collections || (System.Collections = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));
 })(CoreXT || (CoreXT = {}));

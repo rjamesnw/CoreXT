@@ -14,51 +14,42 @@ var CoreXT;
     (function (System) {
         var Platform;
         (function (Platform) {
-            var $Window = (function (_super) {
-                __extends($Window, _super);
-                function $Window() {
-                    var _this = _super !== null && _super.apply(this, arguments) || this;
-                    _this._guid = CoreXT.Utilities.createGUID(false);
-                    return _this;
-                }
-                $Window['$Window new'] = function (rootElement, url) { return null; };
-                $Window.prototype['$Window init'] = function (isnew, rootElement, url) {
-                    _super.prototype[''].call(this, this, isnew);
-                    if (typeof rootElement !== 'object' || !rootElement.style)
-                        rootElement = null;
-                    if (rootElement != null)
-                        rootElement.style.display = "none";
-                    this._target = rootElement;
-                    this._url = url;
-                    return this;
-                };
-                $Window.prototype.show = function () {
-                    if (!this._target)
-                        this._target = window.open(this._url, this._guid);
-                };
-                $Window.prototype.moveTo = function (x, y) { };
-                $Window.prototype.moveby = function (deltaX, deltaY) { };
-                $Window['$Window Factory'] = (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
+            Platform.Window = CoreXT.ClassFactory(Platform, System.Object, function (base) {
+                var Window = (function (_super) {
+                    __extends(Window, _super);
+                    function Window() {
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
+                        _this._guid = CoreXT.Utilities.createGUID(false);
+                        return _this;
                     }
-                    Factory.prototype['new'] = function (rootElement, url) { return null; };
-                    Factory.prototype.init = function ($this, isnew, rootElement, url) {
-                        this.$__baseFactory.init($this, isnew);
-                        if (typeof rootElement !== 'object' || !rootElement.style)
-                            rootElement = null;
-                        if (rootElement != null)
-                            rootElement.style.display = "none";
-                        $this._target = rootElement;
-                        $this._url = url;
-                        return $this;
+                    Window.prototype.show = function () {
+                        if (!this._target)
+                            this._target = window.open(this._url, this._guid);
                     };
-                    return Factory;
-                }(CoreXT.FactoryBase($Window, $Window['$Object Factory']))).register(Platform);
-                return $Window;
-            }(System.Object.$__type));
-            Platform.Window = $Window['$Window Factory'].$__type;
+                    Window.prototype.moveTo = function (x, y) { };
+                    Window.prototype.moveby = function (deltaX, deltaY) { };
+                    Window['WindowFactory'] = (function (_super) {
+                        __extends(Factory, _super);
+                        function Factory() {
+                            return _super !== null && _super.apply(this, arguments) || this;
+                        }
+                        Factory.prototype['new'] = function (rootElement, url) { return null; };
+                        Factory.prototype.init = function (o, isnew, rootElement, url) {
+                            this.super.init(o, isnew);
+                            if (typeof rootElement !== 'object' || !rootElement.style)
+                                rootElement = null;
+                            if (rootElement != null)
+                                rootElement.style.display = "none";
+                            o._target = rootElement;
+                            o._url = url;
+                            return o;
+                        };
+                        return Factory;
+                    }(CoreXT.FactoryBase(Window, Window['ObjectFactory'])));
+                    return Window;
+                }(base));
+                return [Window, Window["WindowFactory"]];
+            }, "Window");
         })(Platform = System.Platform || (System.Platform = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));
 })(CoreXT || (CoreXT = {}));
