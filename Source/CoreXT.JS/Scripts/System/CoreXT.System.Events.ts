@@ -388,7 +388,7 @@ namespace CoreXT {
                         protected static readonly 'EventDispatcherFactory' = function () {
                             type TInstance<TOwner extends object, TCallback extends EventHandler> = EventDispatcher<TOwner, TCallback>;
 
-                            return class Factory extends FactoryBase(EventDispatcher, DependencyObject['ObjectFactory']) implements IFactory {
+                            return class Factory extends FactoryBase(EventDispatcher, DependencyObject['ObjectFactory'])<object, EventHandler> {
 
                                 /** Creates an event object for a specific even type.
                                     * @param {TOwner} owner The owner which owns this event object.
@@ -397,11 +397,11 @@ namespace CoreXT {
                                     * @param {Function} eventTriggerHandler This is a hook which is called every time a handler needs to be called.  This exists mainly to support handlers called with special parameters.
                                     * @param {boolean} canCancel If true, the event can be cancelled (prevented from completing, so no other events will fire).
                                     */
-                                'new'<TOwner extends object, TCallback extends EventHandler>(owner: TOwner, eventName: string, removeOnTrigger: boolean = false,
+                                static 'new'<TOwner extends object, TCallback extends EventHandler>(owner: TOwner, eventName: string, removeOnTrigger: boolean = false,
                                     eventTriggerHandler: EventTriggerHandler<TOwner, TCallback> = null, canCancel: boolean = true): EventDispatcher<TOwner, TCallback> { return null; }
 
                                 /** Initializes/reinitializes an EventDispatcher instance. */
-                                init<TOwner extends object, TCallback extends EventHandler>(o: EventDispatcher<TOwner, TCallback>, isnew: boolean, owner: TOwner, eventName: string,
+                                static init<TOwner extends object, TCallback extends EventHandler>(o: EventDispatcher<TOwner, TCallback>, isnew: boolean, owner: TOwner, eventName: string,
                                     removeOnTrigger: boolean = false, eventTriggerHandler: EventTriggerHandler<TOwner, TCallback> = null, canCancel: boolean = true) {
 
                                     this.super.init(o, isnew);
@@ -496,7 +496,7 @@ namespace CoreXT {
                             * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
                             * @param {Function} func The function to be called on the associated object.
                             */
-                        'new'(): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(): InstanceType<typeof Factory.$__type> { return null; }
 
                         /**
                             * Reinitializes a disposed Delegate instance.
@@ -505,7 +505,7 @@ namespace CoreXT {
                             * @param object The instance to bind to the resulting delegate object.
                             * @param func The function that will be called for the resulting delegate object.
                             */
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean): InstanceType<typeof Factory.$__type> {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean): InstanceType<typeof Factory.$__type> {
                             this.super.init(o, isnew);
                             return o;
                         }

@@ -160,13 +160,13 @@ namespace CoreXT.System.Platform {
 
                 protected static readonly 'GraphNodeFactory' = class Factory extends FactoryBase(GraphNode, base['PropertyEventBaseFactory']) {
                     /**
-                     * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
-                     * layout that can render a view, or partial view.
-                     * @param parent If specified, the value will be wrapped in the created object.
-                     */
-                    'new'(parent: GraphNode = null): InstanceType<typeof Factory.$__type> { return null; }
+                        * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
+                        * layout that can render a view, or partial view.
+                        * @param parent If specified, the value will be wrapped in the created object.
+                        */
+                    static 'new'(parent: GraphNode = null): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: GraphNode = null) {
+                    static  init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: GraphNode = null) {
                         this.super.init(o, isnew);
 
                         o._id = GraphNode.__nextID++;

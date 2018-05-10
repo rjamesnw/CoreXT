@@ -126,9 +126,9 @@ namespace CoreXT.System {
                              * Create a new HTMLReader instance to parse the given HTML text.
                              * @param html The HTML text to parse.
                              */
-                        'new'(html: string): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(html: string): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, html: string){
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, html: string){
                             this.super.init(o, isnew);
                             // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
                             o.html = html;

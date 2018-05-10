@@ -1,4 +1,4 @@
-﻿// ###########################################################################################################################
+// ###########################################################################################################################
 // Types for specialized object property management.
 // ###########################################################################################################################
 
@@ -149,9 +149,9 @@ namespace CoreXT.System.Platform {
                        * layout that can render a view, or partial view.
                        * @param parent If specified, the value will be wrapped in the created object.
                        */
-                    'new'(): InstanceType<typeof Factory.$__type> { return null; }
+                    static 'new'(): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean) {
+                    static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean) {
                         this.super.init(o, isnew);
                         return o;
                     }
@@ -190,9 +190,9 @@ namespace CoreXT.System.Platform {
                        * layout that can render a view, or partial view.
                        * @param parent If specified, the value will be wrapped in the created object.
                        */
-                    'new'(name: string, isVisual: boolean): InstanceType<typeof Factory.$__type> { return null; }
+                    static 'new'(name: string, isVisual: boolean): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, name: string, isVisual: boolean) {
+                    static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, name: string, isVisual: boolean) {
                         this.super.init(o, isnew);
                         o.name = name;
                         o.isVisual = isVisual;
@@ -242,9 +242,9 @@ namespace CoreXT.System.Platform {
                 // --------------------------------------------------------------------------------------------------------------------------
 
                 protected static readonly PropertyFactory = class Factory extends FactoryBase(Property, base["PropertyEventBaseFactory"]) {
-                    'new'(owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any): InstanceType<typeof Factory.$__type> { return null; }
+                    static 'new'(owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any) {
+                    static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any) {
                         this.super.init(o, isnew);
                         o.owner = owner;
                         o.staticProperty = staticProperty;

@@ -111,11 +111,11 @@ namespace CoreXT.System.Collections {
 
                 // --------------------------------------------------------------------------------------------------------------------------
 
-                protected static readonly 'IndexedObjectCollectionFactory' = class Factory extends FactoryBase(IndexedObjectCollection, base['ArrayFactory']) implements IFactory {
+                protected static readonly 'IndexedObjectCollectionFactory' = class Factory extends FactoryBase(IndexedObjectCollection, base['ArrayFactory'])<object> {
                     /** @param {TObject[]} objects Initial objects to add to the collection. */
-                    'new'<TObject extends object>(...objects: TObject[]): IndexedObjectCollection<TObject> { return null; }
+                    static 'new'<TObject extends object>(...objects: TObject[]): IndexedObjectCollection<TObject> { return null; }
 
-                    init<TObject extends object>(o: IndexedObjectCollection<TObject>, isnew: boolean, ...objects: TObject[]): IndexedObjectCollection<TObject> {
+                    static init<TObject extends object>(o: IndexedObjectCollection<TObject>, isnew: boolean, ...objects: TObject[]): IndexedObjectCollection<TObject> {
                         o.clear();
                         for (var i = 0, n = objects.length; i < n; ++i)
                             o.addObject(objects[i]);

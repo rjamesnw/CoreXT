@@ -30,11 +30,11 @@ namespace CoreXT.System.Platform {
 
                 // ----------------------------------------------------------------------------------------------------------------
 
-                protected static 'WindowFactory' = class Factory extends FactoryBase(Window, base['ObjectFactory']) {
+                protected static readonly 'WindowFactory' = class Factory extends FactoryBase(Window, base['ObjectFactory']) {
                     /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
-                    'new'(rootElement?: HTMLElement, url?: string): Window { return null; }
+                    static 'new'(rootElement?: HTMLElement, url?: string): Window { return null; }
 
-                    init(o: Window, isnew: boolean, rootElement?: HTMLElement, url?: string) {
+                    static init(o: Window, isnew: boolean, rootElement?: HTMLElement, url?: string) {
                         this.super.init(o, isnew);
                         if (typeof rootElement !== 'object' || !rootElement.style) rootElement = null;
                         if (rootElement != null) rootElement.style.display = "none";

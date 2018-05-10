@@ -1,4 +1,4 @@
-﻿// ############################################################################################################################################
+// ############################################################################################################################################
 // Application Domains
 // ############################################################################################################################################
 
@@ -201,16 +201,16 @@ namespace CoreXT {
                       * as a chain method for getting a new instance from a type.
                       * Note: The focus for this AppDomain instance is limited to this call only (i.e. not persisted).
                       */
-                    with<TFactory extends IFactory>(factory: TFactory): TFactory {
-                        var typeInfo = <ITypeInfo><any>factory;
+                    with<TFactory extends IFactory>(type: TFactory): TFactory {
+                        var typeInfo = <ITypeInfo><any>type;
                         if (!typeInfo.$__parent || !typeInfo.$__name || !typeInfo.$__fullname)
-                            throw Exception.error("with()", "The specified class type has not yet been registered properly using 'Types.__registerFactoryType()'.", factory);
+                            throw Exception.error("with()", "The specified type has not yet been registered properly. Extend from 'CoreXT.ClassFactory()' or use utility functions in 'CoreXT.Types' when creating factory types.", type);
                         var bridge: IADBridge = this.__typeBridges[typeInfo.$__fullname];
                         if (!bridge) {
-                            var $appDomain = this;
-                            var bridgeConstructor: { new(): IADBridge } = <any>function ADBridge() { this.constructor = factory.constructor; (<IADBridge>this).$__appDomain = $appDomain; };
+                            var appDomain = this;
+                            var bridgeConstructor: { new(): IADBridge } = <any>function ADBridge() { this.constructor = type.constructor; (<IADBridge>this).$__appDomain = appDomain; };
                             /* This references the type to perform some action on with the select app domain. Any property reference on the bridge is redirected to the class type. */
-                            bridgeConstructor.prototype = factory; // (the bridge works only because "type" has STATIC properties, so a bridge object specific to this AppDomain is created, cached, and used to intercept properties on the targeted type)
+                            bridgeConstructor.prototype = type; // (the bridge works only because "type" has STATIC properties, so a bridge object specific to this AppDomain is created, cached, and used to intercept properties on the targeted type)
                             // ... cache the type so this bridge only has to be created once for this type ...
                             this.__typeBridges[typeInfo.$__fullname] = bridge = new bridgeConstructor();
                         }
@@ -235,14 +235,14 @@ namespace CoreXT {
 
                     // -------------------------------------------------------------------------------------------------------------------------------
 
-                    protected static readonly 'AppDomainFactory' = class Factory extends FactoryBase(AppDomain, base['ObjectFactory']) implements IFactory {
+                    protected static readonly 'AppDomainFactory' = class Factory extends FactoryBase(AppDomain, base['ObjectFactory']) {
                         /** Get a new app domain instance.
                             * @param application An optional application to add to the new domain.
                             */
-                        'new'(application?: IApplication): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(application?: IApplication): InstanceType<typeof Factory.$__type> { return null; }
 
                         /** Constructs an application domain for the specific application instance. */
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, application?: IApplication) {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, application?: IApplication) {
                             this.super.init(o, isnew);
                             (<IDomainObjectInfo><any>o).$__appDomain = o;
                             o.applications = typeof application == 'object' ? [application] : [];
@@ -338,7 +338,7 @@ namespace CoreXT {
 
                     // -------------------------------------------------------------------------------------------------------------------------------
 
-                    protected static readonly 'ApplicationFactory' = class Factory extends FactoryBase(Application, base['ObjectFactory']) implements IFactory {
+                    protected static readonly 'ApplicationFactory' = class Factory extends FactoryBase(Application, base['ObjectFactory']) {
                         'new'(title: string, description: string, appID: number): InstanceType<typeof Factory.$__type> { return null; }
 
                         init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number) {

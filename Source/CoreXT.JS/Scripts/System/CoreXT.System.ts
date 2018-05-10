@@ -1,4 +1,4 @@
-﻿// ###########################################################################################################################
+// ###########################################################################################################################
 // Types for event management.
 // ###########################################################################################################################
 
@@ -84,9 +84,6 @@ namespace CoreXT {
         /** This is a reference to the underlying class type for this factory type. */
         $__type: IType<TInstance>
 
-        /** The factory type containing the factory methods for creating instances of the underlying type. */
-        $__factory?: IFactory;
-
         /** Represents the static properties on a factory type. */
         $__factoryType?: IFactoryTypeInfo;
 
@@ -99,17 +96,18 @@ namespace CoreXT {
     export interface InitDelegate<TInstance extends NativeTypes.IObject> { (o: TInstance, isnew: boolean, ...args: any[]): TInstance }
 
     /** Represents the static properties on a factory type. */
-    export interface IFactoryTypeInfo<TClass extends IType = IType, TFactory extends IFactory = IFactory> {
-        new(...args: any[]): TFactory;
-
+    export interface IFactoryTypeInfo<TClass extends IType = IType/*, TFactory extends IFactory = IFactory*/> extends IClassInfo<InstanceType<TClass>>, IFactory<TClass> {
         /** The underlying type for this factory type. */
-        $__type: TClass;
+        $__type: IType<InstanceType<TClass>>;
 
-        /** A factory instance created from this factory type which serves as a singleton for creating instances of the underlying 'TClass' type. */
-        $__factory?: TFactory;
+        //x /** A factory instance created from this factory type which serves as a singleton for creating instances of the underlying 'TClass' type. */
+        //x $__factory?: TFactory;
 
         /** The factory from the inherited base type, or null/undefined if this object does not inherit from an object with a factory pattern. */
-        $__baseFactoryType?: { new(): IFactory } & ITypeInfo;
+        $__baseFactoryType: IFactoryTypeInfo;
+
+        /** This is set to true when 'init()' is called. The flag is used to determine if 'super.init()' was called. If not then it is called automatically. */
+        $__initCalled?: boolean;
     }
 
     /** Represents the factory methods of a factory instance. */

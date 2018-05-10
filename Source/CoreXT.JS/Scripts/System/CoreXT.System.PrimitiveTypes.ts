@@ -118,7 +118,7 @@ namespace CoreXT {
                              * @param value If specified, the value will be wrapped in the created object.
                              * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
                              */
-                        'new'(value?: any, makeValuePrivate: boolean = false): InstanceType<typeof Factory.$__type> {
+                        static 'new'(value?: any, makeValuePrivate: boolean = false): InstanceType<typeof Factory.$__type> {
                             return Types.__new.call(this, value, makeValuePrivate);
                         }
 
@@ -126,7 +126,7 @@ namespace CoreXT {
                         /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
                              * constructor function to get new instances, and 'dispose()' to release them when done.
                              */
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any, makePrivate: boolean = false) {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any, makePrivate: boolean = false) {
                             if (!isnew)
                                 o.$__reset();
 
@@ -286,16 +286,16 @@ namespace CoreXT {
 
                     protected static readonly 'StringFactory' = class Factory extends FactoryBase(String, null) {
                         /** Returns a new string object instance. */
-                        'new'(value?: any): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(value?: any): InstanceType<typeof Factory.$__type> { return null; }
 
                         /**
-                         * Reinitializes a disposed Delegate instance.
-                         * @param this The Delegate instance to initialize, or re-initialize.
-                         * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                         * @param object The instance to bind to the resulting delegate object.
-                         * @param func The function that will be called for the resulting delegate object.
-                         */
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any): InstanceType<typeof Factory.$__type> {
+                             * Reinitializes a disposed Delegate instance.
+                             * @param this The Delegate instance to initialize, or re-initialize.
+                             * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                             * @param object The instance to bind to the resulting delegate object.
+                             * @param func The function that will be called for the resulting delegate object.
+                             */
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any): InstanceType<typeof Factory.$__type> {
                             o.$__value = global.String(value);
                             //??System.String.prototype.constructor.apply(this, arguments);
                             // (IE browsers older than v9 do not populate the string object with the string characters)
@@ -330,22 +330,19 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
                     /* ------ This part uses the CoreXT factory pattern ------ */
 
-                    protected static readonly 'ArrayFactory' = class Factory extends FactoryBase(Array, null) {
-                        $Type = Array;
-                        $BaseFactory = <IFactory>null;
-
+                    protected static readonly 'ArrayFactory' = class Factory extends FactoryBase(Array, null)<any> {
                         /** Returns a new array object instance. 
-                          * Note: This is a CoreXT system array object, and not the native JavaScript object. */
-                        'new'<T>(...items: T[]): Array<T> { return null; }
+                            * Note: This is a CoreXT system array object, and not the native JavaScript object. */
+                        static 'new'<T>(...items: T[]): Array<T> { return null; }
 
                         /**
-                        * Reinitializes a disposed Delegate instance.
-                        * @param this The Delegate instance to initialize, or re-initialize.
-                        * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                        * @param object The instance to bind to the resulting delegate object.
-                        * @param func The function that will be called for the resulting delegate object.
-                        */
-                        init<T>(o: Array<T>, isnew: boolean, ...items: T[]) {
+                            * Reinitializes a disposed Delegate instance.
+                            * @param this The Delegate instance to initialize, or re-initialize.
+                            * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                            * @param object The instance to bind to the resulting delegate object.
+                            * @param func The function that will be called for the resulting delegate object.
+                            */
+                        static init<T>(o: Array<T>, isnew: boolean, ...items: T[]) {
                             try {
                                 o.push.apply(o, items); // (note: http://stackoverflow.com/a/9650855/1236397)
                             } catch (e) {

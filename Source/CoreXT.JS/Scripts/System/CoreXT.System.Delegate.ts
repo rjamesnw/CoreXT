@@ -208,22 +208,22 @@ namespace CoreXT.System {
 
                 protected static readonly 'DelegateFactory' = function () {
                     type Instance<TObj extends object, TFunc extends DelegateFunction<object>> = Delegate<TObj, TFunc>;
-                    return class Factory extends FactoryBase(Delegate, base['ObjectFactory']) {
+                    return class Factory extends FactoryBase(Delegate, base['ObjectFactory'])<object, DelegateFunction<object>> {
                         /**
-                          * Constructs a new Delegate object.
-                          * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
-                          * @param {Function} func The function to be called on the associated object.
-                          */
-                        'new'<TObj extends object, TFunc extends DelegateFunction<object>>(object: TObj, func: TFunc): Instance<TObj, TFunc> { return null; }
+                             * Constructs a new Delegate object.
+                             * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
+                             * @param {Function} func The function to be called on the associated object.
+                             */
+                        static 'new'<TObj extends object, TFunc extends DelegateFunction<object>>(object: TObj, func: TFunc): Instance<TObj, TFunc> { return null; }
 
                         /**
-                         * Reinitializes a disposed Delegate instance.
-                         * @param o The Delegate instance to initialize, or re-initialize.
-                         * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                         * @param object The instance to bind to the resulting delegate object.
-                         * @param func The function that will be called for the resulting delegate object.
-                         */
-                        init<TObj extends object, TFunc extends DelegateFunction<object>>(o: Instance<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc) {
+                             * Reinitializes a disposed Delegate instance.
+                             * @param o The Delegate instance to initialize, or re-initialize.
+                             * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                             * @param object The instance to bind to the resulting delegate object.
+                             * @param func The function that will be called for the resulting delegate object.
+                             */
+                        static init<TObj extends object, TFunc extends DelegateFunction<object>>(o: Instance<TObj, TFunc>, isnew: boolean, object: TObj, func: TFunc) {
                             this.super.init(o, isnew);
                             if (object === void 0) object = null;
                             o.object = object;

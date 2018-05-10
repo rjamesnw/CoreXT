@@ -88,19 +88,19 @@ namespace CoreXT.System.IO {
                     values: { [index: string]: string } = {};
 
                     // ----------------------------------------------------------------------------------------------------------------
-
+                    
                     protected static readonly 'QueryFactory' = class Factory extends FactoryBase(Query, null) {
                         /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
                             * @param {string} searchString A URI or 'location.search' string.
                             * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                             */
-                        'new'(searchString: string = null, makeNamesLowercase: boolean = false): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(searchString: string = null, makeNamesLowercase: boolean = false): InstanceType<typeof Factory.$__type> { return null; }
 
                         /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
                             * @param {string} searchString A URI or 'location.search' string.
                             * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                             */
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, searchString: string = null, makeNamesLowercase: boolean = false) {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, searchString: string = null, makeNamesLowercase: boolean = false) {
                             if (searchString) {
                                 var nameValuePairs = searchString.match(QUERY_STRING_REGEX);
                                 var i: number, n: number, eqIndex: number, nameValue: string;

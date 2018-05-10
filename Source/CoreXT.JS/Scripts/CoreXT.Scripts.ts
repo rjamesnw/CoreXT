@@ -1,4 +1,4 @@
-﻿// ###########################################################################################################################
+// ###########################################################################################################################
 // Types for time management.
 // ###########################################################################################################################
 
@@ -77,10 +77,10 @@ namespace CoreXT {
 
                     protected static ScriptResourceFactory = class Factory extends FactoryBase(ScriptResource, base["ResourceRequestFactory"]) {
                         /** Returns a new module object only - does not load it. */
-                        'new'(url: string): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(url: string): InstanceType<typeof Factory.$__type> { return null; }
 
                         /** Returns a new module object only - does not load it. */
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, url: string) {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, url: string) {
                             this.super.init(o, isnew, url, Loader.ResourceTypes.Application_Script);
                             return o;
                         }
@@ -110,10 +110,10 @@ namespace CoreXT {
                     
                     protected static readonly ManifestFactory = class Factory extends FactoryBase(ScriptResource, base["ScriptResourceFactory"]) {
                         /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                        'new'(url: string): Manifest { return null; }
+                        static 'new'(url: string): Manifest { return null; }
 
                         /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                        init(o: Manifest, isnew: boolean, url: string) {
+                        static init(o: Manifest, isnew: boolean, url: string) {
                             this.super.init(o, isnew, url);
                             return o;
                         }
@@ -306,12 +306,12 @@ namespace CoreXT {
 
                     // ----------------------------------------------------------------------------------------------------------------
 
-                    protected static 'ModuleFactory' = class Factory extends FactoryBase(Module, base['ScriptResourceFactory']) {
+                    protected static readonly 'ModuleFactory' = class Factory extends FactoryBase(Module, base['ScriptResourceFactory']) {
                         /** Returns a new module object only - does not load it. */
-                        'new'(fullname: string, path: string, minifiedPath?: string): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(fullname: string, path: string, minifiedPath?: string): InstanceType<typeof Factory.$__type> { return null; }
 
                         /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, fullname: string, url: string, minifiedURL: string = null): InstanceType<typeof Factory.$__type> {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, fullname: string, url: string, minifiedURL: string = null): InstanceType<typeof Factory.$__type> {
                             this.super.init(o, isnew, System.Diagnostics.debug ? url : (minifiedURL || url));
 
                             if (!o.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)

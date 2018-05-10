@@ -56,9 +56,9 @@ namespace CoreXT.System.Platform.HTML.Application {
                 // --------------------------------------------------------------------------------------------------------------------
 
                 protected static readonly 'ApplicationElementFactory' = class Factory extends FactoryBase(ApplicationElement, base['HTMLElementFactory']) {
-                    'new'(title: string, description: string, targetElement: HTMLElement = null): InstanceType<typeof Factory.$__type> { return null; }
+                    static 'new'(title: string, description: string, targetElement: HTMLElement = null): InstanceType<typeof Factory.$__type> { return null; }
 
-                    init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, targetElement: HTMLElement = null) {
+                    static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, targetElement: HTMLElement = null) {
                         this.super.init(o, isnew, null);
                         if (typeof title == "undefined" || "" + title == "")
                             throw "An application title is required.";

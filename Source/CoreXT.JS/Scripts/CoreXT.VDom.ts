@@ -1,4 +1,4 @@
-﻿/*
+/*
  * CoreXT (CoreXT.com), (c) Twigate.com
  * License: http://creativecommons.org/licenses/by-nc/4.0/
  * (see CoreXT.ts for more details)

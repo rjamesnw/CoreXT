@@ -1,4 +1,4 @@
-declare var module: CoreXT.Scripts.IModule;
+﻿declare var module: CoreXT.Scripts.IModule;
 declare var exports: { };
 
 CoreXT.using // (this just confirms that the 'CoreXT.UI.HTML' module is available before continuing)

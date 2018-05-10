@@ -1,4 +1,4 @@
-/// <reference path="../manifest.ts" />
+﻿/// <reference path="../manifest.ts" />
 /// <reference path="corext.system.platform.ui.bootstrap.ts" />
 /// <reference path="../jquery/manifest.ts" />
 

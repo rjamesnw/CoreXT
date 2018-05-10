@@ -22,9 +22,9 @@ module CoreXT.System.Platform {
                     // -----------------------------------------------------------------------------------------------------------------
 
                     protected static readonly 'BrowserContextFactory' = class Factory extends FactoryBase(BrowserContext, base['ContextFactory']) {
-                        'new'(context: Contexts = Contexts.Secure): BrowserContext { return null; }
+                        static 'new'(context: Contexts = Contexts.Secure): BrowserContext { return null; }
 
-                        init(o: BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure) {
+                        static init(o: BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure) {
                             this.super.init(o, isnew, context);
                             return o;
                         }
@@ -110,9 +110,9 @@ module CoreXT.System.Platform {
                     // ----------------------------------------------------------------------------------------------------------------
 
                     protected static readonly 'HTMLNodeFactory' = class Factory extends FactoryBase(HTMLNode, base['GraphNodeFactory']) {
-                        'new'(parent: IGraphNode, id?: string, name?: string): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(parent: IGraphNode, id?: string, name?: string): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, id?: string, name?: string) {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, id?: string, name?: string) {
                             this.super.init(o, isnew, parent);
                             if (id !== void 0 && id !== null) o.id = id;
                             if (name !== void 0 && name !== null) o.name = name;
@@ -203,10 +203,10 @@ module CoreXT.System.Platform {
 
                     // ----------------------------------------------------------------------------------------------------------------
 
-                    protected static readonly 'HTMLElementFactory' = class Factory extends FactoryBase(HTMLElement, base['HTMLNodeFactory']) {
-                        'new'<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): HTMLElement<TElement> { return null; }
+                    protected static readonly 'HTMLElementFactory' = class Factory<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends FactoryBase(HTMLElement, base['HTMLNodeFactory'])<TElement> {
+                        static 'new'<TName extends keyof HTMLElementTagNameMap = '', TElement extends HTMLElementTagNameMap[TName]= HTMLElement>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): HTMLElement<TElement> { return null; }
 
-                        init<TName extends keyof HTMLElementTagNameMap, TElement extends HTMLElementTagNameMap[TName]>(o: HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string) {
+                        static init<TName extends keyof HTMLElementTagNameMap = '', TElement extends HTMLElementTagNameMap[TName]= HTMLElement>(o: HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string) {
                             this.super.init(o, isnew, parent, id, name);
                             o.tagName = tagName;
                             o.set("innerHTML", html);
@@ -214,7 +214,7 @@ module CoreXT.System.Platform {
                                 if (!initialValue || !o.__children.length) {
                                     if (o.__children.length)
                                         o.removeAllChildren();
-                                    try { o.__htmlElement.innerHTML = property.getValue(); }
+                                    try { o['__htmlElement'].innerHTML = property.getValue(); }
                                     catch (ex) { /*(setting inner HTML/text is not supported on this element [eg. <img> tags])*/ }
                                 }
                             });
@@ -318,7 +318,7 @@ module CoreXT.System.Platform {
 
                     // --------------------------------------------------------------------------------------------------------------------
                 }
-                return [HTMLElement, HTMLElement["HTMLNodeFactory"]];
+                return [HTMLElement, HTMLElement["HTMLElementFactory"]];
             }
         );
 
@@ -400,10 +400,10 @@ module CoreXT.System.Platform {
 
                     // ----------------------------------------------------------------------------------------------------------------
 
-                    protected static readonly 'PlainTextFactory' = class Factory extends FactoryBase(PlainText, base['HTMLNodeFactory']) implements IFactory {
-                        'new'(parent: IGraphNode, text: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                    protected static readonly 'PlainTextFactory' = class Factory extends FactoryBase(PlainText, base['HTMLNodeFactory']) {
+                        static 'new'(parent: IGraphNode, text: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, text: string = "") {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, text: string = "") {
                             this.super.init(o, isnew, parent);
                             o.text(text);
                             o.htmlTag = "";
@@ -444,12 +444,11 @@ module CoreXT.System.Platform {
                 class HTMLText extends base<HTMLSpanElement> {
                     // ----------------------------------------------------------------------------------------------------------------
 
-                    protected static readonly 'HTMLTextFactory' = class Factory extends FactoryBase(HTMLText, base['HTMLElementFactory']) implements IFactory {
-                        'new'(parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                    protected static readonly 'HTMLTextFactory' = class Factory extends FactoryBase(HTMLText, base['HTMLElementFactory']) {
+                        static 'new'(parent: IGraphNode, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, html: string = "") {
-                            this.super.init(o, isnew, parent, html);
-                            o.htmlTag = "span"; global
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, html: string = "") {
+                            this.super.init(o, isnew, parent, html, void 0, 'span');
                             return o;
                         }
                     };
@@ -521,9 +520,9 @@ module CoreXT.System.Platform {
                     // ----------------------------------------------------------------------------------------------------------------
 
                     protected static readonly 'PhraseFactory' = class Factory extends FactoryBase(Phrase, base['HTMLElementFactory']) {
-                        'new'(parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = "") {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = "") {
                             this.super.init(o, isnew, parent, html);
                             o.phraseType(phraseTypeFlags);
                             var pInfo: IProperty = o.getProperty(HTMLElement.InnerHTML);

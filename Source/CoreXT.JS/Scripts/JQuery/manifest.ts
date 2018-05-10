@@ -1,4 +1,4 @@
-/// <reference path="../manifest.ts" />
+﻿/// <reference path="../manifest.ts" />
 /// <reference path="../../typings/globals/jquery/index.d.ts" />
 
 // #######################################################################################

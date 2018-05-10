@@ -1,4 +1,4 @@
-/// <reference path="../manifest.ts" />
+﻿/// <reference path="../manifest.ts" />
 // #######################################################################################
 
 namespace CoreXT.Scripts.Modules {

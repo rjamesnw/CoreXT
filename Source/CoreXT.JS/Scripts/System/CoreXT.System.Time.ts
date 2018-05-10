@@ -1,4 +1,4 @@
-﻿// ###########################################################################################################################
+// ###########################################################################################################################
 // Types for time management.
 // ###########################################################################################################################
 
@@ -336,13 +336,13 @@ namespace CoreXT.System {
                 //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
 
                 protected static readonly 'TimeSpanFactory' = class Factory extends FactoryBase(TimeSpan, base['ObjectFactory']) {
-                    'new'(timeInMS: number): TimeSpan;
-                    'new'(year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan;
-                    'new'(year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan { return null; }
+                    static 'new'(timeInMS: number): TimeSpan;
+                    static 'new'(year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan;
+                    static 'new'(year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan { return null; }
 
-                    init(o: TimeSpan, isnew: boolean, timeInMS: number): TimeSpan;
-                    init(o: TimeSpan, isnew: boolean, year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan;
-                    init(o: TimeSpan, isnew: boolean, year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number) {
+                    static init(o: TimeSpan, isnew: boolean, timeInMS: number): TimeSpan;
+                    static init(o: TimeSpan, isnew: boolean, year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan;
+                    static init(o: TimeSpan, isnew: boolean, year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number) {
                         this.super.init(o, isnew);
                         if (arguments.length <= 3)
                             o.setTime(year);

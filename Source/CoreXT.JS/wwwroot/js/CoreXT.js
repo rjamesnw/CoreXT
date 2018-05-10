@@ -1438,9 +1438,9 @@ var CoreXT;
                         }
                     }
                     if (this.status == RequestStatuses.Error) {
-                        var msgs = this.messages.join("\r\n� ");
+                        var msgs = this.messages.join("\r\n· ");
                         if (msgs)
-                            msgs = ":\r\n� " + msgs;
+                            msgs = ":\r\n· " + msgs;
                         else
                             msgs = ".";
                         throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
@@ -1507,7 +1507,7 @@ var CoreXT;
                 var ext = (url.match(/(\.[A-Za-z0-9]+)(?:[\?\#]|$)/i) || []).pop();
                 type = getResourceTypeFromExtension(ext);
                 if (!type)
-                    throw "The resource type is required.";
+                    error("Loeader.get('" + url + "', type:" + type + ")", "A resource (MIME) type is required, and no resource type could be determined (See CoreXT.Loader.ResourceTypes). If the resource type cannot be detected by a file extension then you must specify the MIME string manually.");
             }
             var request = _resourceRequestByURL[url];
             if (!request)
