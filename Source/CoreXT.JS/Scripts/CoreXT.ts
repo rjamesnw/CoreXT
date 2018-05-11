@@ -467,27 +467,27 @@ namespace CoreXT {
           * much as possible, and why you should try to refrain from using the 'new', operator, or any other operation that
           * creates objects that the GC has to manage by blocking the main thread.
           */
-        export function __new(...args: any[]): NativeTypes.IObject {
+        export function __new(this: IFactoryTypeInfo, ...args: any[]): NativeTypes.IObject {
             // ... this is the default 'new' function ...
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
-            var bridge = <System.IADBridge>this; // (note: this should be either a bridge, or a class/factory object, or undefined)
+            var bridge = <System.IADBridge><any>this; // (note: this should be either a bridge, or a class/factory object, or undefined)
             var type = <ITypeInfo & IFactory & IType<NativeTypes.IObject>>this;
-            if (this !== void 0 && isEmpty(this) || typeof this != 'function')
-                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the 'SomeType.new()' factory *function* without the 'new' operator.", this);
-            var appDomain = bridge.$__appDomain || System.AppDomain.default;
+            if (typeof this != 'function' || !this.init && !this.new)
+                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the '{FactoryType}.new()' factory *function* without the 'new' operator.", this);
+            var appDomain = bridge.$__appDomain || System.AppDomain && System.AppDomain.default;
             var instance: NativeTypes.IObject;
             var isNew = false;
             // ... get instance from the pool (of the same type!), or create a new one ...
             var fullTypeName = type.$__fullname;
             var objectPool = fullTypeName && __disposedObjects[fullTypeName];
-            if (!objectPool && objectPool.length)
+            if (objectPool && objectPool.length)
                 instance = objectPool.pop();
             else {
                 instance = new (<IType<NativeTypes.IObject>>type)();
                 isNew = true;
             }
-            if (typeof instance.init == 'function')
-                System.Delegate.fastCall(instance.init, instance, isNew, ...arguments);
+            if (typeof this.init == 'function')
+                System.Delegate.fastCall(this.init, instance, isNew, ...arguments);
             return instance;
         }
 
@@ -529,8 +529,6 @@ namespace CoreXT {
             classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
             classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
 
-            frozen(factoryType);
-
             // ... if no 'init()' function is specified, just call the base by default ... 
 
             //x if (!Object.prototype.hasOwnProperty.call(factoryType, "init") || typeof factoryType.init == 'undefined' || factoryType.init == null) {
@@ -559,21 +557,21 @@ namespace CoreXT {
             var originalNew = typeof factoryType.new == 'function' ? factoryType.new : null; // (take user defined, else set to null)
 
             if (!originalNew)
-                factoryType.new = classType.new = <any>__new; // ('new' is missing, so just use the default handler)
+                factoryType.new = __new; // ('new' is missing, so just use the default handler)
             else
                 factoryType.new = <any>function _firstTimeNewTest() {
-                    var result = originalNew && factoryType.new(...arguments) || void 0;
+                    var result = originalNew.apply(factoryType, arguments) || void 0;
                     // (did the user supply a valid 'new' function that returned an object type?)
                     if (result === void 0 || result === null) {
                         // (an object is required, otherwise this is not valid or only a place holder; if so, revert to the generic 'new' implementation)
-                        factoryType.new = classType.new = <any>__new;
-                        return classType.new(...arguments);
+                        factoryType.new = __new;
+                        return factoryType.new.apply(factoryType, arguments);
                     }
                     else if (typeof result != 'object')
                         error(getFullTypeName(classType) + ".new()", "An object instance was expected, but instead a value of type '" + (typeof result) + "' was received.");
 
-                    // (else the call returned a valid value, so next time, just default directly to the factory function)
-                    classType.new = <any>factoryType.new;
+                    // (else the call returned a valid value, so next time, just default directly to the user supplied factory function)
+                    factoryType.new = originalNew;
                     return result;
                 };
             //x }

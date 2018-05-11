@@ -275,9 +275,9 @@ var CoreXT;
             }
             var bridge = this;
             var type = this;
-            if (this !== void 0 && isEmpty(this) || typeof this != 'function')
-                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the 'SomeType.new()' factory *function* without the 'new' operator.", this);
-            var appDomain = bridge.$__appDomain || System.AppDomain.default;
+            if (typeof this != 'function' || !this.init && !this.new)
+                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the '{FactoryType}.new()' factory *function* without the 'new' operator.", this);
+            var appDomain = bridge.$__appDomain || System.AppDomain && System.AppDomain.default;
             var instance;
             var isNew = false;
             var fullTypeName = type.$__fullname;
@@ -307,7 +307,6 @@ var CoreXT;
             namespace[_exportName] = cls;
             classType.$__type = classType;
             classType.$__factoryType = factoryType;
-            frozen(factoryType);
             if (classType.init)
                 error(getFullTypeName(classType), "You cannot create a static 'init' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
             var originalInit = typeof factoryType.init == 'function' ? factoryType.init : null;
@@ -323,17 +322,17 @@ var CoreXT;
                 error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
             var originalNew = typeof factoryType.new == 'function' ? factoryType.new : null;
             if (!originalNew)
-                factoryType.new = classType.new = __new;
+                factoryType.new = __new;
             else
                 factoryType.new = function _firstTimeNewTest() {
-                    var result = originalNew && factoryType.new.apply(factoryType, __spread(arguments)) || void 0;
+                    var result = originalNew.apply(factoryType, arguments) || void 0;
                     if (result === void 0 || result === null) {
-                        factoryType.new = classType.new = __new;
-                        return classType.new.apply(classType, __spread(arguments));
+                        factoryType.new = __new;
+                        return factoryType.new.apply(factoryType, arguments);
                     }
                     else if (typeof result != 'object')
                         error(getFullTypeName(classType) + ".new()", "An object instance was expected, but instead a value of type '" + (typeof result) + "' was received.");
-                    classType.new = factoryType.new;
+                    factoryType.new = originalNew;
                     return result;
                 };
             __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
@@ -472,7 +471,7 @@ var CoreXT;
     }
     CoreXT.ClassFactory = ClassFactory;
     function FactoryBase(type, baseFactoryType) {
-        var fb = (_a = (function (_super) {
+        return _a = (function (_super) {
                 __extends(FactoryBase, _super);
                 function FactoryBase() {
                     return _super !== null && _super.apply(this, arguments) || this;
@@ -491,8 +490,7 @@ var CoreXT;
             }(type)),
             _a.$__type = type,
             _a.$__baseFactoryType = baseFactoryType,
-            _a);
-        return fb;
+            _a;
         var _a;
     }
     CoreXT.FactoryBase = FactoryBase;

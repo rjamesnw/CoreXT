@@ -23,10 +23,16 @@ namespace CoreXT.System {
 
                 //? static readonly $Type = $Delegate;
 
-                /** Implements a more efficient '{function}.apply()' function when a small number of parameters are supplied. */
+                /** 
+                 * Implements a more efficient '{function}.apply()' function when a small number of parameters are supplied. 
+                 * This works better because a direct function call 'o.func(args[0], args[1], etc...)' is many times faster than 'o.func.apply(o, args)'.
+                 */
                 static fastApply?(func: Function, context: {}, args: { [index: number]: any; length: number; }): any;
 
-                /** Implements a more efficient '{function}.call()' function when a small number of parameters are supplied. */
+                /** 
+                 * Implements a more efficient '{function}.call()' function when a small number of parameters are supplied. 
+                 * This works better because a direct function call 'o.func(args[0], args[1], etc...)' is many times faster than 'o.func.apply(o, args)'.
+                 */
                 static fastCall?(func: Function, context: {}, ...args: any[]): any;
 
                 private ___static_ctor(): void {
