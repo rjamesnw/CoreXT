@@ -21,11 +21,11 @@ namespace CoreXT {
                     // -------------------------------------------------------------------------------------------------------------------
 
                     /**
-                     * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
-                     */
+                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
+                       */
                     constructor() {
-                        if (Browser.ES6)
-                            safeEval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
+                        if (!ES6)
+                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
                         super();
                     }
 
@@ -280,6 +280,17 @@ namespace CoreXT {
                     // (NOTE: This is the magic that makes it work, as 'toString()' is called by the other functions to get the string value, and the native implementation only works on a primitive string only.)
 
                     // -------------------------------------------------------------------------------------------------------------------
+
+                    /**
+                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
+                       */
+                    constructor() {
+                        if (!ES6)
+                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
+                        super();
+                    }
+
+                    // -------------------------------------------------------------------------------------------------------------------
                     // This part uses the CoreXT factory pattern
 
                     protected static readonly 'StringFactory' = class Factory extends FactoryBase(String, null) {
@@ -323,6 +334,17 @@ namespace CoreXT {
             (base) => {
                 class Array<T> extends global.Array<T> {
                     [index: number]: T;
+
+                    // -------------------------------------------------------------------------------------------------------------------
+
+                    /**
+                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
+                       */
+                    constructor() {
+                        if (!ES6)
+                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
+                        super();
+                    }
 
                     // -------------------------------------------------------------------------------------------------------------------
                     /* ------ This part uses the CoreXT factory pattern ------ */

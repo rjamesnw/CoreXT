@@ -28,6 +28,15 @@ var __spread = (this && this.__spread) || function () {
     for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
     return ar;
 };
+var CoreXT;
+(function (CoreXT) {
+    CoreXT.version = "0.0.1";
+    if (typeof navigator != 'undefined' && typeof console != 'undefined')
+        if (navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0)
+            console.log("-=< CoreXT Client OS - v" + CoreXT.version + " >=- ");
+        else
+            console.log("%c -=< %cCoreXT Client OS - v" + CoreXT.version + " %c>=- ", "background: #000; color: lightblue; font-weight:bold", "background: #000; color: yellow; font-style:italic; font-weight:bold", "background: #000; color: lightblue; font-weight:bold");
+})(CoreXT || (CoreXT = {}));
 var __NonCoreXTHost__ = (function () {
     function __NonCoreXTHost__() {
     }
@@ -44,7 +53,7 @@ var $ICE = null;
 if (typeof host === 'object' && host.isDebugMode && host.isDebugMode())
     debugger;
 var siteBaseURL;
-var CoreXT;
+var scriptsBaseURL;
 (function (CoreXT) {
     CoreXT.global = (function () { }.constructor("return this"))();
     CoreXT.host = (function () {
@@ -67,6 +76,12 @@ var CoreXT;
         Environments[Environments["Worker"] = 1] = "Worker";
         Environments[Environments["Server"] = 2] = "Server";
     })(Environments = CoreXT.Environments || (CoreXT.Environments = {}));
+    CoreXT.ES6 = (function () { try {
+        return safeEval("(function () { return new.target; }, true)");
+    }
+    catch (e) {
+        return false;
+    } })();
     CoreXT.Environment = (function () {
         if (typeof navigator !== 'object') {
             window = {};
@@ -112,9 +127,10 @@ var CoreXT;
         if (title === "" && message === "")
             return null;
         if (title && typeof title == 'string') {
-            if (title.charAt(title.length - 1) != ":")
-                title += ":";
-            var compositeMessage = title + " " + message;
+            var _title = title;
+            if (_title.charAt(title.length - 1) != ":")
+                _title += ":";
+            var compositeMessage = _title + " " + message;
         }
         else
             var compositeMessage = message;
@@ -319,9 +335,7 @@ var CoreXT;
             var originalInit = typeof factoryType.init == 'function' ? factoryType.init : null;
             factoryType.init = function _initProxy() {
                 this.$__initCalled = true;
-                if (originalInit) {
-                    originalInit.apply(this, arguments);
-                }
+                originalInit && originalInit.apply(this, arguments);
                 if (this.$__baseFactoryType && !this.$__baseFactoryType.$__initCalled)
                     error(getFullTypeName(classType) + ".init()", "You did not call 'this.super.init()' to complete the initialization chain.");
                 factoryType.init = originalInit;
@@ -603,17 +617,22 @@ var CoreXT;
                             o.time = Date.now();
                             o.type = type;
                             if (console && outputToConsole) {
+                                var _title = title, margin = "";
+                                if (_title.charAt(title.length - 1) != ":")
+                                    _title += ": ";
+                                else
+                                    _title += " ";
+                                while (parent) {
+                                    parent = parent.parent;
+                                    margin += "  ";
+                                }
                                 if (System.TimeSpan) {
-                                    var time = System.TimeSpan.utcTimeToLocalTime(o.time), margin = "";
-                                    while (parent) {
-                                        parent = parent.parent;
-                                        margin += "  ";
-                                    }
+                                    var time = System.TimeSpan.utcTimeToLocalTime(o.time);
                                     var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                        + " " + margin + o.title + ": " + o.message;
+                                        + " " + margin + _title + o.message;
                                 }
                                 else
-                                    consoleText = Date() + " " + margin + o.title + ": " + o.message;
+                                    consoleText = Date() + " " + margin + _title + o.message;
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
                         };
@@ -792,9 +811,12 @@ var CoreXT;
             return '' + errorSource;
     }
     CoreXT.getErrorMessage = getErrorMessage;
-    CoreXT.BaseURI = (function () { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/')
+    CoreXT.baseURL = (function () { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/')
         u += '/'; return u; })();
-    log("Base URI", CoreXT.BaseURI);
+    CoreXT.baseScriptsURL = (function () { var u = scriptsBaseURL || CoreXT.baseURL; if (u.charAt(u.length - 1) != '/')
+        u += '/'; return u + "js/"; })();
+    log("Site Base URL", CoreXT.baseURL);
+    log("Scripts Base URL", CoreXT.baseScriptsURL);
     var Time;
     (function (Time) {
         registerNamespace("CoreXT", "Time");
@@ -820,7 +842,11 @@ var CoreXT;
             var Exception = (function (_super) {
                 __extends(Exception, _super);
                 function Exception() {
-                    return _super !== null && _super.apply(this, arguments) || this;
+                    var _this = this;
+                    if (!CoreXT.ES6)
+                        eval("var _super = function() { return null; }");
+                    _this = _super.call(this) || this;
+                    return _this;
                 }
                 Exception.prototype.toString = function () { return this.message; };
                 Exception.prototype.valueOf = function () { return this.message; };
@@ -877,33 +903,32 @@ var CoreXT;
                             message.source = source;
                         source = message;
                         message = "";
-                        if (message.title)
-                            message += message.title;
-                        if (message.message) {
+                        if (source.title)
+                            message += source.title;
+                        if (source.message) {
                             if (message)
                                 message += ": ";
-                            message += message.message;
+                            message += source.message;
                         }
                     }
-                    var callerFunction = System.Exception.from.caller;
-                    var callerFunctionInfo = callerFunction;
-                    var callerName = callerFunctionInfo.$__name;
-                    var args = Exception.from.caller.arguments;
-                    var _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
-                    var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
-                    message = (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
-                    message += callerFunction + "\r\n\r\nStack:\r\n";
-                    var caller = callerFunction.caller;
-                    while (caller) {
-                        callerName = caller.$__name;
-                        args = caller.arguments;
-                        _args = args && args.length > 0 ? System.Array.prototype.join.call(args, ', ') : "";
-                        if (callerName)
-                            message += callerName + "(" + _args + ")\r\n";
-                        else
-                            message += callerFunction + (_args ? " using arguments (" + _args + ")" : "") + "\r\n";
-                        caller = caller.caller != caller ? caller.caller : null;
+                    var caller = this.from.caller;
+                    while (caller && (caller == System.Exception.error || caller == System.Exception.notImplemented || caller == CoreXT.log || caller == CoreXT.error
+                        || typeof caller.$__fullname == 'string' && caller.$__fullname.substr(0, 17) == "System.Exception."))
                         caller = caller.caller;
+                    if (caller) {
+                        message += "\r\n\r\nStack:\r\n\r\n";
+                        var stackMsg = "";
+                        while (caller) {
+                            var callerName = getFullTypeName(caller) || "/*anonymous*/";
+                            var args = caller.arguments;
+                            var _args = args && args.length > 0 ? CoreXT.global.Array.prototype.join.call(args, ', ') : "";
+                            if (stackMsg)
+                                stackMsg += "called from ";
+                            stackMsg += callerName + "(" + _args + ")\r\n\r\n";
+                            caller = caller.caller != caller ? caller.caller : null;
+                            caller = caller.caller;
+                        }
+                        message += stackMsg;
                     }
                     return System.Exception.new(message, source, createLog);
                 };
@@ -931,10 +956,9 @@ var CoreXT;
                     }
                     Factory['new'] = function (message, source, log) { return null; };
                     Factory.init = function (o, isnew, message, source, log) {
-                        if (CoreXT.Browser.ES6)
-                            safeEval("var _super = function() { return null; }");
                         o.message = message;
                         o.source = source;
+                        o.stack = (new Error()).stack;
                         if (log || log === void 0)
                             System.Diagnostics.log("Exception", message, LogTypes.Error);
                     };
@@ -1061,6 +1085,18 @@ var CoreXT;
                     this._dependentCompletedCount = 0;
                     this._paused = false;
                 }
+                Object.defineProperty(ResourceRequest.prototype, "url", {
+                    get: function () {
+                        if (typeof this._url == 'string' && this._url.substr(0, 2) == "~/") {
+                            var _baseURL = this.type == ResourceTypes.Application_Script ? CoreXT.baseScriptsURL : CoreXT.baseURL;
+                            return _baseURL + this._url.substr(2);
+                        }
+                        return this._url;
+                    },
+                    set: function (value) { this._url = value; },
+                    enumerable: true,
+                    configurable: true
+                });
                 Object.defineProperty(ResourceRequest.prototype, "transformedData", {
                     get: function () {
                         return this.$__transformedData === noop ? this.data : this.$__transformedData;
@@ -1514,7 +1550,7 @@ var CoreXT;
                 var ext = (url.match(/(\.[A-Za-z0-9]+)(?:[\?\#]|$)/i) || []).pop();
                 type = getResourceTypeFromExtension(ext);
                 if (!type)
-                    error("Loeader.get('" + url + "', type:" + type + ")", "A resource (MIME) type is required, and no resource type could be determined (See CoreXT.Loader.ResourceTypes). If the resource type cannot be detected by a file extension then you must specify the MIME string manually.");
+                    error("Loader.get('" + url + "', type:" + type + ")", "A resource (MIME) type is required, and no resource type could be determined (See CoreXT.Loader.ResourceTypes). If the resource type cannot be detected by a file extension then you must specify the MIME string manually.");
             }
             var request = _resourceRequestByURL[url];
             if (!request)
@@ -1535,22 +1571,22 @@ var CoreXT;
         Loader._SystemScript_onReady_Handler = _SystemScript_onReady_Handler;
         function bootstrap() {
             var onReady = _SystemScript_onReady_Handler;
-            get("CoreXT.Utilities.js").ready(onReady)
-                .include(get("CoreXT.Globals.js")).ready(onReady)
-                .include(get("CoreXT.Browser.js")).ready(onReady)
-                .include(get("CoreXT.Scripts.js").ready(onReady))
-                .include(get("System/CoreXT.System.js").ready(onReady))
-                .include(get("System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
-                .include(get("System/CoreXT.System.AppDomain.js").ready(onReady))
-                .include(get("System/CoreXT.System.Time.ts")).ready(onReady)
-                .include(get("System/CoreXT.System.IO.js").ready(onReady))
-                .include(get("System/CoreXT.System.Data.js").ready(onReady))
-                .include(get("System/CoreXT.System.Diagnostics.js").ready(onReady))
-                .include(get("System/CoreXT.System.Exception.js").ready(onReady))
-                .include(get("System/CoreXT.System.Events.js").ready(onReady))
+            get("~/CoreXT.Utilities.js").ready(onReady)
+                .include(get("~/CoreXT.Globals.js")).ready(onReady)
+                .include(get("~/CoreXT.Browser.js")).ready(onReady)
+                .include(get("~/CoreXT.Scripts.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
+                .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .ready(function () {
                 CoreXT.Scripts.getManifest()
-                    .include(CoreXT.Scripts.getManifest("app.manifest"))
+                    .include(CoreXT.Scripts.getManifest("~/app.manifest"))
                     .ready(function (mod) {
                     CoreXT.onReady.dispatch();
                     CoreXT.Scripts._tryRunApp();

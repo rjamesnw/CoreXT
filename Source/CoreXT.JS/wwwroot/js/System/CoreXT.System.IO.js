@@ -177,7 +177,7 @@ var CoreXT;
                 Path.setLocation = setLocation;
                 function map(path) {
                     if (!/^\w+:/.test(path) && path.charAt(0) == '/')
-                        return Path.combineURLPaths(CoreXT.BaseURI, path);
+                        return Path.combineURLPaths(CoreXT.baseURL, path);
                     else
                         return path;
                 }

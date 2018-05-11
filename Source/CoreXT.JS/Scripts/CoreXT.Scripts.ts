@@ -360,7 +360,7 @@ namespace CoreXT {
 
         /** This is the path to the root of the CoreXT JavaScript files ('CoreXT/' by default).
         * Note: This should either be empty, or always end with a URL path separator ('/') character (but the system will assume to add one anyhow if missing). */
-        export var pluginFilesBasePath: string = System.IO && System.IO.Path ? System.IO.Path.combineURLPaths(BaseURI, "wwwroot/js/") : BaseURI + "wwwroot/js/";
+        export var pluginFilesBasePath: string = System.IO && System.IO.Path ? System.IO.Path.combineURLPaths(baseURL, "wwwroot/js/") : baseURL + "wwwroot/js/";
 
         /** Translates a module relative or full type name to the actual type name (i.e. '.ABC' to 'CoreXT.ABC', or 'System'/'System.' to 'CoreXT'/'CoreXT.'). */
         export function translateModuleTypeName(moduleFullTypeName: string) {

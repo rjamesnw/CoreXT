@@ -25,7 +25,7 @@ namespace CoreXT.System.Platform {
         /** The local executing context is the target. All scripts loaded into this context become merged with current application. */
         Local
     }
-
+    
     /** 
      * A context is a container that manages a reference to a global script environment. Each new context creates a new 
      * execution environment that keeps scripts from accidentally (or maliciously) populating/corrupting the host environment.
@@ -40,19 +40,18 @@ namespace CoreXT.System.Platform {
                 private x = 1;
                 // ----------------------------------------------------------------------------------------------------------------
 
-                protected static readonly 'ContextFactory' = function () {
-                    var factoryType = class Factory extends FactoryBase(Context, base['ObjectFactory']) {
+                protected static readonly 'ContextFactory' = class Factory extends FactoryBase(Context, base['ObjectFactory']) {
 
-                        //? static 'new'?(context: Contexts = Contexts.Secure): typeof _InstanceType { throw Exception.from("You cannot create instances of the abstract Context class.", this); }
+                    /** Abstract: Cannot create instances of this abstract class. */
+                    static 'new'?(): void {
+                        throw Exception.from("You cannot create instances of the abstract Context class.", this);
+                    }
 
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, context: Contexts = Contexts.Secure) {
-                            this.super.init(o, isnew);
-                            o['_contextType'] = context;
-                        }
-                    };
-                    factoryType['new'] = (context: Contexts = Contexts.Secure): InstanceType<typeof factoryType.$__type> => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
-                    return factoryType;
-                }();
+                    static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, context: Contexts = Contexts.Secure) {
+                        this.super.init(o, isnew);
+                        o['_contextType'] = context;
+                    }
+                };
 
                 // ----------------------------------------------------------------------------------------------------------------
 

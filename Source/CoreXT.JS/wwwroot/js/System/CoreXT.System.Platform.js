@@ -34,26 +34,21 @@ var CoreXT;
                     Context.prototype.load = function (url) {
                         throw System.Exception.notImplemented("load", this, "Try the default BrowserContext type instead.");
                     };
-                    Context['ContextFactory'] = function () {
-                        var _this = this;
-                        var factoryType = (function (_super) {
-                            __extends(Factory, _super);
-                            function Factory() {
-                                return _super !== null && _super.apply(this, arguments) || this;
-                            }
-                            Factory.init = function (o, isnew, context) {
-                                if (context === void 0) { context = Contexts.Secure; }
-                                this.super.init(o, isnew);
-                                o['_contextType'] = context;
-                            };
-                            return Factory;
-                        }(CoreXT.FactoryBase(Context, base['ObjectFactory'])));
-                        factoryType['new'] = function (context) {
-                            if (context === void 0) { context = Contexts.Secure; }
-                            throw System.Exception.from("You cannot create instances of the abstract Context class.", _this);
+                    Context['ContextFactory'] = (function (_super) {
+                        __extends(Factory, _super);
+                        function Factory() {
+                            return _super !== null && _super.apply(this, arguments) || this;
+                        }
+                        Factory['new'] = function () {
+                            throw System.Exception.from("You cannot create instances of the abstract Context class.", this);
                         };
-                        return factoryType;
-                    }();
+                        Factory.init = function (o, isnew, context) {
+                            if (context === void 0) { context = Contexts.Secure; }
+                            this.super.init(o, isnew);
+                            o['_contextType'] = context;
+                        };
+                        return Factory;
+                    }(CoreXT.FactoryBase(Context, base['ObjectFactory'])));
                     return Context;
                 }(base));
                 return [Context, Context["ContextFactory"]];

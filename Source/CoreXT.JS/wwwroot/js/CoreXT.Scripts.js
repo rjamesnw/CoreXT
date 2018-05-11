@@ -242,7 +242,7 @@ var CoreXT;
             }
         }
         Scripts.runApp = runApp;
-        Scripts.pluginFilesBasePath = CoreXT.System.IO && CoreXT.System.IO.Path ? CoreXT.System.IO.Path.combineURLPaths(CoreXT.BaseURI, "wwwroot/js/") : CoreXT.BaseURI + "wwwroot/js/";
+        Scripts.pluginFilesBasePath = CoreXT.System.IO && CoreXT.System.IO.Path ? CoreXT.System.IO.Path.combineURLPaths(CoreXT.baseURL, "wwwroot/js/") : CoreXT.baseURL + "wwwroot/js/";
         function translateModuleTypeName(moduleFullTypeName) {
             if (moduleFullTypeName.charAt(0) == '.')
                 moduleFullTypeName = "CoreXT" + moduleFullTypeName;

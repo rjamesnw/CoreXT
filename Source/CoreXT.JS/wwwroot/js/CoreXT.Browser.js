@@ -393,12 +393,7 @@ var CoreXT;
         Browser.vendor = "";
         Browser.os = OperatingSystems.Unknown;
         Browser.version = -1;
-        Browser.ES6 = (function () { try {
-            return CoreXT.safeEval("(function () { return new.target; }, true)");
-        }
-        catch (e) {
-            return false;
-        } })();
+        Browser.ES6 = CoreXT.ES6;
         Browser.type = (function () {
             var browserType = BrowserTypes.Unknown, browserInfo;
             if (CoreXT.Environment == CoreXT.Environments.Browser) {

@@ -534,7 +534,7 @@ namespace CoreXT {
         export var version: number = -1;
 
         /** Set to true if ES2015 (aka ES6) is supported ('class', 'new.target', etc.). */
-        export const ES6 = (function (): boolean { try { return safeEval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
+        export const ES6 = CoreXT.ES6;
         // (Note: For extension of native types, the CoreXT behavior changes depending on ES6 support due to the new 'new.target' feature changing how called native constructors behave)
 
         /** The type of browser detected. */

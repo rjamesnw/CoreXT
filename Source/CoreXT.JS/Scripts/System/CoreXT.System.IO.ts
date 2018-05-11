@@ -292,7 +292,7 @@ namespace CoreXT.System.IO {
          */
         export function map(path: string): string {
             if (!/^\w+:/.test(path) && path.charAt(0) == '/') // (don't add absolute paths to the base URI)
-                return Path.combineURLPaths(BaseURI, path);
+                return Path.combineURLPaths(baseURL, path);
             else
                 return path;
         }

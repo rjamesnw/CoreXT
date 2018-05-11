@@ -91,7 +91,7 @@ namespace CoreXT {
         $__baseFactoryType?: { new(): IFactory } & ITypeInfo;
     }
 
-    export interface NewDelegate<TInstance extends NativeTypes.IObject> { (...args: any[]): TInstance }
+    export interface NewDelegate<TInstance extends NativeTypes.IObject> { (...args: any[]): void | null | TInstance }
 
     export interface InitDelegate<TInstance extends NativeTypes.IObject> { (o: TInstance, isnew: boolean, ...args: any[]): void }
 

@@ -17,6 +17,15 @@
  * Note: Reason for factory object construction (new/init) patterns in CoreXT: http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/
  */
 
+namespace CoreXT {
+    export var version = "0.0.1";
+    if (typeof navigator != 'undefined' && typeof console != 'undefined')
+        if (navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0)
+            console.log("-=< CoreXT Client OS - v" + version + " >=- ");
+        else
+            console.log("%c -=< %cCoreXT Client OS - v" + version + " %c>=- ", "background: #000; color: lightblue; font-weight:bold", "background: #000; color: yellow; font-style:italic; font-weight:bold", "background: #000; color: lightblue; font-weight:bold");
+}
+
 // ===========================================================================================================================
 // Allow accessing properties of primitive objects by string index.
 
@@ -67,7 +76,10 @@ if (typeof host === 'object' && host.isDebugMode && host.isDebugMode())
 
 // ===========================================================================================================================
 
+/** An optional site root URL if the main site root path is in a virtual path. */
 var siteBaseURL: string;
+/** Root location of the application scripts, which be default is the {site URL}+"/js/". */
+var scriptsBaseURL: string;
 
 // ===========================================================================================================================
 
@@ -182,6 +194,9 @@ namespace CoreXT {
         Server
     }
 
+    /** Set to true if ES2015 (aka ES6) is supported ('class', 'new.target', etc.). */
+    export var ES6 = (function (): boolean { try { return safeEval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
+
     /** This is set to the detected running environment that scripts are executing in. Applications and certain modules all run in
       * protected web worker environments (dedicated threads), where there is no DOM. In these cases, this property will be set to
       * 'Environments.Worker'.
@@ -249,9 +264,10 @@ namespace CoreXT {
         if (title === "" && message === "") return null;
 
         if (title && typeof title == 'string') {
-            if (title.charAt(title.length - 1) != ":")
-                title += ":";
-            var compositeMessage = title + " " + message;
+            var _title = title; // (modify a copy so we can continue to pass along the unaltered title text)
+            if (_title.charAt(title.length - 1) != ":")
+                _title += ":";
+            var compositeMessage = _title + " " + message;
         }
         else var compositeMessage = message;
 
@@ -487,6 +503,7 @@ namespace CoreXT {
                 isNew = true;
             }
             // ... insert [instance, isNew] without having to create a new array ...
+            // TODO: Remove the following when ...rest is more widely supported.
             for (var i = arguments.length - 1; i >= 0; --i)
                 arguments[2 + i] = arguments[i];
             arguments[0] = instance;
@@ -548,11 +565,7 @@ namespace CoreXT {
 
             factoryType.init = <any>function _initProxy(this: IFactoryTypeInfo) {
                 this.$__initCalled = true; // (flag that THIS init function was called on THIS factory type)
-                if (originalInit) {
-                    originalInit.apply(this, arguments);
-                    //if (!result || typeof result != 'object')
-                    //    error(getFullTypeName(classType) + ".init()", "An object result was expected but received '" + result + "' instead.");
-                }
+                originalInit && originalInit.apply(this, arguments);
                 if (this.$__baseFactoryType && !this.$__baseFactoryType.$__initCalled)
                     error(getFullTypeName(classType) + ".init()", "You did not call 'this.super.init()' to complete the initialization chain.");
                 // TODO: Once parsing of function parameters are in place we can detect this, but for now require it)
@@ -1007,13 +1020,15 @@ namespace CoreXT {
                             o.type = type;
 
                             if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
+                                var _title = title, margin = ""; // (modify a copy so we can continue to pass along the unaltered title text)
+                                if (_title.charAt(title.length - 1) != ":") _title += ": "; else _title += " ";
+                                while (parent) { parent = parent.parent; margin += "  "; }
                                 if (TimeSpan) {
-                                    var time = TimeSpan.utcTimeToLocalTime(o.time), margin = "";
-                                    while (parent) { parent = parent.parent; margin += "  "; }
+                                    var time = TimeSpan.utcTimeToLocalTime(o.time);
                                     var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                        + " " + margin + o.title + ": " + o.message;
+                                        + " " + margin + _title + o.message;
                                 }
-                                else consoleText = Date() + " " + margin + o.title + ": " + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
+                                else consoleText = Date() + " " + margin + _title + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
                         }
@@ -1231,9 +1246,15 @@ namespace CoreXT {
      * Returns the base URL used by the system.  This can be configured by setting the global 'siteBaseURL' property.
      * If no 'siteBaseURL' global property exists, the current page location is assumed.
      */
-    export var BaseURI = (() => { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/') u += '/'; return u; })(); // (example: "https://calendar.google.com/")
+    export var baseURL = (() => { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/') u += '/'; return u; })(); // (example: "https://calendar.google.com/")
+    /**
+     * Returns the base URL used by the system for loading scripts.  This can be configured by setting the global 'scriptBaseURL' property.
+     * If no 'siteBaseURL' global property exists, the current page location is assumed.
+     */
+    export var baseScriptsURL = (() => { var u = scriptsBaseURL || baseURL; if (u.charAt(u.length - 1) != '/') u += '/'; return u + "js/"; })();
 
-    log("Base URI", BaseURI); // (requires the exception object, which is the last one to be defined above; now we start the first log entry with the base URI of the site)
+    log("Site Base URL", baseURL); // (requires the exception object, which is the last one to be defined above; now we start the first log entry with the base URI of the site)
+    log("Scripts Base URL", baseScriptsURL);
 
     // ========================================================================================================================================
 
@@ -1279,7 +1300,6 @@ namespace CoreXT {
             (base) => {
                 class Exception extends Error {
 
-                    message: string;
                     source: object;
 
                     // ----------------------------------------------------------------------------------------------------------------
@@ -1343,11 +1363,11 @@ namespace CoreXT {
                     */
                     static from(logItem: System.Diagnostics.ILogItem, source?: object): Exception;
                     /** Generates an exception object from a simple string message.
-                    * Note: This is different from 'error()' in that logging is more implicit (there is no 'title' parameter, and the log title defaults to "Exception").
-                    * Usage example: "throw System.Exception.from("Error message.", this);"
-                    * @param {string} message The error message.
-                    * @param {object} source The object that is the source of the error, or related to it.
-                    */
+                        * Note: This is different from 'error()' in that logging is more implicit (there is no 'title' parameter, and the log title defaults to "Exception").
+                        * Usage example: "throw System.Exception.from("Error message.", this);"
+                        * @param {string} message The error message.
+                        * @param {object} source The object that is the source of the error, or related to it.
+                        */
                     static from(message: string, source?: object): Exception;
                     static from(message: any, source: object = null): Exception {
                         // (support LogItem objects natively as the exception message source)
@@ -1358,34 +1378,38 @@ namespace CoreXT {
                                 (<Diagnostics.ILogItem>message).source = source;
                             source = message;
                             message = "";
-                            if ((<Diagnostics.ILogItem>message).title)
-                                message += (<Diagnostics.ILogItem>message).title;
-                            if ((<Diagnostics.ILogItem>message).message) {
+                            if ((<Diagnostics.ILogItem>source).title)
+                                message += (<Diagnostics.ILogItem>source).title;
+                            if ((<Diagnostics.ILogItem>source).message) {
                                 if (message) message += ": ";
-                                message += (<Diagnostics.ILogItem>message).message;
+                                message += (<Diagnostics.ILogItem>source).message;
                             }
                         }
-                        var callerFunction = System.Exception.from.caller;
-                        var callerFunctionInfo = <ITypeInfo><any>callerFunction;
-                        var callerName = callerFunctionInfo.$__name;
-                        //var srcName = callerFunction.substring(callerFunction.indexOf("function"), callerFunction.indexOf("("));
-                        var args = Exception.from.caller.arguments;
-                        var _args = args && args.length > 0 ? Array.prototype.join.call(args, ', ') : "";
-                        var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
-                        message = (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
-                        message += callerFunction + "\r\n\r\nStack:\r\n";
-                        var caller = callerFunction.caller;
-                        while (caller) {
-                            callerName = (<ITypeInfo><any>caller).$__name;
-                            args = caller.arguments;
-                            _args = args && args.length > 0 ? Array.prototype.join.call(args, ', ') : "";
-                            //srcName = callerFunction.substring(callerFunction.indexOf("function"), callerFunction.indexOf(")") + 1);
-                            if (callerName)
-                                message += callerName + "(" + _args + ")\r\n";
-                            else
-                                message += callerFunction + (_args ? " using arguments (" + _args + ")" : "") + "\r\n";
-                            caller = caller.caller != caller ? caller.caller : null; // (make sure not to fall into an infinite loop)
-                            caller = caller.caller;
+                        //var callerFunction = System.Exception.from.caller;
+                        //var callerFunctionInfo = <ITypeInfo><any>callerFunction;
+                        //var callerName = getFullTypeName(callerFunctionInfo) || "/*anonymous*/";
+                        ////var srcName = callerFunction.substring(callerFunction.indexOf("function"), callerFunction.indexOf("("));
+                        //var args = callerFunction.arguments;
+                        //var _args = args && args.length > 0 ? global.Array.prototype.join.call(args, ', ') : "";
+                        //var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
+                        //message += (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
+                        var caller = this.from.caller;
+                        while (caller && (caller == System.Exception.error || caller == System.Exception.notImplemented || caller == CoreXT.log || caller == CoreXT.error
+                            || typeof (<ITypeInfo>caller).$__fullname == 'string' && (<ITypeInfo>caller).$__fullname.substr(0, 17) == "System.Exception.")) // TODO: Create "inheritsFrom()" or similar methods.
+                            caller = caller.caller; // (skip the proxy functions that call this function)
+                        if (caller) {
+                            message += "\r\n\r\nStack:\r\n\r\n";
+                            var stackMsg = "";
+                            while (caller) {
+                                var callerName = getFullTypeName(caller) || "/*anonymous*/";
+                                var args = caller.arguments;
+                                var _args = args && args.length > 0 ? global.Array.prototype.join.call(args, ', ') : "";
+                                if (stackMsg) stackMsg += "called from ";
+                                stackMsg += callerName + "(" + _args + ")\r\n\r\n";
+                                caller = caller.caller != caller ? caller.caller : null; // (make sure not to fall into an infinite loop)
+                                caller = caller.caller;
+                            }
+                            message += stackMsg;
                         }
                         return System.Exception.new(message, source, createLog);
                     }
@@ -1414,7 +1438,18 @@ namespace CoreXT {
                         else return Exception.from(error(functionNameOrTitle, msg, source, false, false), source);
                     }
 
-                    // ----------------------------------------------------------------------------------------------------------------
+                    // -------------------------------------------------------------------------------------------------------------------
+
+                    /**
+                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
+                       */
+                    constructor() {
+                        if (!ES6)
+                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
+                        super();
+                    }
+
+                    // -------------------------------------------------------------------------------------------------------------------
 
                     protected static readonly 'ExceptionFactory' = class Factory extends FactoryBase(Exception, null) {
                         /** Records information about errors that occur in the application.
@@ -1427,10 +1462,9 @@ namespace CoreXT {
 
                         /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, message: string, source: object, log?: boolean) {
-                            if (Browser.ES6)
-                                safeEval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
                             o.message = message;
                             o.source = source;
+                            o.stack = (new Error()).stack;
                             if (log || log === void 0) Diagnostics.log("Exception", message, LogTypes.Error);
                         }
                     };
@@ -1605,7 +1639,15 @@ namespace CoreXT {
                     private $__index: number;
 
                     /** The requested resource URL. */
-                    url: string;
+                    _url: string;
+                    get url() {
+                        if (typeof this._url == 'string' && this._url.substr(0, 2) == "~/") {
+                            var _baseURL = this.type == ResourceTypes.Application_Script ? baseScriptsURL : baseURL;
+                            return _baseURL + this._url.substr(2);
+                        }
+                        return this._url;
+                    }
+                    set url(value: string) { this._url = value; }
                     /** The requested resource type (to match against the server returned MIME type for data type verification). */
                     type: ResourceTypes | string;
 
@@ -2193,7 +2235,7 @@ namespace CoreXT {
                 var ext = (url.match(/(\.[A-Za-z0-9]+)(?:[\?\#]|$)/i) || []).pop();
                 type = getResourceTypeFromExtension(ext);
                 if (!type)
-                    error("Loeader.get('" + url + "', type:" + type + ")", "A resource (MIME) type is required, and no resource type could be determined (See CoreXT.Loader.ResourceTypes). If the resource type cannot be detected by a file extension then you must specify the MIME string manually.");
+                    error("Loader.get('" + url + "', type:" + type + ")", "A resource (MIME) type is required, and no resource type could be determined (See CoreXT.Loader.ResourceTypes). If the resource type cannot be detected by a file extension then you must specify the MIME string manually.");
             }
             var request = _resourceRequestByURL[url]; // (try to load any already existing requests)
             if (!request)
@@ -2221,24 +2263,24 @@ namespace CoreXT {
             var onReady = _SystemScript_onReady_Handler;
 
             // ... load the base scripts first (all of these are not modules, so they have to be loaded in the correct order) ...
-            get("CoreXT.Utilities.js").ready(onReady) // (a lot of items depend on time [such as some utilities and logging] so this needs to be loaded first)
-                .include(get("CoreXT.Globals.js")).ready(onReady)
-                .include(get("CoreXT.Browser.js")).ready(onReady) // (in case some polyfills are needed after this point)
-                .include(get("CoreXT.Scripts.js").ready(onReady))
+            get("~/CoreXT.Utilities.js").ready(onReady) // (a lot of items depend on time [such as some utilities and logging] so this needs to be loaded first)
+                .include(get("~/CoreXT.Globals.js")).ready(onReady)
+                .include(get("~/CoreXT.Browser.js")).ready(onReady) // (in case some polyfills are needed after this point)
+                .include(get("~/CoreXT.Scripts.js").ready(onReady))
                 // ... load the rest of the core system next ...
-                .include(get("System/CoreXT.System.js").ready(onReady))
-                .include(get("System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
-                .include(get("System/CoreXT.System.AppDomain.js").ready(onReady))
-                .include(get("System/CoreXT.System.Time.ts")).ready(onReady)
-                .include(get("System/CoreXT.System.IO.js").ready(onReady))
-                .include(get("System/CoreXT.System.Data.js").ready(onReady))
-                .include(get("System/CoreXT.System.Diagnostics.js").ready(onReady))
-                .include(get("System/CoreXT.System.Exception.js").ready(onReady))
-                .include(get("System/CoreXT.System.Events.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
+                .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .ready(() => {
                     // ... all core system scripts loaded, load the default manifests next ...
                     Scripts.getManifest() // (load the default manifest in the current path [defaults to 'manifest.js'])
-                        .include(Scripts.getManifest("app.manifest")) // (load a custom named manifest; application launching begins here)
+                        .include(Scripts.getManifest("~/app.manifest")) // (load a custom named manifest; application launching begins here)
                         .ready((mod) => {
                             CoreXT.onReady.dispatch();
                             Scripts._tryRunApp();

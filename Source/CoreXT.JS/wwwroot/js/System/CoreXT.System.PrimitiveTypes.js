@@ -38,8 +38,8 @@ var CoreXT;
                 __extends(Object, _super);
                 function Object() {
                     var _this = this;
-                    if (CoreXT.Browser.ES6)
-                        CoreXT.safeEval("var _super = function() { return null; }");
+                    if (!CoreXT.ES6)
+                        eval("var _super = function() { return null; }");
                     _this = _super.call(this) || this;
                     return _this;
                 }
@@ -129,7 +129,11 @@ var CoreXT;
             var String = (function (_super) {
                 __extends(String, _super);
                 function String() {
-                    return _super !== null && _super.apply(this, arguments) || this;
+                    var _this = this;
+                    if (!CoreXT.ES6)
+                        eval("var _super = function() { return null; }");
+                    _this = _super.call(this) || this;
+                    return _this;
                 }
                 String.replace = function (source, replaceWhat, replaceWith, ignoreCase) {
                     if (typeof source !== 'string')
@@ -225,7 +229,11 @@ var CoreXT;
             var Array = (function (_super) {
                 __extends(Array, _super);
                 function Array() {
-                    return _super !== null && _super.apply(this, arguments) || this;
+                    var _this = this;
+                    if (!CoreXT.ES6)
+                        eval("var _super = function() { return null; }");
+                    _this = _super.call(this) || this;
+                    return _this;
                 }
                 Array['ArrayFactory'] = (function (_super) {
                     __extends(Factory, _super);
