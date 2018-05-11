@@ -62,7 +62,7 @@ namespace CoreXT.System.Platform {
         },
         "Window"
     );
-    export interface IWindow extends InstanceType<typeof Window> { }
+    export interface IWindow extends InstanceType<typeof Window.$__type> { }
 
     // ====================================================================================================================
 }

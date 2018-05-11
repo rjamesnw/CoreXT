@@ -129,12 +129,12 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (searchString, makeNamesLowercase) {
+                            Factory['new'] = function (searchString, makeNamesLowercase) {
                                 if (searchString === void 0) { searchString = null; }
                                 if (makeNamesLowercase === void 0) { makeNamesLowercase = false; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, searchString, makeNamesLowercase) {
+                            Factory.init = function (o, isnew, searchString, makeNamesLowercase) {
                                 if (searchString === void 0) { searchString = null; }
                                 if (makeNamesLowercase === void 0) { makeNamesLowercase = false; }
                                 if (searchString) {

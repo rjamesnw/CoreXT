@@ -59,7 +59,7 @@ namespace CoreXT.System.Platform.HTML.Application {
                     static 'new'(title: string, description: string, targetElement: HTMLElement = null): InstanceType<typeof Factory.$__type> { return null; }
 
                     static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, targetElement: HTMLElement = null) {
-                        this.super.init(o, isnew, null);
+                        this.super.init<any, any>(o, isnew, null);
                         if (typeof title == "undefined" || "" + title == "")
                             throw "An application title is required.";
                         o.title(title);

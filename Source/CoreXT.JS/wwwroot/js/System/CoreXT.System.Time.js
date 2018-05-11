@@ -234,8 +234,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (year, dayOfYear, hours, minutes, seconds, milliseconds) { return null; };
-                    Factory.prototype.init = function (o, isnew, year, dayOfYear, hours, minutes, seconds, milliseconds) {
+                    Factory['new'] = function (year, dayOfYear, hours, minutes, seconds, milliseconds) { return null; };
+                    Factory.init = function (o, isnew, year, dayOfYear, hours, minutes, seconds, milliseconds) {
                         this.super.init(o, isnew);
                         if (arguments.length <= 3)
                             o.setTime(year);

@@ -27,7 +27,9 @@ var CoreXT;
                 var Context = (function (_super) {
                     __extends(Context, _super);
                     function Context() {
-                        return _super !== null && _super.apply(this, arguments) || this;
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
+                        _this.x = 1;
+                        return _this;
                     }
                     Context.prototype.load = function (url) {
                         throw System.Exception.notImplemented("load", this, "Try the default BrowserContext type instead.");
@@ -39,10 +41,10 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype.init = function (o, isnew, context) {
+                            Factory.init = function (o, isnew, context) {
                                 if (context === void 0) { context = Contexts.Secure; }
                                 this.super.init(o, isnew);
-                                o._contextType = context;
+                                o['_contextType'] = context;
                                 return o;
                             };
                             return Factory;
@@ -98,8 +100,8 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (title, appID) { return null; };
-                        Factory.prototype.init = function (o, isnew, title, description, appID) {
+                        Factory['new'] = function (title, appID) { return null; };
+                        Factory.init = function (o, isnew, title, description, appID) {
                             this.super.init(o, isnew, title, description, appID);
                             return o;
                         };

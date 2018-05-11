@@ -286,11 +286,11 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (parent) {
+                        Factory['new'] = function (parent) {
                             if (parent === void 0) { parent = null; }
                             return null;
                         };
-                        Factory.prototype.init = function (o, isnew, parent) {
+                        Factory.init = function (o, isnew, parent) {
                             if (parent === void 0) { parent = null; }
                             this.super.init(o, isnew);
                             o._id = GraphNode.__nextID++;

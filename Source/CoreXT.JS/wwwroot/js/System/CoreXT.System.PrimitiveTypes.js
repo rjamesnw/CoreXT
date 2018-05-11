@@ -90,11 +90,11 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (value, makeValuePrivate) {
+                    Factory['new'] = function (value, makeValuePrivate) {
                         if (makeValuePrivate === void 0) { makeValuePrivate = false; }
                         return CoreXT.Types.__new.call(this, value, makeValuePrivate);
                     };
-                    Factory.prototype.init = function (o, isnew, value, makePrivate) {
+                    Factory.init = function (o, isnew, value, makePrivate) {
                         if (makePrivate === void 0) { makePrivate = false; }
                         if (!isnew)
                             o.$__reset();
@@ -209,8 +209,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (value) { return null; };
-                    Factory.prototype.init = function (o, isnew, value) {
+                    Factory['new'] = function (value) { return null; };
+                    Factory.init = function (o, isnew, value) {
                         o.$__value = CoreXT.global.String(value);
                         o.length = o.$__value.length;
                         for (var i = 0; i < o.length; ++i)
@@ -232,19 +232,16 @@ var CoreXT;
                 Array['ArrayFactory'] = (function (_super) {
                     __extends(Factory, _super);
                     function Factory() {
-                        var _this = _super !== null && _super.apply(this, arguments) || this;
-                        _this.$Type = Array;
-                        _this.$BaseFactory = null;
-                        return _this;
+                        return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function () {
+                    Factory['new'] = function () {
                         var items = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             items[_i] = arguments[_i];
                         }
                         return null;
                     };
-                    Factory.prototype.init = function (o, isnew) {
+                    Factory.init = function (o, isnew) {
                         var items = [];
                         for (var _i = 2; _i < arguments.length; _i++) {
                             items[_i - 2] = arguments[_i];

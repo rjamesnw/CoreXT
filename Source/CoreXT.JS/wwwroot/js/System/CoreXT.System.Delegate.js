@@ -138,25 +138,23 @@ var CoreXT;
                         && value.object === this.object && value.func === this.func;
                 };
                 Delegate.__static_ctor = Delegate.prototype.___static_ctor();
-                Delegate['DelegateFactory'] = function () {
-                    return (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory.prototype['new'] = function (object, func) { return null; };
-                        Factory.prototype.init = function (o, isnew, object, func) {
-                            this.super.init(o, isnew);
-                            if (object === void 0)
-                                object = null;
-                            o.object = object;
-                            o.func = func;
-                            o.update();
-                            return o;
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase(Delegate, base['ObjectFactory'])));
-                }();
+                Delegate['DelegateFactory'] = (function (_super) {
+                    __extends(Factory, _super);
+                    function Factory() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    Factory['new'] = function (object, func) { return null; };
+                    Factory.init = function (o, isnew, object, func) {
+                        this.super.init(o, isnew);
+                        if (object === void 0)
+                            object = null;
+                        o.object = object;
+                        o.func = func;
+                        o.update();
+                        return o;
+                    };
+                    return Factory;
+                }(CoreXT.FactoryBase(Delegate, base['ObjectFactory'])));
                 return Delegate;
             }(base));
             return [Delegate, Delegate["DelegateFactory"]];

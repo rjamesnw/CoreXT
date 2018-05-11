@@ -83,11 +83,11 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (context) {
+                            Factory['new'] = function (context) {
                                 if (context === void 0) { context = Platform.Contexts.Secure; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, context) {
+                            Factory.init = function (o, isnew, context) {
                                 if (context === void 0) { context = Platform.Contexts.Secure; }
                                 this.super.init(o, isnew, context);
                                 return o;
@@ -113,8 +113,8 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (parent, id, name) { return null; };
-                            Factory.prototype.init = function (o, isnew, parent, id, name) {
+                            Factory['new'] = function (parent, id, name) { return null; };
+                            Factory.init = function (o, isnew, parent, id, name) {
                                 this.super.init(o, isnew, parent);
                                 if (id !== void 0 && id !== null)
                                     o.id = id;
@@ -222,11 +222,11 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (parent, id, name, tagName, html) {
+                            Factory['new'] = function (parent, id, name, tagName, html) {
                                 if (tagName === void 0) { tagName = "div"; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, parent, id, name, tagName, html) {
+                            Factory.init = function (o, isnew, parent, id, name, tagName, html) {
                                 if (tagName === void 0) { tagName = "div"; }
                                 this.super.init(o, isnew, parent, id, name);
                                 o.tagName = tagName;
@@ -236,7 +236,7 @@ var CoreXT;
                                         if (o.__children.length)
                                             o.removeAllChildren();
                                         try {
-                                            o.__htmlElement.innerHTML = property.getValue();
+                                            o['__htmlElement'].innerHTML = property.getValue();
                                         }
                                         catch (ex) { }
                                     }
@@ -247,7 +247,7 @@ var CoreXT;
                         }(CoreXT.FactoryBase(HTMLElement, base['HTMLNodeFactory'])));
                         return HTMLElement;
                     }(base));
-                    return [HTMLElement, HTMLElement["HTMLNodeFactory"]];
+                    return [HTMLElement, HTMLElement["HTMLElementFactory"]];
                 });
                 HTML.PlainText = CoreXT.ClassFactory(HTML, HTML.HTMLNode, function (base) {
                     var PlainText = (function (_super) {
@@ -271,11 +271,11 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (parent, text) {
+                            Factory['new'] = function (parent, text) {
                                 if (text === void 0) { text = ""; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, parent, text) {
+                            Factory.init = function (o, isnew, parent, text) {
                                 if (text === void 0) { text = ""; }
                                 this.super.init(o, isnew, parent);
                                 o.text(text);
@@ -310,15 +310,13 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (parent, html) {
+                            Factory['new'] = function (parent, html) {
                                 if (html === void 0) { html = ""; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, parent, html) {
+                            Factory.init = function (o, isnew, parent, html) {
                                 if (html === void 0) { html = ""; }
-                                this.super.init(o, isnew, parent, html);
-                                o.htmlTag = "span";
-                                CoreXT.global;
+                                this.super.init(o, isnew, parent, html, void 0, 'span');
                                 return o;
                             };
                             return Factory;
@@ -405,12 +403,12 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (parent, phraseTypeFlags, html) {
+                            Factory['new'] = function (parent, phraseTypeFlags, html) {
                                 if (phraseTypeFlags === void 0) { phraseTypeFlags = 0; }
                                 if (html === void 0) { html = ""; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, parent, phraseTypeFlags, html) {
+                            Factory.init = function (o, isnew, parent, phraseTypeFlags, html) {
                                 if (phraseTypeFlags === void 0) { phraseTypeFlags = 0; }
                                 if (html === void 0) { html = ""; }
                                 this.super.init(o, isnew, parent, html);
@@ -451,12 +449,12 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (parent, headerLevel, html) {
+                            Factory['new'] = function (parent, headerLevel, html) {
                                 if (headerLevel === void 0) { headerLevel = 1; }
                                 if (html === void 0) { html = ""; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, parent, headerLevel, html) {
+                            Factory.init = function (o, isnew, parent, headerLevel, html) {
                                 if (headerLevel === void 0) { headerLevel = 1; }
                                 if (html === void 0) { html = ""; }
                                 this.super.init(o, isnew, parent, html);

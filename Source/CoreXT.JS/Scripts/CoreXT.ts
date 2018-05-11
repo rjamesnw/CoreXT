@@ -510,7 +510,7 @@ namespace CoreXT {
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
         */
-        export function __registerFactoryType<TClass extends IType<object>, TFactory extends IFactoryTypeInfo<TClass>, TNamespace extends object>
+        export function __registerFactoryType<TClass extends IType, TFactory extends IFactoryTypeInfo, TNamespace extends object>
             (cls: TClass, factoryType: TFactory & { $__type: TClass }, namespace: TNamespace, addMemberTypeInfo = true, exportName?: keyof TNamespace)
             : ClassFactoryType<TClass, TFactory> {
 
@@ -533,35 +533,50 @@ namespace CoreXT {
 
             // ... if no 'init()' function is specified, just call the base by default ... 
 
-            if (!Object.prototype.hasOwnProperty.call(factoryType, "init") || typeof factoryType.init == 'undefined' || factoryType.init == null) {
-                var originalInit = typeof factoryType.init == 'function' ? factoryType.init : null; // (take user defined, else set to null)
-                factoryType.init = <any>function (this: IFactoryTypeInfo) {
-                    this.$__initCalled = true; // (flag that THIS init function was called on THIS factory type)
-                    if (originalInit) {
-                        this.init.apply(this, arguments);
-                        //if (!result || typeof result != 'object')
-                        //    error(getFullTypeName(classType) + ".init()", "An object result was expected but received '" + result + "' instead.");
-                    }
-                    if (this.$__baseFactoryType && !this.$__baseFactoryType.$__initCalled)
-                        error(getFullTypeName(classType) + ".init()", "You did not call 'this.super.init()' to complete the initialization chain.");
-                        // TODO: Once parsing of function parameters are in place we can detect this, but for now require it)
-                };
-            }
+            //x if (!Object.prototype.hasOwnProperty.call(factoryType, "init") || typeof factoryType.init == 'undefined' || factoryType.init == null) {
+            if (classType.init)
+                error(getFullTypeName(classType), "You cannot create a static 'init' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
 
-            if (!Object.prototype.hasOwnProperty.call(classType, "new") || typeof classType.new == 'undefined' || classType.new == null)
-                //if (_factoryInstance.new && typeof _factoryInstance.new == 'function')
-                classType.new = function _firstTimeNewTest() {
-                    var result = factoryType.new && factoryType.new(...arguments) || void 0;
+            var originalInit = typeof factoryType.init == 'function' ? factoryType.init : null; // (take user defined, else set to null)
+
+            factoryType.init = <any>function _initProxy(this: IFactoryTypeInfo) {
+                this.$__initCalled = true; // (flag that THIS init function was called on THIS factory type)
+                if (originalInit) {
+                    this.init.apply(this, arguments);
+                    //if (!result || typeof result != 'object')
+                    //    error(getFullTypeName(classType) + ".init()", "An object result was expected but received '" + result + "' instead.");
+                }
+                if (this.$__baseFactoryType && !this.$__baseFactoryType.$__initCalled)
+                    error(getFullTypeName(classType) + ".init()", "You did not call 'this.super.init()' to complete the initialization chain.");
+                // TODO: Once parsing of function parameters are in place we can detect this, but for now require it)
+            };
+            //x }
+
+            //x if (!Object.prototype.hasOwnProperty.call(factoryType, "new") || typeof factoryType.new == 'undefined' || factoryType.new == null) {
+            if (classType.new)
+                error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
+
+            var originalNew = typeof factoryType.new == 'function' ? factoryType.new : null; // (take user defined, else set to null)
+
+            if (!originalNew)
+                factoryType.new = classType.new = <any>__new; // ('new' is missing, so just use the default handler)
+            else
+                factoryType.new = <any>function _firstTimeNewTest() {
+                    var result = originalNew && factoryType.new(...arguments) || void 0;
                     // (did the user supply a valid 'new' function that returned an object type?)
-                    if (!result || typeof result != 'object') {
-                        // (an object is required, otherwise this is not valid and only a place holder; if so, revert to the generic 'new' implementation)
+                    if (result === void 0 || result === null) {
+                        // (an object is required, otherwise this is not valid or only a place holder; if so, revert to the generic 'new' implementation)
                         factoryType.new = classType.new = <any>__new;
                         return classType.new(...arguments);
                     }
+                    else if (typeof result != 'object')
+                        error(getFullTypeName(classType) + ".new()", "An object instance was expected, but instead a value of type '" + (typeof result) + "' was received.");
+
                     // (else the call returned a valid value, so next time, just default directly to the factory function)
-                    classType.new = factoryType.new;
+                    classType.new = <any>factoryType.new;
                     return result;
                 };
+            //x }
             //x else if (!classType.new || typeof classType.new != 'function') // (normally the default 'new' function should exist behind the scenes on the base Object type)
             //x    classType.new = () => {
             //x        throw "Invalid operation: no valid 'new()' function was found on type '" + getFullTypeName(classType, false) + "'. This exists on the DomainObject base type, and is required.";
@@ -759,7 +774,7 @@ namespace CoreXT {
             $__type: TClass
         }
 
-    export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IFactoryTypeInfo, TInterface extends object, TNamespace extends object>
+    export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IFactoryTypeInfo, TNamespace extends object>
         (namespace: TNamespace, base: IClassFactory & { $__type: TBaseClass }, getType: (base: TBaseClass) => [TClass, TFactory], exportName?: keyof TNamespace, addMemberTypeInfo = true)
         : ClassFactoryType<TClass, TFactory> {
         function _error(msg: string) {
@@ -780,13 +795,13 @@ namespace CoreXT {
 
         if (!factory) log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
 
-        return Types.__registerFactoryType(cls, factory, namespace, addMemberTypeInfo, exportName);
+        return Types.__registerFactoryType(<any>cls, <any>factory, namespace, addMemberTypeInfo, exportName);
     }
 
     /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
     export function FactoryBase<TClass extends IType<object>, TBaseFactory extends IFactoryTypeInfo, TStaticProperties extends keyof TClass>
         (type: TClass, baseFactoryType: TBaseFactory) {
-        var fb = class FactoryBase extends type {
+        return class FactoryBase extends type {
             /** The underlying type associated with this factory type. */
             static $__type = type;
             //x /** The factory type instance for the underlying type '$__type'. */
@@ -800,7 +815,7 @@ namespace CoreXT {
             protected static get super(): TBaseFactory { return this.$__baseFactoryType; }
 
             static 'new'?(...args: any[]): any;
-            static init?(o: InstanceType<TClass>, isnew: boolean, ...args: any[]): any;
+            static init?(o: InstanceType<TClass>, isnew: boolean, ...args: any[]): void;
 
             ///** 
             // * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
@@ -814,7 +829,6 @@ namespace CoreXT {
             //    return Types.__registerFactoryType(<TFactory & ITypeInfo & IFactoryTypeInfo>this, namespace, addMemberTypeInfo);
             //}
         };
-        return <typeof fb & ITypeInfo>fb;
     }
     // (call with context vs context as arg?: https://jsperf.com/call-this-vs-this-as-argument/1)
 
@@ -1002,7 +1016,7 @@ namespace CoreXT {
             }
         );
 
-        export interface ILogItem extends InstanceType<typeof LogItem> { }
+        export interface ILogItem extends InstanceType<typeof LogItem.$__type> { }
 
         // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -1418,7 +1432,7 @@ namespace CoreXT {
             }
         );
 
-        export interface IException extends InstanceType<typeof Exception> { }
+        export interface IException extends InstanceType<typeof Exception.$__type> { }
 
         // ===================================================================================================================================
     }
@@ -2153,7 +2167,7 @@ namespace CoreXT {
             }
         );
 
-        export interface IResourceRequest extends InstanceType<typeof ResourceRequest> { }
+        export interface IResourceRequest extends InstanceType<typeof ResourceRequest.$__type> { }
 
         // ====================================================================================================================
 

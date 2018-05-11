@@ -118,11 +118,11 @@ var CoreXT;
                                 function Factory() {
                                     return _super !== null && _super.apply(this, arguments) || this;
                                 }
-                                Factory.prototype['new'] = function (title, description, targetElement) {
+                                Factory['new'] = function (title, description, targetElement) {
                                     if (targetElement === void 0) { targetElement = null; }
                                     return null;
                                 };
-                                Factory.prototype.init = function (o, isnew, title, description, targetElement) {
+                                Factory.init = function (o, isnew, title, description, targetElement) {
                                     if (targetElement === void 0) { targetElement = null; }
                                     this.super.init(o, isnew, null);
                                     if (typeof title == "undefined" || "" + title == "")

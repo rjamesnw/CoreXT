@@ -34,8 +34,8 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (rootElement, url) { return null; };
-                        Factory.prototype.init = function (o, isnew, rootElement, url) {
+                        Factory['new'] = function (rootElement, url) { return null; };
+                        Factory.init = function (o, isnew, rootElement, url) {
                             this.super.init(o, isnew);
                             if (typeof rootElement !== 'object' || !rootElement.style)
                                 rootElement = null;

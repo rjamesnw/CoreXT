@@ -159,7 +159,7 @@ namespace CoreXT {
             "Object"
         );
 
-        export interface IObject extends InstanceType<typeof Object> { }
+        export interface IObject extends InstanceType<typeof Object.$__type> { }
 
         //export var Object: typeof $Object & typeof $ObjectFactoryRoot.Object_factory & IRegisteredType<typeof $Object> = AppDomain.registerClass($Object, $Object[' '].Object_factory, [CoreXT, System]);
         // (have to be explicit on the object type since there may be references within the related types [thought nothing on a static level should access the 'Object' property during initialization])
@@ -313,7 +313,7 @@ namespace CoreXT {
             "String"
         );
 
-        export interface IString extends InstanceType<typeof String> { }
+        export interface IString extends InstanceType<typeof String.$__type> { }
 
         // =======================================================================================================================
 

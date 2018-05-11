@@ -80,7 +80,7 @@ namespace CoreXT {
     }
 
     /** Type-cast CoreXT classes (functions) to this interface to access class specific type information. */
-    export interface IClassInfo<TInstance extends NativeTypes.IObject = NativeTypes.IObject> extends ITypeInfo, IType<TInstance> {
+    export interface IClassInfo<TInstance extends object = object> extends ITypeInfo, IType<TInstance> {
         /** This is a reference to the underlying class type for this factory type. */
         $__type: IType<TInstance>
 
@@ -93,13 +93,10 @@ namespace CoreXT {
 
     export interface NewDelegate<TInstance extends NativeTypes.IObject> { (...args: any[]): TInstance }
 
-    export interface InitDelegate<TInstance extends NativeTypes.IObject> { (o: TInstance, isnew: boolean, ...args: any[]): TInstance }
+    export interface InitDelegate<TInstance extends NativeTypes.IObject> { (o: TInstance, isnew: boolean, ...args: any[]): void }
 
     /** Represents the static properties on a factory type. */
     export interface IFactoryTypeInfo<TClass extends IType = IType/*, TFactory extends IFactory = IFactory*/> extends IClassInfo<InstanceType<TClass>>, IFactory<TClass> {
-        /** The underlying type for this factory type. */
-        $__type: IType<InstanceType<TClass>>;
-
         //x /** A factory instance created from this factory type which serves as a singleton for creating instances of the underlying 'TClass' type. */
         //x $__factory?: TFactory;
 

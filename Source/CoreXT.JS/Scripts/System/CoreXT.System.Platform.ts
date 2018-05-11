@@ -37,7 +37,7 @@ namespace CoreXT.System.Platform {
             class Context extends base {
                 protected _contextType: Contexts;
                 protected _url: string;
-
+                private x = 1;
                 // ----------------------------------------------------------------------------------------------------------------
 
                 protected static readonly 'ContextFactory' = function () {
@@ -47,7 +47,7 @@ namespace CoreXT.System.Platform {
 
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, context: Contexts = Contexts.Secure) {
                             this.super.init(o, isnew);
-                            o._contextType = context;
+                            o['_contextType'] = context;
                             return o;
                         }
                     };
@@ -67,7 +67,7 @@ namespace CoreXT.System.Platform {
             return [Context, Context["ContextFactory"]];
         }
     );
-    export interface IContext extends InstanceType<typeof Context> { }
+    export interface IContext extends InstanceType<typeof Context.$__type> { }
 
     // ========================================================================================================================
 
@@ -184,7 +184,7 @@ namespace CoreXT.System.Platform {
             return [UIApplication, UIApplication["UIApplicationFactory"]];
         }
     );
-    export interface IUIApplication extends InstanceType<typeof UIApplication> { }
+    export interface IUIApplication extends InstanceType<typeof UIApplication.$__type> { }
 
     // ====================================================================================================================
 }

@@ -56,8 +56,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (url) { return null; };
-                    Factory.prototype.init = function (o, isnew, url) {
+                    Factory['new'] = function (url) { return null; };
+                    Factory.init = function (o, isnew, url) {
                         this.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
                         return o;
                     };
@@ -78,8 +78,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (url) { return null; };
-                    Factory.prototype.init = function (o, isnew, url) {
+                    Factory['new'] = function (url) { return null; };
+                    Factory.init = function (o, isnew, url) {
                         this.super.init(o, isnew, url);
                         return o;
                     };
@@ -209,8 +209,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (fullname, path, minifiedPath) { return null; };
-                    Factory.prototype.init = function (o, isnew, fullname, url, minifiedURL) {
+                    Factory['new'] = function (fullname, path, minifiedPath) { return null; };
+                    Factory.init = function (o, isnew, fullname, url, minifiedURL) {
                         if (minifiedURL === void 0) { minifiedURL = null; }
                         this.super.init(o, isnew, CoreXT.System.Diagnostics.debug ? url : (minifiedURL || url));
                         if (!o.type)

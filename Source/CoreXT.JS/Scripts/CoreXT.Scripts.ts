@@ -125,7 +125,7 @@ namespace CoreXT {
             },
             "Manifest"
         );
-        export interface IManifest extends InstanceType<typeof Manifest> { }
+        export interface IManifest extends InstanceType<typeof Manifest.$__type> { }
         
         // ====================================================================================================================
 

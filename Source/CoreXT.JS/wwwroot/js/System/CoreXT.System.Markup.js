@@ -192,8 +192,8 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (html) { return null; };
-                        Factory.prototype.init = function (o, isnew, html) {
+                        Factory['new'] = function (html) { return null; };
+                        Factory.init = function (o, isnew, html) {
                             this.super.init(o, isnew);
                             o.html = html;
                             o.delimiters = html.match(HTMLReader.__splitRegEx);

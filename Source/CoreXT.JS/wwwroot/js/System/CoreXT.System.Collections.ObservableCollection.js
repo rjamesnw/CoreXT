@@ -45,14 +45,14 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function () {
+                        Factory['new'] = function () {
                             var items = [];
                             for (var _i = 0; _i < arguments.length; _i++) {
                                 items[_i] = arguments[_i];
                             }
                             return null;
                         };
-                        Factory.prototype.init = function (o, isnew) {
+                        Factory.init = function (o, isnew) {
                             var items = [];
                             for (var _i = 2; _i < arguments.length; _i++) {
                                 items[_i - 2] = arguments[_i];

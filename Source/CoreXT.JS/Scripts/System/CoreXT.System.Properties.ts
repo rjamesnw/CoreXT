@@ -162,7 +162,7 @@ namespace CoreXT.System.Platform {
             return [PropertyEventBase, PropertyEventBase["PropertyEventBaseFactory"]];
         }
     );
-    export interface IPropertyEventBase extends InstanceType<typeof PropertyEventBase> { }
+    export interface IPropertyEventBase extends InstanceType<typeof PropertyEventBase.$__type> { }
 
     // =======================================================================================================================
 
@@ -213,7 +213,7 @@ namespace CoreXT.System.Platform {
             return [StaticProperty, StaticProperty["StaticPropertyFactory"]];
         }
     );
-    export interface IStaticProperty extends InstanceType<typeof StaticProperty> { }
+    export interface IStaticProperty extends InstanceType<typeof StaticProperty.$__type> { }
 
     // =======================================================================================================================
 
@@ -337,7 +337,7 @@ namespace CoreXT.System.Platform {
             return [Property, Property["PropertyFactory"]];
         }
     );
-    export interface IProperty extends InstanceType<typeof Property> { }
+    export interface IProperty extends InstanceType<typeof Property.$__type> { }
 
     // =======================================================================================================================
 

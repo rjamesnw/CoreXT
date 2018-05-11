@@ -98,8 +98,8 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function () { return null; };
-                        Factory.prototype.init = function (o, isnew) {
+                        Factory['new'] = function () { return null; };
+                        Factory.init = function (o, isnew) {
                             this.super.init(o, isnew);
                             return o;
                         };
@@ -128,8 +128,8 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (name, isVisual) { return null; };
-                        Factory.prototype.init = function (o, isnew, name, isVisual) {
+                        Factory['new'] = function (name, isVisual) { return null; };
+                        Factory.init = function (o, isnew, name, isVisual) {
                             this.super.init(o, isnew);
                             o.name = name;
                             o.isVisual = isVisual;
@@ -200,8 +200,8 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (owner, staticProperty, value) { return null; };
-                        Factory.prototype.init = function (o, isnew, owner, staticProperty, value) {
+                        Factory['new'] = function (owner, staticProperty, value) { return null; };
+                        Factory.init = function (o, isnew, owner, staticProperty, value) {
                             this.super.init(o, isnew);
                             o.owner = owner;
                             o.staticProperty = staticProperty;

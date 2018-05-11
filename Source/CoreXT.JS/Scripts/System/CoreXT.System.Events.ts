@@ -200,7 +200,7 @@ namespace CoreXT {
                         attach(handler: IDelegate<object, TCallback>, eventMode?: EventModes): this;
                         attach(handler: TCallback | IDelegate<object, TCallback>, eventMode: EventModes = EventModes.Capture): this {
                             if (this._getHandlerIndex(<any>handler) == -1) {
-                                var delegate: THandlerInfo<TCallback> = handler instanceof Delegate ? handler : Delegate.new(this, handler);
+                                var delegate = handler instanceof Delegate ? <IDelegate<object, TCallback>>handler : Delegate.new(this, <TCallback>handler);
                                 delegate.$__eventMode = eventMode;
                                 this.__listeners.push(delegate);
                             }
@@ -518,7 +518,7 @@ namespace CoreXT {
             "EventObject"
         );
 
-        export interface IEventObject extends InstanceType<typeof EventObject> { }
+        export interface IEventObject extends InstanceType<typeof EventObject.$__type> { }
 
         // ====================================================================================================================
     }

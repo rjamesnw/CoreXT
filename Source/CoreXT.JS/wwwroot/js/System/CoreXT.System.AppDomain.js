@@ -39,7 +39,7 @@ var CoreXT;
                     var _this = _super !== null && _super.apply(this, arguments) || this;
                     _this.__typeBridges = {};
                     _this.autoTrack = false;
-                    _this.objects = new System.Collections.IndexedObjectCollection();
+                    _this.objects = System.Collections.IndexedObjectCollection.new();
                     return _this;
                 }
                 AppDomain_1 = AppDomain;
@@ -77,15 +77,15 @@ var CoreXT;
                     this.objects.addObject(object);
                     return object;
                 };
-                AppDomain.prototype.with = function (factory) {
-                    var typeInfo = factory;
+                AppDomain.prototype.with = function (type) {
+                    var typeInfo = type;
                     if (!typeInfo.$__parent || !typeInfo.$__name || !typeInfo.$__fullname)
-                        throw System.Exception.error("with()", "The specified class type has not yet been registered properly using 'Types.__registerFactoryType()'.", factory);
+                        throw System.Exception.error("with()", "The specified type has not yet been registered properly. Extend from 'CoreXT.ClassFactory()' or use utility functions in 'CoreXT.Types' when creating factory types.", type);
                     var bridge = this.__typeBridges[typeInfo.$__fullname];
                     if (!bridge) {
-                        var $appDomain = this;
-                        var bridgeConstructor = function ADBridge() { this.constructor = factory.constructor; this.$__appDomain = $appDomain; };
-                        bridgeConstructor.prototype = factory;
+                        var appDomain = this;
+                        var bridgeConstructor = function ADBridge() { this.constructor = type.constructor; this.$__appDomain = appDomain; };
+                        bridgeConstructor.prototype = type;
                         this.__typeBridges[typeInfo.$__fullname] = bridge = new bridgeConstructor();
                     }
                     return bridge;
@@ -110,8 +110,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (application) { return null; };
-                    Factory.prototype.init = function (o, isnew, application) {
+                    Factory['new'] = function (application) { return null; };
+                    Factory.init = function (o, isnew, application) {
                         this.super.init(o, isnew);
                         o.$__appDomain = o;
                         o.applications = typeof application == 'object' ? [application] : [];

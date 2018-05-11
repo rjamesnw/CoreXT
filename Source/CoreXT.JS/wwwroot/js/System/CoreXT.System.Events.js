@@ -243,13 +243,13 @@ var CoreXT;
                             function Factory() {
                                 return _super !== null && _super.apply(this, arguments) || this;
                             }
-                            Factory.prototype['new'] = function (owner, eventName, removeOnTrigger, eventTriggerHandler, canCancel) {
+                            Factory['new'] = function (owner, eventName, removeOnTrigger, eventTriggerHandler, canCancel) {
                                 if (removeOnTrigger === void 0) { removeOnTrigger = false; }
                                 if (eventTriggerHandler === void 0) { eventTriggerHandler = null; }
                                 if (canCancel === void 0) { canCancel = true; }
                                 return null;
                             };
-                            Factory.prototype.init = function (o, isnew, owner, eventName, removeOnTrigger, eventTriggerHandler, canCancel) {
+                            Factory.init = function (o, isnew, owner, eventName, removeOnTrigger, eventTriggerHandler, canCancel) {
                                 if (removeOnTrigger === void 0) { removeOnTrigger = false; }
                                 if (eventTriggerHandler === void 0) { eventTriggerHandler = null; }
                                 if (canCancel === void 0) { canCancel = true; }
@@ -305,8 +305,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function () { return null; };
-                    Factory.prototype.init = function (o, isnew) {
+                    Factory['new'] = function () { return null; };
+                    Factory.init = function (o, isnew) {
                         this.super.init(o, isnew);
                         return o;
                     };

@@ -79,7 +79,7 @@ namespace CoreXT {
                     /** A collection of all objects created via this application domain instance. Each object is given an ID value
                       * that is unique for this specific AppDomain instance only.
                       */
-                    objects: Collections.IIndexedObjectCollection<IDomainObjectInfo> = new Collections.IndexedObjectCollection<IDomainObjectInfo>();
+                    objects: Collections.IIndexedObjectCollection<IDomainObjectInfo> = Collections.IndexedObjectCollection.new<IDomainObjectInfo>();
                     // (why an object pool? http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/)
                     // Note: requires calling '{System.Object}.track()' or setting '{System.AppDomain}.autoTrack=true'.
 
@@ -257,7 +257,7 @@ namespace CoreXT {
                 return [AppDomain, AppDomain["AppDomainFactory"]];
             }
         );
-        export interface IAppDomain extends InstanceType<typeof AppDomain> { }
+        export interface IAppDomain extends InstanceType<typeof AppDomain.$__type> { }
 
         //x $AppDomain.prototype.createApplication = function createApplication<TApp extends typeof $Application>(classFactory?: IFactory<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
         //    if (!Platform.UIApplication)
@@ -318,7 +318,7 @@ namespace CoreXT {
                       * See 'System.Platform.AppDomain' for more details.
                       */
                     static get default(): IApplication { return Application._default; }
-                    private static _default: Application = System.Application.new(window.document.title, "Default Application", 0);
+                    private static _default: IApplication = System.Application.new(window.document.title, "Default Application", 0);
 
                     /** A list of all applications in the system. */
                     static applications: Application[] = [Application._default];
@@ -375,7 +375,7 @@ namespace CoreXT {
                 return [Application, Application["ApplicationFactory"]];
             }
         );
-        export interface IApplication extends InstanceType<typeof Application> { }
+        export interface IApplication extends InstanceType<typeof Application.$__type> { }
 
         // ===================================================================================================================================
     }

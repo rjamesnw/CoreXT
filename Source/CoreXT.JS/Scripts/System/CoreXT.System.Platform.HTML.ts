@@ -141,12 +141,12 @@ module CoreXT.System.Platform {
           */
         export var HTMLElement = ClassFactory(HTML, HTMLNode,
             (base) => {
-                class HTMLElement<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends base {
+                class HTMLElement<TElement extends NativeTypes.IHTMLElement = NativeTypes.IHTMLElement> extends base {
                     // ----------------------------------------------------------------------------------------------------------------
 
                     /* When extending 'GraphItem' with additional observable properties, it is considered good practice to create a
-                      * static type with a list of possible vales that can be set by end users (to promote code completion mechanisms).
-                      */
+                             * static type with a list of possible vales that can be set by end users (to promote code completion mechanisms).
+                     */
 
                     static ID: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTMLElement, "id");
                     static Name: IStaticProperty = GraphNode.registerProperty(<typeof GraphNode><any>HTMLElement, "name");
@@ -158,9 +158,9 @@ module CoreXT.System.Platform {
                     static defaultHTMLTag: string = "div";
 
                     /*
-                      * (Note: This static property registration also updates the internal '__UIProeprties' static list with UI-specific
-                      * properties (that will trigger redraw events). Derived types should update this to their own values)
-                      */
+                     * (Note: This static property registration also updates the internal '__UIProeprties' static list with UI-specific
+                             * properties (that will trigger redraw events). Derived types should update this to their own values)
+                     */
                     // ----------------------------------------------------------------------------------------------------------------
 
                     id: string;
@@ -203,10 +203,10 @@ module CoreXT.System.Platform {
 
                     // ----------------------------------------------------------------------------------------------------------------
 
-                    protected static readonly 'HTMLElementFactory' = class Factory<TElement extends InstanceType<typeof global.HTMLElement> = InstanceType<typeof global.HTMLElement>> extends FactoryBase(HTMLElement, base['HTMLNodeFactory'])<TElement> {
-                        static 'new'<TName extends keyof HTMLElementTagNameMap = '', TElement extends HTMLElementTagNameMap[TName]= HTMLElement>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): HTMLElement<TElement> { return null; }
+                    protected static readonly 'HTMLElementFactory' = class Factory<TElement extends NativeTypes.IHTMLElement = NativeTypes.IHTMLElement> extends FactoryBase(HTMLElement, base['HTMLNodeFactory'])<TElement> {
+                        static 'new'<TName extends keyof HTMLElementTagNameMap = 'div', TElement extends HTMLElementTagNameMap[TName]= HTMLDivElement>(parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string): HTMLElement<TElement> { return null; }
 
-                        static init<TName extends keyof HTMLElementTagNameMap = '', TElement extends HTMLElementTagNameMap[TName]= HTMLElement>(o: HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string) {
+                        static init<TName extends keyof HTMLElementTagNameMap = 'div', TElement extends HTMLElementTagNameMap[TName]= HTMLDivElement>(o: HTMLElement<TElement>, isnew: boolean, parent: IGraphNode, id?: string, name?: string, tagName: TName = <any>"div", html?: string) {
                             this.super.init(o, isnew, parent, id, name);
                             o.tagName = tagName;
                             o.set("innerHTML", html);
@@ -523,7 +523,7 @@ module CoreXT.System.Platform {
                         static 'new'(parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, phraseTypeFlags: PhraseTypes = 0, html: string = "") {
-                            this.super.init(o, isnew, parent, html);
+                            this.super.init<any, any>(o, isnew, parent, html);
                             o.phraseType(phraseTypeFlags);
                             var pInfo: IProperty = o.getProperty(HTMLElement.InnerHTML);
                             pInfo.registerFilter(o.createPhrase);
@@ -586,10 +586,10 @@ module CoreXT.System.Platform {
                     // ----------------------------------------------------------------------------------------------------------------
 
                     protected static readonly 'HeaderFactory' = class Factory extends FactoryBase(Header, base['HTMLElementFactory']) {
-                        'new'(parent: IGraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
+                        static 'new'(parent: IGraphNode, headerLevel: number = 1, html: string = ""): InstanceType<typeof Factory.$__type> { return null; }
 
-                        init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, headerLevel: number = 1, html: string = "") {
-                            this.super.init(o, isnew, parent, html);
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, headerLevel: number = 1, html: string = "") {
+                            this.super.init<any, any>(o, isnew, parent, html);
                             if (headerLevel < 1 || headerLevel > 6)
                                 throw Exception.from("HTML only supports header levels 1 through 6.");
                             o.setValue(Header.HeaderLevel, headerLevel);
@@ -761,7 +761,7 @@ module CoreXT.System.Platform {
             var rootElements: IGraphNode[] = [];
             var globalTemplatesReference: { [id: string]: IDataTemplate; } = {};
 
-            type TGraphNodeFactoryType = { new: typeof GraphNode.new };
+            type TGraphNodeFactoryType = { new?: typeof GraphNode.new };
 
             var processTags = (parent: IGraphNode): IDataTemplate[] => { // (returns the data templates found for the immediate children only)
                 var graphItemType: string, graphItemTypePrefix: string;

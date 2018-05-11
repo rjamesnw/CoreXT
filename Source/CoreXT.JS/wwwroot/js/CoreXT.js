@@ -307,39 +307,37 @@ var CoreXT;
             namespace[_exportName] = cls;
             classType.$__type = classType;
             classType.$__factoryType = factoryType;
-            var _factoryInstance = new factoryType();
-            factoryType.$__factory = _factoryInstance;
-            classType.$__factory = _factoryInstance;
             frozen(factoryType);
-            frozen(_factoryInstance);
-            if (!Object.prototype.hasOwnProperty.call(classType.prototype, "init"))
-                if (_factoryInstance.init && typeof _factoryInstance.init == 'function')
-                    classType.prototype.init = _factoryInstance.init;
-                else if (!classType.prototype.init || typeof classType.prototype.init != 'function')
-                    classType.prototype.init = noop;
-            if (!Object.prototype.hasOwnProperty.call(classType, "new"))
-                if (_factoryInstance.new && typeof _factoryInstance.new == 'function')
-                    classType.new = function _firstTimeNewTest() {
-                        var result = (_a = _factoryInstance.new).call.apply(_a, __spread([this], arguments));
-                        if (result && typeof result == 'object') {
-                            classType.new = _factoryInstance.new;
-                            return result;
-                        }
-                        else {
-                            _factoryInstance.new = classType.new = __new;
-                            return (_b = _factoryInstance.new).call.apply(_b, __spread([this], arguments));
-                        }
-                        var _a, _b;
-                    };
-                else if (!classType.new || typeof classType.new != 'function')
-                    classType.new = function () {
-                        throw "Invalid operation: no valid 'new' function was found on the given type '" + getTypeName(_factoryInstance, false) + "'. This exists on the DomainObject base type, and is required.";
-                    };
-            for (var p in _factoryInstance)
-                if (_factoryInstance.hasOwnProperty(p) && !classType.hasOwnProperty(p))
-                    classType[p] = _factoryInstance[p];
+            if (classType.init)
+                error(getFullTypeName(classType), "You cannot create a static 'init' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
+            var originalInit = typeof factoryType.init == 'function' ? factoryType.init : null;
+            factoryType.init = function _initProxy() {
+                this.$__initCalled = true;
+                if (originalInit) {
+                    this.init.apply(this, arguments);
+                }
+                if (this.$__baseFactoryType && !this.$__baseFactoryType.$__initCalled)
+                    error(getFullTypeName(classType) + ".init()", "You did not call 'this.super.init()' to complete the initialization chain.");
+            };
+            if (classType.new)
+                error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
+            var originalNew = typeof factoryType.new == 'function' ? factoryType.new : null;
+            if (!originalNew)
+                factoryType.new = classType.new = __new;
+            else
+                factoryType.new = function _firstTimeNewTest() {
+                    var result = originalNew && factoryType.new.apply(factoryType, __spread(arguments)) || void 0;
+                    if (result === void 0 || result === null) {
+                        factoryType.new = classType.new = __new;
+                        return classType.new.apply(classType, __spread(arguments));
+                    }
+                    else if (typeof result != 'object')
+                        error(getFullTypeName(classType) + ".new()", "An object instance was expected, but instead a value of type '" + (typeof result) + "' was received.");
+                    classType.new = factoryType.new;
+                    return result;
+                };
             __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
-            return _factoryInstance;
+            return factoryType;
         }
         Types.__registerFactoryType = __registerFactoryType;
         function __registerType(type, namespace, addMemberTypeInfo, exportName) {
@@ -474,21 +472,23 @@ var CoreXT;
     }
     CoreXT.ClassFactory = ClassFactory;
     function FactoryBase(type, baseFactoryType) {
-        var fb = (_a = (function () {
+        var fb = (_a = (function (_super) {
+                __extends(FactoryBase, _super);
                 function FactoryBase() {
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
-                Object.defineProperty(FactoryBase.prototype, "type", {
-                    get: function () { return FactoryBase.$__type; },
+                Object.defineProperty(FactoryBase, "type", {
+                    get: function () { return this.$__type; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(FactoryBase.prototype, "super", {
-                    get: function () { return baseFactoryType && baseFactoryType.$__factory || null; },
+                Object.defineProperty(FactoryBase, "super", {
+                    get: function () { return this.$__baseFactoryType; },
                     enumerable: true,
                     configurable: true
                 });
                 return FactoryBase;
-            }()),
+            }(type)),
             _a.$__type = type,
             _a.$__baseFactoryType = baseFactoryType,
             _a);
@@ -569,12 +569,12 @@ var CoreXT;
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
                         }
-                        Factory.prototype['new'] = function (parent, title, message, type, outputToConsole) {
+                        Factory['new'] = function (parent, title, message, type, outputToConsole) {
                             if (type === void 0) { type = LogTypes.Normal; }
                             if (outputToConsole === void 0) { outputToConsole = true; }
                             return null;
                         };
-                        Factory.prototype.init = function (o, isnew, parent, title, message, type, outputToConsole) {
+                        Factory.init = function (o, isnew, parent, title, message, type, outputToConsole) {
                             if (type === void 0) { type = LogTypes.Normal; }
                             if (outputToConsole === void 0) { outputToConsole = true; }
                             if (title === void 0 || title === null) {
@@ -920,8 +920,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (message, source, log) { return null; };
-                    Factory.prototype.init = function (o, isnew, message, source, log) {
+                    Factory['new'] = function (message, source, log) { return null; };
+                    Factory.init = function (o, isnew, message, source, log) {
                         if (CoreXT.Browser.ES6)
                             safeEval("var _super = function() { return null; }");
                         o.message = message;
@@ -1473,8 +1473,8 @@ var CoreXT;
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
-                    Factory.prototype['new'] = function (url, type, async) { return null; };
-                    Factory.prototype.init = function (o, isnew, url, type, async) {
+                    Factory['new'] = function (url, type, async) { return null; };
+                    Factory.init = function (o, isnew, url, type, async) {
                         if (async === void 0) { async = true; }
                         if (url === void 0 || url === null)
                             throw "A resource URL is required.";
