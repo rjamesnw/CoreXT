@@ -134,7 +134,6 @@ namespace CoreXT.System {
                             o.html = html;
                             o.delimiters = html.match(HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
                             o.nonDelimiters = (<any>o.html).split(HTMLReader.__splitRegEx, void 0, o.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
-                            return o;
                         }
                     };
 

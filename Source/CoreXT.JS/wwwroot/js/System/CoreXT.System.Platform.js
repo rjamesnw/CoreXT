@@ -45,7 +45,6 @@ var CoreXT;
                                 if (context === void 0) { context = Contexts.Secure; }
                                 this.super.init(o, isnew);
                                 o['_contextType'] = context;
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(Context, base['ObjectFactory'])));
@@ -103,7 +102,6 @@ var CoreXT;
                         Factory['new'] = function (title, appID) { return null; };
                         Factory.init = function (o, isnew, title, description, appID) {
                             this.super.init(o, isnew, title, description, appID);
-                            return o;
                         };
                         return Factory;
                     }(CoreXT.FactoryBase(UIApplication, base['ApplicationFactory'])));

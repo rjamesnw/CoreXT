@@ -40,7 +40,6 @@ namespace CoreXT.System.Platform {
                         if (rootElement != null) rootElement.style.display = "none";
                         o._target = rootElement;
                         o._url = url;
-                        return o;
                     }
                 };
 

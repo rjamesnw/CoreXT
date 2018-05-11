@@ -233,7 +233,6 @@ namespace CoreXT.System {
                         o.object = object;
                         o.func = <any>func;
                         o.update();
-                        return o;
                     }
                 };
 

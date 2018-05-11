@@ -111,7 +111,6 @@ var CoreXT;
                             o.clear();
                             for (var i = 0, n = objects.length; i < n; ++i)
                                 o.addObject(objects[i]);
-                            return o;
                         };
                         return Factory;
                     }(CoreXT.FactoryBase(IndexedObjectCollection, base['ArrayFactory'])));

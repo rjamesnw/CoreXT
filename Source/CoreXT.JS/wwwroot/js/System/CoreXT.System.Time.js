@@ -241,7 +241,6 @@ var CoreXT;
                             o.setTime(year);
                         else
                             o.setTime(TimeSpan.msFromTime(year, dayOfYear, hours, minutes, seconds, milliseconds));
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(TimeSpan, base['ObjectFactory'])));

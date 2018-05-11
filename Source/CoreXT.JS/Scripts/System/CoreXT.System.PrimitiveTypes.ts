@@ -147,8 +147,6 @@ namespace CoreXT {
                             }
 
                             //? $this.init = noop;
-
-                            return o;
                         }
                     };
 
@@ -295,14 +293,13 @@ namespace CoreXT {
                              * @param object The instance to bind to the resulting delegate object.
                              * @param func The function that will be called for the resulting delegate object.
                              */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any): InstanceType<typeof Factory.$__type> {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any) {
                             o.$__value = global.String(value);
                             //??System.String.prototype.constructor.apply(this, arguments);
                             // (IE browsers older than v9 do not populate the string object with the string characters)
                             //if (Browser.type == Browser.BrowserTypes.IE && Browser.version <= 8)
                             o.length = o.$__value.length;
                             for (var i = 0; i < o.length; ++i) o[i] = o.charAt(i);
-                            return o;
                         }
                     };
 
@@ -354,7 +351,6 @@ namespace CoreXT {
                             //if (Browser.type == Browser.BrowserTypes.IE && Browser.version <= 8)
                             o.length = o.$__value.length;
                             for (var i = 0; i < o.length; ++i) o[i] = o.charAt(i);
-                            return o;
                         }
                     };
 

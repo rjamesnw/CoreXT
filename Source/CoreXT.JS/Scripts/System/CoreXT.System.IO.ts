@@ -115,7 +115,6 @@ namespace CoreXT.System.IO {
                                             o.values[decodeURIComponent(nameValue).substring(1, eqIndex)] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
                                     }
                             }
-                            return o;
                         }
                     };
 

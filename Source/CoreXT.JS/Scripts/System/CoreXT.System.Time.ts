@@ -340,15 +340,14 @@ namespace CoreXT.System {
                     static 'new'(year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan;
                     static 'new'(year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan { return null; }
 
-                    static init(o: TimeSpan, isnew: boolean, timeInMS: number): TimeSpan;
-                    static init(o: TimeSpan, isnew: boolean, year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): TimeSpan;
+                    static init(o: TimeSpan, isnew: boolean, timeInMS: number): void;
+                    static init(o: TimeSpan, isnew: boolean, year: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number): void;
                     static init(o: TimeSpan, isnew: boolean, year?: number, dayOfYear?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number) {
                         this.super.init(o, isnew);
                         if (arguments.length <= 3)
                             o.setTime(year);
                         else
                             o.setTime(TimeSpan.msFromTime(year, dayOfYear, hours, minutes, seconds, milliseconds));
-                        return o;
                     }
                 };
 

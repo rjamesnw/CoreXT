@@ -248,7 +248,7 @@ namespace CoreXT {
         if (message !== null) message = ('' + message).trim();
         if (title === "" && message === "") return null;
 
-        if (title !== "") {
+        if (title && typeof title == 'string') {
             if (title.charAt(title.length - 1) != ":")
                 title += ":";
             var compositeMessage = title + " " + message;
@@ -486,8 +486,17 @@ namespace CoreXT {
                 instance = new (<IType<NativeTypes.IObject>>type)();
                 isNew = true;
             }
+            // ... insert [instance, isNew] without having to create a new array ...
+            for (var i = arguments.length - 1; i >= 0; --i)
+                arguments[2 + i] = arguments[i];
+            arguments[0] = instance;
+            arguments[1] = isNew;
+            arguments.length += 2;
             if (typeof this.init == 'function')
-                System.Delegate.fastCall(this.init, instance, isNew, ...arguments);
+                if (System.Delegate)
+                    System.Delegate.fastApply(this.init, this, arguments);
+                else
+                    this.init.apply(this, arguments);
             return instance;
         }
 
@@ -540,13 +549,14 @@ namespace CoreXT {
             factoryType.init = <any>function _initProxy(this: IFactoryTypeInfo) {
                 this.$__initCalled = true; // (flag that THIS init function was called on THIS factory type)
                 if (originalInit) {
-                    this.init.apply(this, arguments);
+                    originalInit.apply(this, arguments);
                     //if (!result || typeof result != 'object')
                     //    error(getFullTypeName(classType) + ".init()", "An object result was expected but received '" + result + "' instead.");
                 }
                 if (this.$__baseFactoryType && !this.$__baseFactoryType.$__initCalled)
                     error(getFullTypeName(classType) + ".init()", "You did not call 'this.super.init()' to complete the initialization chain.");
                 // TODO: Once parsing of function parameters are in place we can detect this, but for now require it)
+                factoryType.init = originalInit; // (everything is ok here, so bypass this check next time)
             };
             //x }
 
@@ -972,11 +982,11 @@ namespace CoreXT {
                         static 'new'(parent: LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): InstanceType<typeof Factory.$__type>;
                         static 'new'(parent: LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): InstanceType<typeof Factory.$__type> { return null; }
 
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): InstanceType<typeof Factory.$__type>;
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): void;
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true) {
                             if (title === void 0 || title === null) {
                                 if (isEmpty(message))
-                                    throw System.Exception.from("LogItem(): A message is required if no title is given.", o);
+                                    error("LogItem()", "A message is required if no title is given.", o);
                                 title = "";
                             }
                             else if (typeof title != 'string')
@@ -997,13 +1007,15 @@ namespace CoreXT {
                             o.type = type;
 
                             if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
-                                var time = TimeSpan.utcTimeToLocalTime(o.time), margin = "";
-                                while (parent) { parent = parent.parent; margin += "  "; }
-                                var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                    + " " + margin + o.title + ": " + o.message;
+                                if (TimeSpan) {
+                                    var time = TimeSpan.utcTimeToLocalTime(o.time), margin = "";
+                                    while (parent) { parent = parent.parent; margin += "  "; }
+                                    var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
+                                        + " " + margin + o.title + ": " + o.message;
+                                }
+                                else consoleText = Date() + " " + margin + o.title + ": " + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
-                            return o;
                         }
                     };
 
@@ -1221,7 +1233,7 @@ namespace CoreXT {
      */
     export var BaseURI = (() => { var u = siteBaseURL || location.origin; if (u.charAt(u.length - 1) != '/') u += '/'; return u; })(); // (example: "https://calendar.google.com/")
 
-    log("Base URI", BaseURI);
+    log("Base URI", BaseURI); // (requires the exception object, which is the last one to be defined above; now we start the first log entry with the base URI of the site)
 
     // ========================================================================================================================================
 
@@ -1420,7 +1432,6 @@ namespace CoreXT {
                             o.message = message;
                             o.source = source;
                             if (log || log === void 0) Diagnostics.log("Exception", message, LogTypes.Error);
-                            return o;
                         }
                     };
 
@@ -1434,6 +1445,8 @@ namespace CoreXT {
 
         // ===================================================================================================================================
     }
+
+    // At this point the core type system, exception objects, and logging are now available.
 
     // ========================================================================================================================================
 
@@ -2154,8 +2167,6 @@ namespace CoreXT {
 
                             _resourceRequests.push(o);
                             _resourceRequestByURL[o.url] = o;
-
-                            return o;
                         }
                     };
 
@@ -2241,6 +2252,10 @@ namespace CoreXT {
 
         // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     }
+
+    // ========================================================================================================================================
+
+    log("CoreXT", "Core system loaded.", LogTypes.Info);
 
     // ========================================================================================================================================
 }

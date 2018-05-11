@@ -43,7 +43,6 @@ var CoreXT;
                                 rootElement.style.display = "none";
                             o._target = rootElement;
                             o._url = url;
-                            return o;
                         };
                         return Factory;
                     }(CoreXT.FactoryBase(Window, base['ObjectFactory'])));

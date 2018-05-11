@@ -17,7 +17,6 @@ var CoreXT;
                 for (var p in o)
                     if (o.hasOwnProperty(p)) {
                         this[name] = o;
-                        return o;
                     }
                 this[name] = null;
                 return null;

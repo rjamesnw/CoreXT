@@ -57,7 +57,6 @@ var CoreXT;
                     : name += c;
             if (i == n + 2)
                 throw CoreXT.System.Exception.from("Invalid path: " + path, origin);
-            return o;
         }
         Utilities.dereferencePropertyPath = dereferencePropertyPath;
         function waitReady(obj, propertyName, callback, timeout, timeoutCallback) {

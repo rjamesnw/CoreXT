@@ -422,8 +422,6 @@ namespace CoreXT {
                                     if (!isnew) {
                                         o.__listeners.length = 0;
                                     }
-
-                                    return o;
                                 }
                             };
                         }();
@@ -492,22 +490,21 @@ namespace CoreXT {
 
                     protected static readonly 'EventObjectFactory' = class Factory extends FactoryBase(EventObject, base['ObjectFactory']) {
                         /**
-                            * Constructs a new Delegate object.
-                            * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
-                            * @param {Function} func The function to be called on the associated object.
-                            */
+                        * Constructs a new Delegate object.
+                        * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
+                        * @param {Function} func The function to be called on the associated object.
+                        */
                         static 'new'(): InstanceType<typeof Factory.$__type> { return null; }
 
                         /**
-                            * Reinitializes a disposed Delegate instance.
-                            * @param o The Delegate instance to initialize, or re-initialize.
-                            * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                            * @param object The instance to bind to the resulting delegate object.
-                            * @param func The function that will be called for the resulting delegate object.
-                            */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean): InstanceType<typeof Factory.$__type> {
+                        * Reinitializes a disposed Delegate instance.
+                        * @param o The Delegate instance to initialize, or re-initialize.
+                        * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                        * @param object The instance to bind to the resulting delegate object.
+                        * @param func The function that will be called for the resulting delegate object.
+                        */
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean): void {
                             this.super.init(o, isnew);
-                            return o;
                         }
                     };
 

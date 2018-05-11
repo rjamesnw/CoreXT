@@ -248,7 +248,6 @@ namespace CoreXT {
                             o.applications = typeof application == 'object' ? [application] : [];
                             //? if (global.Object.freeze)
                             //?    global.Object.freeze($this); // (properties cannot be modified once set)
-                            return o;
                         }
                     };
 
@@ -347,7 +346,6 @@ namespace CoreXT {
                             o._title = title;
                             o._description = description;
                             o._appID = appID;
-                            return o;
                         }
                     };
 

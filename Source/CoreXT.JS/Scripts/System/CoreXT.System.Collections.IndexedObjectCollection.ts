@@ -115,11 +115,10 @@ namespace CoreXT.System.Collections {
                     /** @param {TObject[]} objects Initial objects to add to the collection. */
                     static 'new'<TObject extends object>(...objects: TObject[]): IndexedObjectCollection<TObject> { return null; }
 
-                    static init<TObject extends object>(o: IndexedObjectCollection<TObject>, isnew: boolean, ...objects: TObject[]): IndexedObjectCollection<TObject> {
+                    static init<TObject extends object>(o: IndexedObjectCollection<TObject>, isnew: boolean, ...objects: TObject[]): void {
                         o.clear();
                         for (var i = 0, n = objects.length; i < n; ++i)
                             o.addObject(objects[i]);
-                        return o;
                     }
                 };
 

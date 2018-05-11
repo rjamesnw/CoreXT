@@ -26,7 +26,6 @@ module CoreXT.System.Platform {
 
                         static init(o: BrowserContext, isnew: boolean, context: Contexts = Contexts.Secure) {
                             this.super.init(o, isnew, context);
-                            return o;
                         }
                     };
 
@@ -116,7 +115,6 @@ module CoreXT.System.Platform {
                             this.super.init(o, isnew, parent);
                             if (id !== void 0 && id !== null) o.id = id;
                             if (name !== void 0 && name !== null) o.name = name;
-                            return o;
                         }
                     };
 
@@ -218,7 +216,6 @@ module CoreXT.System.Platform {
                                     catch (ex) { /*(setting inner HTML/text is not supported on this element [eg. <img> tags])*/ }
                                 }
                             });
-                            return o;
                         }
                     };
 
@@ -410,7 +407,6 @@ module CoreXT.System.Platform {
                             o.getProperty(PlainText.Text).registerListener((property: IProperty, initialValue: boolean): void => {
                                 (<Text>o.__element).data = property.getValue();
                             });
-                            return o;
                         }
                     };
 
@@ -449,7 +445,6 @@ module CoreXT.System.Platform {
 
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: IGraphNode, html: string = "") {
                             this.super.init(o, isnew, parent, html, void 0, 'span');
-                            return o;
                         }
                     };
 
@@ -527,7 +522,6 @@ module CoreXT.System.Platform {
                             o.phraseType(phraseTypeFlags);
                             var pInfo: IProperty = o.getProperty(HTMLElement.InnerHTML);
                             pInfo.registerFilter(o.createPhrase);
-                            return o;
                         }
                     };
 
@@ -593,7 +587,6 @@ module CoreXT.System.Platform {
                             if (headerLevel < 1 || headerLevel > 6)
                                 throw Exception.from("HTML only supports header levels 1 through 6.");
                             o.setValue(Header.HeaderLevel, headerLevel);
-                            return o;
                         }
                     };
 

@@ -267,7 +267,6 @@ var CoreXT;
                                 if (!isnew) {
                                     o.__listeners.length = 0;
                                 }
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(EventDispatcher, System.DependencyObject['ObjectFactory'])));
@@ -308,7 +307,6 @@ var CoreXT;
                     Factory['new'] = function () { return null; };
                     Factory.init = function (o, isnew) {
                         this.super.init(o, isnew);
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(EventObject, base['ObjectFactory'])));

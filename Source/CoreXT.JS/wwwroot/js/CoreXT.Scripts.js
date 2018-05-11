@@ -59,7 +59,6 @@ var CoreXT;
                     Factory['new'] = function (url) { return null; };
                     Factory.init = function (o, isnew, url) {
                         this.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(ScriptResource, base["ResourceRequestFactory"])));
@@ -81,7 +80,6 @@ var CoreXT;
                     Factory['new'] = function (url) { return null; };
                     Factory.init = function (o, isnew, url) {
                         this.super.init(o, isnew, url);
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(Scripts.ScriptResource, base["ScriptResourceFactory"])));
@@ -219,7 +217,6 @@ var CoreXT;
                         o.nonMinifiedURL = url;
                         o.minifiedURL = minifiedURL;
                         o.then(o.__onLoaded).ready(o.__onReady);
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(Module, base['ScriptResourceFactory'])));

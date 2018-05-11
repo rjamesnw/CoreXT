@@ -65,7 +65,6 @@ namespace CoreXT.System.Platform.HTML.Application {
                         o.title(title);
                         o.description(description);
                         o.targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
-                        return o;
                     }
                 };
 

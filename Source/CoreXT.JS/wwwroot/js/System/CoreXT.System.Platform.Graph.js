@@ -305,7 +305,6 @@ var CoreXT;
                                 }
                             if (parent)
                                 parent.addChild(o);
-                            return o;
                         };
                         return Factory;
                     }(CoreXT.FactoryBase(GraphNode, base['PropertyEventBaseFactory'])));

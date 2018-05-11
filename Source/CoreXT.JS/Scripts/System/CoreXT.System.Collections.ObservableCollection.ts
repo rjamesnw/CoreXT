@@ -30,9 +30,8 @@ namespace CoreXT.System.Collections {
                 protected static readonly 'ObservableCollectionFactory' = class Factory extends FactoryBase(ObservableCollection, base['ArrayFactory'])<object, any> {
                     static 'new'<TOwner extends object, T>(...items: T[]): ObservableCollection<TOwner, T> { return null; }
 
-                    static init<TOwner extends object, T>(o: ObservableCollection<TOwner, T>, isnew: boolean, ...items: T[]): ObservableCollection<TOwner, T> {
+                    static init<TOwner extends object, T>(o: ObservableCollection<TOwner, T>, isnew: boolean, ...items: T[]): void {
                         this.super.init<T>(o, isnew, ...items);
-                        return o;
                     }
                 };
 

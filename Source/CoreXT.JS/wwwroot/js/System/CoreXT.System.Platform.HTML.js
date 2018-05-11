@@ -90,7 +90,6 @@ var CoreXT;
                             Factory.init = function (o, isnew, context) {
                                 if (context === void 0) { context = Platform.Contexts.Secure; }
                                 this.super.init(o, isnew, context);
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(BrowserContext, base['ContextFactory'])));
@@ -120,7 +119,6 @@ var CoreXT;
                                     o.id = id;
                                 if (name !== void 0 && name !== null)
                                     o.name = name;
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(HTMLNode, base['GraphNodeFactory'])));
@@ -241,7 +239,6 @@ var CoreXT;
                                         catch (ex) { }
                                     }
                                 });
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(HTMLElement, base['HTMLNodeFactory'])));
@@ -283,7 +280,6 @@ var CoreXT;
                                 o.getProperty(PlainText.Text).registerListener(function (property, initialValue) {
                                     o.__element.data = property.getValue();
                                 });
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(PlainText, base['HTMLNodeFactory'])));
@@ -317,7 +313,6 @@ var CoreXT;
                             Factory.init = function (o, isnew, parent, html) {
                                 if (html === void 0) { html = ""; }
                                 this.super.init(o, isnew, parent, html, void 0, 'span');
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(HTMLText, base['HTMLElementFactory'])));
@@ -415,7 +410,6 @@ var CoreXT;
                                 o.phraseType(phraseTypeFlags);
                                 var pInfo = o.getProperty(HTML.HTMLElement.InnerHTML);
                                 pInfo.registerFilter(o.createPhrase);
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(Phrase, base['HTMLElementFactory'])));
@@ -461,7 +455,6 @@ var CoreXT;
                                 if (headerLevel < 1 || headerLevel > 6)
                                     throw System.Exception.from("HTML only supports header levels 1 through 6.");
                                 o.setValue(Header.HeaderLevel, headerLevel);
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(Header, base['HTMLElementFactory'])));

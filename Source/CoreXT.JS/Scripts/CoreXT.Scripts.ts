@@ -82,7 +82,6 @@ namespace CoreXT {
                         /** Returns a new module object only - does not load it. */
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, url: string) {
                             this.super.init(o, isnew, url, Loader.ResourceTypes.Application_Script);
-                            return o;
                         }
                     };
 
@@ -115,7 +114,6 @@ namespace CoreXT {
                         /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
                         static init(o: Manifest, isnew: boolean, url: string) {
                             this.super.init(o, isnew, url);
-                            return o;
                         }
                     }
 
@@ -311,7 +309,7 @@ namespace CoreXT {
                         static 'new'(fullname: string, path: string, minifiedPath?: string): InstanceType<typeof Factory.$__type> { return null; }
 
                         /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, fullname: string, url: string, minifiedURL: string = null): InstanceType<typeof Factory.$__type> {
+                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, fullname: string, url: string, minifiedURL: string = null) {
                             this.super.init(o, isnew, System.Diagnostics.debug ? url : (minifiedURL || url));
 
                             if (!o.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
@@ -322,8 +320,6 @@ namespace CoreXT {
                             o.minifiedURL = minifiedURL;
 
                             o.then(o.__onLoaded).ready(o.__onReady);
-
-                            return o;
                         }
                     };
 

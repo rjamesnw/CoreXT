@@ -58,7 +58,6 @@ var CoreXT;
                                 items[_i - 2] = arguments[_i];
                             }
                             (_a = this.super).init.apply(_a, __spread([o, isnew], items));
-                            return o;
                             var _a;
                         };
                         return Factory;

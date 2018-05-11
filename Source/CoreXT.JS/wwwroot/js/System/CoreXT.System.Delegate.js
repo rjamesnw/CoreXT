@@ -151,7 +151,6 @@ var CoreXT;
                         o.object = object;
                         o.func = func;
                         o.update();
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(Delegate, base['ObjectFactory'])));

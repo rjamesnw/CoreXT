@@ -187,8 +187,6 @@ namespace CoreXT.System.Platform {
 
                         if (parent)
                             parent.addChild(o);
-
-                        return o;
                     }
                 };
 

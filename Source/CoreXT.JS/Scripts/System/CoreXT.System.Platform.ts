@@ -48,7 +48,6 @@ namespace CoreXT.System.Platform {
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, context: Contexts = Contexts.Secure) {
                             this.super.init(o, isnew);
                             o['_contextType'] = context;
-                            return o;
                         }
                     };
                     factoryType['new'] = (context: Contexts = Contexts.Secure): InstanceType<typeof factoryType.$__type> => { throw Exception.from("You cannot create instances of the abstract Context class.", this); };
@@ -101,7 +100,6 @@ namespace CoreXT.System.Platform {
 
                     static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, title: string, description: string, appID: number) {
                         this.super.init(o, isnew, title, description, appID);
-                        return o;
                     }
                 };
 

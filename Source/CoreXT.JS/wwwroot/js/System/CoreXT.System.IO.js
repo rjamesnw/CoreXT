@@ -152,7 +152,6 @@ var CoreXT;
                                                 o.values[decodeURIComponent(nameValue).substring(1, eqIndex)] = decodeURIComponent(nameValue.substring(eqIndex + 1));
                                         }
                                 }
-                                return o;
                             };
                             return Factory;
                         }(CoreXT.FactoryBase(Query, null)));

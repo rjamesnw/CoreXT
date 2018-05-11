@@ -111,7 +111,6 @@ var CoreXT;
                                 o['$__value'] = value;
                             }
                         }
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(Object, null)));
@@ -215,7 +214,6 @@ var CoreXT;
                         o.length = o.$__value.length;
                         for (var i = 0; i < o.length; ++i)
                             o[i] = o.charAt(i);
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(String, null)));
@@ -256,7 +254,6 @@ var CoreXT;
                         o.length = o.$__value.length;
                         for (var i = 0; i < o.length; ++i)
                             o[i] = o.charAt(i);
-                        return o;
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(Array, null)));

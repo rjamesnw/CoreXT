@@ -153,7 +153,6 @@ namespace CoreXT.System.Platform {
 
                     static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean) {
                         this.super.init(o, isnew);
-                        return o;
                     }
                 };
 
@@ -196,7 +195,6 @@ namespace CoreXT.System.Platform {
                         this.super.init(o, isnew);
                         o.name = name;
                         o.isVisual = isVisual;
-                        return o;
                     }
                 };
 
@@ -249,7 +247,6 @@ namespace CoreXT.System.Platform {
                         o.owner = owner;
                         o.staticProperty = staticProperty;
                         o.value = value;
-                        return o;
                     }
                 }
 

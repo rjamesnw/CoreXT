@@ -72,7 +72,6 @@ namespace CoreXT.Utilities {
                 ? (name ? <any>(o = o[name], name = '') : <any>(pc == '.' || pc == '[' || pc == ']' && c == ']' ? i = n + 2 : void 0), pc = c)
                 : name += c;
         if (i == n + 2) throw System.Exception.from("Invalid path: " + path, origin);
-        return o;
     } // (performance: http://jsperf.com/ways-to-dereference-a-delimited-property-string)
 
     // -------------------------------------------------------------------------------------------------------------------

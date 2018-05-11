@@ -111,7 +111,7 @@ var CoreXT;
             message = ('' + message).trim();
         if (title === "" && message === "")
             return null;
-        if (title !== "") {
+        if (title && typeof title == 'string') {
             if (title.charAt(title.length - 1) != ":")
                 title += ":";
             var compositeMessage = title + " " + message;
@@ -282,16 +282,23 @@ var CoreXT;
             var isNew = false;
             var fullTypeName = type.$__fullname;
             var objectPool = fullTypeName && Types.__disposedObjects[fullTypeName];
-            if (!objectPool && objectPool.length)
+            if (objectPool && objectPool.length)
                 instance = objectPool.pop();
             else {
                 instance = new type();
                 isNew = true;
             }
-            if (typeof instance.init == 'function')
-                (_a = System.Delegate).fastCall.apply(_a, __spread([instance.init, instance, isNew], arguments));
+            for (var i = arguments.length - 1; i >= 0; --i)
+                arguments[2 + i] = arguments[i];
+            arguments[0] = instance;
+            arguments[1] = isNew;
+            arguments.length += 2;
+            if (typeof this.init == 'function')
+                if (System.Delegate)
+                    System.Delegate.fastApply(this.init, this, arguments);
+                else
+                    this.init.apply(this, arguments);
             return instance;
-            var _a;
         }
         Types.__new = __new;
         function __registerFactoryType(cls, factoryType, namespace, addMemberTypeInfo, exportName) {
@@ -313,10 +320,11 @@ var CoreXT;
             factoryType.init = function _initProxy() {
                 this.$__initCalled = true;
                 if (originalInit) {
-                    this.init.apply(this, arguments);
+                    originalInit.apply(this, arguments);
                 }
                 if (this.$__baseFactoryType && !this.$__baseFactoryType.$__initCalled)
                     error(getFullTypeName(classType) + ".init()", "You did not call 'this.super.init()' to complete the initialization chain.");
+                factoryType.init = originalInit;
             };
             if (classType.new)
                 error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
@@ -577,7 +585,7 @@ var CoreXT;
                             if (outputToConsole === void 0) { outputToConsole = true; }
                             if (title === void 0 || title === null) {
                                 if (isEmpty(message))
-                                    throw System.Exception.from("LogItem(): A message is required if no title is given.", o);
+                                    error("LogItem()", "A message is required if no title is given.", o);
                                 title = "";
                             }
                             else if (typeof title != 'string')
@@ -595,16 +603,19 @@ var CoreXT;
                             o.time = Date.now();
                             o.type = type;
                             if (console && outputToConsole) {
-                                var time = System.TimeSpan.utcTimeToLocalTime(o.time), margin = "";
-                                while (parent) {
-                                    parent = parent.parent;
-                                    margin += "  ";
+                                if (System.TimeSpan) {
+                                    var time = System.TimeSpan.utcTimeToLocalTime(o.time), margin = "";
+                                    while (parent) {
+                                        parent = parent.parent;
+                                        margin += "  ";
+                                    }
+                                    var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
+                                        + " " + margin + o.title + ": " + o.message;
                                 }
-                                var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                    + " " + margin + o.title + ": " + o.message;
+                                else
+                                    consoleText = Date() + " " + margin + o.title + ": " + o.message;
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
-                            return o;
                         };
                         return Factory;
                     }(FactoryBase(LogItem, null)));
@@ -926,7 +937,6 @@ var CoreXT;
                         o.source = source;
                         if (log || log === void 0)
                             System.Diagnostics.log("Exception", message, LogTypes.Error);
-                        return o;
                     };
                     return Factory;
                 }(FactoryBase(Exception, null)));
@@ -1486,7 +1496,6 @@ var CoreXT;
                         o.$__index = _resourceRequests.length;
                         _resourceRequests.push(o);
                         _resourceRequestByURL[o.url] = o;
-                        return o;
                     };
                     return Factory;
                 }(FactoryBase(ResourceRequest, null)));
@@ -1553,6 +1562,7 @@ var CoreXT;
         }
         Loader.bootstrap = bootstrap;
     })(Loader = CoreXT.Loader || (CoreXT.Loader = {}));
+    log("CoreXT", "Core system loaded.", LogTypes.Info);
 })(CoreXT || (CoreXT = {}));
 CoreXT.safeEval = function (exp, p1, p2, p3) { return eval(exp); };
 CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };

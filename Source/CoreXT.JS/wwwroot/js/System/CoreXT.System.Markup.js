@@ -198,7 +198,6 @@ var CoreXT;
                             o.html = html;
                             o.delimiters = html.match(HTMLReader.__splitRegEx);
                             o.nonDelimiters = o.html.split(HTMLReader.__splitRegEx, void 0, o.delimiters);
-                            return o;
                         };
                         return Factory;
                     }(CoreXT.FactoryBase(HTMLReader, base['ObjectFactory'])));
