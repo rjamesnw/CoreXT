@@ -283,8 +283,8 @@ namespace CoreXT {
                     execute(useGlobalScope = false): void {
                         if (this.status == Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
                             // ... first, make sure all parent modules have been executed first ...
-                            for (var i = 0, n = this._dependents.length, dep: Loader.IResourceRequest; i < n; ++i)
-                                if ((dep = this._dependents[i]).status == Loader.RequestStatuses.Ready)
+                            for (var i = 0, n = this._parentRequests.length, dep: Loader.IResourceRequest; i < n; ++i)
+                                if ((dep = this._parentRequests[i]).status == Loader.RequestStatuses.Ready)
                                     (<IModule>dep).execute();
 
                             var accessors: _IModuleAccessors;

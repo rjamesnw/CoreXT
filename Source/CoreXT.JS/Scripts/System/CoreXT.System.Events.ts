@@ -40,9 +40,9 @@ namespace CoreXT {
               * many event objects for every owning object instance. Class implementations contain linked event properties to allow creating
               * instance level event handler registration on the class only when necessary.
               */
-            export var EventDispatcher = ClassFactory(Scripts, void 0,
+            export var EventDispatcher = ClassFactory(Events, void 0,
                 (base) => {
-                    class EventDispatcher<TOwner extends object, TCallback extends EventHandler> extends DependencyObject {
+                    class EventDispatcher<TOwner extends object, TCallback extends EventHandler> extends DependentObject {
 
                         /**
                          * Registers an event with a class type - typically as a static property. 
@@ -222,7 +222,7 @@ namespace CoreXT {
                             // ... for capture phases, start at the bottom and work up; but need to build the chain first (http://stackoverflow.com/a/10654134/1236397) ...
                             // ('this.__parent' checks for event-instance-only chained events, whereas 'this.owner.parent' iterates events using the a parent-child dependency hierarchy from the owner)
 
-                            var parent: DependencyObject = this.__parent || this.owner && (<DependencyObject><any>this.owner).parent || null;
+                            var parent: DependentObject = this.__parent || this.owner && (<DependentObject><any>this.owner).parent || null;
 
                             // ... run capture/bubbling phases; first, build the event chain ...
 
@@ -388,7 +388,7 @@ namespace CoreXT {
                         protected static readonly 'EventDispatcherFactory' = function () {
                             type TInstance<TOwner extends object, TCallback extends EventHandler> = EventDispatcher<TOwner, TCallback>;
 
-                            return class Factory extends FactoryBase(EventDispatcher, DependencyObject['ObjectFactory'])<object, EventHandler> {
+                            return class Factory extends FactoryBase(EventDispatcher, DependentObject['ObjectFactory'])<object, EventHandler> {
 
                                 /** Creates an event object for a specific even type.
                                     * @param {TOwner} owner The owner which owns this event object.
@@ -429,7 +429,8 @@ namespace CoreXT {
                         // ----------------------------------------------------------------------------------------------------------------
                     }
                     return [EventDispatcher, EventDispatcher["EventDispatcherFactory"]];
-                }
+                },
+                "EventDispatcher"
             );
 
             class EventDispatcherClass<TOwner extends object, TCallback extends EventHandler> extends EventDispatcher.$__type<TOwner, TCallback> { }

@@ -36,15 +36,6 @@ namespace CoreXT {
 
         // ====================================================================================================================================
 
-        export abstract class DependencyObject extends Object.$__type {
-            get parent() { return this.__parent; }
-            protected __parent: DependencyObject; // (note: EvenDispatcher expects '__parent' chains also)
-        }
-
-        export interface IDependencyObject extends DependencyObject { }
-
-        // ====================================================================================================================================
-
         /** Application domains encapsulate applications and confine them to a root working space.  When application scripts are
              * loaded, they are isolated and run in the context of a new global scope.  This protects the main window UI, and also
              * protects the user from malicious applications that may try to hook into and read a user's key strokes to steal

@@ -185,8 +185,8 @@ var CoreXT;
                 Module.prototype.execute = function (useGlobalScope) {
                     if (useGlobalScope === void 0) { useGlobalScope = false; }
                     if (this.status == CoreXT.Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
-                        for (var i = 0, n = this._dependents.length, dep; i < n; ++i)
-                            if ((dep = this._dependents[i]).status == CoreXT.Loader.RequestStatuses.Ready)
+                        for (var i = 0, n = this._parentRequests.length, dep; i < n; ++i)
+                            if ((dep = this._parentRequests[i]).status == CoreXT.Loader.RequestStatuses.Ready)
                                 dep.execute();
                         var accessors;
                         if (useGlobalScope) {

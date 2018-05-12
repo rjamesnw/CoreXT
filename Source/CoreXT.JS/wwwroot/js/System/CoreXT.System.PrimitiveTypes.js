@@ -269,6 +269,19 @@ var CoreXT;
             }(CoreXT.global.Array));
             return [Array, Array["ArrayFactory"]];
         }, "Array");
+        var DependentObject = (function (_super) {
+            __extends(DependentObject, _super);
+            function DependentObject() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Object.defineProperty(DependentObject.prototype, "parent", {
+                get: function () { return this.__parent; },
+                enumerable: true,
+                configurable: true
+            });
+            return DependentObject;
+        }(System.Object.$__type));
+        System.DependentObject = DependentObject;
     })(System = CoreXT.System || (CoreXT.System = {}));
 })(CoreXT || (CoreXT = {}));
 //# sourceMappingURL=CoreXT.System.PrimitiveTypes.js.map

@@ -76,8 +76,12 @@ var scriptsBaseURL;
         Environments[Environments["Worker"] = 1] = "Worker";
         Environments[Environments["Server"] = 2] = "Server";
     })(Environments = CoreXT.Environments || (CoreXT.Environments = {}));
+})(CoreXT || (CoreXT = {}));
+CoreXT.safeEval = function (exp, p1, p2, p3) { return eval(exp); };
+CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
+(function (CoreXT) {
     CoreXT.ES6 = (function () { try {
-        return safeEval("(function () { return new.target; }, true)");
+        return eval("(function () { return new.target; }, true)");
     }
     catch (e) {
         return false;
@@ -97,12 +101,12 @@ var scriptsBaseURL;
                 port: "",
                 protocol: "https:"
             };
-            return Environments.Server;
+            return CoreXT.Environments.Server;
         }
         else if (typeof window == 'object' && window.document)
-            return Environments.Browser;
+            return CoreXT.Environments.Browser;
         else
-            return Environments.Worker;
+            return CoreXT.Environments.Worker;
     })();
     var LogTypes;
     (function (LogTypes) {
@@ -431,13 +435,13 @@ var scriptsBaseURL;
             if (release === void 0) { release = true; }
             var _object = object;
             if (_object !== void 0) {
-                if (_object.dispose != noop) {
-                    _object.dispose = noop;
+                if (_object.dispose != CoreXT.noop) {
+                    _object.dispose = CoreXT.noop;
                     dispose(_object, release);
                 }
                 var appDomain = _object.$__appDomain;
                 if (appDomain) {
-                    _object.dispose = noop;
+                    _object.dispose = CoreXT.noop;
                     appDomain.dispose(_object);
                 }
                 CoreXT.Utilities.erase(this, release);
@@ -790,6 +794,8 @@ var scriptsBaseURL;
             else if ('message' in errorSource) {
                 var error = errorSource;
                 var msg = error.message;
+                if (error.name)
+                    msg = "(" + error.name + ") " + msg;
                 if (error.lineno !== undefined)
                     error.lineNumber = error.lineno;
                 if (error.lineNumber !== undefined) {
@@ -926,7 +932,6 @@ var scriptsBaseURL;
                                 stackMsg += "called from ";
                             stackMsg += callerName + "(" + _args + ")\r\n\r\n";
                             caller = caller.caller != caller ? caller.caller : null;
-                            caller = caller.caller;
                         }
                         message += stackMsg;
                     }
@@ -1075,14 +1080,14 @@ var scriptsBaseURL;
         Loader.ResourceRequest = ClassFactory(Loader, void 0, function (base) {
             var ResourceRequest = (function () {
                 function ResourceRequest() {
-                    this.$__transformedData = noop;
+                    this.$__transformedData = CoreXT.noop;
                     this.responseCode = 0;
                     this.responseMessage = "";
                     this.status = RequestStatuses.Pending;
-                    this.messages = [];
+                    this.messageLog = [];
                     this._promiseChain = [];
                     this._promiseChainIndex = 0;
-                    this._dependentCompletedCount = 0;
+                    this._parentCompletedCount = 0;
                     this._paused = false;
                 }
                 Object.defineProperty(ResourceRequest.prototype, "url", {
@@ -1099,20 +1104,22 @@ var scriptsBaseURL;
                 });
                 Object.defineProperty(ResourceRequest.prototype, "transformedData", {
                     get: function () {
-                        return this.$__transformedData === noop ? this.data : this.$__transformedData;
+                        return this.$__transformedData === CoreXT.noop ? this.data : this.$__transformedData;
                     },
                     enumerable: true,
                     configurable: true
                 });
                 Object.defineProperty(ResourceRequest.prototype, "message", {
                     get: function () {
-                        return this.$__message;
+                        return this._message;
                     },
                     set: function (value) {
-                        this.$__message = value;
-                        this.messages.push(this.$__message);
-                        if (console && console.log)
-                            console.log(this.$__message);
+                        this._message = value;
+                        this.messageLog.push(this._message);
+                        if (this.status == RequestStatuses.Error)
+                            error("ResourceRequest", this._message, this, false);
+                        else
+                            log("ResourceRequest", this._message, LogTypes.Normal, this);
                     },
                     enumerable: true,
                     configurable: true
@@ -1148,11 +1155,11 @@ var scriptsBaseURL;
                     return this;
                 };
                 ResourceRequest.prototype.include = function (request) {
-                    if (!request._dependents)
-                        request._dependents = [];
+                    if (!request._parentRequests)
+                        request._parentRequests = [];
                     if (!this._dependants)
                         this._dependants = [];
-                    request._dependents.push(this);
+                    request._parentRequests.push(this);
                     this._dependants.push(request);
                     return request;
                 };
@@ -1211,9 +1218,9 @@ var scriptsBaseURL;
                 };
                 ResourceRequest.prototype._Start = function () {
                     var _this = this;
-                    if (this._dependents)
-                        for (var i = 0, n = this._dependents.length; i < n; ++i)
-                            this._dependents[i].start();
+                    if (this._parentRequests)
+                        for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                            this._parentRequests[i].start();
                     if (this.status == RequestStatuses.Pending) {
                         this.status = RequestStatuses.Loading;
                         this.message = "Loading resource '" + this.url + "' ...";
@@ -1235,9 +1242,10 @@ var scriptsBaseURL;
                                 if (xhr.status == 200 || xhr.status == 304) {
                                     _this.data = xhr.response;
                                     _this.status == RequestStatuses.Loaded;
-                                    _this.message = "Loading completed.";
-                                    if (_this.type != xhr.responseType) {
-                                        _this.setError("Resource type mismatch: expected type was '" + _this.type + "', but received '" + xhr.responseType + "'.\r\n");
+                                    _this.message = xhr.status == 304 ? "Loading completed (from browser cache)." : "Loading completed.";
+                                    var responseType = xhr.getResponseHeader('content-type');
+                                    if (_this.type && responseType && _this.type != responseType) {
+                                        _this.setError("Resource type mismatch: expected type was '" + _this.type + "', but received '" + responseType + "' (XHR type '" + xhr.responseType + "').\r\n");
                                     }
                                     else {
                                         if (typeof Storage !== void 0)
@@ -1270,7 +1278,7 @@ var scriptsBaseURL;
                                 }
                             };
                             xhr.onerror = function (ev) { _this.setError(void 0, ev); _this._doError(); };
-                            xhr.onabort = function () { _this.setError("Request aborted"); };
+                            xhr.onabort = function () { _this.setError("Request aborted."); };
                             xhr.ontimeout = function () { _this.setError("Request timed out."); };
                             xhr.onprogress = function (evt) {
                                 _this.message = "Loaded " + Math.round(evt.loaded / evt.total * 100) + "%.";
@@ -1284,7 +1292,19 @@ var scriptsBaseURL;
                     }
                     if (xhr.readyState != 0)
                         xhr.abort();
-                    xhr.open("get", this.url, this.async);
+                    var url = this.url;
+                    try {
+                        xhr.open("get", url, this.async);
+                    }
+                    catch (ex) {
+                        error("get()", "Failed to load resource from URL '" + url + "': " + (ex.message || ex), this);
+                    }
+                    try {
+                        xhr.send();
+                    }
+                    catch (ex) {
+                        error("get()", "Failed to send request to endpoint for URL '" + url + "': " + (ex.message || ex), this);
+                    }
                 };
                 ResourceRequest.prototype.pause = function () {
                     if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
@@ -1314,24 +1334,16 @@ var scriptsBaseURL;
                     }
                 };
                 ResourceRequest.prototype.setError = function (message, error) {
-                    var msg = message;
                     if (error) {
-                        if (msg)
-                            msg += " ";
-                        if (error.name)
-                            msg = "(" + error.name + ") " + msg;
-                        message += error.message || "";
-                        if (error.stack)
-                            msg += "\r\nStack: \r\n" + error.stack + "\r\n";
+                        var errMsg = getErrorMessage(error);
+                        if (errMsg) {
+                            if (message)
+                                message += "\r\n";
+                            message += errMsg;
+                        }
                     }
-                    this.message = msg;
-                    this.messages.push(this.message);
                     this.status = RequestStatuses.Error;
-                    if (console)
-                        if (console.error)
-                            console.error(msg);
-                        else if (console.log)
-                            console.log(msg);
+                    this.message = message;
                 };
                 ResourceRequest.prototype._doNext = function () {
                     var _this = this;
@@ -1352,7 +1364,7 @@ var scriptsBaseURL;
                                 var data = handlers.onLoaded.call(this, this.transformedData);
                             }
                             catch (e) {
-                                this.setError("Success handler failed:", e);
+                                this.setError("Success handler failed.", e);
                                 ++this._promiseChainIndex;
                                 this._doError();
                                 return;
@@ -1373,7 +1385,7 @@ var scriptsBaseURL;
                                     }
                                     else {
                                         newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
-                                            .catch(function (sender) { _this.setError("Resource returned from next handler has failed to load:", sender); _this._doError(); });
+                                            .catch(function (sender) { _this.setError("Resource returned from next handler has failed to load.", sender); _this._doError(); });
                                         return;
                                     }
                                 }
@@ -1385,7 +1397,7 @@ var scriptsBaseURL;
                                 handlers.onFinally.call(this);
                             }
                             catch (e) {
-                                this.setError("Cleanup handler failed:", e);
+                                this.setError("Cleanup handler failed.", e);
                                 ++this._promiseChainIndex;
                                 this._doError();
                             }
@@ -1403,16 +1415,16 @@ var scriptsBaseURL;
                     if (this.status < RequestStatuses.Waiting)
                         return;
                     if (this.status == RequestStatuses.Waiting)
-                        if (!this._dependents || !this._dependents.length) {
+                        if (!this._parentRequests || !this._parentRequests.length) {
                             this.status = RequestStatuses.Ready;
                             this.message = "Resource '" + this.url + "' has no dependencies, and is now ready.";
                         }
-                        else if (this._dependentCompletedCount == this._dependents.length) {
+                        else if (this._parentCompletedCount == this._parentRequests.length) {
                             this.status = RequestStatuses.Ready;
                             this.message = "All dependencies for resource '" + this.url + "' have loaded, and are now ready.";
                         }
                         else {
-                            this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._dependentCompletedCount + "/" + this._dependents.length + " ready so far)...";
+                            this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
                             return;
                         }
                     if (this.status == RequestStatuses.Ready) {
@@ -1423,13 +1435,14 @@ var scriptsBaseURL;
                                     return;
                             }
                             catch (e) {
-                                this.setError("Error in ready handler:", e);
+                                this.setError("Error in ready handler.", e);
                             }
                         }
-                        for (var i = 0, n = this._dependants.length; i < n; ++i) {
-                            ++this._dependants[i]._dependentCompletedCount;
-                            this._dependants[i]._doReady();
-                        }
+                        if (this._dependants)
+                            for (var i = 0, n = this._dependants.length; i < n; ++i) {
+                                ++this._dependants[i]._parentCompletedCount;
+                                this._dependants[i]._doReady();
+                            }
                     }
                 };
                 ResourceRequest.prototype._doError = function () {
@@ -1449,7 +1462,7 @@ var scriptsBaseURL;
                                 var newData = handlers.onError.call(this, this, this.message);
                             }
                             catch (e) {
-                                this.setError("Error handler failed:", e);
+                                this.setError("Error handler failed.", e);
                             }
                             if (typeof newData === 'object' && newData instanceof ResourceRequest) {
                                 if (newData.status == RequestStatuses.Error)
@@ -1460,13 +1473,13 @@ var scriptsBaseURL;
                                         newData = newResReq.transformedData;
                                     else {
                                         newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
-                                            .catch(function (sender) { _this.setError("Resource returned from error handler has failed to load:", sender); _this._doError(); });
+                                            .catch(function (sender) { _this.setError("Resource returned from error handler has failed to load.", sender); _this._doError(); });
                                         return;
                                     }
                                 }
                             }
                             this.status = RequestStatuses.Loaded;
-                            this.$__message = void 0;
+                            this._message = void 0;
                             ++this._promiseChainIndex;
                             this.$__transformedData = newData;
                             this._doNext();
@@ -1477,12 +1490,12 @@ var scriptsBaseURL;
                                 handlers.onFinally.call(this);
                             }
                             catch (e) {
-                                this.setError("Cleanup handler failed:", e);
+                                this.setError("Cleanup handler failed.", e);
                             }
                         }
                     }
                     if (this.status == RequestStatuses.Error) {
-                        var msgs = this.messages.join("\r\n· ");
+                        var msgs = this.messageLog.join("\r\n· ");
                         if (msgs)
                             msgs = ":\r\n· " + msgs;
                         else
@@ -1497,11 +1510,11 @@ var scriptsBaseURL;
                         this.status = RequestStatuses.Pending;
                         this.responseCode = 0;
                         this.responseMessage = "";
-                        this.$__message = "";
-                        this.messages = [];
+                        this._message = "";
+                        this.messageLog = [];
                         if (includeDependentResources)
-                            for (var i = 0, n = this._dependents.length; i < n; ++i)
-                                this._dependents[i].reload(includeDependentResources);
+                            for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                                this._parentRequests[i].reload(includeDependentResources);
                         if (this._onProgress)
                             this._onProgress.length = 0;
                         if (this._onReady)
@@ -1560,12 +1573,12 @@ var scriptsBaseURL;
         Loader.get = get;
         function _SystemScript_onReady_Handler(request) {
             try {
-                safeEval(request.transformedData);
+                CoreXT.globalEval(request.transformedData);
                 request.status = RequestStatuses.Executed;
                 request.message = "The script has been executed.";
             }
             catch (e) {
-                request.setError("There was an error executing script '" + request.url + "':", e);
+                request.setError("There was an error executing script '" + request.url + "'.", e);
             }
         }
         Loader._SystemScript_onReady_Handler = _SystemScript_onReady_Handler;
@@ -1573,17 +1586,17 @@ var scriptsBaseURL;
             var onReady = _SystemScript_onReady_Handler;
             get("~/CoreXT.Utilities.js").ready(onReady)
                 .include(get("~/CoreXT.Globals.js")).ready(onReady)
-                .include(get("~/CoreXT.Browser.js")).ready(onReady)
-                .include(get("~/CoreXT.Scripts.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
+                .include(get("~/CoreXT.Browser.js")).ready(onReady)
+                .include(get("~/CoreXT.Scripts.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .ready(function () {
                 CoreXT.Scripts.getManifest()
                     .include(CoreXT.Scripts.getManifest("~/app.manifest"))
@@ -1594,14 +1607,12 @@ var scriptsBaseURL;
                     .start();
             })
                 .start();
-            CoreXT.Loader.bootstrap = noop();
+            CoreXT.Loader.bootstrap = CoreXT.noop();
         }
         Loader.bootstrap = bootstrap;
     })(Loader = CoreXT.Loader || (CoreXT.Loader = {}));
     log("CoreXT", "Core system loaded.", LogTypes.Info);
 })(CoreXT || (CoreXT = {}));
-CoreXT.safeEval = function (exp, p1, p2, p3) { return eval(exp); };
-CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
 var corext = CoreXT;
 if (typeof $X === void 0)
     var $X = CoreXT;

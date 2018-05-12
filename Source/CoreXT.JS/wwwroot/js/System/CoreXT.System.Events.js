@@ -24,7 +24,7 @@ var CoreXT;
                 EventModes[EventModes["CaptureAndBubble"] = 2] = "CaptureAndBubble";
             })(EventModes = Events.EventModes || (Events.EventModes = {}));
             ;
-            Events.EventDispatcher = CoreXT.ClassFactory(CoreXT.Scripts, void 0, function (base) {
+            Events.EventDispatcher = CoreXT.ClassFactory(Events, void 0, function (base) {
                 var EventDispatcher = (function (_super) {
                     __extends(EventDispatcher, _super);
                     function EventDispatcher() {
@@ -269,12 +269,12 @@ var CoreXT;
                                 }
                             };
                             return Factory;
-                        }(CoreXT.FactoryBase(EventDispatcher, System.DependencyObject['ObjectFactory'])));
+                        }(CoreXT.FactoryBase(EventDispatcher, System.DependentObject['ObjectFactory'])));
                     }();
                     return EventDispatcher;
-                }(System.DependencyObject));
+                }(System.DependentObject));
                 return [EventDispatcher, EventDispatcher["EventDispatcherFactory"]];
-            });
+            }, "EventDispatcher");
             var EventDispatcherClass = (function (_super) {
                 __extends(EventDispatcherClass, _super);
                 function EventDispatcherClass() {

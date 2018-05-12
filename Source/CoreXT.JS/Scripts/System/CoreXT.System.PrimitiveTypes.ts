@@ -395,6 +395,16 @@ namespace CoreXT {
         //    Object.freeze($String);
         //}
 
+        // ====================================================================================================================================
+
+        /** Represents an object that can have a parent object. */
+        export abstract class DependentObject extends Object.$__type {
+            get parent() { return this.__parent; }
+            protected __parent: DependentObject; // (note: EvenDispatcher expects '__parent' chains also)
+        }
+
+        export interface IDependencyObject extends DependentObject { }
+
         // =======================================================================================================================
     }
 }

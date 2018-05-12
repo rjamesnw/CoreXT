@@ -19,19 +19,6 @@ var CoreXT;
     var System;
     (function (System) {
         CoreXT.registerNamespace("CoreXT", "System");
-        var DependencyObject = (function (_super) {
-            __extends(DependencyObject, _super);
-            function DependencyObject() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            Object.defineProperty(DependencyObject.prototype, "parent", {
-                get: function () { return this.__parent; },
-                enumerable: true,
-                configurable: true
-            });
-            return DependencyObject;
-        }(System.Object.$__type));
-        System.DependencyObject = DependencyObject;
         System.AppDomain = CoreXT.ClassFactory(System, System.Object, function (base) {
             var AppDomain = (function (_super) {
                 __extends(AppDomain, _super);

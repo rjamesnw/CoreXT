@@ -17,6 +17,9 @@
  * Note: Reason for factory object construction (new/init) patterns in CoreXT: http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/
  */
 
+/**
+ * The root namespace for the CoreXT system.
+ */
 namespace CoreXT {
     export var version = "0.0.1";
     if (typeof navigator != 'undefined' && typeof console != 'undefined')
@@ -82,10 +85,8 @@ var siteBaseURL: string;
 var scriptsBaseURL: string;
 
 // ===========================================================================================================================
+// Setup some preliminary settings before the core scope, including the "safe" and "global" 'eval()' functions.
 
-/**
- * The root namespace for the CoreXT system.
- */
 namespace CoreXT {
 
     // =======================================================================================================================
@@ -176,12 +177,12 @@ namespace CoreXT {
     export function noop(...args: any[]): any { }
 
     /** Evaluates a string within a Function scope at the GLOBAL level. This is more secure for executing scripts without exposing
-      * private/protected variables wrapped in closures.
+      * private/protected variables wrapped in closures. Use this to keep 'var' declarations, etc., within a function scope.
       */
     export declare function safeEval(x: string, ...args: any[]): any;
 
     /** Evaluates a string directly at the GLOBAL level. This is more secure for executing scripts without exposing
-      * private/protected variables wrapped in closures.
+      * private/protected variables wrapped in closures. Use this to allow 'var' declarations, etc., on the global scope.
       */
     export declare function globalEval(x: string, ...args: any[]): any;
 
@@ -193,9 +194,18 @@ namespace CoreXT {
         /** Represents the CoreXT server environment. */
         Server
     }
+}
 
+CoreXT.safeEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return eval(exp); };
+// (note: this allows executing 'eval' outside the private CoreXT scope, but still within a function scope to prevent polluting the global scope,
+//  and also allows passing arguments scoped only to the request).
+
+CoreXT.globalEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return (<any>0, eval)(exp); };
+// (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
+
+namespace CoreXT { // (the core scope)
     /** Set to true if ES2015 (aka ES6) is supported ('class', 'new.target', etc.). */
-    export var ES6 = (function (): boolean { try { return safeEval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
+    export var ES6: boolean = (() => { try { return <boolean>eval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
 
     /** This is set to the detected running environment that scripts are executing in. Applications and certain modules all run in
       * protected web worker environments (dedicated threads), where there is no DOM. In these cases, this property will be set to
@@ -1221,6 +1231,7 @@ namespace CoreXT {
             } else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
                 var error: _IError = errorSource;
                 var msg = error.message;
+                if (error.name) msg = "(" + error.name + ") " + msg;
                 if (error.lineno !== undefined)
                     error.lineNumber = error.lineno;
                 if (error.lineNumber !== undefined) {
@@ -1407,7 +1418,6 @@ namespace CoreXT {
                                 if (stackMsg) stackMsg += "called from ";
                                 stackMsg += callerName + "(" + _args + ")\r\n\r\n";
                                 caller = caller.caller != caller ? caller.caller : null; // (make sure not to fall into an infinite loop)
-                                caller = caller.caller;
                             }
                             message += stackMsg;
                         }
@@ -1630,7 +1640,7 @@ namespace CoreXT {
          * Creates a new resource request object, which allows loaded resources using a "promise" style pattern (this is a custom
          * implementation designed to work better with the CoreXT system specifically, and to support parallel loading).
          * Note: It is advised to use 'CoreXT.Loader.loadResource()' to load resources instead of directly creating resource request objects.
-         * Inheritance note: When creating via the 'new' operator, any already existing instance with the same URL will be returned,
+         * Inheritance note: When creating via the 'new' factory method, any already existing instance with the same URL will be returned,
          * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
          */
         export var ResourceRequest = ClassFactory(Loader, void 0,
@@ -1678,20 +1688,25 @@ namespace CoreXT {
                     /** The current request status. */
                     status: RequestStatuses = RequestStatuses.Pending;
 
-                    /** A progress/error message related to the status (may not be the same as the response message). */
+                    /** 
+                     * A progress/error message related to the status (may not be the same as the response message).
+                     * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
+                     */
                     get message(): string { // (for errors, aborts, timeouts, etc.)
-                        return this.$__message;
+                        return this._message;
                     }
                     set message(value: string) {
-                        this.$__message = value;
-                        this.messages.push(this.$__message);
-                        if (console && console.log)
-                            console.log(this.$__message);
+                        this._message = value;
+                        this.messageLog.push(this._message);
+                        if (this.status == RequestStatuses.Error)
+                            error("ResourceRequest", this._message, this, false); // (send resource loading error messages to the console to aid debugging)
+                        else
+                            log("ResourceRequest", this._message, LogTypes.Normal, this);
                     }
-                    private $__message: string;
+                    private _message: string;
 
                     /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
-                    messages: string[] = [];
+                    messageLog: string[] = [];
 
                     /** If true (default), them this request is non-blocking, otherwise the calling script will be blocked until the request
                       * completes loading.  Please note that no progress callbacks can occur during blocked operations (since the thread is
@@ -1713,8 +1728,13 @@ namespace CoreXT {
                     }[] = [];
                     private _promiseChainIndex: number = 0; // (the current position in the event chain)
 
-                    _dependents: ResourceRequest[]; // (parent resources dependant upon)
-                    private _dependentCompletedCount = 0; // (when this equals the # of 'dependents', the all parent resources have loaded [just faster than iterating over them])
+                    /** 
+                     * A list of parent requests that this request is depending upon.
+                     * When 'start()' is called, all parents are triggered to load first, working downwards.
+                     * Regardless of order, loading is in parallel asynchronously; however, the 'onReady' event will fire in the expected order.
+                     * */
+                    _parentRequests: ResourceRequest[];
+                    private _parentCompletedCount = 0; // (when this equals the # of 'dependents', the all parent resources have loaded [just faster than iterating over them])
                     _dependants: ResourceRequest[]; // (dependant child resources)
 
                     private _paused = false;
@@ -1754,11 +1774,11 @@ namespace CoreXT {
                       * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
                       */
                     include(request: IResourceRequest) {
-                        if (!request._dependents)
-                            request._dependents = [];
+                        if (!request._parentRequests)
+                            request._parentRequests = [];
                         if (!this._dependants)
                             this._dependants = [];
-                        request._dependents.push(this);
+                        request._parentRequests.push(this);
                         this._dependants.push(request);
                         return request;
                     }
@@ -1827,13 +1847,12 @@ namespace CoreXT {
 
                     private _Start() {
                         // ... start at the top most parent first, and work down ...
-                        if (this._dependents)
-                            for (var i = 0, n = this._dependents.length; i < n; ++i)
-                                this._dependents[i].start();
+                        if (this._parentRequests)
+                            for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                                this._parentRequests[i].start();
 
                         if (this.status == RequestStatuses.Pending) {
                             this.status = RequestStatuses.Loading; // (do this first to protect against any possible cyclical calls)
-
                             this.message = "Loading resource '" + this.url + "' ...";
 
                             // ... this request has not been started yet; attempt to load the resource ...
@@ -1870,12 +1889,12 @@ namespace CoreXT {
                                     if (xhr.status == 200 || xhr.status == 304) {
                                         this.data = xhr.response;
                                         this.status == RequestStatuses.Loaded;
-                                        this.message = "Loading completed.";
+                                        this.message = xhr.status == 304 ? "Loading completed (from browser cache)." : "Loading completed.";
 
                                         // ... check if the expected mime type matches, otherwise throw an error to be safe ...
-
-                                        if (<string><any>this.type != xhr.responseType) {
-                                            this.setError("Resource type mismatch: expected type was '" + this.type + "', but received '" + xhr.responseType + "'.\r\n");
+                                        var responseType = xhr.getResponseHeader('content-type');
+                                        if (this.type && responseType && <string><any>this.type != responseType) {
+                                            this.setError("Resource type mismatch: expected type was '" + this.type + "', but received '" + responseType + "' (XHR type '" + xhr.responseType + "').\r\n");
                                         }
                                         else {
                                             if (typeof Storage !== void 0)
@@ -1908,7 +1927,7 @@ namespace CoreXT {
                                 };
 
                                 xhr.onerror = (ev: ErrorEvent) => { this.setError(void 0, ev); this._doError(); };
-                                xhr.onabort = () => { this.setError("Request aborted"); };
+                                xhr.onabort = () => { this.setError("Request aborted."); };
                                 xhr.ontimeout = () => { this.setError("Request timed out."); };
                                 xhr.onprogress = (evt: ProgressEvent) => {
                                     this.message = "Loaded " + Math.round(evt.loaded / evt.total * 100) + "%.";
@@ -1925,9 +1944,23 @@ namespace CoreXT {
                         }
 
                         if (xhr.readyState != 0)
-                            xhr.abort(); // (just in case)
+                            xhr.abort(); // (abort existing, just in case)
 
-                        xhr.open("get", this.url, this.async);
+                        var url = this.url;
+
+                        try {
+                            xhr.open("get", url, this.async);
+                        }
+                        catch (ex) {
+                            error("get()", "Failed to load resource from URL '" + url + "': " + ((<Error>ex).message || ex), this);
+                        }
+
+                        try {
+                            xhr.send();
+                        }
+                        catch (ex) {
+                            error("get()", "Failed to send request to endpoint for URL '" + url + "': " + ((<Error>ex).message || ex), this);
+                        }
 
                         //?if (!this.async && (xhr.status)) doSuccess();
                     }
@@ -1968,27 +2001,17 @@ namespace CoreXT {
                     }
 
                     setError(message: string, error?: { name?: string; message: string; stack?: string }): void { // TODO: Make this better, perhaps with a class to handle error objects (see 'Error' AND 'ErrorEvent'). //?
-                        var msg = message;
 
                         if (error) {
-                            if (msg) msg += " ";
-                            if (error.name)
-                                msg = "(" + error.name + ") " + msg;
-                            message += error.message || "";
-                            if (error.stack) msg += "\r\nStack: \r\n" + error.stack + "\r\n";
+                            var errMsg = getErrorMessage(error);
+                            if (errMsg) {
+                                if (message) message += "\r\n";
+                                message += errMsg;
+                            }
                         }
 
-                        this.message = msg;
-                        this.messages.push(this.message);
                         this.status = RequestStatuses.Error;
-
-                        // ... send resource loading error messages to the console to aid debugging ...
-
-                        if (console)
-                            if (console.error)
-                                console.error(msg);
-                            else if (console.log)
-                                console.log(msg);
+                        this.message = message; // (automatically adds to 'this.messages' and writes to the console)
                     }
 
                     private _doNext(): void { // (note: because this is a pseudo promise-like implementation on a single object instance, return values from handlers are not wrapped in new request instances [partially against specifications: http://goo.gl/igCsnS])
@@ -2011,7 +2034,7 @@ namespace CoreXT {
                                 try {
                                     var data = handlers.onLoaded.call(this, this.transformedData); // (call the handler with the current data and get the resulting data, if any)
                                 } catch (e) {
-                                    this.setError("Success handler failed:", e);
+                                    this.setError("Success handler failed.", e);
                                     ++this._promiseChainIndex; // (the success callback failed, so trigger the error chain starting at next index)
                                     this._doError();
                                     return;
@@ -2031,7 +2054,7 @@ namespace CoreXT {
                                             data = newResReq.transformedData; // (the data is ready, so read now)
                                         } else { // (loading is started, or still in progress, so wait; we simply hook into the request object to get notified when the data is ready)
                                             newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
-                                                .catch((sender) => { this.setError("Resource returned from next handler has failed to load:", sender); this._doError(); });
+                                                .catch((sender) => { this.setError("Resource returned from next handler has failed to load.", sender); this._doError(); });
                                             return;
                                         }
                                     }
@@ -2041,7 +2064,7 @@ namespace CoreXT {
                                 try {
                                     handlers.onFinally.call(this);
                                 } catch (e) {
-                                    this.setError("Cleanup handler failed:", e);
+                                    this.setError("Cleanup handler failed.", e);
                                     ++this._promiseChainIndex; // (the finally callback failed, so trigger the error chain starting at next index)
                                     this._doError();
                                 }
@@ -2066,15 +2089,15 @@ namespace CoreXT {
                         // ... check parent dependencies first ...
 
                         if (this.status == RequestStatuses.Waiting)
-                            if (!this._dependents || !this._dependents.length) {
+                            if (!this._parentRequests || !this._parentRequests.length) {
                                 this.status = RequestStatuses.Ready; // (no parent resource dependencies, so this resource is 'ready' by default)
                                 this.message = "Resource '" + this.url + "' has no dependencies, and is now ready.";
                             } else // ...need to determine if all parent (dependent) resources are completed first ...
-                                if (this._dependentCompletedCount == this._dependents.length) {
+                                if (this._parentCompletedCount == this._parentRequests.length) {
                                     this.status = RequestStatuses.Ready; // (all parent resource dependencies are now 'ready')
                                     this.message = "All dependencies for resource '" + this.url + "' have loaded, and are now ready.";
                                 } else {
-                                    this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._dependentCompletedCount + "/" + this._dependents.length + " ready so far)...";
+                                    this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
                                     return; // (nothing more to do yet)
                                 }
 
@@ -2086,14 +2109,15 @@ namespace CoreXT {
                                     this._onReady.shift().call(this, this);
                                     if (this._paused) return;
                                 } catch (e) {
-                                    this.setError("Error in ready handler:", e);
+                                    this.setError("Error in ready handler.", e);
                                 }
                             }
 
-                            for (var i = 0, n = this._dependants.length; i < n; ++i) {
-                                ++this._dependants[i]._dependentCompletedCount;
-                                this._dependants[i]._doReady(); // (notify all children that this resource is now 'ready' for use [all events have been run, as opposed to just being loaded])
-                            }
+                            if (this._dependants)
+                                for (var i = 0, n = this._dependants.length; i < n; ++i) {
+                                    ++this._dependants[i]._parentCompletedCount;
+                                    this._dependants[i]._doReady(); // (notify all children that this resource is now 'ready' for use [all events have been run, as opposed to just being loaded])
+                                }
                         }
                     }
 
@@ -2114,7 +2138,7 @@ namespace CoreXT {
                                 try {
                                     var newData = handlers.onError.call(this, this, this.message); // (this handler should "fix" the situation and return valid data)
                                 } catch (e) {
-                                    this.setError("Error handler failed:", e);
+                                    this.setError("Error handler failed.", e);
                                 }
                                 if (typeof newData === 'object' && newData instanceof ResourceRequest) {
                                     // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
@@ -2126,14 +2150,14 @@ namespace CoreXT {
                                             newData = newResReq.transformedData;
                                         else { // (loading is started, or still in progress, so wait)
                                             newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
-                                                .catch((sender) => { this.setError("Resource returned from error handler has failed to load:", sender); this._doError(); });
+                                                .catch((sender) => { this.setError("Resource returned from error handler has failed to load.", sender); this._doError(); });
                                             return;
                                         }
                                     }
                                 }
                                 // ... continue with the value from the error handler (even if none) ...
                                 this.status = RequestStatuses.Loaded;
-                                this.$__message = void 0; // (clear the current message [but keep history])
+                                this._message = void 0; // (clear the current message [but keep history])
                                 ++this._promiseChainIndex; // (pass on to next handler in the chain)
                                 this.$__transformedData = newData;
                                 this._doNext();
@@ -2142,7 +2166,7 @@ namespace CoreXT {
                                 try {
                                     handlers.onFinally.call(this);
                                 } catch (e) {
-                                    this.setError("Cleanup handler failed:", e);
+                                    this.setError("Cleanup handler failed.", e);
                                 }
                             }
                         }
@@ -2150,7 +2174,7 @@ namespace CoreXT {
                         // ... if this is reached, then there are no following error handlers, so throw the existing message ...
 
                         if (this.status == RequestStatuses.Error) {
-                            var msgs = this.messages.join("\r\n· ");
+                            var msgs = this.messageLog.join("\r\n· ");
                             if (msgs) msgs = ":\r\n· " + msgs; else msgs = ".";
                             throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
                         }
@@ -2166,12 +2190,12 @@ namespace CoreXT {
                             this.status = RequestStatuses.Pending;
                             this.responseCode = 0;
                             this.responseMessage = "";
-                            this.$__message = "";
-                            this.messages = [];
+                            this._message = "";
+                            this.messageLog = [];
 
                             if (includeDependentResources)
-                                for (var i = 0, n = this._dependents.length; i < n; ++i)
-                                    this._dependents[i].reload(includeDependentResources);
+                                for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                                    this._parentRequests[i].reload(includeDependentResources);
 
                             if (this._onProgress)
                                 this._onProgress.length = 0;
@@ -2249,11 +2273,12 @@ namespace CoreXT {
           */
         export function _SystemScript_onReady_Handler(request: IResourceRequest) {
             try {
-                safeEval(request.transformedData); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
+                globalEval(request.transformedData); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
+                // (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
                 request.status = RequestStatuses.Executed;
                 request.message = "The script has been executed.";
             } catch (e) {
-                request.setError("There was an error executing script '" + request.url + "':", e);
+                request.setError("There was an error executing script '" + request.url + "'.", e);
             }
         }
 
@@ -2265,18 +2290,18 @@ namespace CoreXT {
             // ... load the base scripts first (all of these are not modules, so they have to be loaded in the correct order) ...
             get("~/CoreXT.Utilities.js").ready(onReady) // (a lot of items depend on time [such as some utilities and logging] so this needs to be loaded first)
                 .include(get("~/CoreXT.Globals.js")).ready(onReady)
+                .include(get("~/System/CoreXT.System.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .include(get("~/CoreXT.Browser.js")).ready(onReady) // (in case some polyfills are needed after this point)
                 .include(get("~/CoreXT.Scripts.js").ready(onReady))
                 // ... load the rest of the core system next ...
-                .include(get("~/System/CoreXT.System.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .ready(() => {
                     // ... all core system scripts loaded, load the default manifests next ...
                     Scripts.getManifest() // (load the default manifest in the current path [defaults to 'manifest.js'])
@@ -2301,13 +2326,6 @@ namespace CoreXT {
 
     // ========================================================================================================================================
 }
-
-CoreXT.safeEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return eval(exp); };
-// (note: this allows executing 'eval' outside the private CoreXT scope, but still within a function scope to prevent polluting the global scope,
-//  and also allows passing arguments scoped only to the request).
-
-CoreXT.globalEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return (<any>0, eval)(exp); };
-// (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
 
 // ========================================================================================================================================
 
