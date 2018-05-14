@@ -1,4 +1,4 @@
-namespace CoreXT.Scripts.Modules {
+﻿namespace CoreXT.Scripts.Modules {
 
     // ... define the components made available by this manifest ...
 

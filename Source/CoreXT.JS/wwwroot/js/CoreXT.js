@@ -331,7 +331,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
             var _exportName = exportName || getTypeName(cls);
             if (_exportName.charAt(0) == '$')
                 _exportName = _exportName.substr(1);
-            namespace[_exportName] = cls;
+            namespace[_exportName] = factoryType;
             classType.$__type = classType;
             classType.$__factoryType = factoryType;
             if (classType.init)
@@ -361,7 +361,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                     factoryType.new = originalNew;
                     return result;
                 };
-            __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
+            __registerType(cls, namespace, addMemberTypeInfo, exportName);
             return factoryType;
         }
         Types.__registerFactoryType = __registerFactoryType;
@@ -636,7 +636,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                                         + " " + margin + _title + o.message;
                                 }
                                 else
-                                    consoleText = Date() + " " + margin + _title + o.message;
+                                    consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message;
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
                         };
@@ -1224,7 +1224,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                     if (this.status == RequestStatuses.Pending) {
                         this.status = RequestStatuses.Loading;
                         this.message = "Loading resource '" + this.url + "' ...";
-                        if (typeof Storage !== void 0)
+                        if (System.Diagnostics && !System.Diagnostics.isDebugging() && typeof Storage !== void 0)
                             try {
                                 this.data = localStorage.getItem("resource:" + this.url);
                                 if (this.data !== null && this.data !== void 0) {
@@ -1588,11 +1588,13 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                 .include(get("~/CoreXT.Globals.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .include(get("~/CoreXT.Browser.js")).ready(onReady)
                 .include(get("~/CoreXT.Scripts.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))

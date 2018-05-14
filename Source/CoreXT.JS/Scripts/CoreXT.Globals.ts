@@ -1,4 +1,4 @@
-// ###########################################################################################################################
+﻿// ###########################################################################################################################
 // These are functions for creating global scope variables/references that eliminate/minimize collisions between conflicting scripts.
 // Normally, each manifest and module gets its own local-global scope; however, in some cases, 3rd-party libraries do not 
 // expect or support dot-delimited object paths, so unfortunately a root global callback reference may be required in such cases.

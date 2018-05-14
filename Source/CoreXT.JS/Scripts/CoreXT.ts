@@ -560,7 +560,7 @@ namespace CoreXT { // (the core scope)
 
             var _exportName = exportName || getTypeName(cls);
             if (_exportName.charAt(0) == '$') _exportName = _exportName.substr(1); // TODO: May not need to do this anymore.
-            namespace[_exportName] = cls; // (usually the name will be set upon return from this function, but the type registration system will need it NOW, so just set it)
+            namespace[_exportName] = factoryType; // (usually the name will be set upon return from this function, but the type registration system will need it NOW, so just set it)
 
             classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
             classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
@@ -616,7 +616,7 @@ namespace CoreXT { // (the core scope)
             //x if ('__register' in _factoryType)
             //x     _factoryType['__register'] == noop;
 
-            __registerType(factoryType.$__type, namespace, addMemberTypeInfo, exportName);
+            __registerType(cls, namespace, addMemberTypeInfo, exportName);
 
             return <any>factoryType;
         }
@@ -1038,7 +1038,7 @@ namespace CoreXT { // (the core scope)
                                     var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
                                         + " " + margin + _title + o.message;
                                 }
-                                else consoleText = Date() + " " + margin + _title + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
+                                else consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
                         }
@@ -1858,7 +1858,7 @@ namespace CoreXT { // (the core scope)
                             // ... this request has not been started yet; attempt to load the resource ...
                             // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
 
-                            if (typeof Storage !== void 0)
+                            if (System.Diagnostics && !System.Diagnostics.isDebugging() && typeof Storage !== void 0)
                                 try {
                                     this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
                                     if (this.data !== null && this.data !== void 0) {
@@ -2292,12 +2292,14 @@ namespace CoreXT { // (the core scope)
                 .include(get("~/CoreXT.Globals.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .include(get("~/CoreXT.Browser.js")).ready(onReady) // (in case some polyfills are needed after this point)
                 .include(get("~/CoreXT.Scripts.js").ready(onReady))
                 // ... load the rest of the core system next ...
                 .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))

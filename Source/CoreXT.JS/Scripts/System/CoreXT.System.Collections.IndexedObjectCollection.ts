@@ -1,8 +1,9 @@
-// ############################################################################################################################################
+﻿// ############################################################################################################################################
 // Collections: IndexedObjectCollection
 // ############################################################################################################################################
 
 namespace CoreXT.System.Collections {
+    registerNamespace("CoreXT", "System", "Collections");
     // ========================================================================================================================================
 
     /** Returns an ID based on the index position of the added object, or from a list of previously released object IDs (indexes).
@@ -116,6 +117,7 @@ namespace CoreXT.System.Collections {
                     static 'new'<TObject extends object>(...objects: TObject[]): IndexedObjectCollection<TObject> { return null; }
 
                     static init<TObject extends object>(o: IndexedObjectCollection<TObject>, isnew: boolean, ...objects: TObject[]): void {
+                        this.super.init.apply(this.super, arguments);
                         o.clear();
                         for (var i = 0, n = objects.length; i < n; ++i)
                             o.addObject(objects[i]);

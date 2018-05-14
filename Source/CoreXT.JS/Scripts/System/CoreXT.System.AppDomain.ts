@@ -1,4 +1,4 @@
-// ############################################################################################################################################
+﻿// ############################################################################################################################################
 // Application Domains
 // ############################################################################################################################################
 
@@ -54,7 +54,11 @@ namespace CoreXT {
                       * See 'System.Platform.AppDomain' for more details.
                       */
                     static get default(): AppDomain { return AppDomain._default; }
-                    private static readonly _default: AppDomain = new AppDomain();
+                    static set default(value: AppDomain) {
+                        if (!value || !(value instanceof AppDomain)) error("AppDomain.default", "A valid 'AppDomain' instance is required.");
+                        this._default = value;
+                    }
+                    private static _default: AppDomain;
 
                     /** A list of all application domains in the system. */
                     static readonly appDomains: AppDomain[] = [AppDomain.default];
@@ -308,7 +312,11 @@ namespace CoreXT {
                       * See 'System.Platform.AppDomain' for more details.
                       */
                     static get default(): IApplication { return Application._default; }
-                    private static _default: IApplication = System.Application.new(window.document.title, "Default Application", 0);
+                    static set default(value: IApplication) {
+                        if (!value || !(value instanceof Application)) error("Application.default", "A valid 'Application' instance is required.");
+                        Application._default = value;
+                    }
+                    private static _default: IApplication;
 
                     /** A list of all applications in the system. */
                     static applications: Application[] = [Application._default];
@@ -367,6 +375,11 @@ namespace CoreXT {
         export interface IApplication extends InstanceType<typeof Application.$__type> { }
 
         // ===================================================================================================================================
+        // Create a default application domain and default application.
+        // The default app domain is used for new objects created, and the default application can be used to easily represent the current web application.
+
+        AppDomain.default = AppDomain.new();
+        Application.default = Application.new(window.document.title, "Default Application", 0);
     }
 
     // ========================================================================================================================================

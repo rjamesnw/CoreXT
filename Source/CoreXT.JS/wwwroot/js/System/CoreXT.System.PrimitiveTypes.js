@@ -98,11 +98,11 @@ var CoreXT;
                         if (makePrivate === void 0) { makePrivate = false; }
                         if (!isnew)
                             o.$__reset();
-                        if (o.$__appDomain == void 0)
+                        if (o.$__appDomain == void 0 && System.AppDomain)
                             o.$__appDomain = System.AppDomain.default;
-                        if (o.$__app == void 0)
+                        if (o.$__app == void 0 && System.Application)
                             o.$__app = System.Application.default;
-                        if (value == void 0) {
+                        if (value != void 0) {
                             if (makePrivate) {
                                 o.valueOf = function () { return value; };
                                 o.toString = function () { return '' + value; };
@@ -259,9 +259,6 @@ var CoreXT;
                             for (var i = 0, n = items.length; i < n; ++i)
                                 o.push(items[i]);
                         }
-                        o.length = o.$__value.length;
-                        for (var i = 0; i < o.length; ++i)
-                            o[i] = o.charAt(i);
                     };
                     return Factory;
                 }(CoreXT.FactoryBase(Array, null)));

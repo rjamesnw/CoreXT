@@ -14,6 +14,7 @@ var CoreXT;
     (function (System) {
         var Collections;
         (function (Collections) {
+            CoreXT.registerNamespace("CoreXT", "System", "Collections");
             Collections.IndexedObjectCollection = CoreXT.ClassFactory(Collections, System.Array, function (base) {
                 var IndexedObjectCollection = (function (_super) {
                     __extends(IndexedObjectCollection, _super);
@@ -108,6 +109,7 @@ var CoreXT;
                             for (var _i = 2; _i < arguments.length; _i++) {
                                 objects[_i - 2] = arguments[_i];
                             }
+                            this.super.init.apply(this.super, arguments);
                             o.clear();
                             for (var i = 0, n = objects.length; i < n; ++i)
                                 o.addObject(objects[i]);

@@ -32,6 +32,11 @@ var CoreXT;
                 AppDomain_1 = AppDomain;
                 Object.defineProperty(AppDomain, "default", {
                     get: function () { return AppDomain_1._default; },
+                    set: function (value) {
+                        if (!value || !(value instanceof AppDomain_1))
+                            CoreXT.error("AppDomain.default", "A valid 'AppDomain' instance is required.");
+                        this._default = value;
+                    },
                     enumerable: true,
                     configurable: true
                 });
@@ -90,7 +95,6 @@ var CoreXT;
                         throw ex;
                     }
                 };
-                AppDomain._default = new AppDomain_1();
                 AppDomain.appDomains = [AppDomain_1.default];
                 AppDomain['AppDomainFactory'] = (function (_super) {
                     __extends(Factory, _super);
@@ -168,6 +172,11 @@ var CoreXT;
                 });
                 Object.defineProperty(Application, "default", {
                     get: function () { return Application_1._default; },
+                    set: function (value) {
+                        if (!value || !(value instanceof Application_1))
+                            CoreXT.error("Application.default", "A valid 'Application' instance is required.");
+                        Application_1._default = value;
+                    },
                     enumerable: true,
                     configurable: true
                 });
@@ -187,7 +196,6 @@ var CoreXT;
                 };
                 Application._current = null;
                 Application._focused = null;
-                Application._default = System.Application.new(window.document.title, "Default Application", 0);
                 Application.applications = [Application_1._default];
                 Application['ApplicationFactory'] = (function (_super) {
                     __extends(Factory, _super);
@@ -212,6 +220,8 @@ var CoreXT;
             }(base));
             return [Application, Application["ApplicationFactory"]];
         });
+        System.AppDomain.default = System.AppDomain.new();
+        System.Application.default = System.Application.new(window.document.title, "Default Application", 0);
     })(System = CoreXT.System || (CoreXT.System = {}));
 })(CoreXT || (CoreXT = {}));
 //# sourceMappingURL=CoreXT.System.AppDomain.js.map

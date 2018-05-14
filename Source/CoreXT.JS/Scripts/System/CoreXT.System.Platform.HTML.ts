@@ -1,4 +1,4 @@
-module CoreXT.System.Platform {
+﻿module CoreXT.System.Platform {
 
     /** Contains a series of core CoreXT HTML-based UI elements. Each element extends the GraphNode type. */
     export namespace HTML {

@@ -1,4 +1,4 @@
-// (JSDoc Quick Reference: http://en.wikipedia.org/wiki/JSDoc)
+﻿// (JSDoc Quick Reference: http://en.wikipedia.org/wiki/JSDoc)
 
 interface IHostBridge {
     /** Returns the current working directory for the host app. */

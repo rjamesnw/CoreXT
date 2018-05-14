@@ -34,6 +34,7 @@ var CoreXT;
     (function (System) {
         var Collections;
         (function (Collections) {
+            CoreXT.registerNamespace("CoreXT", "System", "Collections");
             Collections.ObservableCollection = CoreXT.ClassFactory(Collections, System.Array, function (base) {
                 var ObservableCollection = (function (_super) {
                     __extends(ObservableCollection, _super);

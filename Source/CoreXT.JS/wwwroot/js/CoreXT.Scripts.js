@@ -18,6 +18,7 @@ var CoreXT;
 (function (CoreXT) {
     var Scripts;
     (function (Scripts) {
+        CoreXT.registerNamespace("CoreXT", "Scripts");
         Scripts.MANIFEST_DEPENDENCIES_REGEX = /\bmodule\s*\(\s*\[(.*)\]/gim;
         function fullTypeNameToFolderPath(fullTypeName) {
             if (fullTypeName === void 0 || fullTypeName === null)

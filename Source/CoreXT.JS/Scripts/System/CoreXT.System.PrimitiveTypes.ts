@@ -1,4 +1,4 @@
-// ###########################################################################################################################
+﻿// ###########################################################################################################################
 // Primitive types designed for use with the CoreXT system.
 // See 'CoreXT.global' and 'CoreXT.NativeTypes/NativeStaticTypes' for access to global scope native references and definitions.
 // ###########################################################################################################################
@@ -130,14 +130,14 @@ namespace CoreXT {
                             if (!isnew)
                                 o.$__reset();
 
-                            if (o.$__appDomain == void 0)
+                            if (o.$__appDomain == void 0 && System.AppDomain)
                                 o.$__appDomain = System.AppDomain.default;
 
-                            if (o.$__app == void 0)
+                            if (o.$__app == void 0 && System.Application)
                                 o.$__app = System.Application.default;
 
                             // ... if a value is given, the behavior changes to latch onto the value ...
-                            if (value == void 0) {
+                            if (value != void 0) {
                                 if (makePrivate) {
                                     o.valueOf = function () { return value; };
                                     o.toString = function () { return '' + value; };
@@ -363,16 +363,12 @@ namespace CoreXT {
                             */
                         static init<T>(o: Array<T>, isnew: boolean, ...items: T[]) {
                             try {
-                                o.push.apply(o, items); // (note: http://stackoverflow.com/a/9650855/1236397)
+                                o.push.apply(o, items); // (note: argument limit using this method: http://stackoverflow.com/a/9650855/1236397)
                             } catch (e) {
+                                // (too many items for arguments, need to add each one by one)
                                 for (var i = 0, n = items.length; i < n; ++i)
                                     o.push(items[i]);
                             }
-                            //??System.String.prototype.constructor.apply(this, arguments);
-                            // (IE browsers older than v9 do not populate the string object with the string characters)
-                            //if (Browser.type == Browser.BrowserTypes.IE && Browser.version <= 8)
-                            o.length = o.$__value.length;
-                            for (var i = 0; i < o.length; ++i) o[i] = o.charAt(i);
                         }
                     };
 

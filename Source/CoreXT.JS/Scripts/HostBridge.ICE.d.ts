@@ -1,4 +1,4 @@
-// (JSDoc Quick Reference: http://en.wikipedia.org/wiki/JSDoc)
+﻿// (JSDoc Quick Reference: http://en.wikipedia.org/wiki/JSDoc)
 
 declare module ICE {
     interface Channel {

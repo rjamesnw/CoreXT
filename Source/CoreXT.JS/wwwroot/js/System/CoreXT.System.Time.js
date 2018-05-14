@@ -12,6 +12,7 @@ var CoreXT;
 (function (CoreXT) {
     var System;
     (function (System) {
+        CoreXT.registerNamespace("CoreXT", "System");
         System.TimeSpan = CoreXT.ClassFactory(System, System.Object, function (base) {
             var TimeSpan = (function (_super) {
                 __extends(TimeSpan, _super);
