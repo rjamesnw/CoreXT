@@ -28,9 +28,12 @@ var __spread = (this && this.__spread) || function () {
     for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
     return ar;
 };
+var appVersion;
 var CoreXT;
 (function (CoreXT) {
     CoreXT.version = "0.0.1";
+    Object.defineProperty(CoreXT, "version", { writable: false });
+    CoreXT.getAppVersion = function () { return appVersion || "0.0.0"; };
     if (typeof navigator != 'undefined' && typeof console != 'undefined')
         if (navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0)
             console.log("-=< CoreXT Client OS - v" + CoreXT.version + " >=- ");
@@ -531,229 +534,6 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
     }
     CoreXT.registerNamespace = registerNamespace;
     registerNamespace("CoreXT", "Types");
-    var System;
-    (function (System) {
-        var Diagnostics;
-        (function (Diagnostics) {
-            registerNamespace("CoreXT", "System", "Diagnostics");
-            Diagnostics.__logItems = [];
-            var __logItemsSequenceCounter = 0;
-            var __logCaptureStack = [];
-            var DebugModes;
-            (function (DebugModes) {
-                DebugModes[DebugModes["Release"] = 0] = "Release";
-                DebugModes[DebugModes["Debug_Run"] = 1] = "Debug_Run";
-                DebugModes[DebugModes["Debug_Wait"] = 2] = "Debug_Wait";
-            })(DebugModes = Diagnostics.DebugModes || (Diagnostics.DebugModes = {}));
-            Diagnostics.debug = DebugModes.Debug_Run;
-            function isDebugging() { return Diagnostics.debug != DebugModes.Release; }
-            Diagnostics.isDebugging = isDebugging;
-            Diagnostics.LogItem = ClassFactory(Diagnostics, void 0, function (base) {
-                var LogItem = (function () {
-                    function LogItem() {
-                        this.parent = null;
-                        this.sequence = __logItemsSequenceCounter++;
-                        this.marginIndex = void 0;
-                    }
-                    LogItem.prototype.write = function (message, type, outputToConsole) {
-                        if (type === void 0) { type = LogTypes.Normal; }
-                        if (outputToConsole === void 0) { outputToConsole = true; }
-                        var logItem = Diagnostics.LogItem.new(this, null, message, type);
-                        if (!this.subItems)
-                            this.subItems = [];
-                        this.subItems.push(logItem);
-                        return this;
-                    };
-                    LogItem.prototype.log = function (title, message, type, outputToConsole) {
-                        if (type === void 0) { type = LogTypes.Normal; }
-                        if (outputToConsole === void 0) { outputToConsole = true; }
-                        var logItem = Diagnostics.LogItem.new(this, title, message, type, outputToConsole);
-                        if (!this.subItems)
-                            this.subItems = [];
-                        this.subItems.push(logItem);
-                        return logItem;
-                    };
-                    LogItem.prototype.beginCapture = function () {
-                        __logCaptureStack.push(this);
-                        return this;
-                    };
-                    LogItem.prototype.endCapture = function () {
-                        var item = __logCaptureStack.pop();
-                        if (item != null)
-                            throw System.Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);
-                    };
-                    LogItem.prototype.toString = function () {
-                        var time = System.TimeSpan && System.TimeSpan.utcTimeToLocalTime(this.time) || null;
-                        var timeStr = time && (time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)) || "" + new Date(this.time).toLocaleTimeString();
-                        var txt = "[" + this.sequence + "] (" + timeStr + ") " + this.title + ": " + this.message;
-                        return txt;
-                    };
-                    LogItem['LogItemFactory'] = (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory['new'] = function (parent, title, message, type, outputToConsole) {
-                            if (type === void 0) { type = LogTypes.Normal; }
-                            if (outputToConsole === void 0) { outputToConsole = true; }
-                            return null;
-                        };
-                        Factory.init = function (o, isnew, parent, title, message, type, outputToConsole) {
-                            if (type === void 0) { type = LogTypes.Normal; }
-                            if (outputToConsole === void 0) { outputToConsole = true; }
-                            if (title === void 0 || title === null) {
-                                if (isEmpty(message))
-                                    error("LogItem()", "A message is required if no title is given.", o);
-                                title = "";
-                            }
-                            else if (typeof title != 'string')
-                                if (title.$__fullname)
-                                    title = title.$__fullname;
-                                else
-                                    title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
-                            if (message === void 0 || message === null)
-                                message = "";
-                            else
-                                message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
-                            o.parent = parent;
-                            o.title = title;
-                            o.message = message;
-                            o.time = Date.now();
-                            o.type = type;
-                            if (console && outputToConsole) {
-                                var _title = title, margin = "";
-                                if (_title.charAt(title.length - 1) != ":")
-                                    _title += ": ";
-                                else
-                                    _title += " ";
-                                while (parent) {
-                                    parent = parent.parent;
-                                    margin += "  ";
-                                }
-                                if (System.TimeSpan) {
-                                    var time = System.TimeSpan.utcTimeToLocalTime(o.time);
-                                    var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                        + " " + margin + _title + o.message;
-                                }
-                                else
-                                    consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message;
-                                CoreXT.log(null, consoleText, type, void 0, false, false);
-                            }
-                        };
-                        return Factory;
-                    }(FactoryBase(LogItem, null)));
-                    return LogItem;
-                }());
-                return [LogItem, LogItem["LogItemFactory"]];
-            });
-            function log(title, message, type, outputToConsole) {
-                if (type === void 0) { type = LogTypes.Normal; }
-                if (outputToConsole === void 0) { outputToConsole = true; }
-                if (__logCaptureStack.length) {
-                    var capturedLogItem = __logCaptureStack[__logCaptureStack.length - 1];
-                    var lastLogEntry = capturedLogItem.subItems && capturedLogItem.subItems.length && capturedLogItem.subItems[capturedLogItem.subItems.length - 1];
-                    if (lastLogEntry)
-                        return lastLogEntry.log(title, message, type, outputToConsole);
-                    else
-                        return capturedLogItem.log(title, message, type, outputToConsole);
-                }
-                var logItem = Diagnostics.LogItem.new(null, title, message, type);
-                Diagnostics.__logItems.push(logItem);
-                return logItem;
-            }
-            Diagnostics.log = log;
-            function getLogAsHTML() {
-                var i, n;
-                var orderedLogItems = [];
-                var item;
-                var logHTML = "<div>\r\n", cssClass = "", title, icon, rowHTML, titleHTML, messageHTML, marginHTML = "";
-                var logItem, lookAheadLogItem;
-                var time;
-                var cssAndIcon;
-                var margins = [""];
-                var currentMarginIndex = 0;
-                function cssAndIconFromLogType_text(type) {
-                    var cssClass, icon;
-                    switch (type) {
-                        case LogTypes.Success:
-                            cssClass = "text-success";
-                            icon = "&#x221A;";
-                            break;
-                        case LogTypes.Info:
-                            cssClass = "text-info";
-                            icon = "&#x263C;";
-                            break;
-                        case LogTypes.Warning:
-                            cssClass = "text-warning";
-                            icon = "&#x25B2;";
-                            break;
-                        case LogTypes.Error:
-                            cssClass = "text-danger";
-                            icon = "<b>(!)</b>";
-                            break;
-                        default:
-                            cssClass = "";
-                            icon = "";
-                    }
-                    return { cssClass: cssClass, icon: icon };
-                }
-                function reorganizeEventsBySequence(logItems) {
-                    var i, n;
-                    for (i = 0, n = logItems.length; i < n; ++i) {
-                        logItem = logItems[i];
-                        logItem.marginIndex = void 0;
-                        orderedLogItems[logItem.sequence] = logItem;
-                        if (logItem.subItems && logItem.subItems.length)
-                            reorganizeEventsBySequence(logItem.subItems);
-                    }
-                }
-                function setMarginIndexes(logItem, marginIndex) {
-                    if (marginIndex === void 0) { marginIndex = 0; }
-                    var i, n;
-                    if (marginIndex && !margins[marginIndex])
-                        margins[marginIndex] = margins[marginIndex - 1] + "&nbsp;&nbsp;&nbsp;&nbsp;";
-                    logItem.marginIndex = marginIndex;
-                    if (logItem.subItems && logItem.subItems.length) {
-                        for (i = 0, n = logItem.subItems.length; i < n; ++i)
-                            setMarginIndexes(logItem.subItems[i], marginIndex + 1);
-                    }
-                }
-                reorganizeEventsBySequence(Diagnostics.__logItems);
-                for (i = 0, n = orderedLogItems.length; i < n; ++i) {
-                    logItem = orderedLogItems[i];
-                    if (!logItem)
-                        continue;
-                    rowHTML = "";
-                    if (logItem.marginIndex === void 0)
-                        setMarginIndexes(logItem);
-                    marginHTML = margins[logItem.marginIndex];
-                    cssAndIcon = cssAndIconFromLogType_text(logItem.type);
-                    if (cssAndIcon.icon)
-                        cssAndIcon.icon += "&nbsp;";
-                    if (cssAndIcon.cssClass)
-                        messageHTML = cssAndIcon.icon + "<strong>" + System.String.replace(logItem.message, "\r\n", "<br />\r\n") + "</strong>";
-                    else
-                        messageHTML = cssAndIcon.icon + logItem.message;
-                    if (logItem.title)
-                        titleHTML = logItem.title + ": ";
-                    else
-                        titleHTML = "";
-                    time = System.TimeSpan.utcTimeToLocalTime(logItem.time);
-                    rowHTML = "<div class='" + cssAndIcon.cssClass + "'>"
-                        + time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds) + "&nbsp;"
-                        + marginHTML + titleHTML + messageHTML + "</div>" + rowHTML + "\r\n";
-                    logHTML += rowHTML + "</ br>\r\n";
-                }
-                logHTML += "</div>\r\n";
-                return logHTML;
-            }
-            Diagnostics.getLogAsHTML = getLogAsHTML;
-            function getLogAsText() {
-                return System.String.replaceTags(System.String.replace(getLogAsHTML(), "&nbsp;", " "));
-            }
-            Diagnostics.getLogAsText = getLogAsText;
-        })(Diagnostics = System.Diagnostics || (System.Diagnostics = {}));
-    })(System = CoreXT.System || (CoreXT.System = {}));
     function getErrorCallStack(errorSource) {
         var _e = errorSource;
         if (_e.stacktrace && _e.stack)
@@ -842,141 +622,19 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
         Time.__SQLDateTimeStrictRegEx = /^\d{4}-\d\d-\d\d \d\d:\d\d(?::\d\d(?:.\d{1,3})?)?(?:\+\d\d)?$/;
         Time.__localTimeZoneOffset = (new Date()).getTimezoneOffset() * Time.__millisecondsPerMinute;
     })(Time = CoreXT.Time || (CoreXT.Time = {}));
+    var System;
     (function (System) {
         registerNamespace("CoreXT", "System");
-        System.Exception = ClassFactory(System, void 0, function (base) {
-            var Exception = (function (_super) {
-                __extends(Exception, _super);
-                function Exception() {
-                    var _this = this;
-                    if (!CoreXT.ES6)
-                        eval("var _super = function() { return null; }");
-                    _this = _super.call(this) || this;
-                    return _this;
-                }
-                Exception.prototype.toString = function () { return this.message; };
-                Exception.prototype.valueOf = function () { return this.message; };
-                Exception.printStackTrace = function () {
-                    var callstack = [];
-                    var isCallstackPopulated = false;
-                    try {
-                        throw "";
-                    }
-                    catch (e) {
-                        if (e.stack) {
-                            var lines = e.stack.split('\n');
-                            for (var i = 0, len = lines.length; i < len; ++i) {
-                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                    callstack.push(lines[i]);
-                                }
-                            }
-                            callstack.shift();
-                            isCallstackPopulated = true;
-                        }
-                        else if (CoreXT.global["opera"] && e.message) {
-                            var lines = e.message.split('\n');
-                            for (var i = 0, len = lines.length; i < len; ++i) {
-                                if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                    var entry = lines[i];
-                                    if (lines[i + 1]) {
-                                        entry += ' at ' + lines[i + 1];
-                                        i++;
-                                    }
-                                    callstack.push(entry);
-                                }
-                            }
-                            callstack.shift();
-                            isCallstackPopulated = true;
-                        }
-                    }
-                    if (!isCallstackPopulated) {
-                        var currentFunction = arguments.callee.caller;
-                        while (currentFunction) {
-                            var fn = currentFunction.toString();
-                            var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
-                            callstack.push(fname);
-                            currentFunction = currentFunction.caller;
-                        }
-                    }
-                    return callstack;
-                };
-                Exception.from = function (message, source) {
-                    if (source === void 0) { source = null; }
-                    var createLog = true;
-                    if (typeof message == 'object' && (message.title || message.message)) {
-                        createLog = false;
-                        if (source != void 0)
-                            message.source = source;
-                        source = message;
-                        message = "";
-                        if (source.title)
-                            message += source.title;
-                        if (source.message) {
-                            if (message)
-                                message += ": ";
-                            message += source.message;
-                        }
-                    }
-                    var caller = this.from.caller;
-                    while (caller && (caller == System.Exception.error || caller == System.Exception.notImplemented || caller == CoreXT.log || caller == CoreXT.error
-                        || typeof caller.$__fullname == 'string' && caller.$__fullname.substr(0, 17) == "System.Exception."))
-                        caller = caller.caller;
-                    if (caller) {
-                        message += "\r\n\r\nStack:\r\n\r\n";
-                        var stackMsg = "";
-                        while (caller) {
-                            var callerName = getFullTypeName(caller) || "/*anonymous*/";
-                            var args = caller.arguments;
-                            var _args = args && args.length > 0 ? CoreXT.global.Array.prototype.join.call(args, ', ') : "";
-                            if (stackMsg)
-                                stackMsg += "called from ";
-                            stackMsg += callerName + "(" + _args + ")\r\n\r\n";
-                            caller = caller.caller != caller ? caller.caller : null;
-                        }
-                        message += stackMsg;
-                    }
-                    return System.Exception.new(message, source, createLog);
-                };
-                Exception.error = function (title, message, source) {
-                    if (System.Diagnostics && System.Diagnostics.log) {
-                        var logItem = System.Diagnostics.log(title, message, LogTypes.Error);
-                        return Exception.from(logItem, source);
-                    }
-                    else
-                        return Exception.from(error(title, message, source, false, false), source);
-                };
-                Exception.notImplemented = function (functionNameOrTitle, source, message) {
-                    var msg = "The function is not implemented." + (message ? " " + message : "");
-                    if (System.Diagnostics && System.Diagnostics.log) {
-                        var logItem = System.Diagnostics.log(functionNameOrTitle, msg, LogTypes.Error);
-                        return Exception.from(logItem, source);
-                    }
-                    else
-                        return Exception.from(error(functionNameOrTitle, msg, source, false, false), source);
-                };
-                Exception['ExceptionFactory'] = (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    Factory['new'] = function (message, source, log) { return null; };
-                    Factory.init = function (o, isnew, message, source, log) {
-                        o.message = message;
-                        o.source = source;
-                        o.stack = (new Error()).stack;
-                        if (log || log === void 0)
-                            System.Diagnostics.log("Exception", message, LogTypes.Error);
-                    };
-                    return Factory;
-                }(FactoryBase(Exception, null)));
-                return Exception;
-            }(Error));
-            return [Exception, Exception["ExceptionFactory"]];
-        });
     })(System = CoreXT.System || (CoreXT.System = {}));
     var Loader;
     (function (Loader) {
         registerNamespace("CoreXT", "Loader");
+        var _onSystemLoadedHandlers = [];
+        function onSystemLoaded(handler) {
+            if (handler && typeof handler == 'function')
+                _onSystemLoadedHandlers.push(handler);
+        }
+        Loader.onSystemLoaded = onSystemLoaded;
         if (!XMLHttpRequest.DONE) {
             XMLHttpRequest.UNSENT = 0;
             XMLHttpRequest.OPENED = 1;
@@ -1226,11 +884,16 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                         this.message = "Loading resource '" + this.url + "' ...";
                         if (System.Diagnostics && !System.Diagnostics.isDebugging() && typeof Storage !== void 0)
                             try {
-                                this.data = localStorage.getItem("resource:" + this.url);
-                                if (this.data !== null && this.data !== void 0) {
-                                    this.status = RequestStatuses.Loaded;
-                                    this._doNext();
-                                    return;
+                                var currentAppVersion = CoreXT.getAppVersion();
+                                var versionInLocalStorage = localStorage.getItem("version");
+                                var appVersionInLocalStorage = localStorage.getItem("appVersion");
+                                if (versionInLocalStorage && appVersionInLocalStorage && CoreXT.version == versionInLocalStorage && currentAppVersion == appVersionInLocalStorage) {
+                                    this.data = localStorage.getItem("resource:" + this.url);
+                                    if (this.data !== null && this.data !== void 0) {
+                                        this.status = RequestStatuses.Loaded;
+                                        this._doNext();
+                                        return;
+                                    }
                                 }
                             }
                             catch (e) {
@@ -1250,6 +913,8 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                                     else {
                                         if (typeof Storage !== void 0)
                                             try {
+                                                localStorage.setItem("version", CoreXT.version);
+                                                localStorage.setItem("appVersion", CoreXT.getAppVersion());
                                                 localStorage.setItem("resource:" + _this.url, _this.data);
                                                 _this.message = "Resource '" + _this.url + "' loaded from local storage.";
                                             }
@@ -1421,7 +1086,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                         }
                         else if (this._parentCompletedCount == this._parentRequests.length) {
                             this.status = RequestStatuses.Ready;
-                            this.message = "All dependencies for resource '" + this.url + "' have loaded, and are now ready.";
+                            this.message = "*** All dependencies for resource '" + this.url + "' have loaded, and are now ready. ***";
                         }
                         else {
                             this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
@@ -1584,22 +1249,26 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
         Loader._SystemScript_onReady_Handler = _SystemScript_onReady_Handler;
         function bootstrap() {
             var onReady = _SystemScript_onReady_Handler;
-            get("~/CoreXT.Utilities.js").ready(onReady)
+            get("~/CoreXT.Polyfills.js").ready(onReady)
+                .include(get("~/CoreXT.Utilities.js")).ready(onReady)
                 .include(get("~/CoreXT.Globals.js")).ready(onReady)
+                .include(get("~/CoreXT.Scripts.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
+                .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Diagnostics.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .include(get("~/CoreXT.Browser.js")).ready(onReady)
-                .include(get("~/CoreXT.Scripts.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
                 .ready(function () {
+                if (_onSystemLoadedHandlers && _onSystemLoadedHandlers.length)
+                    for (var i = 0, n = _onSystemLoadedHandlers.length; i < n; ++i)
+                        _onSystemLoadedHandlers[i]();
                 CoreXT.Scripts.getManifest()
                     .include(CoreXT.Scripts.getManifest("~/app.manifest"))
                     .ready(function (mod) {

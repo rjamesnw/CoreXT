@@ -17,13 +17,13 @@ namespace CoreXT.Utilities {
     // -------------------------------------------------------------------------------------------------------------------
 
     /** Erases all properties on the object, instead of deleting them (which takes longer).
-    * @param {boolean} release If false, then care is taken not to erase any property that contains a 'dispose()' function. (default: true)
-    *                          This is provided to support reconstructing nested object groups without needing to rebuild the associations.
+    * @param {boolean} ignore An optional list of properties to ignore when erasing. The properties to ignore should equate to 'true'.
+    * This parameter expects an object type because that is faster for lookups than arrays, and developers can statically store these in most cases.
     */
-    export function erase(obj: {}, release = true): {} {
+    export function erase(obj: {}, ignore: { [name: string]: any }): {} {
         for (var p in obj)
             if ((p != "__proto__" && p != 'constructor' && <NativeTypes.IObject>obj).hasOwnProperty(p))
-                if (release || p == 'dispose' && typeof obj[p] != 'function')
+                if (!ignore || !ignore[name])
                     obj[p] = void 0;
         return obj;
     }
@@ -156,12 +156,14 @@ namespace CoreXT.Utilities {
 
     var _guidCounter = 0;
 
-    /** Creates and returns a new version-4 (randomized) GUID/UUID (unique identifier). The uniqueness of the result 
-      * is enforced by locking the first part down to the current local date/time (not UTC) in milliseconds, along with
-      * a counter value in case of fast repetitive calls. The rest of the ID is also randomized with the current local
-      * time, along with a checksum of the browser's "agent" string and the current document URL.
-      * This function is also supported server side; however, the "agent" string and document location are fixed values.
-      */
+    /** 
+     * Creates and returns a new version-4 (randomized) GUID/UUID (unique identifier). The uniqueness of the result 
+     * is enforced by locking the first part down to the current local date/time (not UTC) in milliseconds, along with
+     * a counter value in case of fast repetitive calls. The rest of the ID is also randomized with the current local
+     * time, along with a checksum of the browser's "agent" string and the current document URL.
+     * This function is also supported server side; however, the "agent" string and document location are fixed values.
+     * @param {boolean} hyphens If true (default) then hyphens (-) are inserted to separate the GUID parts.
+     */
     export function createGUID(hyphens: boolean = true): string {
         var time = (Date.now ? Date.now() : new Date().getTime()) + Time.__localTimeZoneOffset; // (use current local time [not UTC] to offset the random number [there was a bug in Chrome, not sure if it was fixed yet])
         var randseed = time + _guidSeed;

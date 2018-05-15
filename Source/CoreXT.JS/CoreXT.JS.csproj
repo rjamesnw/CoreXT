@@ -40,6 +40,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Remove="Scripts\CoreXT.Polyfills.ts" />
     <None Remove="Scripts\__references.ts" />
   </ItemGroup>
   

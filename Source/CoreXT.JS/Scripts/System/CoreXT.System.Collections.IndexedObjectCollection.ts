@@ -16,7 +16,17 @@ namespace CoreXT.System.Collections {
     export var IndexedObjectCollection = ClassFactory(Collections, Array,
         (base) => {
             class IndexedObjectCollection<TObject extends object> extends base<TObject> { // (inherits natively from 'PrimitiveObject')
-                static __IDPropertyName = "$__id";
+                /** 
+                 * Holds the name of the internal property created on the objects in order to track indexes.
+                 * This defaults to "$__index".
+                 */
+                static __IDPropertyName = "$__index";
+                /** 
+                 * Holds the name of the internal property created on the objects in order to track indexes.
+                 * This defaults to the global 'IndexedObjectCollection.__IDPropertyName' setting.
+                 */
+                __IDPropertyName = IndexedObjectCollection.__IDPropertyName;
+
                 static __validIDIndexPropertyName = "__.validIDIndex.__"; // (should never need to be accessed, so named as such to discourage it)
 
                 private __objects: TObject[] = <any>this;
@@ -28,7 +38,7 @@ namespace CoreXT.System.Collections {
                 /** Adds an object and returns it's index number as the ID for the object. */
                 addObject(obj: TObject): number {
                     if (obj === void 0 || obj === null) return void 0;
-                    var id = obj[IndexedObjectCollection.__IDPropertyName];
+                    var id: number = obj[this.__IDPropertyName];
                     if (id >= this.__objects.length) throw "The object already has an ID, but that ID does no belong to this collection."; // (this error may help identify a possible serious developer design bug)
                     if (id === 0 || id >= 0) {
                         // ... this object already has an ID, so let's try to use that ...
@@ -43,7 +53,7 @@ namespace CoreXT.System.Collections {
                         id = this.__releasedIDs[this.__releasedIDsReadIndex--];
                     else
                         id = this.__objects.length;
-                    obj[IndexedObjectCollection.__IDPropertyName] = id;
+                    obj[this.__IDPropertyName] = id;
                     this.__objects[id] = obj;
                     this.__validIDs[++this.__validIDsReadIndex] = id;
                     obj[IndexedObjectCollection.__validIDIndexPropertyName] = this.__validIDsReadIndex;
@@ -55,12 +65,12 @@ namespace CoreXT.System.Collections {
                 removeObject(obj: TObject): TObject;
                 removeObject(idOrObj: any): TObject {
                     var id: number, obj: TObject, objGiven: {} = null;
-                    id = typeof idOrObj === 'number' ? idOrObj : (objGiven = idOrObj)[IndexedObjectCollection.__IDPropertyName];
+                    id = typeof idOrObj === 'number' ? idOrObj : (objGiven = idOrObj)[this.__IDPropertyName];
                     if (!(id === 0 || id > 0 && id < this.__objects.length)) return void 0; // (make sure the ID is valid)
                     obj = this.__objects[id]; // (make sure to rely on getting the object internally, and not the one passed in)
                     if (obj == null) return void 0; // (this object was already removed, or the object given is not the same object in the ID position)
                     if (objGiven != null && obj != objGiven) throw "The object given is not the same object that currently exists at the same index."; // (this error may help identify a possible serious developer design bug)
-                    obj[IndexedObjectCollection.__IDPropertyName] = -1;
+                    obj[this.__IDPropertyName] = -1;
                     this.__objects[id] = null; // (nullify so we know this position is empty)
                     this.__releasedIDs[++this.__releasedIDsReadIndex] = id; // (store this ID for quick reference later when new objects are added)
                     var validIDIndex = obj[IndexedObjectCollection.__validIDIndexPropertyName];

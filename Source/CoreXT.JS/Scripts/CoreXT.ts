@@ -17,11 +17,20 @@
  * Note: Reason for factory object construction (new/init) patterns in CoreXT: http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/
  */
 
+/** The current application version (user defined). */
+var appVersion: string;
+
 /**
  * The root namespace for the CoreXT system.
  */
 namespace CoreXT {
+    /** The current version of the CoreXT system. */
     export var version = "0.0.1";
+    Object.defineProperty(CoreXT, "version", { writable: false });
+
+    /** Returns the current user defined application version, or a default version. */
+    export var getAppVersion = () => appVersion || "0.0.0";
+
     if (typeof navigator != 'undefined' && typeof console != 'undefined')
         if (navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0)
             console.log("-=< CoreXT Client OS - v" + version + " >=- ");
@@ -204,8 +213,13 @@ CoreXT.globalEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { 
 // (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
 
 namespace CoreXT { // (the core scope)
-    /** Set to true if ES2015 (aka ES6) is supported ('class', 'new.target', etc.). */
+    /** Set to true if ES2015+ (aka ES6+) is supported in the browser environment ('class', 'new.target', etc.). */
     export var ES6: boolean = (() => { try { return <boolean>eval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
+
+    /** Set to true if ES2015+ (aka ES6+ - i.e. 'class', 'new.target', etc.) was targeted when this CoreXT JS code was transpiled. */
+    export var ES6Targeted: boolean = (() => {
+        return (class { }).toString() == "class { }"; // (if targeting ES6 in the configuration, 'class' will be output as a function instead)
+    })();
 
     /** This is set to the detected running environment that scripts are executing in. Applications and certain modules all run in
       * protected web worker environments (dedicated threads), where there is no DOM. In these cases, this property will be set to
@@ -471,10 +485,28 @@ namespace CoreXT { // (the core scope)
         }
 
         /** Holds all the types registered globally by calling one of the 'Types.__register???()' functions. Types are not app-domain specific. */
-        export var __types: { [fullTypeName: string]: ITypeInfo } = {};
+        export declare var __types: { [fullTypeName: string]: ITypeInfo };
+        Object.defineProperty(Types, "__types", { configurable: false, writable: false, value: {} });
 
         /** Holds all disposed objects that can be reused. */
-        export var __disposedObjects: { [fulltypename: string]: IDomainObjectInfo[]; } = {}; // (can be reused by any AppDomain instance! [global pool for better efficiency])
+        export declare var __disposedObjects: { [fulltypename: string]: IDomainObjectInfo[]; }; // (can be reused by any AppDomain instance! [global pool for better efficiency])
+        Object.defineProperty(Types, "__disposedObjects", { configurable: false, writable: false, value: {} });
+
+        /** 
+         * If true the system will automatically track new objects created under this CoreXT context and store them in 'Types.__trackedObjects'. 
+         * The default is false to prevent memory leaks by those unaware of how the CoreXT factory pattern works.
+         * Setting this to true (either here or within a specific AppDomain) means you take full responsibility to dispose all objects you create.
+         */
+        export var autoTrackInstances = false;
+        export declare var __trackedObjects: IDisposable[];
+        Object.defineProperty(Types, "__trackedObjects", { configurable: false, writable: false, value: [] });
+
+        export declare var __nextObjectID: number; // (incremented automatically for each new object instance)
+        var ___nextObjectID = 0;
+        Object.defineProperty(Types, "__trackedObjects", { configurable: false, writable: false, get: () => ___nextObjectID });
+
+        /** Returns 'Types.__nextObjectID' and increments the value by 1. */
+        export function getNextObjectId() { return ___nextObjectID++; }
 
         /** 
           * Used in place of the constructor to create a new instance of the underlying object type for a specific domain.
@@ -498,32 +530,59 @@ namespace CoreXT { // (the core scope)
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
             var bridge = <System.IADBridge><any>this; // (note: this should be either a bridge, or a class/factory object, or undefined)
             var type = <ITypeInfo & IFactory & IType<NativeTypes.IObject>>this;
+
             if (typeof this != 'function' || !this.init && !this.new)
                 throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the '{FactoryType}.new()' factory *function* without the 'new' operator.", this);
-            var appDomain = bridge.$__appDomain || System.AppDomain && System.AppDomain.default;
-            var instance: NativeTypes.IObject;
+
+            var appDomain = bridge.$__appDomain || System.AppDomain && System.AppDomain.default || void 0;
+            var instance: NativeTypes.IObject & IDomainObjectInfo;
             var isNew = false;
+
             // ... get instance from the pool (of the same type!), or create a new one ...
+            // 
             var fullTypeName = type.$__fullname;
             var objectPool = fullTypeName && __disposedObjects[fullTypeName];
+
             if (objectPool && objectPool.length)
                 instance = objectPool.pop();
             else {
-                instance = new (<IType<NativeTypes.IObject>>type)();
+                instance = <any>new (<IType<NativeTypes.IObject>>type)();
                 isNew = true;
             }
+
+            // ... initialize CoreXT and app domain references ...
+            instance.$__corext = CoreXT;
+            instance.$__id = getNextObjectId();
+            if (autoTrackInstances && (!appDomain || appDomain.autoTrackInstances === void 0 || appDomain.autoTrackInstances)) instance.$__globalId = Utilities.createGUID(false);
+            instance.$__appDomain = appDomain;
+            if ('$__disposing' in instance) instance.$__disposing = false; // (only reset if exists)
+            if ('$__disposed' in instance) instance.$__disposed = false; // (only reset if exists)
+
             // ... insert [instance, isNew] without having to create a new array ...
-            // TODO: Remove the following when ...rest is more widely supported.
-            for (var i = arguments.length - 1; i >= 0; --i)
-                arguments[2 + i] = arguments[i];
-            arguments[0] = instance;
-            arguments[1] = isNew;
-            arguments.length += 2;
-            if (typeof this.init == 'function')
-                if (System.Delegate)
-                    System.Delegate.fastApply(this.init, this, arguments);
-                else
-                    this.init.apply(this, arguments);
+            // TODO: Clean up the following when ...rest is more widely supported. Also needs testing to see which is actually more efficient when compiled for ES6.
+            if (ES6Targeted) {
+                if (typeof this.init == 'function')
+                    if (System.Delegate)
+                        System.Delegate.fastCall(this.init, this, instance, isNew, ...arguments);
+                    else
+                        this.init.call(this, instance, isNew, ...arguments);
+            } else {
+                for (var i = arguments.length - 1; i >= 0; --i)
+                    arguments[2 + i] = arguments[i];
+                arguments[0] = instance;
+                arguments[1] = isNew;
+                arguments.length += 2;
+                if (typeof this.init == 'function')
+                    if (System.Delegate)
+                        System.Delegate.fastApply(this.init, this, arguments);
+                    else
+                        this.init.apply(this, arguments);
+            }
+
+            // ... finally, add this object to the app domain selected, if any ...
+            if (appDomain.autoTrackInstances)
+                appDomain.attachObject(instance);
+
             return instance;
         }
 
@@ -729,6 +788,14 @@ namespace CoreXT { // (the core scope)
             return currentNamespace;
         }
 
+        var __nonDisposableProperties = <IDomainObjectInfo>{
+            $__globalId: <any>true,
+            $__appDomain: <any>true,
+            $__disposing: true,
+            $__disposed: true,
+            dispose: <any>false
+        };
+
         /** Disposes a specific object in this AppDomain instance.
          * When creating thousands of objects continually, object disposal (and subsequent cache of the instances) means the GC doesn't have
          * to keep engaging to clear up the abandoned objects.  While using the "new" operator may be faster than using "{type}.new()" at
@@ -736,35 +803,32 @@ namespace CoreXT { // (the core scope)
          * cached and reused as much as possible.
          * @param {object} object The object to dispose and release back into the "disposed objects" pool.
          * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
-         *                          false to request that child objects remain connected after disposal (not released). This
+         *                          false to request that child objects remain associated after disposal (not released). This
          *                          can allow quick initialization of a group of objects, instead of having to pull each one
          *                          from the object pool each time.
          */
         export function dispose(object: IDisposable, release: boolean = true): void {
             var _object: IDomainObjectInfo = <any>object;
+
+            if (!_object.$__corext) error("dispose()", "The object instance '" + getFullTypeName(object) + "' cannot be dispose.");
+            if (!isDisposable(object)) error("dispose()", "The object instance '" + getFullTypeName(object) + "' cannot be dispose using this CoreXT instance."); // (if loaded as a module perhaps, where other instance may exist [just in case])
+
             if (_object !== void 0) {
-                // ... make sure 'dispose()' was called on the object ...
-
-                if (_object.dispose != noop) { // ('object.dispose' is set to 'noop' if '{AppDomain}.dispose()' is called via 'object.dispose()')
-                    _object.dispose = noop;
-                    dispose(_object, release); // (object will not call back due to above)
-                }
-
-                // ... remove the object from the "active" list and erase it ...
+                // ... remove the object from the app domain "active" list and then erase it ...
 
                 var appDomain = _object.$__appDomain;
-                //? _object.$__appDomain = void 0; // (need to make sure this '{AppDomain}.dispose()' function doesn't get called again)
 
-                if (appDomain) { // (note: '$__appDomain' is set to 'noop' if '{AppDomain}.dispose()' is called, which got us here in the first place)
-                    _object.dispose = noop;
-                    appDomain.dispose(_object);
+                if (appDomain && !_object.$__disposing) { // (note: '$__disposing' is set to 'true' when '{AppDomain}.dispose()' is called; otherwise they did not call it via the domain instance)
+                    appDomain.dispose(_object, release);
+                    return;
                 }
 
-                Utilities.erase(this, release); // ('__id' will be erased, and serve to flag 'disposal completed'; note: any active/undisposed object)
+                Utilities.erase(object, __nonDisposableProperties);
 
-                if (!release)
-                    _object.$__appDomain = this;
-                else {
+                _object.$__disposing = false;
+                _object.$__disposed = true;
+
+                if (release) {
                     // ... place the object into the disposed objects list ...
 
                     var type: ITypeInfo = <any>_object.constructor;
@@ -772,28 +836,14 @@ namespace CoreXT { // (the core scope)
                     if (!type.$__fullname)
                         error("dispose()", "The object type is not registered.  Please see one of the AppDomain 'registerClass()/registerType()' functions for more details.", object);
 
-                    var funcList = __disposedObjects[type.$__fullname];
+                    var disposedObjects = __disposedObjects[type.$__fullname];
 
-                    if (!funcList)
-                        __disposedObjects[type.$__fullname] = funcList = [];
+                    if (!disposedObjects)
+                        __disposedObjects[type.$__fullname] = disposedObjects = [];
 
-                    funcList.push(_object);
+                    disposedObjects.push(_object);
                 }
-            } else {
-                for (var i = this._applications.length - 1; i >= 0; --i)
-                    dispose(this._applications[i]);
-                this._applications.length = 0;
-
-                for (var i = this._windows.length - 1; i >= 0; --i)
-                    dispose(this._windows[i]);
-                this._windows.length = 0;
             }
-
-            // ... close all except "self", then close "self" ...
-            for (var i = this._windows.length - 1; i >= 0; --i)
-                if (this._windows[i].target != global)
-                    this._windows[i].close();
-            global.close();
         }
     }
 
@@ -803,8 +853,67 @@ namespace CoreXT { // (the core scope)
         = TFactoryType & IClassFactory & {
             /** This is a reference to the underlying class type for this factory type. */
             $__type: TClass
-        }
+        };
 
+    /** A 'Disposable' base type that implements 'IDisposable', which is the base for all CoreXT objects that can be disposed. */
+    export class Disposable implements IDisposable {
+        /** 
+         * Releases the object back into the object pool. This is the default implementation which simply calls 'Types.dispose(this, release)'.
+         * If overriding, make sure to call 'super.dispose()' or 'Types.dispose()' to complete the disposal process.
+         * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+         *                          false to request that child objects remain connected after disposal (not released). This
+         *                          can allow quick initialization of a group of objects, instead of having to pull each one
+         *                          from the object pool each time.
+         */
+        dispose(release?: boolean): void { Types.dispose(this, release); }
+    }
+
+    /** Returns true if the specified object can be disposed using this CoreXT system. */
+    export function isDisposable(instance: IDisposable) {
+        if (instance.$__corext != CoreXT) return false;
+        return typeof instance.dispose == 'function';
+    }
+
+    /** 
+     * Creates a 'Disposable' type from another base type. This is primarily used to extend primitive types.
+     * Note: These types are NOT instances of 'CoreXT.Disposable', since they must have prototype chains that link to other base types.
+     * @param {boolean} isPrimitiveOrHostBase Set this to true when inheriting from primitive types. This is normally auto-detected, but can be forced in cases
+     * where 'new.target' (ES6) prevents proper inheritance from host system base types that are not primitive types.
+     * This is only valid if compiling your .ts source for ES5 while also enabling support for ES6 environments. 
+     * If you compile your .ts source for ES6 then the 'class' syntax will be used and this value has no affect.
+     */
+    export function DisposableFromBase<TBaseClass extends IType=ObjectConstructor>(baseClass: TBaseClass, isPrimitiveOrHostBase?: boolean) {
+        if (!baseClass) {
+            baseClass = <any>global.Object;
+            isPrimitiveOrHostBase = true;
+        }
+        if (<object>baseClass == Object || <object>baseClass == Array || <object>baseClass == Boolean || <object>baseClass == String
+            || <object>baseClass == Number || <object>baseClass == Symbol || <object>baseClass == Function || <object>baseClass == Date
+            || <object>baseClass == RegExp || <object>baseClass == Error) isPrimitiveOrHostBase = true;
+        var cls = class Disposable extends baseClass implements IDisposable {
+            /**
+            * Don't create objects using the 'new' operator. Use '{NameSpaces...ClassType}.new()' static methods instead.
+            */
+            constructor(...args: any[]) {
+                if (!ES6Targeted && ES6 && isPrimitiveOrHostBase)
+                    eval("var _super = function() { return null; };"); // (ES6 fix for extending built-in types [calling constructor not supported] when compiling for ES5; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
+                super();
+            }
+            /** 
+            * Releases the object back into the object pool. This is the default implementation which simply calls 'Types.dispose(this, release)'.
+            * If overriding, make sure to call 'super.dispose()' or 'Types.dispose()' to complete the disposal process.
+            * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+            *                          false to request that child objects remain connected after disposal (not released). This
+            *                          can allow quick initialization of a group of objects, instead of having to pull each one
+            *                          from the object pool each time.
+            */
+            dispose(release?: boolean): void { }
+        }
+        cls.prototype.dispose = CoreXT.Disposable.prototype.dispose; // (make these functions both the same function reference by default)
+        return cls;
+    }
+
+    /** Constructs factory objects. */
     export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IFactoryTypeInfo, TNamespace extends object>
         (namespace: TNamespace, base: IClassFactory & { $__type: TBaseClass }, getType: (base: TBaseClass) => [TClass, TFactory], exportName?: keyof TNamespace, addMemberTypeInfo = true)
         : ClassFactoryType<TClass, TFactory> {
@@ -829,16 +938,21 @@ namespace CoreXT { // (the core scope)
         return Types.__registerFactoryType(<any>cls, <any>factory, namespace, addMemberTypeInfo, exportName);
     }
 
-    /** Builds and returns a base type to be used with creating factory objects. This function stores some type information in static properties for reference. */
+    /** Builds and returns a base type to be used with creating factory objects that extend from classes. This function stores some type information in static properties for reference. */
     export function FactoryBase<TClass extends IType<object>, TBaseFactory extends IFactoryTypeInfo, TStaticProperties extends keyof TClass>
         (type: TClass, baseFactoryType: TBaseFactory) {
-        return class FactoryBase extends type {
+        return class FactoryBase extends type implements IDisposable {
             /** The underlying type associated with this factory type. */
             static $__type = type;
             //x /** The factory type instance for the underlying type '$__type'. */
             //x static $__factory: IFactory;
             /** The base factory type, if any. */
             static $__baseFactoryType = baseFactoryType;
+
+            /** Set to true when the object is being disposed. By default this is undefined.  This is only set to true when 'dispose()' is first call to prevent cyclical calls. */
+            $__disposing?: boolean;
+            /** Set to true once the object is disposed. By default this is undefined, which means "not disposed".  This is only set to true when disposed, and false when reinitialized. */
+            $__disposed?: boolean;
 
             /** The underlying type. */
             protected static get type() { return this.$__type; }
@@ -847,6 +961,16 @@ namespace CoreXT { // (the core scope)
 
             static 'new'?(...args: any[]): any;
             static init?(o: InstanceType<TClass>, isnew: boolean, ...args: any[]): void;
+
+            /** 
+             * Releases the object back into the object pool. This is the default implementation which simply calls 'Types.dispose(this, release)'.
+             * If overriding, make sure to call 'super.dispose()' or 'Types.dispose()' to complete the disposal process.
+             * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+             *                          false to request that child objects remain connected after disposal (not released). This
+             *                          can allow quick initialization of a group of objects, instead of having to pull each one
+             *                          from the object pool each time.
+             */
+            dispose(release?: boolean): void { Types.dispose(this, release); }
 
             ///** 
             // * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
@@ -892,286 +1016,6 @@ namespace CoreXT { // (the core scope)
     }
 
     registerNamespace("CoreXT", "Types"); // ('CoreXT.Types' will become the first registered namespace)
-
-    // ===================================================================================================================================
-
-    /** Contains diagnostic based functions, such as those needed for logging purposes. */
-    export namespace System.Diagnostics {
-        registerNamespace("CoreXT", "System", "Diagnostics");
-        // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-        export var __logItems: ILogItem[] = [];
-        var __logItemsSequenceCounter = 0;
-        var __logCaptureStack: ILogItem[] = [];
-
-        export enum DebugModes { // TODO: ...
-            /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
-            Release,
-            /** Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. */
-            Debug_Run,
-            /** Run in debug mode, which loads all un-minified scripts, but does NOT run the application automatically.
-              * To start the application process, call 'CoreXT.Scripts.runApp()".
-              */
-            Debug_Wait
-        }
-
-        /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values.
-        */
-        export var debug: DebugModes = DebugModes.Debug_Run;
-
-        /** Returns true if CoreXT is running in debug mode. */
-        export function isDebugging() { return debug != DebugModes.Release; }
-
-        // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-        export var LogItem = ClassFactory(Diagnostics, void 0,
-            (base) => {
-                class LogItem {
-                    /** The parent log item. */
-                    parent: LogItem = null;
-                    /** The sequence count of this log item. */
-                    sequence: number = __logItemsSequenceCounter++; // (to maintain correct ordering, as time is not reliable if log items are added too fast)
-                    /** The title of this log item. */
-                    title: string;
-                    /** The message of this log item. */
-                    message: string;
-                    /** The time of this log item. */
-                    time: number;
-                    /** The type of this log item. */
-                    type: LogTypes;
-                    /** The source of the reason for this log item, if any. */
-                    source: {};
-
-                    subItems: LogItem[];
-
-                    marginIndex: number = void 0;
-
-                    /** Write a message to the log without using a title and return the current log item instance. */
-                    write(message: string, type?: LogTypes, outputToConsole?: boolean): LogItem;
-                    /** Write a message to the log. */
-                    write(message: any, type?: LogTypes, outputToConsole?: boolean): LogItem;
-                    write(message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): LogItem {
-                        var logItem = Diagnostics.LogItem.new(this, null, message, type);
-                        if (!this.subItems)
-                            this.subItems = [];
-                        this.subItems.push(logItem);
-                        return this;
-                    }
-
-                    /** Write a message to the log without using a title and return the new log item instance, which can be used to start a related sub-log. */
-                    log(title: string, message: string, type?: LogTypes, outputToConsole?: boolean): LogItem;
-                    /** Write a message to the log without using a title and return the new log item instance, which can be used to start a related sub-log. */
-                    log(title: any, message: any, type?: LogTypes, outputToConsole?: boolean): LogItem;
-                    log(title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): LogItem {
-                        var logItem = Diagnostics.LogItem.new(this, title, message, type, outputToConsole);
-                        if (!this.subItems)
-                            this.subItems = [];
-                        this.subItems.push(logItem);
-                        return logItem;
-                    }
-
-                    /** Causes all future log writes to be nested under this log entry.
-                    * This is usually called at the start of a block of code, where following function calls may trigger nested log writes. Don't forget to call 'endCapture()' when done.
-                    * The current instance is returned to allow chaining function calls.
-                    * Note: The number of calls to 'endCapture()' must match the number of calls to 'beginCapture()', or an error will occur.
-                    */
-                    beginCapture(): LogItem {
-                        //? if (__logCaptureStack.indexOf(this) < 0)
-                        __logCaptureStack.push(this);
-                        return this;
-                    }
-
-                    /** Undoes the call to 'beginCapture()', activating any previous log item that called 'beginCapture()' before this instance.
-                    * See 'beginCapture()' for more details.
-                    * Note: The number of calls to 'endCapture()' must match the number of calls to 'beginCapture()', or an error will occur.
-                    */
-                    endCapture() {
-                        //var i = __logCaptureStack.lastIndexOf(this);
-                        //if (i >= 0) __logCaptureStack.splice(i, 1);
-                        var item = __logCaptureStack.pop();
-                        if (item != null) throw Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);
-                    }
-
-                    toString(): string {
-                        var time = TimeSpan && TimeSpan.utcTimeToLocalTime(this.time) || null;
-                        var timeStr = time && (time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)) || "" + new Date(this.time).toLocaleTimeString();
-                        var txt = "[" + this.sequence + "] (" + timeStr + ") " + this.title + ": " + this.message;
-                        return txt;
-                    }
-
-                    // ------------------------------------------------------------------------------------------------------------
-
-                    protected static readonly 'LogItemFactory' = class Factory extends FactoryBase(LogItem, null) {
-                        static 'new'(parent: LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): InstanceType<typeof Factory.$__type>;
-                        static 'new'(parent: LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): InstanceType<typeof Factory.$__type> { return null; }
-
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: LogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): void;
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, parent: LogItem, title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true) {
-                            if (title === void 0 || title === null) {
-                                if (isEmpty(message))
-                                    error("LogItem()", "A message is required if no title is given.", o);
-                                title = "";
-                            }
-                            else if (typeof title != 'string')
-                                if ((<ITypeInfo>title).$__fullname)
-                                    title = (<ITypeInfo>title).$__fullname;
-                                else
-                                    title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
-
-                            if (message === void 0 || message === null)
-                                message = "";
-                            else
-                                message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
-
-                            o.parent = parent;
-                            o.title = title;
-                            o.message = message;
-                            o.time = Date.now(); /*ms*/
-                            o.type = type;
-
-                            if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
-                                var _title = title, margin = ""; // (modify a copy so we can continue to pass along the unaltered title text)
-                                if (_title.charAt(title.length - 1) != ":") _title += ": "; else _title += " ";
-                                while (parent) { parent = parent.parent; margin += "  "; }
-                                if (TimeSpan) {
-                                    var time = TimeSpan.utcTimeToLocalTime(o.time);
-                                    var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                        + " " + margin + _title + o.message;
-                                }
-                                else consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
-                                CoreXT.log(null, consoleText, type, void 0, false, false);
-                            }
-                        }
-                    };
-
-                    // ------------------------------------------------------------------------------------------------------------
-                }
-
-                return [LogItem, LogItem["LogItemFactory"]];
-            }
-        );
-
-        export interface ILogItem extends InstanceType<typeof LogItem.$__type> { }
-
-        // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-        /** Starts a new diagnostics-based log entry. */
-        export function log(title: string, message: string, type?: LogTypes, outputToConsole?: boolean): ILogItem;
-        /** Starts a new diagnostics-based log entry. */
-        export function log(title: any, message: any, type?: LogTypes, outputToConsole?: boolean): ILogItem;
-        export function log(title: any, message: any, type: LogTypes = LogTypes.Normal, outputToConsole = true): ILogItem {
-            if (__logCaptureStack.length) {
-                var capturedLogItem = __logCaptureStack[__logCaptureStack.length - 1];
-                var lastLogEntry = capturedLogItem.subItems && capturedLogItem.subItems.length && capturedLogItem.subItems[capturedLogItem.subItems.length - 1];
-                if (lastLogEntry)
-                    return lastLogEntry.log(title, message, type, outputToConsole);
-                else
-                    return capturedLogItem.log(title, message, type, outputToConsole); //capturedLogItem.log("", "");
-            }
-            var logItem = LogItem.new(null, title, message, type);
-            __logItems.push(logItem);
-            return logItem;
-        }
-
-        export function getLogAsHTML(): string {
-            var i: number, n: number;
-            var orderedLogItems: ILogItem[] = [];
-            var item: ILogItem;
-            var logHTML = "<div>\r\n", cssClass = "", title: string, icon: string,
-                rowHTML: string, titleHTML: string, messageHTML: string, marginHTML: string = "";
-            var logItem: ILogItem, lookAheadLogItem: ILogItem;
-            var time: ITimeSpan;
-            var cssAndIcon: { cssClass: string; icon: string; };
-            var margins: string[] = [""];
-            var currentMarginIndex: number = 0;
-
-            function cssAndIconFromLogType_text(type: LogTypes): { cssClass: string; icon: string; } {
-                var cssClass, icon;
-                switch (type) {
-                    case LogTypes.Success: cssClass = "text-success"; icon = "&#x221A;"; break;
-                    case LogTypes.Info: cssClass = "text-info"; icon = "&#x263C;"; break;
-                    case LogTypes.Warning: cssClass = "text-warning"; icon = "&#x25B2;"; break;
-                    case LogTypes.Error: cssClass = "text-danger"; icon = "<b>(!)</b>"; break;
-                    default: cssClass = ""; icon = "";
-                }
-                return { cssClass: cssClass, icon: icon };
-            }
-            function reorganizeEventsBySequence(logItems: ILogItem[]) {
-                var i: number, n: number;
-                for (i = 0, n = logItems.length; i < n; ++i) {
-                    logItem = logItems[i];
-                    logItem.marginIndex = void 0;
-                    orderedLogItems[logItem.sequence] = logItem;
-                    if (logItem.subItems && logItem.subItems.length)
-                        reorganizeEventsBySequence(logItem.subItems);
-                }
-            }
-            function setMarginIndexes(logItem: ILogItem, marginIndex: number = 0) {
-                var i: number, n: number;
-
-                if (marginIndex && !margins[marginIndex])
-                    margins[marginIndex] = margins[marginIndex - 1] + "&nbsp;&nbsp;&nbsp;&nbsp;";
-
-                logItem.marginIndex = marginIndex;
-
-                // ... reserve the margins needed for the child items ...
-                if (logItem.subItems && logItem.subItems.length) {
-                    for (i = 0, n = logItem.subItems.length; i < n; ++i)
-                        setMarginIndexes(logItem.subItems[i], marginIndex + 1);
-                }
-            }
-
-            // ... reorganize the events by sequence ...
-
-            reorganizeEventsBySequence(__logItems);
-
-            // ... format the log ...
-
-            for (i = 0, n = orderedLogItems.length; i < n; ++i) {
-                logItem = orderedLogItems[i];
-                if (!logItem) continue;
-                rowHTML = "";
-
-                if (logItem.marginIndex === void 0)
-                    setMarginIndexes(logItem);
-
-                marginHTML = margins[logItem.marginIndex];
-
-                cssAndIcon = cssAndIconFromLogType_text(logItem.type);
-                if (cssAndIcon.icon) cssAndIcon.icon += "&nbsp;";
-                if (cssAndIcon.cssClass)
-                    messageHTML = cssAndIcon.icon + "<strong>" + String.replace(logItem.message, "\r\n", "<br />\r\n") + "</strong>";
-                else
-                    messageHTML = cssAndIcon.icon + logItem.message;
-
-                if (logItem.title)
-                    titleHTML = logItem.title + ": ";
-                else
-                    titleHTML = "";
-
-                time = TimeSpan.utcTimeToLocalTime(logItem.time);
-
-                rowHTML = "<div class='" + cssAndIcon.cssClass + "'>"
-                    + time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds) + "&nbsp;"
-                    + marginHTML + titleHTML + messageHTML + "</div>" + rowHTML + "\r\n";
-
-                logHTML += rowHTML + "</ br>\r\n";
-            }
-
-            logHTML += "</div>\r\n";
-
-            return logHTML;
-        }
-
-        export function getLogAsText(): string {
-            //??var logText = "";
-            //??for (var i = 0, n = __logItems.length; i < n; ++i)
-            //??    logText += String.replaceTags(__logItems[i].title) + ": " + String.replaceTags(__logItems[i].message) + "\r\n";
-            return String.replaceTags(String.replace(getLogAsHTML(), "&nbsp;", " "));
-        }
-
-        // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-    }
 
     // ========================================================================================================================================
 
@@ -1301,196 +1145,9 @@ namespace CoreXT { // (the core scope)
     /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
     export namespace System {
         registerNamespace("CoreXT", "System");
-        // ===================================================================================================================================
-
-        /** 
-         * The Exception object is used to record information about errors that occur in an application.
-         * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.
-         */
-        export var Exception = ClassFactory(System, void 0,
-            (base) => {
-                class Exception extends Error {
-
-                    source: object;
-
-                    // ----------------------------------------------------------------------------------------------------------------
-
-                    /** Returns the error message for this exception instance. */
-                    toString() { return this.message; }
-                    valueOf() { return this.message; }
-
-                    /** Returns the current call stack. */
-                    static printStackTrace(): string[] { // TODO: Review: http://www.eriwen.com/javascript/stacktrace-update/
-                        var callstack: string[] = [];
-                        var isCallstackPopulated = false;
-                        try {
-                            throw "";
-                        } catch (e) {
-                            if (e.stack) { //Firefox
-                                var lines = e.stack.split('\n');
-                                for (var i = 0, len = lines.length; i < len; ++i) {
-                                    if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                        callstack.push(lines[i]);
-                                    }
-                                }
-                                //Remove call to printStackTrace()
-                                callstack.shift();
-                                isCallstackPopulated = true;
-                            }
-                            else if (global["opera"] && e.message) { //Opera
-                                var lines = e.message.split('\n');
-                                for (var i = 0, len = lines.length; i < len; ++i) {
-                                    if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
-                                        var entry = lines[i];
-                                        //Append next line also since it has the file info
-                                        if (lines[i + 1]) {
-                                            entry += ' at ' + lines[i + 1];
-                                            i++;
-                                        }
-                                        callstack.push(entry);
-                                    }
-                                }
-                                //Remove call to printStackTrace()
-                                callstack.shift();
-                                isCallstackPopulated = true;
-                            }
-                        }
-                        if (!isCallstackPopulated) { //IE and Safari
-                            var currentFunction = arguments.callee.caller;
-                            while (currentFunction) {
-                                var fn = currentFunction.toString();
-                                var fname = fn.substring(fn.indexOf("function") + 8, fn.indexOf('')) || 'anonymous';
-                                callstack.push(fname);
-                                currentFunction = currentFunction.caller;
-                            }
-                        }
-                        return callstack;
-                    }
-
-                    /** Generates an exception object from a log item. This allows logging errors separately, then building exceptions from them after.
-                    * Usage example: "throw System.Exception.from(logItem, this);" (see also: 'System.Diagnostics.log()')
-                    * @param {Diagnostics.LogItem} logItem A log item entry to use as the error source.
-                    * @param {object} source The object that is the source of the error, or related to it.
-                    */
-                    static from(logItem: System.Diagnostics.ILogItem, source?: object): Exception;
-                    /** Generates an exception object from a simple string message.
-                        * Note: This is different from 'error()' in that logging is more implicit (there is no 'title' parameter, and the log title defaults to "Exception").
-                        * Usage example: "throw System.Exception.from("Error message.", this);"
-                        * @param {string} message The error message.
-                        * @param {object} source The object that is the source of the error, or related to it.
-                        */
-                    static from(message: string, source?: object): Exception;
-                    static from(message: any, source: object = null): Exception {
-                        // (support LogItem objects natively as the exception message source)
-                        var createLog = true;
-                        if (typeof message == 'object' && ((<Diagnostics.ILogItem>message).title || (<Diagnostics.ILogItem>message).message)) {
-                            createLog = false; // (this is from a log item, so don't log a second time)
-                            if (source != void 0)
-                                (<Diagnostics.ILogItem>message).source = source;
-                            source = message;
-                            message = "";
-                            if ((<Diagnostics.ILogItem>source).title)
-                                message += (<Diagnostics.ILogItem>source).title;
-                            if ((<Diagnostics.ILogItem>source).message) {
-                                if (message) message += ": ";
-                                message += (<Diagnostics.ILogItem>source).message;
-                            }
-                        }
-                        //var callerFunction = System.Exception.from.caller;
-                        //var callerFunctionInfo = <ITypeInfo><any>callerFunction;
-                        //var callerName = getFullTypeName(callerFunctionInfo) || "/*anonymous*/";
-                        ////var srcName = callerFunction.substring(callerFunction.indexOf("function"), callerFunction.indexOf("("));
-                        //var args = callerFunction.arguments;
-                        //var _args = args && args.length > 0 ? global.Array.prototype.join.call(args, ', ') : "";
-                        //var callerSignature = (callerName ? "[" + callerName + "(" + _args + ")]" : "");
-                        //message += (callerSignature ? callerSignature + ": " : "") + message + "\r\n\r\n";
-                        var caller = this.from.caller;
-                        while (caller && (caller == System.Exception.error || caller == System.Exception.notImplemented || caller == CoreXT.log || caller == CoreXT.error
-                            || typeof (<ITypeInfo>caller).$__fullname == 'string' && (<ITypeInfo>caller).$__fullname.substr(0, 17) == "System.Exception.")) // TODO: Create "inheritsFrom()" or similar methods.
-                            caller = caller.caller; // (skip the proxy functions that call this function)
-                        if (caller) {
-                            message += "\r\n\r\nStack:\r\n\r\n";
-                            var stackMsg = "";
-                            while (caller) {
-                                var callerName = getFullTypeName(caller) || "/*anonymous*/";
-                                var args = caller.arguments;
-                                var _args = args && args.length > 0 ? global.Array.prototype.join.call(args, ', ') : "";
-                                if (stackMsg) stackMsg += "called from ";
-                                stackMsg += callerName + "(" + _args + ")\r\n\r\n";
-                                caller = caller.caller != caller ? caller.caller : null; // (make sure not to fall into an infinite loop)
-                            }
-                            message += stackMsg;
-                        }
-                        return System.Exception.new(message, source, createLog);
-                    }
-
-                    /** Logs an error with a title and message, and returns an associated 'Exception' object for the caller to throw.
-                        * The source of the exception object will be associated with the 'LogItem' object (if 'System.Diagnostics' is loaded).
-                        */
-                    static error(title: string, message: string, source?: object): Exception {
-                        if (System.Diagnostics && System.Diagnostics.log) {
-                            var logItem = System.Diagnostics.log(title, message, LogTypes.Error);
-                            return Exception.from(logItem, source);
-                        }
-                        else return Exception.from(error(title, message, source, false, false), source);
-                    }
-
-                    /** Logs a "Not Implemented" error message with an optional title, and returns an associated 'Exception' object for the caller to throw.
-                        * The source of the exception object will be associated with the 'LogItem' object.
-                        * This function is typically used with non-implemented functions in abstract types.
-                        */
-                    static notImplemented(functionNameOrTitle: string, source?: object, message?: string): Exception {
-                        var msg = "The function is not implemented." + (message ? " " + message : "");
-                        if (System.Diagnostics && System.Diagnostics.log) {
-                            var logItem = System.Diagnostics.log(functionNameOrTitle, msg, LogTypes.Error);
-                            return Exception.from(logItem, source);
-                        }
-                        else return Exception.from(error(functionNameOrTitle, msg, source, false, false), source);
-                    }
-
-                    // -------------------------------------------------------------------------------------------------------------------
-
-                    /**
-                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
-                       */
-                    constructor() {
-                        if (!ES6)
-                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
-                        super();
-                    }
-
-                    // -------------------------------------------------------------------------------------------------------------------
-
-                    protected static readonly 'ExceptionFactory' = class Factory extends FactoryBase(Exception, null) {
-                        /** Records information about errors that occur in the application.
-                            * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.
-                            * @param {string} message The error message.
-                            * @param {object} source An object that is associated with the message, or null.
-                            * @param {boolean} log True to automatically create a corresponding log entry (default), or false to skip.
-                            */
-                        static 'new'(message: string, source: object, log?: boolean): InstanceType<typeof Factory.$__type> { return null; }
-
-                        /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, message: string, source: object, log?: boolean) {
-                            o.message = message;
-                            o.source = source;
-                            o.stack = (new Error()).stack;
-                            if (log || log === void 0) Diagnostics.log("Exception", message, LogTypes.Error);
-                        }
-                    };
-
-                    // -------------------------------------------------------------------------------------------------------------------------------
-                }
-                return [Exception, Exception["ExceptionFactory"]];
-            }
-        );
-
-        export interface IException extends InstanceType<typeof Exception.$__type> { }
-
-        // ===================================================================================================================================
     }
 
-    // At this point the core type system, exception objects, and logging are now available.
+    // *** At this point the core type system, error handling, and console-based logging are now available. ***
 
     // ========================================================================================================================================
 
@@ -1502,6 +1159,21 @@ namespace CoreXT { // (the core scope)
     export namespace Loader {
         registerNamespace("CoreXT", "Loader");
         // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+        export interface ISystemLoadedHandler { (): void }
+        var _onSystemLoadedHandlers: ISystemLoadedHandler[] = [];
+
+        /** 
+         * Use this function to register a handler to be called when the core system is loaded, just before 'app.manifest.ts' gets loaded.
+         * Note: The PROPER way to load an application is via a manifest file (app.manifest.ts).  Very few functions and event hooks are available
+         * until the system is fully loaded. For example, 'CoreXT.DOM.Loader' is not available until the system is loaded, which means you
+         * cannot hook into 'CoreXT.DOM.Loader.onDOMLoaded()' or access 'CoreXT.Browser' properties until then. This is because all files
+         * are dynamically loaded as needed (the CoreXT system uses the more efficient dynamic loading system).
+         */
+        export function onSystemLoaded(handler: ISystemLoadedHandler) {
+            if (handler && typeof handler == 'function')
+                _onSystemLoadedHandlers.push(handler);
+        }
 
         // ... polyfill some XHR 'readyState' constants ...
 
@@ -1708,11 +1380,34 @@ namespace CoreXT { // (the core scope)
                     /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
                     messageLog: string[] = [];
 
-                    /** If true (default), them this request is non-blocking, otherwise the calling script will be blocked until the request
-                      * completes loading.  Please note that no progress callbacks can occur during blocked operations (since the thread is
-                      * effectively 'paused' in this scenario).
-                      */
+                    /** 
+                     * If true (default), them this request is non-blocking, otherwise the calling script will be blocked until the request
+                     * completes loading.  Please note that no progress callbacks can occur during blocked operations (since the thread is
+                     * effectively 'paused' in this scenario).
+                     * Note: Depreciated: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests#Synchronous_request
+                     * "Starting with Gecko 30.0 (Firefox 30.0 / Thunderbird 30.0 / SeaMonkey 2.27), Blink 39.0, and Edge 13, synchronous requests on the main thread have been deprecated due to the negative effects to the user experience."
+                     */
                     async: boolean;
+
+                    /** 
+                     * If true (the default) then a '"_="+Date.now()' query item is added to make sure the browser never uses
+                     * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+                     * Note: CoreXT has its own caching that uses the local storage, where supported.
+                     */
+                    cacheBusting = ResourceRequest.cacheBusting;
+
+                    /** 
+                     * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
+                     * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+                     * Each resource request instance can also have its own value set separate from the global one.
+                     * Note: CoreXT has its own caching that uses the local storage, where supported.
+                     */
+                    static cacheBusting = true;
+
+                    /** See the 'cacheBusting' property. */
+                    cacheBustingVar = ResourceRequest.cacheBustingVar;
+                    /** See the 'cacheBusting' property. */
+                    static cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
 
                     private _onProgress: ICallback<ResourceRequest>[];
                     private _onReady: ICallback<ResourceRequest>[]; // ('onReady' is triggered in order of request made, and only when all included dependencies have completed successfully)
@@ -1857,14 +1552,21 @@ namespace CoreXT { // (the core scope)
 
                             // ... this request has not been started yet; attempt to load the resource ...
                             // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
+                            //    (ignore the local caching if in debug or the versions are different)
 
                             if (System.Diagnostics && !System.Diagnostics.isDebugging() && typeof Storage !== void 0)
                                 try {
-                                    this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
-                                    if (this.data !== null && this.data !== void 0) {
-                                        this.status = RequestStatuses.Loaded;
-                                        this._doNext();
-                                        return;
+                                    var currentAppVersion = getAppVersion();
+                                    var versionInLocalStorage = localStorage.getItem("version");
+                                    var appVersionInLocalStorage = localStorage.getItem("appVersion");
+                                    if (versionInLocalStorage && appVersionInLocalStorage && version == versionInLocalStorage && currentAppVersion == appVersionInLocalStorage) {
+                                        // ... all versions match, just pull from local storage (faster) ...
+                                        this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
+                                        if (this.data !== null && this.data !== void 0) {
+                                            this.status = RequestStatuses.Loaded;
+                                            this._doNext();
+                                            return;
+                                        }
                                     }
                                 } catch (e) {
                                     // ... not supported? ...
@@ -1899,6 +1601,8 @@ namespace CoreXT { // (the core scope)
                                         else {
                                             if (typeof Storage !== void 0)
                                                 try {
+                                                    localStorage.setItem("version", version);
+                                                    localStorage.setItem("appVersion", getAppVersion());
                                                     localStorage.setItem("resource:" + this.url, this.data);
                                                     this.message = "Resource '" + this.url + "' loaded from local storage.";
                                                 } catch (e) {
@@ -1949,17 +1653,23 @@ namespace CoreXT { // (the core scope)
                         var url = this.url;
 
                         try {
+                            // ... check if we need to bust the cache ...
+                            if (this.cacheBusting) {
+                                var bustVar = this.cacheBustingVar || "_v_";
+                                if (bustVar.indexOf(" ") >= 0) log("start()", "There is a space character in the cache busting query name for resource '" + url + "'.", LogTypes.Warning);
+                            }
+
                             xhr.open("get", url, this.async);
                         }
                         catch (ex) {
-                            error("get()", "Failed to load resource from URL '" + url + "': " + ((<Error>ex).message || ex), this);
+                            error("start()", "Failed to load resource from URL '" + url + "': " + ((<Error>ex).message || ex), this);
                         }
 
                         try {
                             xhr.send();
                         }
                         catch (ex) {
-                            error("get()", "Failed to send request to endpoint for URL '" + url + "': " + ((<Error>ex).message || ex), this);
+                            error("start()", "Failed to send request to endpoint for URL '" + url + "': " + ((<Error>ex).message || ex), this);
                         }
 
                         //?if (!this.async && (xhr.status)) doSuccess();
@@ -2095,7 +1805,7 @@ namespace CoreXT { // (the core scope)
                             } else // ...need to determine if all parent (dependent) resources are completed first ...
                                 if (this._parentCompletedCount == this._parentRequests.length) {
                                     this.status = RequestStatuses.Ready; // (all parent resource dependencies are now 'ready')
-                                    this.message = "All dependencies for resource '" + this.url + "' have loaded, and are now ready.";
+                                    this.message = "*** All dependencies for resource '" + this.url + "' have loaded, and are now ready. ***";
                                 } else {
                                     this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
                                     return; // (nothing more to do yet)
@@ -2288,23 +1998,27 @@ namespace CoreXT { // (the core scope)
             var onReady = _SystemScript_onReady_Handler;
 
             // ... load the base scripts first (all of these are not modules, so they have to be loaded in the correct order) ...
-            get("~/CoreXT.Utilities.js").ready(onReady) // (a lot of items depend on time [such as some utilities and logging] so this needs to be loaded first)
+            get("~/CoreXT.Polyfills.js").ready(onReady) // (in case some polyfills are needed after this point)
+                .include(get("~/CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
                 .include(get("~/CoreXT.Globals.js")).ready(onReady)
-                .include(get("~/System/CoreXT.System.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
-                .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
-                .include(get("~/CoreXT.Browser.js")).ready(onReady) // (in case some polyfills are needed after this point)
-                .include(get("~/CoreXT.Scripts.js").ready(onReady))
+                .include(get("~/CoreXT.Scripts.js").ready(onReady)) // (supports CoreXT-based module loading)
                 // ... load the rest of the core system next ...
-                .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
+                .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
+                .include(get("~/System/CoreXT.System.Time.js")).ready(onReady) // (extends the time utilities and constants into a TimeSpan wrapper)
+                .include(get("~/System/CoreXT.System.Exception.js").ready(onReady)) // (setup exception support)
+                .include(get("~/System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
+                .include(get("~/System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
+                .include(get("~/CoreXT.Browser.js")).ready(onReady) // (uses the event system)
+                .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady)) // (uses events)
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Diagnostics.js").ready(onReady))
-                .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.IO.js").ready(onReady)) // (adds URL query handling and navigation [requires 'Events.EventDispatcher'])
+                .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady)) // (holds the default app domain and default application)
                 .ready(() => {
+                    if (_onSystemLoadedHandlers && _onSystemLoadedHandlers.length)
+                        for (var i = 0, n = _onSystemLoadedHandlers.length; i < n; ++i)
+                            _onSystemLoadedHandlers[i]();
                     // ... all core system scripts loaded, load the default manifests next ...
                     Scripts.getManifest() // (load the default manifest in the current path [defaults to 'manifest.js'])
                         .include(Scripts.getManifest("~/app.manifest")) // (load a custom named manifest; application launching begins here)

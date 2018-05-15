@@ -9,9 +9,22 @@ namespace CoreXT {
     /** Provides a mechanism for object cleanup.
     * See also: 'dispose(...)' helper functions. */
     export interface IDisposable {
+        /** Set to true when the object is being disposed. By default this is undefined.  This is only set to true when 'dispose()' is first call to prevent cyclical calls. */
+        $__disposing?: boolean;
         /** Set to true once the object is disposed. By default this is undefined, which means "not disposed".  This is only set to true when disposed, and false when reinitialized. */
         $__disposed?: boolean;
-        /** Release the object back into the object pool. */
+        /** 
+         * Returns a reference to the CoreXT system that created the object.  This is set automatically when creating instances from factories.
+         * Note: Setting this to null/undefined will prevent an instance from being disposable.
+         */
+        $__corext?: {};
+        /** 
+        * Releases the object back into the object pool. 
+        * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+        *                          false to request that child objects remain connected after disposal (not released). This
+        *                          can allow quick initialization of a group of objects, instead of having to pull each one
+        *                          from the object pool each time.
+        */
         dispose(release?: boolean): void;
     }
 
@@ -39,22 +52,36 @@ namespace CoreXT {
         /** A reference to the application domain that this object belongs to. */
         $__appDomain?: System.IAppDomain;
 
-        /** The Application that this object instance belongs to. By default, this is always the current global application. In special cases, this may
-           * refer to objects created do to communications with a child application.  When a child app closes, the related local objects will become
-           * disposed as well.
-           */
+        /** 
+         * The Application that this object instance belongs to. By default, this is always the current global application. In special cases, this may
+         * refer to objects created do to communications with a child application.  When a child app closes, the related local objects will become
+         * disposed as well.
+         */
         $__app?: System.IApplication;
 
-        /** The ID of this object, which is useful for synchronizing across networks (among other things).
-           * Internally, all objects have a numbered ID, which is unique across the entire client/server side environment for a
-           * single application domain.
-           */
+        /** 
+         * The ID of this object, which is only useful for tracking objects within the local CoreXT client.
+         * If setting this yourself, call 'Types.getNextObjectId()' for the next valid value.
+         */
         $__id?: number; // (value is set and maintained by a Collections.IndexedObjectCollcetion instance; see 'CoreXT.objects' [static collection])
 
-        /** Used by the system (when calling 'Type.new(...)') to initialize/reinitialize a new/disposed object. */
-        init<T extends object>(...args: any[]): T;
-    }
+        /** 
+          * The ID of this object within an application domain instance, if used, otherwise this is undefined.
+          */
+        $__appDomainId?: number; // (value is set and maintained by a Collections.IndexedObjectCollcetion instance; see 'CoreXT.objects' [static collection])
 
+        /**
+         * The globally unique ID (GUID) of this object, which is useful for synchronizing across networks (among other things).
+         * Internally, all objects have a numbered ID in '$__id', which is unique only within the local client. If a '$__globalId' ID exists, 
+         * it is trackable across the entire client/server side environment.  This is set usually by calling 'Utilities.createGUID()'.
+         * Note: This value is only set automatically for tracked objects. If objects are not tracked by default you have to set this yourself.
+         */
+        $__globalId?: string; // (value is set and maintained by a Collections.IndexedObjectCollcetion instance; see 'CoreXT.objects' [static collection])
+
+        ///** Used by the system (when calling 'Type.new(...)') to initialize/reinitialize a new/disposed object. */
+        //x init<T extends object>(...args: any[]): T;
+    }
+    
     export interface IType<TInstance = object> {
         new(...args: any[]): TInstance;
     }

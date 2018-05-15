@@ -1,257 +1,5 @@
-Array.prototype.last = function () { return this[this.length - 1]; };
-Array.prototype.first = function () { return this[0]; };
-Array.prototype.append = function (items) { this.push.apply(this, items); return this; };
-Array.prototype.select = function (func) { if (!func)
-    return this; var _ = [], __; for (var i = 0; i < this.length; ++i)
-    _[i] = func(this[i]); return _; };
-Array.prototype.where = function (func) { if (!func)
-    return this; var _ = [], __; for (var i = 0; i < this.length; ++i)
-    if (func(__ = this[i]))
-        _.push(__); return _; };
-if (typeof window !== 'undefined') {
-    window.onerror = function (eventOrMessage, source, fileno) {
-        CoreXT.System.Diagnostics.log("window.onerror", eventOrMessage + " in '" + source + "' on line " + fileno + ".", CoreXT.LogTypes.Error);
-        document.body.style.display = "";
-        if (typeof eventOrMessage !== 'string')
-            eventOrMessage = "" + eventOrMessage;
-        var msgElement = document.createElement("div");
-        msgElement.innerHTML = "<button type='button' class='close' data-dismiss='alert'>&times;</button><strong>"
-            + eventOrMessage.replace(/\r\n/g, "<br/>\r\n") + "<br/>\r\nError source: '" + source + "' on line " + fileno + "<br/>\r\n</strong>\r\n";
-        msgElement.className = "alert alert-danger";
-        document.body.appendChild(msgElement);
-    };
-    document.onkeypress = document.onkeydown = function (e) {
-        var keyCode;
-        var evt = e ? e : window.event;
-        if (evt.type == "keydown") {
-            keyCode = evt.keyCode;
-        }
-        else {
-            keyCode = evt.charCode ? evt.charCode : evt.keyCode;
-        }
-        if (keyCode == 192 && evt.ctrlKey && CoreXT.System.Diagnostics.debug) {
-            var body = document.getElementById("main");
-            if (body)
-                body.style.display = "";
-            var headerDiv = document.createElement("h1");
-            headerDiv.innerHTML = "<h1><a name='__dslog__' id='__dslog__'>CoreXT Log:</a></h1>\r\n";
-            var div = document.createElement("div");
-            div.innerHTML = CoreXT.System.Diagnostics.getLogAsHTML();
-            document.body.appendChild(headerDiv);
-            document.body.appendChild(div);
-            headerDiv.onclick = function () { alert("CoreXT Log: \r\n" + CoreXT.System.Diagnostics.getLogAsText()); };
-            location.hash = "#__dslog__";
-        }
-    };
-}
 var CoreXT;
 (function (CoreXT) {
-    var Pollyfills;
-    (function (Pollyfills) {
-        var window = CoreXT.global;
-        var String = CoreXT.global.String;
-        var Array = CoreXT.global.Array;
-        var RegExp = CoreXT.global.RegExp;
-        if (!String.prototype.trim) {
-            String.prototype.trim = function () {
-                if (!this)
-                    throw new TypeError("'trim()' requires an object instance.");
-                return this.replace(/^\s+|\s+$/g, '');
-            };
-        }
-        if (!document.head)
-            document.head = document.getElementsByTagName('head')[0] || {
-                title: "", tagName: "HEAD", firstChild: null, lastChild: null, previousSibling: null, nextSibling: null, previousElementSibling: null, nextElementSibling: null, childNodes: [], children: []
-            };
-        if (!Date.now) {
-            Date.now = function now() {
-                return new Date().getTime();
-            };
-        }
-        if (":".split(/:/g).length == 0) {
-            String.prototype['$__CoreXT_oldsplit'] = String.prototype.split;
-            String.prototype.split = function (separator, limit, delimiterList) {
-                var delimiters, nonDelimiters;
-                if (!this)
-                    throw new TypeError("'split()' requires an object instance.");
-                if (delimiterList)
-                    delimiters = delimiterList;
-                else if (!(separator instanceof RegExp))
-                    return String.prototype['$__CoreXT_oldsplit'](separator, limit);
-                else
-                    delimiters = this.match(separator);
-                nonDelimiters = [];
-                var i, n, delimiter, startdi = 0, enddi = 0;
-                if (delimiters) {
-                    for (i = 0, n = delimiters.length; i < n; ++i) {
-                        delimiter = delimiters[i];
-                        enddi = this.indexOf(delimiter, startdi);
-                        if (enddi == startdi)
-                            nonDelimiters.push("");
-                        else
-                            nonDelimiters.push(this.substring(startdi, enddi));
-                        startdi = enddi + delimiter.length;
-                    }
-                    if (startdi < this.length)
-                        nonDelimiters.push(this.substring(startdi, this.length));
-                    else
-                        nonDelimiters.push("");
-                }
-                return nonDelimiters;
-            };
-        }
-        if (!Array.prototype.indexOf)
-            Array.prototype['indexOf'] = function (searchElement, fromIndex) {
-                if (!this)
-                    throw new TypeError("'indexOf()' requires an object instance.");
-                var i, length = this.length;
-                if (!length)
-                    return -1;
-                if (typeof fromIndex === 'undefined')
-                    fromIndex = 0;
-                else {
-                    fromIndex = +fromIndex;
-                    if (isNaN(fromIndex))
-                        return -1;
-                    if (fromIndex >= length)
-                        fromIndex = length - 1;
-                }
-                if (fromIndex >= length)
-                    return -1;
-                if (fromIndex < 0)
-                    fromIndex += length;
-                for (i = fromIndex; i < length; ++i)
-                    if (this[i] === searchElement)
-                        return i;
-                return -1;
-            };
-        if (!Array.prototype.lastIndexOf)
-            Array.prototype['lastIndexOf'] = function (searchElement, fromIndex) {
-                if (!this)
-                    throw new TypeError("'lastIndexOf()' requires an object instance.");
-                var i, length = this.length;
-                if (!length)
-                    return -1;
-                if (typeof fromIndex == 'undefined')
-                    fromIndex = length - 1;
-                else {
-                    fromIndex = +fromIndex;
-                    if (isNaN(fromIndex))
-                        return -1;
-                    if (fromIndex >= length)
-                        fromIndex = length - 1;
-                }
-                if (fromIndex < 0)
-                    fromIndex += length;
-                for (i = fromIndex; i >= 0; --i)
-                    if (this[i] === searchElement)
-                        return i;
-                return -1;
-            };
-        if (typeof window.location !== 'undefined' && !window.location.origin)
-            window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-        if (typeof Element !== 'undefined' && !("classList" in document.createElement("_"))) {
-            (function () {
-                var names = null;
-                Element.prototype['classList'] = {
-                    contains: function (name) {
-                        if (!names) {
-                            names = this.className.split(' ');
-                            var namesUpdated = true;
-                        }
-                        var exists = names.indexOf(name) >= 0;
-                        if (namesUpdated)
-                            names = null;
-                        return exists;
-                    },
-                    add: function (name) {
-                        if (!names) {
-                            names = this.className.split(' ');
-                            var namesUpdated = true;
-                        }
-                        if (names.indexOf(name) < 0)
-                            this.className += ' ' + name;
-                        if (namesUpdated)
-                            names = null;
-                    },
-                    remove: function (name) {
-                        if (!names) {
-                            names = this.className.split(' ');
-                            var namesUpdated = true;
-                        }
-                        var i = names.indexOf(name);
-                        if (i >= 0) {
-                            names.splice(i);
-                            this.className = names.join(' ');
-                        }
-                        if (namesUpdated)
-                            names = null;
-                    },
-                    toggle: function (name, force) {
-                        if (!names) {
-                            names = this.className.split(' ');
-                            var namesUpdated = true;
-                        }
-                        var exists = this.contains(name);
-                        if (typeof force === 'undefined')
-                            force = !exists;
-                        if (exists) {
-                            if (!force)
-                                this.remove(name);
-                        }
-                        else {
-                            if (force)
-                                this.add(name);
-                        }
-                        if (namesUpdated)
-                            names = null;
-                        return !exists;
-                    },
-                    toString: function () {
-                        return this.className;
-                    }
-                };
-            })();
-        }
-        ;
-        if (typeof Object.create != 'function') {
-            (function () {
-                var _ = function () { };
-                Object.create = function (proto, propertiesObject) {
-                    if (propertiesObject !== void 0) {
-                        throw Error("'propertiesObject' parameter not supported.");
-                    }
-                    if (proto === null) {
-                        throw Error("'proto' [prototype] parameter cannot be null.");
-                    }
-                    if (typeof proto != 'object') {
-                        throw TypeError("'proto' [prototype] must be an object.");
-                    }
-                    _.prototype = proto;
-                    return new _();
-                };
-            })();
-        }
-        if (typeof Array.isArray != 'function')
-            Array.isArray = function (arg) { return typeof arg == 'object' && arg instanceof Array; };
-        if (!Function.prototype.bind) {
-            Function.prototype.bind = function (oThis) {
-                if (typeof this !== 'function') {
-                    throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-                }
-                var aArgs = Array.prototype.slice.call(arguments, 1), fToBind = this, fNOP = function () { }, fBound = function () {
-                    return fToBind.apply(this instanceof fNOP
-                        ? this
-                        : oThis, aArgs.concat(Array.prototype.slice.call(arguments)));
-                };
-                if (this.prototype) {
-                    fNOP.prototype = this.prototype;
-                }
-                fBound.prototype = new fNOP();
-                return fBound;
-            };
-        }
-    })(Pollyfills || (Pollyfills = {}));
     var Browser;
     (function (Browser) {
         var BrowserTypes;
@@ -442,100 +190,97 @@ var CoreXT;
 (function (CoreXT) {
     var DOM;
     (function (DOM) {
-        var Loader;
-        (function (Loader) {
-            Loader.onDOMLoaded = CoreXT.System.Events.EventDispatcher.new(Loader, "onDOMLoaded", true);
-            var _domLoaded = false;
-            function isDOMReady() { return _domLoaded; }
-            Loader.isDOMReady = isDOMReady;
-            var _domReady = false;
-            var _pageLoaded = false;
-            Loader.onPageLoaded = CoreXT.System.Events.EventDispatcher.new(Loader, "onPageLoaded", true);
-            function onReady() {
-                var log = CoreXT.System.Diagnostics.log("DOM Loading", "Page loading completed; DOM is ready.").beginCapture();
-                log.write("Dispatching DOM 'onReady event ...", CoreXT.LogTypes.Info);
-                CoreXT.Browser.onReady.autoTrigger = true;
-                CoreXT.Browser.onReady.dispatchEvent();
-                log.write("'CoreXT.DOM.Loader' completed.", CoreXT.LogTypes.Success);
+        DOM.onDOMLoaded = CoreXT.System.Events.EventDispatcher.new(CoreXT.Loader, "onDOMLoaded", true);
+        var _domLoaded = false;
+        function isDOMReady() { return _domLoaded; }
+        DOM.isDOMReady = isDOMReady;
+        var _domReady = false;
+        var _pageLoaded = false;
+        DOM.onPageLoaded = CoreXT.System.Events.EventDispatcher.new(CoreXT.Loader, "onPageLoaded", true);
+        function onReady() {
+            var log = CoreXT.System.Diagnostics.log("DOM Loading", "Page loading completed; DOM is ready.").beginCapture();
+            log.write("Dispatching DOM 'onReady event ...", CoreXT.LogTypes.Info);
+            CoreXT.Browser.onReady.autoTrigger = true;
+            CoreXT.Browser.onReady.dispatchEvent();
+            log.write("'CoreXT.DOM.Loader' completed.", CoreXT.LogTypes.Success);
+            log.endCapture();
+            return true;
+        }
+        ;
+        function _doReady() {
+            var log = CoreXT.System.Diagnostics.log("DOM Loading", "Checking if ready...").beginCapture();
+            if (_domLoaded && _pageLoaded)
+                onReady();
+            log.endCapture();
+        }
+        ;
+        function _doOnDOMLoaded() {
+            if (!_domLoaded) {
+                _domLoaded = true;
+                var log = CoreXT.System.Diagnostics.log("DOM Loading", "HTML document was loaded and parsed. Loading any sub-resources next (CSS, JS, etc.)...", CoreXT.LogTypes.Success).beginCapture();
+                DOM.onDOMLoaded.autoTrigger = true;
+                DOM.onDOMLoaded.dispatchEvent();
                 log.endCapture();
-                return true;
             }
-            ;
-            function _doReady() {
-                var log = CoreXT.System.Diagnostics.log("DOM Loading", "Checking if ready...").beginCapture();
-                if (_domLoaded && _pageLoaded)
-                    onReady();
+        }
+        ;
+        function _doOnPageLoaded() {
+            if (!_pageLoaded) {
+                _doOnDOMLoaded();
+                _pageLoaded = true;
+                var log = CoreXT.System.Diagnostics.log("DOM Loading", "The document and all sub-resources have finished loading.", CoreXT.LogTypes.Success).beginCapture();
+                DOM.onPageLoaded.autoTrigger = true;
+                DOM.onPageLoaded.dispatchEvent();
+                _doReady();
                 log.endCapture();
             }
-            ;
-            function _doOnDOMLoaded() {
-                if (!_domLoaded) {
-                    _domLoaded = true;
-                    var log = CoreXT.System.Diagnostics.log("DOM Loading", "HTML document was loaded and parsed. Loading any sub-resources next (CSS, JS, etc.)...", CoreXT.LogTypes.Success).beginCapture();
-                    Loader.onDOMLoaded.autoTrigger = true;
-                    Loader.onDOMLoaded.dispatchEvent();
-                    log.endCapture();
+        }
+        ;
+        if (CoreXT.Environment == CoreXT.Environments.Browser)
+            (function () {
+                var readyStateTimer;
+                if (document.addEventListener) {
+                    document.addEventListener("DOMContentLoaded", function () {
+                        if (!_domLoaded)
+                            _doOnDOMLoaded();
+                    });
                 }
-            }
-            ;
-            function _doOnPageLoaded() {
-                if (!_pageLoaded) {
-                    _doOnDOMLoaded();
-                    _pageLoaded = true;
-                    var log = CoreXT.System.Diagnostics.log("DOM Loading", "The document and all sub-resources have finished loading.", CoreXT.LogTypes.Success).beginCapture();
-                    Loader.onPageLoaded.autoTrigger = true;
-                    Loader.onPageLoaded.dispatchEvent();
-                    _doReady();
-                    log.endCapture();
+                else if (document.attachEvent && document.all && !window.opera) {
+                    document.write('<script type="text/javascript" id="domloadedtag" defer="defer" src="javascript:void(0)"><\/script>');
+                    document.getElementById("domloadedtag").onreadystatechange = function () {
+                        if (this.readyState == "complete" && !_domLoaded)
+                            _doOnDOMLoaded();
+                    };
                 }
-            }
-            ;
-            if (CoreXT.Environment == CoreXT.Environments.Browser)
-                (function () {
-                    var readyStateTimer;
-                    if (document.addEventListener) {
-                        document.addEventListener("DOMContentLoaded", function () {
-                            if (!_domLoaded)
+                else if (document.readyState) {
+                    var checkReadyState = function () {
+                        if (document.body)
+                            if (!_domLoaded && (document.readyState == 'loaded' || document.readyState == 'interactive')) {
                                 _doOnDOMLoaded();
-                        });
-                    }
-                    else if (document.attachEvent && document.all && !window.opera) {
-                        document.write('<script type="text/javascript" id="domloadedtag" defer="defer" src="javascript:void(0)"><\/script>');
-                        document.getElementById("domloadedtag").onreadystatechange = function () {
-                            if (this.readyState == "complete" && !_domLoaded)
-                                _doOnDOMLoaded();
-                        };
-                    }
-                    else if (document.readyState) {
-                        var checkReadyState = function () {
-                            if (document.body)
-                                if (!_domLoaded && (document.readyState == 'loaded' || document.readyState == 'interactive')) {
-                                    _doOnDOMLoaded();
-                                }
-                                else if (!_pageLoaded && document.readyState == 'complete') {
-                                    _doOnPageLoaded();
-                                }
-                            if (!_pageLoaded && !readyStateTimer)
-                                readyStateTimer = setInterval(checkReadyState, 10);
-                        };
-                        checkReadyState();
-                    }
-                    if (window.addEventListener)
-                        window.addEventListener("load", function () { _doOnPageLoaded(); });
-                    else if (window.attachEvent)
-                        window.attachEvent('onload', function () { _doOnPageLoaded(); });
-                    else {
-                        var oldOnload = window.onload;
-                        window.onload = function (ev) {
-                            oldOnload && oldOnload.call(window, ev);
-                            _doOnPageLoaded();
-                        };
-                    }
-                })();
-            else {
-                _doOnPageLoaded();
-            }
-        })(Loader = DOM.Loader || (DOM.Loader = {}));
+                            }
+                            else if (!_pageLoaded && document.readyState == 'complete') {
+                                _doOnPageLoaded();
+                            }
+                        if (!_pageLoaded && !readyStateTimer)
+                            readyStateTimer = setInterval(checkReadyState, 10);
+                    };
+                    checkReadyState();
+                }
+                if (window.addEventListener)
+                    window.addEventListener("load", function () { _doOnPageLoaded(); });
+                else if (window.attachEvent)
+                    window.attachEvent('onload', function () { _doOnPageLoaded(); });
+                else {
+                    var oldOnload = window.onload;
+                    window.onload = function (ev) {
+                        oldOnload && oldOnload.call(window, ev);
+                        _doOnPageLoaded();
+                    };
+                }
+            })();
+        else {
+            _doOnPageLoaded();
+        }
     })(DOM = CoreXT.DOM || (CoreXT.DOM = {}));
 })(CoreXT || (CoreXT = {}));
 //# sourceMappingURL=CoreXT.Browser.js.map

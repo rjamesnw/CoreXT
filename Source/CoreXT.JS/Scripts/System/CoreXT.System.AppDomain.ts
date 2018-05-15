@@ -68,13 +68,16 @@ namespace CoreXT {
                       */
                     private readonly __typeBridges: { [fullTypeName: string]: IADBridge } = {};
 
-                    /** Automatically tracks new objects created under this app domain. The default is false. */
-                    autoTrack = false;
+                    /** Automatically tracks new objects created under this app domain. The default is undefined, in which case the global 'Types.autoTrackInstances' is used instead. */
+                    autoTrackInstances: boolean;
 
-                    /** A collection of all objects created via this application domain instance. Each object is given an ID value
-                      * that is unique for this specific AppDomain instance only.
-                      */
-                    objects: Collections.IIndexedObjectCollection<IDomainObjectInfo> = Collections.IndexedObjectCollection.new<IDomainObjectInfo>();
+                    private __objects : Collections.IIndexedObjectCollection<IDomainObjectInfo>;
+                    /** 
+                     * A collection of all objects tracked by this application domain instance (see the 'autoTrackInstances' property).
+                     * Each object is given an ID value that is unique for this specific AppDomain instance only.
+                     */
+                    get objects() { return this.__objects; }
+
                     // (why an object pool? http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/)
                     // Note: requires calling '{System.Object}.track()' or setting '{System.AppDomain}.autoTrack=true'.
 
@@ -110,19 +113,23 @@ namespace CoreXT {
                     dispose(object?: IDisposable, release: boolean = true): void {
                         var _object: IDomainObjectInfo = <any>object;
                         if (_object !== void 0) {
-                            // ... make sure 'dispose()' was called on the object ...
+                            // ... make sure 'dispose()' was called on the object for the correct app domain ...
 
                             if (_object.$__appDomain !== void 0 && _object.$__appDomain != this) {
                                 _object.$__appDomain.dispose(_object, release);
                                 return;
                             }
 
-                            // ... remove the object from the "active" list and erase it ...
+                            _object.$__disposing = true;
+
+                            // ... verified that this is the correct domain; remove the object from the "active" list and erase it ...
 
                             this.objects.removeObject(_object);
 
                             Types.dispose(_object, release);
                         } else {
+                            // ... dispose was called without parameters, so assume to dispose the app domain ...
+
                             for (var i = this._applications.length - 1; i >= 0; --i)
                                 this._applications[i].dispose(release);
 
@@ -184,10 +191,15 @@ namespace CoreXT {
                       * @param {{}} parentModule The parent module or scope in which the type exists.
                       * @param {{}} parentModule The parent module or scope in which the type exists.
                       */
-                    attachObject<T extends {}>(object: T): T {
-                        if (!type.$__parent || !type.$__name || !type.$__fullname)
-                            throw Exception.error("with()", "The specified type '" + type.$__name + "' has not yet been registered properly using 'AppDomain.registerType()/.registerClass()'.", type);
-                        var type: IFunctionInfo = <IFunctionInfo>object.constructor;
+                    attachObject<T extends object>(object: T): T {
+                        //var type: IFunctionInfo = <IFunctionInfo>object.constructor;
+                        var type = <IDomainObjectInfo><any>object;
+                        if (type.$__disposing || type.$__disposed)
+                            error("attachObject()", "The specified object instance of type '" + getFullTypeName(type) + "' is disposed.", type);
+                        if (!type.$__corext || !type.$__appDomain || !type.dispose)
+                            error("attachObject()", "The specified type '" + getFullTypeName(type) + "' is not valid for this operation. Make sure to use 'CoreXT.ClassFactory()' to create valid factory types, or make sure the 'IDomainObjectInfo' properties are satisfied.", type);
+                        if (type.$__appDomain != this)
+                            error("attachObject()", "The specified object instance of type '" + getFullTypeName(type) + "' is already attached to a different application domain.", type);
                         this.objects.addObject(<any>object);
                         return object;
                     }
@@ -240,6 +252,8 @@ namespace CoreXT {
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, application?: IApplication) {
                             this.super.init(o, isnew);
                             (<IDomainObjectInfo><any>o).$__appDomain = o;
+                            o.__objects = Collections.IndexedObjectCollection.new<IDomainObjectInfo>();
+                            o.__objects.__IDPropertyName = <keyof IDomainObjectInfo>"$__appDomainId_";
                             o.applications = typeof application == 'object' ? [application] : [];
                             //? if (global.Object.freeze)
                             //?    global.Object.freeze($this); // (properties cannot be modified once set)

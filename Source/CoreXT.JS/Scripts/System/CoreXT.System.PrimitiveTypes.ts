@@ -13,21 +13,10 @@ namespace CoreXT {
         /** The base type for many CoreXT classes. */
         export var Object = ClassFactory(System, void 0,
             (base) => {
-                class Object extends global.Object implements IDisposable, ISerializable {
+                class Object extends DisposableFromBase(global.Object) implements ISerializable {
                     // -------------------------------------------------------------------------------------------------------------------
 
                     private $__value?: any;
-
-                    // -------------------------------------------------------------------------------------------------------------------
-
-                    /**
-                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
-                       */
-                    constructor() {
-                        if (!ES6)
-                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
-                        super();
-                    }
 
                     // -------------------------------------------------------------------------------------------------------------------
 
@@ -60,14 +49,20 @@ namespace CoreXT {
                     setData(data: SerializedData): void {
                     }
 
-                    /** Release the object back into the object pool. */
-                    dispose(release?: boolean): void {
-                        // ... this should be the final code executed in the disposal chain (from the derived types, since it should always be top down [opposite of construction]) ...
-                        var appDomain = (<IDomainObjectInfo><any>this).$__appDomain; // (note: may be set to UNDEFINED if this is called from '{AppDomain}.dispose()')
-                        this.dispose = noop; // (make sure 'appDomain.dispose(object)' doesn't call back; note: this only hides the prototype function)
-                        if (appDomain)
-                            appDomain.dispose(this, release);
-                    };
+                    ///** 
+                    // * Release the object back into the object pool. 
+                    // * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+                    // *                          false to request that child objects remain connected after disposal (not released). This
+                    // *                          can allow quick initialization of a group of objects, instead of having to pull each one
+                    // *                          from the object pool each time.
+                    // */
+                    //x dispose(release?: boolean): void {
+                    //    // ... this should be the final code executed in the disposal chain (from the derived types, since it should always be top down [opposite of construction]) ...
+                    //    var appDomain = (<IDomainObjectInfo><any>this).$__appDomain; // (note: may be set to UNDEFINED if this is called from '{AppDomain}.dispose()')
+                    //    this.dispose = noop; // (make sure 'appDomain.dispose(object)' doesn't call back; note: this only hides the prototype function)
+                    //    if (appDomain)
+                    //        appDomain.dispose(this, release);
+                    //};
 
                     // -------------------------------------------------------------------------------------------------------------------
 
@@ -179,7 +174,7 @@ namespace CoreXT {
         /** Allows manipulation and formatting of text strings, including the determination and location of substrings within strings. */
         export var String = ClassFactory(System, void 0,
             (base) => {
-                class String extends global.String {
+                class String extends DisposableFromBase(global.String) {
                     [index: number]: string;
 
                     private $__value?: any;
@@ -280,17 +275,6 @@ namespace CoreXT {
                     // (NOTE: This is the magic that makes it work, as 'toString()' is called by the other functions to get the string value, and the native implementation only works on a primitive string only.)
 
                     // -------------------------------------------------------------------------------------------------------------------
-
-                    /**
-                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
-                       */
-                    constructor() {
-                        if (!ES6)
-                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
-                        super();
-                    }
-
-                    // -------------------------------------------------------------------------------------------------------------------
                     // This part uses the CoreXT factory pattern
 
                     protected static readonly 'StringFactory' = class Factory extends FactoryBase(String, null) {
@@ -332,19 +316,8 @@ namespace CoreXT {
         */
         export var Array = ClassFactory(System, void 0,
             (base) => {
-                class Array<T> extends global.Array<T> {
+                class Array<T> extends DisposableFromBase(global.Array)<T> {
                     [index: number]: T;
-
-                    // -------------------------------------------------------------------------------------------------------------------
-
-                    /**
-                       * Don't create objects using the 'new' operator. Use the '{class_type}.new()' static method instead.
-                       */
-                    constructor() {
-                        if (!ES6)
-                            eval("var _super = function() { return null; }"); // (ES6 fix for extending built-in types [calling constructor not supported]; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
-                        super();
-                    }
 
                     // -------------------------------------------------------------------------------------------------------------------
                     /* ------ This part uses the CoreXT factory pattern ------ */
