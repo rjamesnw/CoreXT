@@ -63,7 +63,7 @@ namespace CoreXT.Utilities {
     *                         'window.eval()' is not called directly in this function.
     */
     export function dereferencePropertyPath(path: string, origin?: {}, unsafe = false): {} {
-        if (unsafe) return safeEval('p1.' + path, origin); // (note: this is 'CoreXT.eval()', not a direct call to the global 'eval()')
+        if (unsafe) return safeEval('p0.' + path, origin); // (note: this is 'CoreXT.eval()', not a direct call to the global 'eval()')
         if (origin === void 0 || origin === null) origin = this !== global ? this : global;
         if (typeof path !== 'string') path = '' + path;
         var o = origin, c = '', pc: string, i = 0, n = path.length, name = '';

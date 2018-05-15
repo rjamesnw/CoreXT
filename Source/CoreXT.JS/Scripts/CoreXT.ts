@@ -187,13 +187,14 @@ namespace CoreXT {
 
     /** Evaluates a string within a Function scope at the GLOBAL level. This is more secure for executing scripts without exposing
       * private/protected variables wrapped in closures. Use this to keep 'var' declarations, etc., within a function scope.
+      * Note: By default, parameter indexes 0-9 are automatically assigned to parameter identifiers 'p0' through 'p9' for easy reference.
       */
     export declare function safeEval(x: string, ...args: any[]): any;
 
     /** Evaluates a string directly at the GLOBAL level. This is more secure for executing scripts without exposing
       * private/protected variables wrapped in closures. Use this to allow 'var' declarations, etc., on the global scope.
       */
-    export declare function globalEval(x: string, ...args: any[]): any;
+    export declare function globalEval(x: string): any;
 
     export enum Environments {
         /** Represents the CoreXT client core environment. */
@@ -205,11 +206,11 @@ namespace CoreXT {
     }
 }
 
-CoreXT.safeEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return eval(exp); };
+CoreXT.safeEval = function (exp: string, p0?: any, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any, p7?: any, p8?: any, p9?: any): any { return eval(exp); };
 // (note: this allows executing 'eval' outside the private CoreXT scope, but still within a function scope to prevent polluting the global scope,
 //  and also allows passing arguments scoped only to the request).
 
-CoreXT.globalEval = function (exp: string, p1?: any, p2?: any, p3?: any): any { return (<any>0, eval)(exp); };
+CoreXT.globalEval = function (exp: string): any { return (<any>0, eval)(exp); };
 // (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
 
 namespace CoreXT { // (the core scope)
@@ -1983,7 +1984,7 @@ namespace CoreXT { // (the core scope)
           */
         export function _SystemScript_onReady_Handler(request: IResourceRequest) {
             try {
-                globalEval(request.transformedData); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
+                safeEval("var CoreXT = p0; " + request.transformedData, CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
                 // (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
                 request.status = RequestStatuses.Executed;
                 request.message = "The script has been executed.";
