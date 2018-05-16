@@ -21,7 +21,7 @@ Array.prototype.where = function (func: (a: any) => boolean) { if (!func) return
 namespace CoreXT {
     // =============================================================================================
 
-    namespace Pollyfills {
+    namespace Polyfills { // (NOTE: NOT EXPORTED ON PURPOSE)
         // -------------------------------------------------------------------------------------------------------------------
 
         interface _window extends NativeTypes.IWindow { [name: string]: any }

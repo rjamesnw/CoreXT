@@ -16,11 +16,7 @@ var CoreXT;
             var Exception = (function (_super) {
                 __extends(Exception, _super);
                 function Exception() {
-                    var _this = this;
-                    if (!CoreXT.ES6)
-                        eval("var _super = function() { return null; }");
-                    _this = _super.call(this) || this;
-                    return _this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 Exception.prototype.toString = function () { return this.message; };
                 Exception.prototype.valueOf = function () { return this.message; };
@@ -138,7 +134,7 @@ var CoreXT;
                     return Factory;
                 }(CoreXT.FactoryBase(Exception, null)));
                 return Exception;
-            }(Error));
+            }(CoreXT.DisposableFromBase(Error)));
             return [Exception, Exception["ExceptionFactory"]];
         });
     })(System = CoreXT.System || (CoreXT.System = {}));

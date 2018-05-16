@@ -39,6 +39,15 @@ var CoreXT;
             console.log("-=< CoreXT Client OS - v" + CoreXT.version + " >=- ");
         else
             console.log("%c -=< %cCoreXT Client OS - v" + CoreXT.version + " %c>=- ", "background: #000; color: lightblue; font-weight:bold", "background: #000; color: yellow; font-style:italic; font-weight:bold", "background: #000; color: lightblue; font-weight:bold");
+    var DebugModes;
+    (function (DebugModes) {
+        DebugModes[DebugModes["Release"] = 0] = "Release";
+        DebugModes[DebugModes["Debug_Run"] = 1] = "Debug_Run";
+        DebugModes[DebugModes["Debug_Wait"] = 2] = "Debug_Wait";
+    })(DebugModes = CoreXT.DebugModes || (CoreXT.DebugModes = {}));
+    CoreXT.debugMode = DebugModes.Debug_Run;
+    function isDebugging() { return CoreXT.debugMode != DebugModes.Release; }
+    CoreXT.isDebugging = isDebugging;
 })(CoreXT || (CoreXT = {}));
 var __NonCoreXTHost__ = (function () {
     function __NonCoreXTHost__() {
@@ -80,15 +89,22 @@ var scriptsBaseURL;
         Environments[Environments["Server"] = 2] = "Server";
     })(Environments = CoreXT.Environments || (CoreXT.Environments = {}));
 })(CoreXT || (CoreXT = {}));
-CoreXT.safeEval = function (exp, p1, p2, p3) { return eval(exp); };
-CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
+CoreXT.safeEval = function (exp, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) { return eval(exp); };
+CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
 (function (CoreXT) {
     CoreXT.ES6 = (function () { try {
-        return eval("(function () { return new.target; }, true)");
+        return CoreXT.globalEval("(function () { return new.target; }, true)");
     }
     catch (e) {
         return false;
     } })();
+    CoreXT.ES6Targeted = (function () {
+        return ((function () {
+            function class_1() {
+            }
+            return class_1;
+        }())).toString() == "class { }";
+    })();
     CoreXT.Environment = (function () {
         if (typeof navigator !== 'object') {
             window = {};
@@ -289,39 +305,71 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
             return _type;
         }
         Types.getRoot = getRoot;
-        Types.__types = {};
-        Types.__disposedObjects = {};
+        Object.defineProperty(Types, "__types", { configurable: false, writable: false, value: {} });
+        Object.defineProperty(Types, "__disposedObjects", { configurable: false, writable: false, value: {} });
+        Types.autoTrackInstances = false;
+        Object.defineProperty(Types, "__trackedObjects", { configurable: false, writable: false, value: [] });
+        var ___nextObjectID = 0;
+        Object.defineProperty(Types, "__nextObjectID", { configurable: false, get: function () { return ___nextObjectID; } });
+        function getNextObjectId() { return ___nextObjectID++; }
+        Types.getNextObjectId = getNextObjectId;
         function __new() {
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            var bridge = this;
-            var type = this;
             if (typeof this != 'function' || !this.init && !this.new)
-                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the '{FactoryType}.new()' factory *function* without the 'new' operator.", this);
-            var appDomain = bridge.$__appDomain || System.AppDomain && System.AppDomain.default;
+                error("__new(): Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the '{FactoryType}.new()' factory *function* without the 'new' operator.", this);
+            var bridge = this;
+            var factory = this;
+            var classType = factory.$__type;
+            var classTypeInfo = classType;
+            if (typeof classType != 'function')
+                error("__new(): Missing class type on class factory.", "The factory '" + getFullTypeName(factory) + "' is missing the internal '$__type' class reference.", this);
+            var appDomain = bridge.$__appDomain || System.AppDomain && System.AppDomain.default || void 0;
             var instance;
             var isNew = false;
-            var fullTypeName = type.$__fullname;
+            var fullTypeName = factory.$__fullname;
             var objectPool = fullTypeName && Types.__disposedObjects[fullTypeName];
             if (objectPool && objectPool.length)
                 instance = objectPool.pop();
             else {
-                instance = new type();
+                instance = new classType();
                 isNew = true;
             }
-            for (var i = arguments.length - 1; i >= 0; --i)
-                arguments[2 + i] = arguments[i];
-            arguments[0] = instance;
-            arguments[1] = isNew;
-            arguments.length += 2;
-            if (typeof this.init == 'function')
-                if (System.Delegate)
-                    System.Delegate.fastApply(this.init, this, arguments);
-                else
-                    this.init.apply(this, arguments);
+            instance.$__corext = CoreXT;
+            instance.$__id = getNextObjectId();
+            if (Types.autoTrackInstances && (!appDomain || appDomain.autoTrackInstances === void 0 || appDomain.autoTrackInstances))
+                instance.$__globalId = CoreXT.Utilities.createGUID(false);
+            if (appDomain)
+                instance.$__appDomain = appDomain;
+            if ('$__disposing' in instance)
+                instance.$__disposing = false;
+            if ('$__disposed' in instance)
+                instance.$__disposed = false;
+            if (CoreXT.ES6Targeted) {
+                if (typeof this.init == 'function')
+                    if (System.Delegate)
+                        (_a = System.Delegate).fastCall.apply(_a, __spread([this.init, this, instance, isNew], arguments));
+                    else
+                        (_b = this.init).call.apply(_b, __spread([this, instance, isNew], arguments));
+            }
+            else {
+                for (var i = arguments.length - 1; i >= 0; --i)
+                    arguments[2 + i] = arguments[i];
+                arguments[0] = instance;
+                arguments[1] = isNew;
+                arguments.length += 2;
+                if (typeof this.init == 'function')
+                    if (System.Delegate)
+                        System.Delegate.fastApply(this.init, this, arguments);
+                    else
+                        this.init.apply(this, arguments);
+            }
+            if (appDomain && appDomain.autoTrackInstances)
+                appDomain.attachObject(instance);
             return instance;
+            var _a, _b;
         }
         Types.__new = __new;
         function __registerFactoryType(cls, factoryType, namespace, addMemberTypeInfo, exportName) {
@@ -335,8 +383,11 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
             if (_exportName.charAt(0) == '$')
                 _exportName = _exportName.substr(1);
             namespace[_exportName] = factoryType;
+            classType.$__parent = factoryType;
             classType.$__type = classType;
             classType.$__factoryType = factoryType;
+            classType.$__baseFactoryType = factoryType.$__baseFactoryType;
+            classType.$__name = _exportName;
             if (classType.init)
                 error(getFullTypeName(classType), "You cannot create a static 'init' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
             var originalInit = typeof factoryType.init == 'function' ? factoryType.init : null;
@@ -364,7 +415,8 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                     factoryType.new = originalNew;
                     return result;
                 };
-            __registerType(cls, namespace, addMemberTypeInfo, exportName);
+            var registeredFactory = __registerType(cls, namespace, addMemberTypeInfo, exportName);
+            classType.$__fullname = factoryType.$__fullname + ".$__type";
             return factoryType;
         }
         Types.__registerFactoryType = __registerFactoryType;
@@ -376,17 +428,18 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
             var _type = __registerNamespace(namespace, exportName || getTypeName(type));
             if (addMemberTypeInfo) {
                 var prototype = type['prototype'], func;
-                for (var pname in prototype) {
-                    func = prototype[pname];
-                    if (typeof func == 'function') {
-                        func.$__argumentTypes = [];
-                        func.$__fullname = _type.$__fullname + ".prototype." + pname;
-                        func.$__name = pname;
-                        func.$__parent = _type;
-                        if (!func.name)
-                            func.name = pname;
+                for (var pname in prototype)
+                    if (pname != 'constructor' && pname != '__proto__') {
+                        func = prototype[pname];
+                        if (typeof func == 'function') {
+                            func.$__argumentTypes = [];
+                            func.$__fullname = _type.$__fullname + ".prototype." + pname;
+                            func.$__name = pname;
+                            func.$__parent = _type;
+                            if (!func.name)
+                                func.name = pname;
+                        }
                     }
-                }
             }
             Types.__types[_type.$__fullname] = _type;
             return type;
@@ -434,47 +487,95 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
             return currentNamespace;
         }
         Types.__registerNamespace = __registerNamespace;
+        var __nonDisposableProperties = {
+            $__globalId: true,
+            $__appDomain: true,
+            $__disposing: true,
+            $__disposed: true,
+            dispose: false
+        };
+        function __disposeValidate(object, title, source) {
+            if (typeof object != 'object')
+                error(title, "The argument given is not an object.", source);
+            if (!object.$__corext)
+                error(title, "The object instance '" + getFullTypeName(object) + "' is not a CoreXT created object.", source);
+            if (object.$__corext != CoreXT)
+                error(title, "The object instance '" + getFullTypeName(object) + "' was created in a different CoreXT instance and cannot be disposed by this one.", source);
+            if (typeof object.dispose != 'function')
+                error(title, "The object instance '" + getFullTypeName(object) + "' does not contain a 'dispose()' function.", source);
+            if (!isDisposable(object))
+                error(title, "The object instance '" + getFullTypeName(object) + "' is not disposable.", source);
+        }
+        Types.__disposeValidate = __disposeValidate;
         function dispose(object, release) {
             if (release === void 0) { release = true; }
             var _object = object;
+            __disposeValidate(_object, "dispose()", Types);
             if (_object !== void 0) {
-                if (_object.dispose != CoreXT.noop) {
-                    _object.dispose = CoreXT.noop;
-                    dispose(_object, release);
-                }
                 var appDomain = _object.$__appDomain;
-                if (appDomain) {
-                    _object.dispose = CoreXT.noop;
-                    appDomain.dispose(_object);
+                if (appDomain && !_object.$__disposing) {
+                    appDomain.dispose(_object, release);
+                    return;
                 }
-                CoreXT.Utilities.erase(this, release);
-                if (!release)
-                    _object.$__appDomain = this;
-                else {
+                CoreXT.Utilities.erase(object, __nonDisposableProperties);
+                _object.$__disposing = false;
+                _object.$__disposed = true;
+                if (release) {
                     var type = _object.constructor;
                     if (!type.$__fullname)
                         error("dispose()", "The object type is not registered.  Please see one of the AppDomain 'registerClass()/registerType()' functions for more details.", object);
-                    var funcList = Types.__disposedObjects[type.$__fullname];
-                    if (!funcList)
-                        Types.__disposedObjects[type.$__fullname] = funcList = [];
-                    funcList.push(_object);
+                    var disposedObjects = Types.__disposedObjects[type.$__fullname];
+                    if (!disposedObjects)
+                        Types.__disposedObjects[type.$__fullname] = disposedObjects = [];
+                    disposedObjects.push(_object);
                 }
             }
-            else {
-                for (var i = this._applications.length - 1; i >= 0; --i)
-                    dispose(this._applications[i]);
-                this._applications.length = 0;
-                for (var i = this._windows.length - 1; i >= 0; --i)
-                    dispose(this._windows[i]);
-                this._windows.length = 0;
-            }
-            for (var i = this._windows.length - 1; i >= 0; --i)
-                if (this._windows[i].target != CoreXT.global)
-                    this._windows[i].close();
-            CoreXT.global.close();
         }
         Types.dispose = dispose;
     })(Types = CoreXT.Types || (CoreXT.Types = {}));
+    var Disposable = (function () {
+        function Disposable() {
+        }
+        Disposable.prototype.dispose = function (release) { Types.dispose(this, release); };
+        return Disposable;
+    }());
+    CoreXT.Disposable = Disposable;
+    function isDisposable(instance) {
+        if (instance.$__corext != CoreXT)
+            return false;
+        return typeof instance.dispose == 'function';
+    }
+    CoreXT.isDisposable = isDisposable;
+    function DisposableFromBase(baseClass, isPrimitiveOrHostBase) {
+        if (!baseClass) {
+            baseClass = CoreXT.global.Object;
+            isPrimitiveOrHostBase = true;
+        }
+        var symbol = typeof Symbol != 'undefined' ? Symbol : Object;
+        if (baseClass == Object || baseClass == Array || baseClass == Boolean || baseClass == String
+            || baseClass == Number || baseClass == symbol || baseClass == Function || baseClass == Date
+            || baseClass == RegExp || baseClass == Error)
+            isPrimitiveOrHostBase = true;
+        var cls = (function (_super) {
+            __extends(Disposable, _super);
+            function Disposable() {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                var _this = this;
+                if (!CoreXT.ES6Targeted && isPrimitiveOrHostBase)
+                    eval("var _super = function() { return null; };");
+                _this = _super.call(this) || this;
+                return _this;
+            }
+            Disposable.prototype.dispose = function (release) { };
+            return Disposable;
+        }(baseClass));
+        cls.prototype.dispose = CoreXT.Disposable.prototype.dispose;
+        return cls;
+    }
+    CoreXT.DisposableFromBase = DisposableFromBase;
     function ClassFactory(namespace, base, getType, exportName, addMemberTypeInfo) {
         if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
         function _error(msg) {
@@ -515,6 +616,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                     enumerable: true,
                     configurable: true
                 });
+                FactoryBase.prototype.dispose = function (release) { Types.dispose(this, release); };
                 return FactoryBase;
             }(type)),
             _a.$__type = type,
@@ -743,6 +845,8 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                     this.responseMessage = "";
                     this.status = RequestStatuses.Pending;
                     this.messageLog = [];
+                    this.cacheBusting = ResourceRequest.cacheBusting;
+                    this.cacheBustingVar = ResourceRequest.cacheBustingVar;
                     this._promiseChain = [];
                     this._promiseChainIndex = 0;
                     this._parentCompletedCount = 0;
@@ -882,7 +986,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                     if (this.status == RequestStatuses.Pending) {
                         this.status = RequestStatuses.Loading;
                         this.message = "Loading resource '" + this.url + "' ...";
-                        if (System.Diagnostics && !System.Diagnostics.isDebugging() && typeof Storage !== void 0)
+                        if (!CoreXT.isDebugging() && typeof Storage !== void 0)
                             try {
                                 var currentAppVersion = CoreXT.getAppVersion();
                                 var versionInLocalStorage = localStorage.getItem("version");
@@ -959,16 +1063,21 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                         xhr.abort();
                     var url = this.url;
                     try {
+                        if (this.cacheBusting) {
+                            var bustVar = this.cacheBustingVar || "_v_";
+                            if (bustVar.indexOf(" ") >= 0)
+                                log("start()", "There is a space character in the cache busting query name for resource '" + url + "'.", LogTypes.Warning);
+                        }
                         xhr.open("get", url, this.async);
                     }
                     catch (ex) {
-                        error("get()", "Failed to load resource from URL '" + url + "': " + (ex.message || ex), this);
+                        error("start()", "Failed to load resource from URL '" + url + "': " + (ex.message || ex), this);
                     }
                     try {
                         xhr.send();
                     }
                     catch (ex) {
-                        error("get()", "Failed to send request to endpoint for URL '" + url + "': " + (ex.message || ex), this);
+                        error("start()", "Failed to send request to endpoint for URL '" + url + "': " + (ex.message || ex), this);
                     }
                 };
                 ResourceRequest.prototype.pause = function () {
@@ -1190,6 +1299,8 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                     }
                     return this;
                 };
+                ResourceRequest.cacheBusting = true;
+                ResourceRequest.cacheBustingVar = '_v_';
                 ResourceRequest['ResourceRequestFactory'] = (function (_super) {
                     __extends(Factory, _super);
                     function Factory() {
@@ -1238,7 +1349,7 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
         Loader.get = get;
         function _SystemScript_onReady_Handler(request) {
             try {
-                CoreXT.globalEval(request.transformedData);
+                CoreXT.safeEval("var CoreXT = p0; " + request.transformedData, CoreXT);
                 request.status = RequestStatuses.Executed;
                 request.message = "The script has been executed.";
             }
@@ -1256,12 +1367,14 @@ CoreXT.globalEval = function (exp, p1, p2, p3) { return (0, eval)(exp); };
                 .include(get("~/System/CoreXT.System.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Time.js")).ready(onReady)
+                .include(get("~/System/CoreXT.System.Storage.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Exception.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Diagnostics.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.Events.js").ready(onReady))
                 .include(get("~/CoreXT.Browser.js")).ready(onReady)
                 .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady))
+                .include(get("~/System/CoreXT.System.Text.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.IO.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady))
@@ -1290,5 +1403,6 @@ if (typeof $X === void 0)
 if (typeof System === void 0 || System === null) {
     var System = CoreXT.System;
 }
-CoreXT.Loader.bootstrap();
+if (CoreXT.debugMode != CoreXT.DebugModes.Debug_Wait)
+    CoreXT.Loader.bootstrap();
 //# sourceMappingURL=CoreXT.js.map

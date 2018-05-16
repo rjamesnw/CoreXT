@@ -97,7 +97,7 @@ var CoreXT;
                 }
             }
             Storage.clear = clear;
-            if (System.Diagnostics.isDebugging() && Storage.hasLocalStorage)
+            if (CoreXT.isDebugging() && Storage.hasLocalStorage)
                 clear(StorageType.Local);
         })(Storage = System.Storage || (System.Storage = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));

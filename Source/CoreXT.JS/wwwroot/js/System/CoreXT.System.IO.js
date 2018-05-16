@@ -36,9 +36,12 @@ var CoreXT;
                 Path.hasFileExt = hasFileExt;
                 Path.QUERY_STRING_REGEX = /[?|&][a-zA-Z0-9-._]+(?:=[^&#$]*)?/gi;
                 Path.Query = CoreXT.ClassFactory(Path, null, function (base) {
-                    var Query = (function () {
+                    var Query = (function (_super) {
+                        __extends(Query, _super);
                         function Query() {
-                            this.values = {};
+                            var _this = _super !== null && _super.apply(this, arguments) || this;
+                            _this.values = {};
+                            return _this;
                         }
                         Query.prototype.addOrUpdate = function (newValues) {
                             if (newValues)
@@ -156,10 +159,9 @@ var CoreXT;
                             return Factory;
                         }(CoreXT.FactoryBase(Query, null)));
                         return Query;
-                    }());
+                    }(CoreXT.Disposable));
                     return [Query, Query["QueryFactory"]];
                 }, "Query");
-                Path.pageQuery = Path.Query.new(location.href);
                 function setLocation(url, includeExistingQuery, bustCache) {
                     if (includeExistingQuery === void 0) { includeExistingQuery = false; }
                     if (bustCache === void 0) { bustCache = false; }
@@ -171,6 +173,7 @@ var CoreXT;
                     if (url.charAt(0) == '/')
                         url = map(url);
                     url = query.appendTo(url);
+                    query.dispose();
                     wait();
                     setTimeout(function () { location.href = url; }, 1);
                 }
@@ -187,6 +190,7 @@ var CoreXT;
                     return new RegExp("^\/" + controller + "\/" + action + "(?:[\/?&#])?", "gi").test(location.pathname);
                 }
                 Path.isView = isView;
+                Path.pageQuery = Path.Query.new(location.href);
             })(Path = IO.Path || (IO.Path = {}));
             IO.onBeginWait = System.Events.EventDispatcher.new(IO, "onBeginWait", true);
             IO.onEndWait = System.Events.EventDispatcher.new(IO, "onEndWait", true);

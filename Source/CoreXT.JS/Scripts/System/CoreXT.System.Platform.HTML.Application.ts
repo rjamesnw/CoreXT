@@ -72,7 +72,7 @@ namespace CoreXT.System.Platform.HTML.Application {
 
                 /** This generates/updates the HTML elements required to display the application. */
                 updateLayout(recursive: boolean = true) {
-                    var log = Diagnostics.isDebugging() ? Diagnostics.log(ApplicationElement, "Application is updating its layout ...").beginCapture() : null;
+                    var log = isDebugging() ? Diagnostics.log(ApplicationElement, "Application is updating its layout ...").beginCapture() : null;
 
                     super.updateLayout(recursive);
 

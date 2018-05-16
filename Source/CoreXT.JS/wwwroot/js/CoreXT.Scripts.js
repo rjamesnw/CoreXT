@@ -178,7 +178,7 @@ var CoreXT;
                 Module.prototype.toValue = function () { return this.fullname; };
                 Module.prototype.start = function () {
                     if (this.status == CoreXT.Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) {
-                        this.url = CoreXT.System.Diagnostics.debug ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL);
+                        this.url = CoreXT.debugMode ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL);
                         return _super.prototype.start.call(this);
                     }
                     return this;
@@ -211,7 +211,7 @@ var CoreXT;
                     Factory['new'] = function (fullname, path, minifiedPath) { return null; };
                     Factory.init = function (o, isnew, fullname, url, minifiedURL) {
                         if (minifiedURL === void 0) { minifiedURL = null; }
-                        this.super.init(o, isnew, CoreXT.System.Diagnostics.debug ? url : (minifiedURL || url));
+                        this.super.init(o, isnew, CoreXT.debugMode ? url : (minifiedURL || url));
                         if (!o.type)
                             throw CoreXT.System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", o);
                         o.fullname = fullname;
@@ -228,7 +228,7 @@ var CoreXT;
         var _runMode = 0;
         function _tryRunApp() {
             if (_runMode < 2)
-                if (_appModule && (_runMode == 1 || !CoreXT.host.isDebugMode() && CoreXT.System.Diagnostics.debug != CoreXT.System.Diagnostics.DebugModes.Debug_Wait)) {
+                if (_appModule && (_runMode == 1 || !CoreXT.host.isDebugMode() && CoreXT.debugMode != CoreXT.DebugModes.Debug_Wait)) {
                     if (_appModule.status == CoreXT.Loader.RequestStatuses.Ready)
                         _appModule.execute();
                     if (_appModule.status == CoreXT.Loader.RequestStatuses.Executed)

@@ -36,6 +36,26 @@ namespace CoreXT {
             console.log("-=< CoreXT Client OS - v" + version + " >=- ");
         else
             console.log("%c -=< %cCoreXT Client OS - v" + version + " %c>=- ", "background: #000; color: lightblue; font-weight:bold", "background: #000; color: yellow; font-style:italic; font-weight:bold", "background: #000; color: lightblue; font-weight:bold");
+
+    export enum DebugModes {
+        /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
+        Release,
+        /** Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. */
+        Debug_Run,
+        /** 
+          * Run in debug mode, which loads all un-minified scripts, but does NOT boot the system nor run the application automatically.
+          * To manually start the CoreXT system boot process, call 'CoreXT.Loader.bootstrap()'.
+          * Once the boot process completes, the application will not start automatically. To start the application process, call 'CoreXT.Scripts.runApp()".
+          */
+        Debug_Wait
+    }
+
+    /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values. The default is 'Debug_Run'. */
+    export var debugMode: DebugModes = DebugModes.Debug_Run;
+
+    /** Returns true if CoreXT is running in debug mode. */
+    export function isDebugging() { return debugMode != DebugModes.Release; }
+
 }
 
 // ===========================================================================================================================
@@ -160,6 +180,7 @@ namespace CoreXT {
         Window: typeof Window;
         CoreXT: typeof CoreXT;
     }
+    export type KeyOf<T> = keyof Required<T>;
 
     /** A reference to the host's global environment (convenient for nested TypeScript code, or when using strict mode [where this=undefined]).
     * This provides a faster, cleaner, consistent, and reliable method of referencing the global environment scope without having to resort to workarounds.
@@ -204,6 +225,242 @@ namespace CoreXT {
         /** Represents the CoreXT server environment. */
         Server
     }
+
+    // ========================================================================================================================================
+    // A dump of the functions required by TypeScript in one place.
+
+    var extendStatics = Object.setPrototypeOf || ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b: {}) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+
+    /** Extends from a base type by chaining a derived type's 'prototype' to the base type's prototype.
+    * This method takes into account any preset properties that may exist on the derived type's prototype.
+    * Note: Extending an already extended derived type will recreate the prototype connection again using a new prototype instance poing to the given base type.
+    * Note: It is not possible to modify any existing chain of constructor calls.  Only the prototype can be changed.
+    * @param {Function} derivedType The derived type (function) that will extend from a base type.
+    * @param {Function} baseType The base type (function) to extend to the derived type.
+    * @param {boolean} copyBaseProperties If true (default) behaves like the TypeScript "__extends" method, which copies forward any static base properties to the derived type.
+    */
+    export function __extends<DerivedType extends Function, BaseType extends Function>(derivedType: DerivedType, baseType: BaseType, copyStaticProperties = true): DerivedType {
+        if (copyStaticProperties)
+            extendStatics(derivedType, baseType);
+        // ... create a prototype link for the given type ...
+        function __() { this.constructor = derivedType; }
+        var newProto: object = baseType === null ? Object.create(baseType) : (__.prototype = baseType.prototype, new (<any>__)());
+        // ... copy forward any already defined properties in the derived prototype being replaced, if any, before setting the derived types prototype ...
+        for (var p in derivedType.prototype)
+            if (derivedType.prototype.hasOwnProperty(p))
+                newProto[p] = derivedType.prototype[p];
+        // ... set the new prototype ...
+        derivedType.prototype = newProto;
+        // ... return the extended derived type ...
+        return derivedType;
+    };
+
+    var __assign = Object.assign || function (t: any) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+
+    function __rest(s: any, e: any) {
+        var t = {}, p: any;
+        for (p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+            t[p] = s[p];
+        if (s != null && typeof Object.getOwnPropertySymbols === "function")
+            for (var i = 0, p = <any>Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+                t[p[i]] = s[p[i]];
+        return t;
+    };
+
+    function __decorate(decorators: any, target: any, key: any, desc: any) {
+        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect['decorate'] === "function") r = Reflect['decorate'](decorators, target, key, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+
+    function __param(paramIndex: any, decorator: any) {
+        return function (target: any, key: any) { decorator(target, key, paramIndex); }
+    };
+
+    function __metadata(metadataKey: any, metadataValue: any) {
+        if (typeof Reflect === "object" && typeof Reflect['metadata'] === "function") return Reflect['metadata'](metadataKey, metadataValue);
+    };
+
+    function __awaiter(thisArg: any, _arguments: any, P: any, generator: any) {
+        return new (P || (P = Promise))(function (resolve: any, reject: any) {
+            function fulfilled(value: any) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value: any) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result: any) { result.done ? resolve(result.value) : new P(function (resolve: any) { resolve(result.value); }).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+
+    function __generator(thisArg: any, body: any) {
+        var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: <any[]>[], ops: <any[]>[] }, f: any, y: any, t: any, g: any;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
+        function verb(n: any) { return function (v: any) { return step([n, v]); }; }
+        function step(op: any) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [0, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = <any>0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
+
+    function __exportStar(m: any, exports: any) {
+        for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+    };
+
+    function __values(o: any) {
+        var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+        if (m) return m.call(o);
+        return {
+            next: function () {
+                if (o && i >= o.length) o = void 0;
+                return { value: o && o[i++], done: !o };
+            }
+        };
+    };
+
+    function __read(o: object, n?: number) {
+        var m = typeof Symbol === "function" && o[Symbol.iterator];
+        if (!m) return o;
+        var i = m.call(o), r, ar = [], e;
+        try {
+            while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+        }
+        catch (error) { e = { error: error }; }
+        finally {
+            try {
+                if (r && !r.done && (m = i["return"])) m.call(i);
+            }
+            finally { if (e) throw e.error; }
+        }
+        return ar;
+    };
+
+    function __spread() {
+        for (var ar: any[] = [], i = 0; i < arguments.length; i++)
+            ar = ar.concat(__read(arguments[i]));
+        return ar;
+    };
+
+    function __await(v: any): any {
+        return this instanceof __await ? (this.v = v, this) : new (<any>__await)(v);
+    };
+
+    function __asyncGenerator(thisArg: any, _arguments: any[], generator: any) {
+        if (!Symbol['asyncIterator']) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var g = generator.apply(thisArg, _arguments || []), i: any, q: any[] = [];
+        return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol['asyncIterator']] = function () { return this; }, i;
+        function verb(n: any) { if (g[n]) i[n] = function (v: any) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+        function resume(n: any, v: any) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+        function step(r: any) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+        function fulfill(value: any) { resume("next", value); }
+        function reject(value: any) { resume("throw", value); }
+        function settle(f: any, v: any) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+    };
+
+    function __asyncDelegator(o: any) {
+        var i: any, p: any;
+        return i = {}, verb("next"), verb("throw", function (e: any) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
+        function verb(n: any, f?: any) { i[n] = o[n] ? function (v: any) { return (p = !p) ? { value: __await(o[n](v)), done: n === "return" } : f ? f(v) : v; } : f; }
+    };
+
+    function __asyncValues(o: any) {
+        if (!Symbol['asyncIterator']) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var m = o[Symbol['asyncIterator']], i: any;
+        return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol['asyncIterator']] = function () { return this; }, i);
+        function verb(n: any) { i[n] = o[n] && function (v: any) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+        function settle(resolve: any, reject: any, d: any, v: any) { Promise.resolve(v).then(function (v) { resolve({ value: v, done: d }); }, reject); }
+    };
+
+    function __makeTemplateObject(cooked: any, raw: any) {
+        if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+        return cooked;
+    };
+
+    function __importStar(mod: any) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+        result["default"] = mod;
+        return result;
+    };
+
+    function __importDefault(mod: any) {
+        return (mod && mod.__esModule) ? mod : { "default": mod };
+    };
+
+    /** 
+     * Copies over the helper functions to the target and returns the target.
+     * 
+     * CoreXT contains it's own copies of the TypeScript helper functions to help reduce code size. By default the global scope
+     * is not polluted with these functions, but you can call this method (without any arguments) to set the functions on the 
+     * global scope.
+     * 
+     * @param {object} target Allows copying the helper functions to a different object instance other than the global scope.
+     */
+    export function installTypeScriptHelpers(target: object = global) {
+        global['__extends'] = __extends;
+        global['__assign'] = __assign;
+        global['__rest'] = __rest;
+        global['__decorate'] = __decorate;
+        global['__param'] = __param;
+        global['__metadata'] = __metadata;
+        global['__awaiter'] = __awaiter;
+        global['__generator'] = __generator;
+        global['__exportStar'] = __exportStar;
+        global['__values'] = __values;
+        global['__read'] = __read;
+        global['__spread'] = __spread;
+        global['__await'] = __await;
+        global['__asyncGenerator'] = __asyncGenerator;
+        global['__asyncDelegator'] = __asyncDelegator;
+        global['__asyncValues'] = __asyncValues;
+        global['__makeTemplateObject'] = __makeTemplateObject;
+        global['__importStar'] = __importStar;
+        global['__importDefault'] = __importDefault;
+        return target;
+    }
+
+    /** 
+     * Renders the TypeScript helper references in the 'var a=param['a'],b=param['b'],etc.;' format. 
+     * This format allows declaring local function scope helper variables that simply pull references from a given object
+     * passed in to a single function parameter.
+     * 
+     * Example: eval("function executeTSCodeInFunctionScope(p){"+renderHelperVars("p")+code+"}");
+     * 
+     * Returns an array in the [{declarations string}, {helper object}] format.
+     */
+    export function renderHelperVars(paramName: string): [string, object] {
+        var helpers = installTypeScriptHelpers({});
+        var decl = "";
+        for (var p in helpers)
+            decl += (decl ? "," : "var ") + p + "=" + paramName + "['" + p + "']";
+        return [decl + ";", helpers];
+    }
+
+    // ========================================================================================================================================
 }
 
 CoreXT.safeEval = function (exp: string, p0?: any, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any, p7?: any, p8?: any, p9?: any): any { return eval(exp); };
@@ -215,7 +472,7 @@ CoreXT.globalEval = function (exp: string): any { return (<any>0, eval)(exp); };
 
 namespace CoreXT { // (the core scope)
     /** Set to true if ES2015+ (aka ES6+) is supported in the browser environment ('class', 'new.target', etc.). */
-    export var ES6: boolean = (() => { try { return <boolean>eval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
+    export var ES6: boolean = (() => { try { return <boolean>globalEval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
 
     /** Set to true if ES2015+ (aka ES6+ - i.e. 'class', 'new.target', etc.) was targeted when this CoreXT JS code was transpiled. */
     export var ES6Targeted: boolean = (() => {
@@ -504,7 +761,7 @@ namespace CoreXT { // (the core scope)
 
         export declare var __nextObjectID: number; // (incremented automatically for each new object instance)
         var ___nextObjectID = 0;
-        Object.defineProperty(Types, "__trackedObjects", { configurable: false, writable: false, get: () => ___nextObjectID });
+        Object.defineProperty(Types, "__nextObjectID", { configurable: false, get: () => ___nextObjectID });
 
         /** Returns 'Types.__nextObjectID' and increments the value by 1. */
         export function getNextObjectId() { return ___nextObjectID++; }
@@ -529,11 +786,17 @@ namespace CoreXT { // (the core scope)
         export function __new(this: IFactoryTypeInfo, ...args: any[]): NativeTypes.IObject {
             // ... this is the default 'new' function ...
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
-            var bridge = <System.IADBridge><any>this; // (note: this should be either a bridge, or a class/factory object, or undefined)
-            var type = <ITypeInfo & IFactory & IType<NativeTypes.IObject>>this;
 
             if (typeof this != 'function' || !this.init && !this.new)
-                throw System.Exception.error("Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the '{FactoryType}.new()' factory *function* without the 'new' operator.", this);
+                error("__new(): Constructor call operation on a non-constructor function.", "Using the 'new' operator is only valid on class and class-factory types. Just call the '{FactoryType}.new()' factory *function* without the 'new' operator.", this);
+
+            var bridge = <System.IADBridge><any>this; // (note: this should be either a bridge, or a class factory object, or undefined)
+            var factory = this;
+            var classType: IType = factory.$__type;
+            var classTypeInfo = <ITypeInfo>classType; // TODO: Follow up: cannot do 'IType & ITypeInfo' and still retain the 'new' signature.
+
+            if (typeof classType != 'function')
+                error("__new(): Missing class type on class factory.", "The factory '" + getFullTypeName(factory) + "' is missing the internal '$__type' class reference.", this);
 
             var appDomain = bridge.$__appDomain || System.AppDomain && System.AppDomain.default || void 0;
             var instance: NativeTypes.IObject & IDomainObjectInfo;
@@ -541,21 +804,23 @@ namespace CoreXT { // (the core scope)
 
             // ... get instance from the pool (of the same type!), or create a new one ...
             // 
-            var fullTypeName = type.$__fullname;
+            var fullTypeName = factory.$__fullname; // (the factory type holds the proper full name)
             var objectPool = fullTypeName && __disposedObjects[fullTypeName];
 
             if (objectPool && objectPool.length)
                 instance = objectPool.pop();
             else {
-                instance = <any>new (<IType<NativeTypes.IObject>>type)();
+                instance = <any>new classType();
                 isNew = true;
             }
 
             // ... initialize CoreXT and app domain references ...
             instance.$__corext = CoreXT;
             instance.$__id = getNextObjectId();
-            if (autoTrackInstances && (!appDomain || appDomain.autoTrackInstances === void 0 || appDomain.autoTrackInstances)) instance.$__globalId = Utilities.createGUID(false);
-            instance.$__appDomain = appDomain;
+            if (autoTrackInstances && (!appDomain || appDomain.autoTrackInstances === void 0 || appDomain.autoTrackInstances))
+                instance.$__globalId = Utilities.createGUID(false);
+            if (appDomain)
+                instance.$__appDomain = appDomain;
             if ('$__disposing' in instance) instance.$__disposing = false; // (only reset if exists)
             if ('$__disposed' in instance) instance.$__disposed = false; // (only reset if exists)
 
@@ -581,7 +846,7 @@ namespace CoreXT { // (the core scope)
             }
 
             // ... finally, add this object to the app domain selected, if any ...
-            if (appDomain.autoTrackInstances)
+            if (appDomain && appDomain.autoTrackInstances)
                 appDomain.attachObject(instance);
 
             return instance;
@@ -622,8 +887,11 @@ namespace CoreXT { // (the core scope)
             if (_exportName.charAt(0) == '$') _exportName = _exportName.substr(1); // TODO: May not need to do this anymore.
             namespace[_exportName] = factoryType; // (usually the name will be set upon return from this function, but the type registration system will need it NOW, so just set it)
 
+            classType.$__parent = factoryType; // (it is never valid to traverse a parent chain from a class up to parent namespaces since the class is not expose but only the factory - so link the class only to the factory)
             classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
             classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
+            classType.$__baseFactoryType = factoryType.$__baseFactoryType;
+            classType.$__name = _exportName;
 
             // ... if no 'init()' function is specified, just call the base by default ... 
 
@@ -676,7 +944,11 @@ namespace CoreXT { // (the core scope)
             //x if ('__register' in _factoryType)
             //x     _factoryType['__register'] == noop;
 
-            __registerType(cls, namespace, addMemberTypeInfo, exportName);
+            var registeredFactory = __registerType(cls, namespace, addMemberTypeInfo, exportName);
+
+            // .. finally, update the class static properties also with the values set on the factory from the previous line (to be thorough) ...
+
+            classType.$__fullname = factoryType.$__fullname + ".$__type"; // (the '$__fullname' property on a class should allow absolute reference back to it [note: '__proto__' could work here also due to static inheritance])
 
             return <any>factoryType;
         }
@@ -718,17 +990,18 @@ namespace CoreXT { // (the core scope)
             if (addMemberTypeInfo) {
                 var prototype = type['prototype'], func: IFunctionInfo;
 
-                for (var pname in prototype) {
-                    func = <IFunctionInfo>prototype[pname];
-                    if (typeof func == 'function') {
-                        func.$__argumentTypes = []; // TODO: Add function parameters if specified as parameter comments.
-                        func.$__fullname = _type.$__fullname + ".prototype." + pname;
-                        func.$__name = pname;
-                        func.$__parent = _type;
-                        if (!func.name)
-                            (<any>func).name = pname; // (may not be supported or available, so try to set it [normally this is read-only])
+                for (var pname in prototype)
+                    if (pname != 'constructor' && pname != '__proto__') {
+                        func = <IFunctionInfo>prototype[pname];
+                        if (typeof func == 'function') {
+                            func.$__argumentTypes = []; // TODO: Add function parameters if specified as parameter comments.
+                            func.$__fullname = _type.$__fullname + ".prototype." + pname;
+                            func.$__name = pname;
+                            func.$__parent = _type;
+                            if (!func.name)
+                                (<any>func).name = pname; // (may not be supported or available, so try to set it [normally this is read-only])
+                        }
                     }
-                }
             }
 
             // ... register the type ...
@@ -797,6 +1070,14 @@ namespace CoreXT { // (the core scope)
             dispose: <any>false
         };
 
+        export function __disposeValidate(object: IDisposable, title: string, source?: any) {
+            if (typeof object != 'object') error(title, "The argument given is not an object.", source);
+            if (!object.$__corext) error(title, "The object instance '" + getFullTypeName(object) + "' is not a CoreXT created object.", source);
+            if (object.$__corext != CoreXT) error(title, "The object instance '" + getFullTypeName(object) + "' was created in a different CoreXT instance and cannot be disposed by this one.", source); // (if loaded as a module perhaps, where other instance may exist [just in case])
+            if (typeof object.dispose != 'function') error(title, "The object instance '" + getFullTypeName(object) + "' does not contain a 'dispose()' function.", source);
+            if (!isDisposable(object)) error(title, "The object instance '" + getFullTypeName(object) + "' is not disposable.", source);
+        }
+
         /** Disposes a specific object in this AppDomain instance.
          * When creating thousands of objects continually, object disposal (and subsequent cache of the instances) means the GC doesn't have
          * to keep engaging to clear up the abandoned objects.  While using the "new" operator may be faster than using "{type}.new()" at
@@ -811,8 +1092,7 @@ namespace CoreXT { // (the core scope)
         export function dispose(object: IDisposable, release: boolean = true): void {
             var _object: IDomainObjectInfo = <any>object;
 
-            if (!_object.$__corext) error("dispose()", "The object instance '" + getFullTypeName(object) + "' cannot be dispose.");
-            if (!isDisposable(object)) error("dispose()", "The object instance '" + getFullTypeName(object) + "' cannot be dispose using this CoreXT instance."); // (if loaded as a module perhaps, where other instance may exist [just in case])
+            __disposeValidate(_object, "dispose()", Types);
 
             if (_object !== void 0) {
                 // ... remove the object from the app domain "active" list and then erase it ...
@@ -888,16 +1168,17 @@ namespace CoreXT { // (the core scope)
             baseClass = <any>global.Object;
             isPrimitiveOrHostBase = true;
         }
+        var symbol = typeof Symbol != 'undefined' ? Symbol : Object; // (not supported in IE11)
         if (<object>baseClass == Object || <object>baseClass == Array || <object>baseClass == Boolean || <object>baseClass == String
-            || <object>baseClass == Number || <object>baseClass == Symbol || <object>baseClass == Function || <object>baseClass == Date
+            || <object>baseClass == Number || <object>baseClass == symbol || <object>baseClass == Function || <object>baseClass == Date
             || <object>baseClass == RegExp || <object>baseClass == Error) isPrimitiveOrHostBase = true;
         var cls = class Disposable extends baseClass implements IDisposable {
             /**
             * Don't create objects using the 'new' operator. Use '{NameSpaces...ClassType}.new()' static methods instead.
             */
             constructor(...args: any[]) {
-                if (!ES6Targeted && ES6 && isPrimitiveOrHostBase)
-                    eval("var _super = function() { return null; };"); // (ES6 fix for extending built-in types [calling constructor not supported] when compiling for ES5; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
+                if (!ES6Targeted && isPrimitiveOrHostBase)
+                    eval("var _super = function() { return null; };"); // (ES6 fix for extending built-in types [calling constructor not supported prior] when compiling for ES5; more details on it here: https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work)
                 super();
             }
             /** 
@@ -1156,7 +1437,13 @@ namespace CoreXT { // (the core scope)
     export interface IResultCallback<TSender> { (sender?: TSender, result?: any): any }
     export interface IErrorCallback<TSender> { (sender?: TSender, error?: any): any }
 
-    /** The loader namespace contains low level functions for loading/bootstrapping the whole system. */
+    // TODO: Iron this out - we need to make sure the claim below works well, or at least the native browser cache can help with this naturally.
+    /** 
+     * The loader namespace contains low level functions for loading/bootstrapping the whole system. 
+     * Why use a loader instead of combining all scripts into one file? The main reason is so that individual smaller scripts can be upgraded
+     * without needing to re-transfer the whole system to the client. It's much faster to just resend one small file that might change. This
+     * also allows extending (add to) the existing scripts for system upgrades.
+     */
     export namespace Loader {
         registerNamespace("CoreXT", "Loader");
         // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1555,7 +1842,7 @@ namespace CoreXT { // (the core scope)
                             // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
                             //    (ignore the local caching if in debug or the versions are different)
 
-                            if (System.Diagnostics && !System.Diagnostics.isDebugging() && typeof Storage !== void 0)
+                            if (!isDebugging() && typeof Storage !== void 0)
                                 try {
                                     var currentAppVersion = getAppVersion();
                                     var versionInLocalStorage = localStorage.getItem("version");
@@ -1984,7 +2271,8 @@ namespace CoreXT { // (the core scope)
           */
         export function _SystemScript_onReady_Handler(request: IResourceRequest) {
             try {
-                safeEval("var CoreXT = p0; " + request.transformedData, CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
+                var helpers = renderHelperVars("p0");
+                safeEval(helpers[0] + " var CoreXT=p1; " + request.transformedData, /*p0*/  helpers[1], /*p1*/  CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
                 // (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
                 request.status = RequestStatuses.Executed;
                 request.message = "The script has been executed.";
@@ -1993,6 +2281,17 @@ namespace CoreXT { // (the core scope)
             }
         }
 
+        /** 
+         * Starts loading the CoreXT system.  To prevent this from happening automatically simply set the CoreXT debug
+         * mode before the CoreXT.js file runs: "CoreXT = { debugMode: 2 };" (see CoreXT.DebugModes.Debug_Wait)
+         * You can use 'Loader.onSystemLoaded()' to register handlers to run when the system is ready.
+         * 
+         * Note: When developing applications, the CoreXT-way is to create an 'app.manifest.ts' file that will auto load and
+         * run once the system boots up. Manifest files are basically "modules" loaded in an isolated scope from the global
+         * scope to help prevent pollution of the global scope. In a manifest file you declare and define all the types for
+         * your module, including any dependencies on other modules in the CoreXT system.  This promotes a more efficient
+         * module-based loading structure that allows pages to load faster and saves on bandwidth.
+         */
         export function bootstrap() {
             // (note: the request order is the dependency order)
 
@@ -2007,12 +2306,14 @@ namespace CoreXT { // (the core scope)
                 .include(get("~/System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
                 .include(get("~/System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
                 .include(get("~/System/CoreXT.System.Time.js")).ready(onReady) // (extends the time utilities and constants into a TimeSpan wrapper)
+                .include(get("~/System/CoreXT.System.Storage.js").ready(onReady)) // (utilities for local storage support in CoreXT)
                 .include(get("~/System/CoreXT.System.Exception.js").ready(onReady)) // (setup exception support)
                 .include(get("~/System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
                 .include(get("~/System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
                 .include(get("~/CoreXT.Browser.js")).ready(onReady) // (uses the event system)
                 .include(get("~/System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady)) // (uses events)
+                .include(get("~/System/CoreXT.System.Text.js").ready(onReady)) // (utilities specific to working with texts)
                 .include(get("~/System/CoreXT.System.Data.js").ready(onReady))
                 .include(get("~/System/CoreXT.System.IO.js").ready(onReady)) // (adds URL query handling and navigation [requires 'Events.EventDispatcher'])
                 .include(get("~/System/CoreXT.System.AppDomain.js").ready(onReady)) // (holds the default app domain and default application)
@@ -2060,5 +2361,6 @@ if (typeof System === void 0 || System === null) { // (users should reference "S
     var System = CoreXT.System; // (try to make this global, unless otherwise predefined ...)
 }
 
-CoreXT.Loader.bootstrap();
+if (CoreXT.debugMode != CoreXT.DebugModes.Debug_Wait)
+    CoreXT.Loader.bootstrap();
 // TODO: Allow users to use 'CoreXT.Loader' to load their own scripts, and skip loading the CoreXT system.

@@ -14,24 +14,6 @@ namespace CoreXT.System {
         var __logItemsSequenceCounter = 0;
         var __logCaptureStack: ILogItem[] = [];
 
-        export enum DebugModes { // TODO: ...
-            /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
-            Release,
-            /** Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. */
-            Debug_Run,
-            /** Run in debug mode, which loads all un-minified scripts, but does NOT run the application automatically.
-              * To start the application process, call 'CoreXT.Scripts.runApp()".
-              */
-            Debug_Wait
-        }
-
-        /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values.
-        */
-        export var debug: DebugModes = DebugModes.Debug_Run;
-
-        /** Returns true if CoreXT is running in debug mode. */
-        export function isDebugging() { return debug != DebugModes.Release; }
-
         // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
 
         export var LogItem = ClassFactory(Diagnostics, void 0,
@@ -178,7 +160,7 @@ namespace CoreXT.System {
                 else
                     return capturedLogItem.log(title, message, type, outputToConsole); //capturedLogItem.log("", "");
             }
-            var logItem = LogItem.new(null, title, message, type);
+            var logItem = LogItem.new(null, title, message, type, outputToConsole);
             __logItems.push(logItem);
             return logItem;
         }
@@ -320,7 +302,7 @@ if (typeof window !== 'undefined') {
         else {
             keyCode = evt.charCode ? evt.charCode : evt.keyCode;
         }
-        if (keyCode == 192 && evt.ctrlKey && CoreXT.System.Diagnostics.debug) { // (CTRL+~) key
+        if (keyCode == 192 && evt.ctrlKey && CoreXT.debugMode) { // (CTRL+~) key
             var body = document.getElementById("main");
             if (body)
                 body.style.display = ""; // (show the main element if hidden)

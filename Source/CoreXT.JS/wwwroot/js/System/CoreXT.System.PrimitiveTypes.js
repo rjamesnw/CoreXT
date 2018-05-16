@@ -37,11 +37,7 @@ var CoreXT;
             var Object = (function (_super) {
                 __extends(Object, _super);
                 function Object() {
-                    var _this = this;
-                    if (!CoreXT.ES6)
-                        eval("var _super = function() { return null; }");
-                    _this = _super.call(this) || this;
-                    return _this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 Object.prototype.getTypeInfo = function () {
                     if (!this.constructor.$__name && this.constructor.getTypeName)
@@ -60,13 +56,6 @@ var CoreXT;
                 };
                 Object.prototype.setData = function (data) {
                 };
-                Object.prototype.dispose = function (release) {
-                    var appDomain = this.$__appDomain;
-                    this.dispose = CoreXT.noop;
-                    if (appDomain)
-                        appDomain.dispose(this, release);
-                };
-                ;
                 Object.prototype.$__reset = function () {
                     if (this.dispose !== CoreXT.noop)
                         CoreXT.dispose(this, false);
@@ -115,7 +104,7 @@ var CoreXT;
                     return Factory;
                 }(CoreXT.FactoryBase(Object, null)));
                 return Object;
-            }(CoreXT.global.Object));
+            }(CoreXT.DisposableFromBase(CoreXT.global.Object)));
             return [Object, Object["ObjectFactory"]];
         }, "Object");
         function _addObjectPrototypeProperties(type) {
@@ -129,11 +118,7 @@ var CoreXT;
             var String = (function (_super) {
                 __extends(String, _super);
                 function String() {
-                    var _this = this;
-                    if (!CoreXT.ES6)
-                        eval("var _super = function() { return null; }");
-                    _this = _super.call(this) || this;
-                    return _this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 String.replace = function (source, replaceWhat, replaceWith, ignoreCase) {
                     if (typeof source !== 'string')
@@ -143,11 +128,11 @@ var CoreXT;
                     if (typeof replaceWith !== 'string')
                         replaceWith = "" + replaceWith;
                     if (ignoreCase)
-                        return source.replace(new RegExp(System.Text.RegEx.escapeRegex(replaceWhat), 'gi'), replaceWith);
+                        return source.replace(new RegExp(CoreXT.Utilities.escapeRegex(replaceWhat), 'gi'), replaceWith);
                     else if (CoreXT.Browser.type == CoreXT.Browser.BrowserTypes.Chrome)
                         return source.split(replaceWhat).join(replaceWith);
                     else
-                        return source.replace(new RegExp(System.Text.RegEx.escapeRegex(replaceWhat), 'g'), replaceWith);
+                        return source.replace(new RegExp(CoreXT.Utilities.escapeRegex(replaceWhat), 'g'), replaceWith);
                 };
                 String.replaceTags = function (html, tagReplacement) {
                     return html.replace(/<[^<>]*|>[^<>]*?>|>/g, tagReplacement);
@@ -222,18 +207,14 @@ var CoreXT;
                     return Factory;
                 }(CoreXT.FactoryBase(String, null)));
                 return String;
-            }(CoreXT.global.String));
+            }(CoreXT.DisposableFromBase(CoreXT.global.String)));
             return [String, String["StringFactory"]];
         }, "String");
         System.Array = CoreXT.ClassFactory(System, void 0, function (base) {
             var Array = (function (_super) {
                 __extends(Array, _super);
                 function Array() {
-                    var _this = this;
-                    if (!CoreXT.ES6)
-                        eval("var _super = function() { return null; }");
-                    _this = _super.call(this) || this;
-                    return _this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 Array['ArrayFactory'] = (function (_super) {
                     __extends(Factory, _super);
@@ -263,7 +244,7 @@ var CoreXT;
                     return Factory;
                 }(CoreXT.FactoryBase(Array, null)));
                 return Array;
-            }(CoreXT.global.Array));
+            }(CoreXT.DisposableFromBase(CoreXT.global.Array)));
             return [Array, Array["ArrayFactory"]];
         }, "Array");
         var DependentObject = (function (_super) {

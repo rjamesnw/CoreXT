@@ -18,15 +18,6 @@ var CoreXT;
             Diagnostics.__logItems = [];
             var __logItemsSequenceCounter = 0;
             var __logCaptureStack = [];
-            var DebugModes;
-            (function (DebugModes) {
-                DebugModes[DebugModes["Release"] = 0] = "Release";
-                DebugModes[DebugModes["Debug_Run"] = 1] = "Debug_Run";
-                DebugModes[DebugModes["Debug_Wait"] = 2] = "Debug_Wait";
-            })(DebugModes = Diagnostics.DebugModes || (Diagnostics.DebugModes = {}));
-            Diagnostics.debug = DebugModes.Debug_Run;
-            function isDebugging() { return Diagnostics.debug != DebugModes.Release; }
-            Diagnostics.isDebugging = isDebugging;
             Diagnostics.LogItem = CoreXT.ClassFactory(Diagnostics, void 0, function (base) {
                 var LogItem = (function () {
                     function LogItem() {
@@ -136,7 +127,7 @@ var CoreXT;
                     else
                         return capturedLogItem.log(title, message, type, outputToConsole);
                 }
-                var logItem = Diagnostics.LogItem.new(null, title, message, type);
+                var logItem = Diagnostics.LogItem.new(null, title, message, type, outputToConsole);
                 Diagnostics.__logItems.push(logItem);
                 return logItem;
             }
@@ -255,7 +246,7 @@ if (typeof window !== 'undefined') {
         else {
             keyCode = evt.charCode ? evt.charCode : evt.keyCode;
         }
-        if (keyCode == 192 && evt.ctrlKey && CoreXT.System.Diagnostics.debug) {
+        if (keyCode == 192 && evt.ctrlKey && CoreXT.debugMode) {
             var body = document.getElementById("main");
             if (body)
                 body.style.display = "";

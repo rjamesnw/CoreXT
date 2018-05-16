@@ -2,6 +2,11 @@ var CoreXT;
 (function (CoreXT) {
     var Utilities;
     (function (Utilities) {
+        CoreXT.registerNamespace("CoreXT", "Utilities");
+        function escapeRegex(regExStr) {
+            return regExStr.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
+        }
+        Utilities.escapeRegex = escapeRegex;
         function getReferenceName(obj, reference) {
             for (var p in obj)
                 if (obj[p] === reference)
@@ -9,11 +14,10 @@ var CoreXT;
             return void 0;
         }
         Utilities.getReferenceName = getReferenceName;
-        function erase(obj, release) {
-            if (release === void 0) { release = true; }
+        function erase(obj, ignore) {
             for (var p in obj)
                 if ((p != "__proto__" && p != 'constructor' && obj).hasOwnProperty(p))
-                    if (release || p == 'dispose' && typeof obj[p] != 'function')
+                    if (!ignore || !ignore[name])
                         obj[p] = void 0;
             return obj;
         }
@@ -45,7 +49,7 @@ var CoreXT;
         function dereferencePropertyPath(path, origin, unsafe) {
             if (unsafe === void 0) { unsafe = false; }
             if (unsafe)
-                return CoreXT.safeEval('p1.' + path, origin);
+                return CoreXT.safeEval('p0.' + path, origin);
             if (origin === void 0 || origin === null)
                 origin = this !== CoreXT.global ? this : CoreXT.global;
             if (typeof path !== 'string')
@@ -89,7 +93,6 @@ var CoreXT;
             if (copyStaticProperties)
                 extendStatics(derivedType, baseType);
             function __() { this.constructor = derivedType; }
-            __.prototype = baseType.prototype;
             var newProto = baseType === null ? Object.create(baseType) : (__.prototype = baseType.prototype, new __());
             for (var p in derivedType.prototype)
                 if (derivedType.prototype.hasOwnProperty(p))
@@ -127,6 +130,7 @@ var CoreXT;
         }
         Utilities.createGUID = createGUID;
     })(Utilities = CoreXT.Utilities || (CoreXT.Utilities = {}));
+    CoreXT.__extends = Utilities.extend;
 })(CoreXT || (CoreXT = {}));
-var __extends = CoreXT.Utilities.extend;
+var __extends = CoreXT.__extends;
 //# sourceMappingURL=CoreXT.Utilities.js.map

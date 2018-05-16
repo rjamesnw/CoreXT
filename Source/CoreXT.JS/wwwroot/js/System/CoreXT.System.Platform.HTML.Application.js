@@ -33,7 +33,7 @@ var CoreXT;
                             ApplicationElement.prototype.getTargetElement = function () { return this.targetElement; };
                             ApplicationElement.prototype.updateLayout = function (recursive) {
                                 if (recursive === void 0) { recursive = true; }
-                                var log = System.Diagnostics.isDebugging() ? System.Diagnostics.log(ApplicationElement, "Application is updating its layout ...").beginCapture() : null;
+                                var log = CoreXT.isDebugging() ? System.Diagnostics.log(ApplicationElement, "Application is updating its layout ...").beginCapture() : null;
                                 _super.prototype.updateLayout.call(this, recursive);
                                 if (this.__element != null) {
                                     var node = this.targetElement.firstChild;

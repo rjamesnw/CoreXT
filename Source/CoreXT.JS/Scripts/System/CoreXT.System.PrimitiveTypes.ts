@@ -190,12 +190,12 @@ namespace CoreXT {
                         if (typeof replaceWhat !== 'string') replaceWhat = "" + replaceWhat;
                         if (typeof replaceWith !== 'string') replaceWith = "" + replaceWith;
                         if (ignoreCase)
-                            return source.replace(new RegExp(Text.RegEx.escapeRegex(replaceWhat), 'gi'), replaceWith);
+                            return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'gi'), replaceWith);
                         else
                             if (Browser.type == Browser.BrowserTypes.Chrome)
                                 return source.split(replaceWhat).join(replaceWith); // (MUCH faster in Chrome [including Chrome mobile])
                             else
-                                return source.replace(new RegExp(Text.RegEx.escapeRegex(replaceWhat), 'g'), replaceWith);
+                                return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'g'), replaceWith);
                     }
 
                     /** Replaces all tags in the given 'HTML' string with 'tagReplacement' (an empty string by default) and returns the result. */

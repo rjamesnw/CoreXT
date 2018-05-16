@@ -4,16 +4,9 @@ var CoreXT;
     (function (System) {
         var Text;
         (function (Text) {
-            var RegEx;
-            (function (RegEx) {
-                CoreXT.registerNamespace("CoreXT", "System", "Text", "RegEx");
-                function escapeRegex(regExStr) {
-                    return regExStr.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
-                }
-                RegEx.escapeRegex = escapeRegex;
-            })(RegEx = Text.RegEx || (Text.RegEx = {}));
             var Encoding;
             (function (Encoding) {
+                CoreXT.registerNamespace("CoreXT", "System", "Text", "Encoding");
                 var Base64Modes;
                 (function (Base64Modes) {
                     Base64Modes[Base64Modes["Standard"] = 0] = "Standard";

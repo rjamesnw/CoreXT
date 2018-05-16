@@ -2,6 +2,7 @@ var CoreXT;
 (function (CoreXT) {
     var Browser;
     (function (Browser) {
+        CoreXT.registerNamespace("CoreXT", "Browser");
         var BrowserTypes;
         (function (BrowserTypes) {
             BrowserTypes[BrowserTypes["Unknown"] = 0] = "Unknown";

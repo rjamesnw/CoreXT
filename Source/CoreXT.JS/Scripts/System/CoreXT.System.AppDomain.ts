@@ -71,7 +71,7 @@ namespace CoreXT {
                     /** Automatically tracks new objects created under this app domain. The default is undefined, in which case the global 'Types.autoTrackInstances' is used instead. */
                     autoTrackInstances: boolean;
 
-                    private __objects : Collections.IIndexedObjectCollection<IDomainObjectInfo>;
+                    private __objects: Collections.IIndexedObjectCollection<IDomainObjectInfo>;
                     /** 
                      * A collection of all objects tracked by this application domain instance (see the 'autoTrackInstances' property).
                      * Each object is given an ID value that is unique for this specific AppDomain instance only.
@@ -112,19 +112,20 @@ namespace CoreXT {
                     dispose(object: IDisposable, release?: boolean): void;
                     dispose(object?: IDisposable, release: boolean = true): void {
                         var _object: IDomainObjectInfo = <any>object;
-                        if (_object !== void 0) {
+                        if (arguments.length > 0) {
+                            Types.__disposeValidate(object, "{AppDomain}.dispose()", this);
+
                             // ... make sure 'dispose()' was called on the object for the correct app domain ...
 
-                            if (_object.$__appDomain !== void 0 && _object.$__appDomain != this) {
-                                _object.$__appDomain.dispose(_object, release);
-                                return;
-                            }
+                            if (typeof _object.$__appDomain == 'object' && _object.$__appDomain != this)
+                                error("{AppDomain}.dispose()", "The given object cannot be disposed by this app domain as it belongs to a different instance.", this);
 
                             _object.$__disposing = true;
 
                             // ... verified that this is the correct domain; remove the object from the "active" list and erase it ...
 
-                            this.objects.removeObject(_object);
+                            if (_object.$__appDomainId >= 0)
+                                this.objects.removeObject(_object);
 
                             Types.dispose(_object, release);
                         } else {
@@ -253,7 +254,7 @@ namespace CoreXT {
                             this.super.init(o, isnew);
                             (<IDomainObjectInfo><any>o).$__appDomain = o;
                             o.__objects = Collections.IndexedObjectCollection.new<IDomainObjectInfo>();
-                            o.__objects.__IDPropertyName = <keyof IDomainObjectInfo>"$__appDomainId_";
+                            o.__objects.__IDPropertyName = <KeyOf<IDomainObjectInfo>>"$__appDomainId";
                             o.applications = typeof application == 'object' ? [application] : [];
                             //? if (global.Object.freeze)
                             //?    global.Object.freeze($this); // (properties cannot be modified once set)

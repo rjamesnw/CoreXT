@@ -16,6 +16,7 @@
  * global variables, and if necessary, also create a safer unique host global scope name.
  */
 namespace CoreXT.Globals { //http://jsperf.com/string-concat-vs-nested-object-lookups
+    registerNamespace("CoreXT", "Globals");
     /** Internal: used when initializing CoreXT. */
     var _globals: IndexedObject = CoreXT.Globals;
 

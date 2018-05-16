@@ -10,12 +10,16 @@ Array.prototype.where = function (func) { if (!func)
         _.push(__); return _; };
 var CoreXT;
 (function (CoreXT) {
-    var Pollyfills;
-    (function (Pollyfills) {
+    var Polyfills;
+    (function (Polyfills) {
         var window = CoreXT.global;
         var String = CoreXT.global.String;
         var Array = CoreXT.global.Array;
         var RegExp = CoreXT.global.RegExp;
+        if (!Number.MAX_SAFE_INTEGER)
+            Number.MAX_SAFE_INTEGER = 9007199254740991;
+        if (!Number.MIN_SAFE_INTEGER)
+            Number.MIN_SAFE_INTEGER = -9007199254740991;
         if (!String.prototype.trim) {
             String.prototype.trim = function () {
                 if (!this)
@@ -215,6 +219,6 @@ var CoreXT;
                 return fBound;
             };
         }
-    })(Pollyfills || (Pollyfills = {}));
+    })(Polyfills || (Polyfills = {}));
 })(CoreXT || (CoreXT = {}));
 //# sourceMappingURL=CoreXT.Polyfills.js.map

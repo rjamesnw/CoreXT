@@ -17,7 +17,7 @@
 //                    to do so without causing the aforementioned error.
 // (note: The "include()" function works similarly, except it is designed for loading unregistered script files 'on the fly'.)
 
-CoreXT.System.Diagnostics.debug = CoreXT.System.Diagnostics.DebugModes.Debug_Run; // ('Debug_???' values cause the non-minified versions of scripts [where available] to be loaded)
+CoreXT.debugMode = CoreXT.DebugModes.Debug_Run; // ('Debug_???' values cause the non-minified versions of scripts [where available] to be loaded)
 
 // TIP: CoreXT supports "on demand" script loading via the "using()" function.  While the user performs some action, you simply pass the required module
 //      reference to "using(...)", and a callback function to execute once the module is loaded. This is much more efficient than loading many scripts

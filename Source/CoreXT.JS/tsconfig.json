@@ -9,6 +9,7 @@
     "noImplicitAny": true,
     "noEmitOnError": true,
     "removeComments": true,
+    "noEmitHelpers": true,
     //"typeRoots": [ "typings" ],
     "sourceMap": true,
     "target": "es5", // IE11=es5, Edge+ es2015=ES6

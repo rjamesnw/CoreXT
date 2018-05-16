@@ -151,7 +151,7 @@ namespace CoreXT.System {
         // ------------------------------------------------------------------------------------------------------------------
         // Cleanup web storage each time if debugging.
 
-        if (Diagnostics.isDebugging() && hasLocalStorage)
+        if (isDebugging() && hasLocalStorage)
             clear(StorageType.Local);
 
         // ------------------------------------------------------------------------------------------------------------------

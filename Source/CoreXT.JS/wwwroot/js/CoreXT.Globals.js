@@ -2,6 +2,7 @@ var CoreXT;
 (function (CoreXT) {
     var Globals;
     (function (Globals) {
+        CoreXT.registerNamespace("CoreXT", "Globals");
         var _globals = CoreXT.Globals;
         var _namespaces = {};
         var _nsCount = 1;

@@ -107,7 +107,7 @@ namespace CoreXT {
                 @sealed
                 class Manifest extends base {
                     // ----------------------------------------------------------------------------------------------------------------
-                    
+
                     protected static readonly ManifestFactory = class Factory extends FactoryBase(ScriptResource, base["ScriptResourceFactory"]) {
                         /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
                         static 'new'(url: string): Manifest { return null; }
@@ -125,7 +125,7 @@ namespace CoreXT {
             "Manifest"
         );
         export interface IManifest extends InstanceType<typeof Manifest.$__type> { }
-        
+
         // ====================================================================================================================
 
         var _manifests: IManifest[] = []; // (holds a list of all 
@@ -230,7 +230,7 @@ namespace CoreXT {
                     customWait: boolean = false;
 
                     /** Holds a reference to the executed function that wraps the loaded script. */
-                    private $__modFunc: (module: IModule, exports: {}, ...args: any[]) => _IModuleAccessors;
+                    private $__modFunc: (corext: typeof CoreXT, module: IModule, exports: {}, ...args: any[]) => _IModuleAccessors;
 
                     /** Returns a variable value from the executed module's local scope.
                       * Module scripts that are wrapped in functions may have defined global variables that become locally scoped instead. In
@@ -251,7 +251,7 @@ namespace CoreXT {
 
                     /** A temp reference to the object returned from executing the generated '$__modFunc' wrapper function. */
                     private _moduleGlobalAccessors: _IModuleAccessors;
-                    private static readonly _globalaccessors: _IModuleAccessors = (() => { return safeEval("({ get: function(varName) { return CoreXT.global[varName]; }, set: function(varName, val) { return CoreXT.global[varName] = val; } })"); })();
+                    private static readonly _globalaccessors: _IModuleAccessors = (() => { return safeEval("({ get: function(varName) { return p0.global[varName]; }, set: function(varName, val) { return p0.global[varName] = val; } })", CoreXT); })();
 
                     private __onLoaded() {
                         // ... script is loaded (not executed), but may be waiting on dependencies; for now, check for in-script dependencies/flags and apply those now ...
@@ -274,7 +274,7 @@ namespace CoreXT {
                     /** Begin loading the module's script. After the loading is completed, any dependencies are automatically detected and loaded as well. */
                     start(): this {
                         if (this.status == Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
-                            this.url = System.Diagnostics.debug ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL); // (just in case the debugging flag changed)
+                            this.url = debugMode ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL); // (just in case the debugging flag changed)
                             return super.start();
                         }
                         return this;
@@ -290,10 +290,11 @@ namespace CoreXT {
 
                             var accessors: _IModuleAccessors;
                             if (useGlobalScope) {
-                                this.$__modFunc = <any>new Function("module", "exports", this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
-                                this._moduleGlobalAccessors = this.$__modFunc(this, this.exports); // (note that 'this.' effectively prevents polluting the global scope in case 'this' is used)
+                                this._moduleGlobalAccessors = (globalEval(this.data), Module._globalaccessors); // (use the global accessors, as the module was run in the global scope)
                             } else {
-                                this._moduleGlobalAccessors = (safeEval(this.data), Module._globalaccessors); // (use the global accessors, as the module was run in the global scope)
+                                var tsHelpers = renderHelperVars("arguments[3]");
+                                this.$__modFunc = <any>new Function("CoreXT", "module", "exports", tsHelpers[0] + this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
+                                this._moduleGlobalAccessors = this.$__modFunc(CoreXT, this, this.exports, tsHelpers); // (note that 'this.' effectively prevents polluting the global scope in case 'this' is used)
                             }
 
                             this.getVar = this._moduleGlobalAccessors.get;
@@ -311,7 +312,7 @@ namespace CoreXT {
 
                         /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
                         static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, fullname: string, url: string, minifiedURL: string = null) {
-                            this.super.init(o, isnew, System.Diagnostics.debug ? url : (minifiedURL || url));
+                            this.super.init(o, isnew, debugMode ? url : (minifiedURL || url));
 
                             if (!o.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
                                 throw System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", o);
@@ -334,10 +335,10 @@ namespace CoreXT {
 
         var _runMode = 0; // (0=auto run, depending on debug flag; 1=user has requested run before the app module was ready; 2=running)
 
-        /** Used internally to see if the application should run automatically. If needed, developers should call 'runApp()' instead. */
+        /** Used internally to see if the application should run automatically. Developers should NOT call this directly and call 'runApp()' instead. */
         export function _tryRunApp() {
             if (_runMode < 2)
-                if (_appModule && (_runMode == 1 || !CoreXT.host.isDebugMode() && CoreXT.System.Diagnostics.debug != CoreXT.System.Diagnostics.DebugModes.Debug_Wait)) {
+                if (_appModule && (_runMode == 1 || !CoreXT.host.isDebugMode() && CoreXT.debugMode != CoreXT.DebugModes.Debug_Wait)) {
                     // (note: if the host is in debug mode, it trumps the internal debug setting)
                     if (_appModule.status == Loader.RequestStatuses.Ready)
                         _appModule.execute();

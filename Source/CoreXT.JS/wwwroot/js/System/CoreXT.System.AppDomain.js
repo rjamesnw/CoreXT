@@ -25,8 +25,6 @@ var CoreXT;
                 function AppDomain() {
                     var _this = _super !== null && _super.apply(this, arguments) || this;
                     _this.__typeBridges = {};
-                    _this.autoTrack = false;
-                    _this.objects = System.Collections.IndexedObjectCollection.new();
                     return _this;
                 }
                 AppDomain_1 = AppDomain;
@@ -40,6 +38,11 @@ var CoreXT;
                     enumerable: true,
                     configurable: true
                 });
+                Object.defineProperty(AppDomain.prototype, "objects", {
+                    get: function () { return this.__objects; },
+                    enumerable: true,
+                    configurable: true
+                });
                 AppDomain.prototype.application = function () {
                     if (!this.applications.length)
                         throw System.Exception.error("AppDomain", "This application domain has no application instances.", this);
@@ -48,12 +51,13 @@ var CoreXT;
                 AppDomain.prototype.dispose = function (object, release) {
                     if (release === void 0) { release = true; }
                     var _object = object;
-                    if (_object !== void 0) {
-                        if (_object.$__appDomain !== void 0 && _object.$__appDomain != this) {
-                            _object.$__appDomain.dispose(_object, release);
-                            return;
-                        }
-                        this.objects.removeObject(_object);
+                    if (arguments.length > 0) {
+                        CoreXT.Types.__disposeValidate(object, "{AppDomain}.dispose()", this);
+                        if (typeof _object.$__appDomain == 'object' && _object.$__appDomain != this)
+                            CoreXT.error("{AppDomain}.dispose()", "The given object cannot be disposed by this app domain as it belongs to a different instance.", this);
+                        _object.$__disposing = true;
+                        if (_object.$__appDomainId >= 0)
+                            this.objects.removeObject(_object);
                         CoreXT.Types.dispose(_object, release);
                     }
                     else {
@@ -63,9 +67,13 @@ var CoreXT;
                     }
                 };
                 AppDomain.prototype.attachObject = function (object) {
-                    if (!type.$__parent || !type.$__name || !type.$__fullname)
-                        throw System.Exception.error("with()", "The specified type '" + type.$__name + "' has not yet been registered properly using 'AppDomain.registerType()/.registerClass()'.", type);
-                    var type = object.constructor;
+                    var type = object;
+                    if (type.$__disposing || type.$__disposed)
+                        CoreXT.error("attachObject()", "The specified object instance of type '" + CoreXT.getFullTypeName(type) + "' is disposed.", type);
+                    if (!type.$__corext || !type.$__appDomain || !type.dispose)
+                        CoreXT.error("attachObject()", "The specified type '" + CoreXT.getFullTypeName(type) + "' is not valid for this operation. Make sure to use 'CoreXT.ClassFactory()' to create valid factory types, or make sure the 'IDomainObjectInfo' properties are satisfied.", type);
+                    if (type.$__appDomain != this)
+                        CoreXT.error("attachObject()", "The specified object instance of type '" + CoreXT.getFullTypeName(type) + "' is already attached to a different application domain.", type);
                     this.objects.addObject(object);
                     return object;
                 };
@@ -105,6 +113,8 @@ var CoreXT;
                     Factory.init = function (o, isnew, application) {
                         this.super.init(o, isnew);
                         o.$__appDomain = o;
+                        o.__objects = System.Collections.IndexedObjectCollection.new();
+                        o.__objects.__IDPropertyName = "$__appDomainId";
                         o.applications = typeof application == 'object' ? [application] : [];
                     };
                     return Factory;
