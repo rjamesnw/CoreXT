@@ -84,24 +84,6 @@ var CoreXT;
             }
         }
         Utilities.waitReady = waitReady;
-        var extendStatics = Object.setPrototypeOf || ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b)
-                if (b.hasOwnProperty(p))
-                    d[p] = b[p]; };
-        function extend(derivedType, baseType, copyStaticProperties) {
-            if (copyStaticProperties === void 0) { copyStaticProperties = true; }
-            if (copyStaticProperties)
-                extendStatics(derivedType, baseType);
-            function __() { this.constructor = derivedType; }
-            var newProto = baseType === null ? Object.create(baseType) : (__.prototype = baseType.prototype, new __());
-            for (var p in derivedType.prototype)
-                if (derivedType.prototype.hasOwnProperty(p))
-                    newProto[p] = derivedType.prototype[p];
-            derivedType.prototype = newProto;
-            return derivedType;
-        }
-        Utilities.extend = extend;
-        ;
         function apply(func, _this, args) {
             if (func.apply) {
                 return func.apply(_this, args);
@@ -130,7 +112,5 @@ var CoreXT;
         }
         Utilities.createGUID = createGUID;
     })(Utilities = CoreXT.Utilities || (CoreXT.Utilities = {}));
-    CoreXT.__extends = Utilities.extend;
 })(CoreXT || (CoreXT = {}));
-var __extends = CoreXT.__extends;
 //# sourceMappingURL=CoreXT.Utilities.js.map

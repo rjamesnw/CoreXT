@@ -292,7 +292,7 @@ namespace CoreXT {
                             if (useGlobalScope) {
                                 this._moduleGlobalAccessors = (globalEval(this.data), Module._globalaccessors); // (use the global accessors, as the module was run in the global scope)
                             } else {
-                                var tsHelpers = renderHelperVars("arguments[3]");
+                                var tsHelpers = renderHelperVarDeclarations("arguments[3]");
                                 this.$__modFunc = <any>new Function("CoreXT", "module", "exports", tsHelpers[0] + this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
                                 this._moduleGlobalAccessors = this.$__modFunc(CoreXT, this, this.exports, tsHelpers); // (note that 'this.' effectively prevents polluting the global scope in case 'this' is used)
                             }

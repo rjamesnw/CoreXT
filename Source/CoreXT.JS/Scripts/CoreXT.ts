@@ -226,7 +226,35 @@ namespace CoreXT {
         Server
     }
 
-    // ========================================================================================================================================
+   // =========================================================================================================================================
+
+    export var FUNC_NAME_REGEX = /^function\s*(\S+)\s*\(/i; // (note: never use the 'g' flag here, or '{regex}.exec()' will only work once every two calls [attempts to traverse])
+
+    /** Attempts to pull the function name from the function object, and returns an empty string if none could be determined. */
+    export function getFunctionName(func: Function): string {
+        // ... if an internal name is already set return it now ...
+        var name = (<ITypeInfo><any>func).$__name || func['name'];
+        if (name == void 0) {
+            // ... check the type (this quickly detects internal/native Browser types) ...
+            var typeString: string = Object.prototype.toString.call(func);
+            // (typeString is formated like "[object SomeType]")
+            if (typeString.charAt(0) == '[' && typeString.charAt(typeString.length - 1) == ']')
+                name = typeString.substring(1, typeString.length - 1).split(' ')[1];
+            if (!name || name == "Function" || name == "Object") { // (a basic function/object was found)
+                if (typeof func == 'function') {
+                    // ... if this has a function text get the name as defined (in IE, Window+'' returns '[object Window]' but in Chrome it returns 'function Window() { [native code] }') ...
+                    var fstr = Function.prototype.toString.call(func);
+                    var results = (FUNC_NAME_REGEX).exec(fstr); // (note: for function expression object contexts, the constructor (type) name is always 'Function')
+                    name = (results && results.length > 1) ? results[1] : void 0;
+                }
+                else name = void 0;
+            }
+        }
+        return name || "";
+
+    }
+
+   // =========================================================================================================================================
     // A dump of the functions required by TypeScript in one place.
 
     var extendStatics = Object.setPrototypeOf || ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -421,43 +449,56 @@ namespace CoreXT {
      * @param {object} target Allows copying the helper functions to a different object instance other than the global scope.
      */
     export function installTypeScriptHelpers(target: object = global) {
-        global['__extends'] = __extends;
-        global['__assign'] = __assign;
-        global['__rest'] = __rest;
-        global['__decorate'] = __decorate;
-        global['__param'] = __param;
-        global['__metadata'] = __metadata;
-        global['__awaiter'] = __awaiter;
-        global['__generator'] = __generator;
-        global['__exportStar'] = __exportStar;
-        global['__values'] = __values;
-        global['__read'] = __read;
-        global['__spread'] = __spread;
-        global['__await'] = __await;
-        global['__asyncGenerator'] = __asyncGenerator;
-        global['__asyncDelegator'] = __asyncDelegator;
-        global['__asyncValues'] = __asyncValues;
-        global['__makeTemplateObject'] = __makeTemplateObject;
-        global['__importStar'] = __importStar;
-        global['__importDefault'] = __importDefault;
+        target['__extends'] = __extends;
+        target['__assign'] = __assign;
+        target['__rest'] = __rest;
+        target['__decorate'] = __decorate;
+        target['__param'] = __param;
+        target['__metadata'] = __metadata;
+        target['__awaiter'] = __awaiter;
+        target['__generator'] = __generator;
+        target['__exportStar'] = __exportStar;
+        target['__values'] = __values;
+        target['__read'] = __read;
+        target['__spread'] = __spread;
+        target['__await'] = __await;
+        target['__asyncGenerator'] = __asyncGenerator;
+        target['__asyncDelegator'] = __asyncDelegator;
+        target['__asyncValues'] = __asyncValues;
+        target['__makeTemplateObject'] = __makeTemplateObject;
+        target['__importStar'] = __importStar;
+        target['__importDefault'] = __importDefault;
         return target;
     }
 
     /** 
-     * Renders the TypeScript helper references in the 'var a=param['a'],b=param['b'],etc.;' format. 
+     * Renders the TypeScript helper references in the 'var a=param['a'],b=param['b'],etc.;' format. This is used mainly when executing scripts wrapped in functions.
      * This format allows declaring local function scope helper variables that simply pull references from a given object
      * passed in to a single function parameter.
      * 
      * Example: eval("function executeTSCodeInFunctionScope(p){"+renderHelperVars("p")+code+"}");
      * 
-     * Returns an array in the [{declarations string}, {helper object}] format.
+     * Returns the code to be execute within scope using 'eval()'.
      */
-    export function renderHelperVars(paramName: string): [string, object] {
+    export function renderHelperVarDeclarations(paramName: string): [string, object] {
         var helpers = installTypeScriptHelpers({});
         var decl = "";
         for (var p in helpers)
             decl += (decl ? "," : "var ") + p + "=" + paramName + "['" + p + "']";
         return [decl + ";", helpers];
+    }
+
+    /** 
+     * Renders the TypeScript helper references to already existing functions into a string to be executed using 'eval()'. 
+     * This format is used mainly to declare helpers at the start of a namespace or function body that simply pull
+     * references to the already existing helper functions to help reduce code size.
+     * 
+     * Example: namespace CoreXT{ eval(renderHelpers()); ...code that may require helpers... }
+     * 
+     * Returns an array in the [{declarations string}, {helper object}] format.
+     */
+    export function renderHelpers() {
+        return "var __helpers = " + ROOT_NAMESPACE + "." + getFunctionName(renderHelperVarDeclarations) + "('__helpers[1]'); eval(__helpers[0]);";
     }
 
     // ========================================================================================================================================
@@ -471,6 +512,9 @@ CoreXT.globalEval = function (exp: string): any { return (<any>0, eval)(exp); };
 // (note: indirect 'eval' calls are always globally scoped; see more: http://perfectionkills.com/global-eval-what-are-the-options/#windoweval)
 
 namespace CoreXT { // (the core scope)
+
+    eval(renderHelpers());
+
     /** Set to true if ES2015+ (aka ES6+) is supported in the browser environment ('class', 'new.target', etc.). */
     export var ES6: boolean = (() => { try { return <boolean>globalEval("(function () { return new.target; }, true)"); } catch (e) { return false; } })();
 
@@ -610,34 +654,6 @@ namespace CoreXT { // (the core scope)
     }
 
     // =======================================================================================================================
-
-    export var FUNC_NAME_REGEX = /^function\s*(\S+)\s*\(/i; // (note: never use the 'g' flag here, or '{regex}.exec()' will only work once every two calls [attempts to traverse])
-
-    /** Attempts to pull the function name from the function object, and returns an empty string if none could be determined. */
-    export function getFunctionName(func: Function): string {
-        // ... if an internal name is already set return it now ...
-        var name = (<ITypeInfo><any>func).$__name || func['name'];
-        if (name == void 0) {
-            // ... check the type (this quickly detects internal/native Browser types) ...
-            var typeString: string = Object.prototype.toString.call(func);
-            // (typeString is formated like "[object SomeType]")
-            if (typeString.charAt(0) == '[' && typeString.charAt(typeString.length - 1) == ']')
-                name = typeString.substring(1, typeString.length - 1).split(' ')[1];
-            if (!name || name == "Function" || name == "Object") { // (a basic function/object was found)
-                if (typeof func == 'function') {
-                    // ... if this has a function text get the name as defined (in IE, Window+'' returns '[object Window]' but in Chrome it returns 'function Window() { [native code] }') ...
-                    var fstr = Function.prototype.toString.call(func);
-                    var results = (FUNC_NAME_REGEX).exec(fstr); // (note: for function expression object contexts, the constructor (type) name is always 'Function')
-                    name = (results && results.length > 1) ? results[1] : void 0;
-                }
-                else name = void 0;
-            }
-        }
-        return name || "";
-
-    }
-
-    // -------------------------------------------------------------------------------------------------------------------
 
     /** Returns the type name for an object instance registered with 'AppDomain.registerType()'.  If the object does not have
     * type information, and the object is a function, then an attempt is made to pull the function name (if one exists).
@@ -2271,7 +2287,7 @@ namespace CoreXT { // (the core scope)
           */
         export function _SystemScript_onReady_Handler(request: IResourceRequest) {
             try {
-                var helpers = renderHelperVars("p0");
+                var helpers = renderHelperVarDeclarations("p0");
                 safeEval(helpers[0] + " var CoreXT=p1; " + request.transformedData, /*p0*/  helpers[1], /*p1*/  CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
                 // (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
                 request.status = RequestStatuses.Executed;

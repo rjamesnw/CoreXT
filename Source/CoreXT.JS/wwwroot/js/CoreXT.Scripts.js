@@ -1,19 +1,3 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var CoreXT;
 (function (CoreXT) {
     var Scripts;
@@ -191,18 +175,19 @@ var CoreXT;
                                 dep.execute();
                         var accessors;
                         if (useGlobalScope) {
-                            this.$__modFunc = new Function("module", "exports", this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
-                            this._moduleGlobalAccessors = this.$__modFunc(this, this.exports);
+                            this._moduleGlobalAccessors = (CoreXT.globalEval(this.data), Module._globalaccessors);
                         }
                         else {
-                            this._moduleGlobalAccessors = (CoreXT.safeEval(this.data), Module._globalaccessors);
+                            var tsHelpers = CoreXT.renderHelperVarDeclarations("arguments[3]");
+                            this.$__modFunc = new Function("CoreXT", "module", "exports", tsHelpers[0] + this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
+                            this._moduleGlobalAccessors = this.$__modFunc(CoreXT, this, this.exports, tsHelpers);
                         }
                         this.getVar = this._moduleGlobalAccessors.get;
                         this.setVar = this._moduleGlobalAccessors.set;
                         this.status = CoreXT.Loader.RequestStatuses.Executed;
                     }
                 };
-                Module._globalaccessors = (function () { return CoreXT.safeEval("({ get: function(varName) { return CoreXT.global[varName]; }, set: function(varName, val) { return CoreXT.global[varName] = val; } })"); })();
+                Module._globalaccessors = (function () { return CoreXT.safeEval("({ get: function(varName) { return p0.global[varName]; }, set: function(varName, val) { return p0.global[varName] = val; } })", CoreXT); })();
                 Module['ModuleFactory'] = (function (_super) {
                     __extends(Factory, _super);
                     function Factory() {
