@@ -37,17 +37,17 @@ declare namespace CDS {
             /** Returns true if the required cell elements have fully loaded into the DOM. */
             readonly isReady: boolean;
             constructor(cellID: string);
-            private _getValue(e);
+            private _getValue;
             /** Returns the current value that will be posted to the back-end. */
             getValue(): any;
             /** Returns the current value the user entered in the edit control for this cell. */
             getInputValue(): any;
-            private _getDisplayText(valueEl);
+            private _getDisplayText;
             /** Returns the current display value for the value that will be posted to the back-end. */
             getDisplayText(): string;
             /** Returns the current display value based on what the user entered in the edit control for this cell. */
             getInputDisplayText(): string;
-            private _setValue(value, e);
+            private _setValue;
             /** Sets the current value for the value that will be posted to the back-end. */
             setValue(value: any): boolean;
             /** Sets the current value for the edit control for this cell. */

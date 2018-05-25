@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
         ///     custom local files matching the same path.
         /// </param>
         /// <returns> An <see cref="IMvcBuilder"/> that can be used to further configure the MVC services. </returns>
-        public static IMvcBuilder AddToolkit(this IServiceCollection services, Action<MvcOptions> setupAction, IConfigurationRoot configuration, IHostingEnvironment hostingEnvironment = null)
+        public static IMvcBuilder AddToolkit(this IServiceCollection services, Action<MvcOptions> setupAction, IConfiguration configuration, IHostingEnvironment hostingEnvironment = null)
         {
             // ... register CoreXT service objects ...
 
@@ -63,6 +63,15 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var currentAssembly = typeof(CoreXTToolkitForMVCServiceExtensions).GetTypeInfo().Assembly;
 
+            // ... add the embedded providers first, then 'AddMvcXT()' will add the physical file provider next ...
+            // (NOTE: derived assemblies should ALWAYS add embedded files providers FIRST to make sure the first one takes priority over inner ones)
+
+            services.Configure<RazorViewEngineOptions>(options =>
+            {
+                // TODO: options.FileProviders.Add(new VirtualFileProvider("CoreXT", hostingEnvironment));
+                options.FileProviders.Add(new CoreXTEmbeddedFileProvider(currentAssembly, hostingEnvironment));
+            });
+
             // ... get MVC builder, which also, by default, adds the physical file provider ...
 
             IMvcBuilder mvcBuilder;
@@ -74,14 +83,6 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             mvcBuilder.AddJsonOptions(o => o.SerializerSettings.Converters.Add(new TableJsonConverter()));
-
-            // ... physical file provider should be first now, so add the embedded providers next ...
-
-            services.Configure<RazorViewEngineOptions>(options =>
-            {
-                //options.FileProviders.Add(new VirtualFileProvider("CoreXT", hostingEnvironment));
-                options.FileProviders.Add(new CoreXTEmbeddedFileProvider(currentAssembly, hostingEnvironment));
-            });
 
             services.AddComponents(currentAssembly);
 

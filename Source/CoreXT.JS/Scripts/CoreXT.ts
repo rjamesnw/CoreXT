@@ -740,9 +740,9 @@ namespace CoreXT { // (the core scope)
      * @param args A list of items which are either fully qualified type names, or references to the type functions.
      * The order specified is important.  A new (transient) or existing (singleton) instance of the first matching type found is returned.
      */
-    export function $(...args: (CoreXT.IType<any> | string)[]) { // this is the decorator factory
+    export function $(...args: (IType<any> | string)[]) { // this is the decorator factory
         return function (target: any, paramName: string, index: number) { // this is the decorator
-            var _target = <CoreXT.IFunctionInfo>target;
+            var _target = <IFunctionInfo>target;
             _target.$__argumentTypes[index] = args;
         }
     }

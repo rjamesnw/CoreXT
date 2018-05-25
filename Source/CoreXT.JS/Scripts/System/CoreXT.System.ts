@@ -201,9 +201,8 @@ namespace CoreXT {
     export function dispose(obj: IDisposable[], release?: boolean): void;
     export function dispose(obj: any, release: boolean = true): void {
         if (typeof obj == 'object')
-            if (typeof obj.dispose == 'function' && obj.dispose != noop) {
+            if (typeof obj.dispose == 'function' && !(<IDisposable>obj).$__disposing && !(<IDisposable>obj).$__disposed) {
                 obj.dispose(release);
-                obj.dispose = noop; // (this does not erase the prototype, but creates an INSTANCE version to hide the prototype [assuming the object is not frozen])
             } else if (obj.length > 0)
                 for (var i = obj.length; i >= 0; --i)
                     dispose(obj[i], release);
@@ -232,48 +231,10 @@ namespace CoreXT {
 
     // ========================================================================================================================
 
-    //interface Symbol {
-    //    /** Returns a string representation of an object. */
-    //    toString(): string;
-
-    //    /** Returns the primitive value of the specified object. */
-    //    valueOf(): symbol;
-    //}
-    //declare var Symbol: SymbolConstructor;
-    //interface Symbol {
-    //    readonly [Symbol.toStringTag]: "Symbol";
-    //}
-    //interface SymbolConstructor {
-    //    /**
-    //     * A method that returns the default iterator for an object. Called by the semantics of the
-    //     * for-of statement.
-    //     */
-    //    readonly iterator: symbol;
-    //}
-
-    //interface IteratorResult<T> {
-    //    done: boolean;
-    //    value: T;
-    //}
-
-    //interface Iterator<T> {
-    //    next(value?: any): IteratorResult<T>;
-    //    return?(value?: any): IteratorResult<T>;
-    //    throw?(e?: any): IteratorResult<T>;
-    //}
-
-    //interface Iterable<T> {
-    //    [Symbol.iterator](): Iterator<T>;
-    //}
-
-    //interface IterableIterator<T> extends Iterator<T> {
-    //    [Symbol.iterator](): IterableIterator<T>;
-    //}
-
     /**
      * Supports Iteration for ES5/ES3. To use, create a new type derived from this one, or implement the IEnumerable<T> interface.
      */
-    abstract class Enumerable<T> implements Iterator<T>
+    export abstract class Enumerable<T> implements Iterator<T>
     {
         next(value?: any): IteratorResult<T> {
             throw System.Exception.notImplemented('next', this);
@@ -299,41 +260,4 @@ namespace CoreXT {
 // ###########################################################################################################################
 
 
-/// *************** Consider dependency injection chained classes ******************************************************************************************
-
-
-
-
-//class Person {
-//    constructor(public name: string) { }
-//}
-
-//type Constructor<T extends any> = new (...args: any[]) => T;
-
-//function FactoryType<RT extends object, T extends Constructor<object>>(base: T) {
-//    return class FactoryType extends base {
-//        z: number;
-//        private _This: this;
-//        static 'new'(): RT { return null; }
-//        static init(): RT { return null; }
-//        constructor(...args: any[]) {
-//            if (arguments.length) throw "Using the new operator is not supported.";
-//            super(...args);
-//        }
-//    }
-//}
-
-//const PointFactory = FactoryType(Point);
-//var p = PointFactory.init();
-
-//let point = new PointFactory(10, 20);
-//point.x;
-
-//class Customer extends FactoryType(Person) {
-//    accountBalance: number;
-//}
-
-//let customer = new Customer("Joe");
-//customer._tag = "test";
-//customer.accountBalance = 0;
-
+// *************** Consider dependency injection chained classes ******************************************************************************************

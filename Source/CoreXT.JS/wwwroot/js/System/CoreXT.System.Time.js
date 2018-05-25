@@ -1,15 +1,33 @@
+// ###########################################################################################################################
+// Types for time management.
+// ###########################################################################################################################
 var CoreXT;
 (function (CoreXT) {
     var System;
     (function (System) {
         CoreXT.registerNamespace("CoreXT", "System");
+        // =======================================================================================================================
+        /**
+         * Represents a span of time (not a date). Calculation of dates usually relies on calendar rules.  A time-span object
+         * doesn't care about months and day of the month - JavaScript already has a date object for that.
+         * TimeSpan does, however, base the start of time on the epoch year of 1970 (same as the 'Date' object), and takes leap years into account.
+         *
+         * Note: TimeSpan exposes the results as properties for fast access (rather than getters/setters), but changing individual properties does not
+         * cause the other values to update.  Use the supplied functions for manipulating the values.
+         */
         System.TimeSpan = CoreXT.ClassFactory(System, System.Object, function (base) {
-            var TimeSpan = (function (_super) {
+            var TimeSpan = /** @class */ (function (_super) {
                 __extends(TimeSpan, _super);
                 function TimeSpan() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
+                //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+                /** Returns the time zone offset in milliseconds ({Date}.getTimezoneOffset() returns it in minutes). */
                 TimeSpan.getTimeZoneOffset = function () { return CoreXT.Time.__localTimeZoneOffset; };
+                //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+                /** Set the time of this TimeSpan, in milliseconds.
+                    * Note: This function assumes that milliseconds representing leap year days are included (same as the JavaScript 'Date' object).
+                    */
                 TimeSpan.prototype.setTime = function (timeInMs) {
                     if (!isNaN(timeInMs)) {
                         var ms = this.__ms = timeInMs || 0;
@@ -28,7 +46,11 @@ var CoreXT;
                     }
                     return this;
                 };
+                /** Returns the internal millisecond total for this TimeSpan.
+                    * Note:
+                    */
                 TimeSpan.prototype.getTime = function () { return this.__ms; };
+                /** Creates a TimeSpan object from the current value returned by calling 'Date.now()', or 'new Date().getTime()' if 'now()' is not supported. */
                 TimeSpan.now = function () { return Date.now ? System.TimeSpan.new(Date.now()) : TimeSpan.fromDate(new Date()); };
                 TimeSpan.prototype.add = function (yearOrTimeInMS, dayOfYearOffset, hoursOffset, minutesOffset, secondsOffset, msOffset) {
                     if (yearOrTimeInMS === void 0) { yearOrTimeInMS = 0; }
@@ -56,6 +78,7 @@ var CoreXT;
                         this.setTime(this.__ms -= TimeSpan.msFromTime(CoreXT.Time.__EpochYear + yearOrTimeInMS, 1 + dayOfYearOffset, hoursOffset, minutesOffset, secondsOffset, msOffset));
                     return this;
                 };
+                //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
                 TimeSpan.utcTimeToLocalYear = function (timeInMs) {
                     return CoreXT.Time.__EpochYear + Math.floor(((timeInMs || 0) - CoreXT.Time.__localTimeZoneOffset) / (CoreXT.Time.__actualDaysPerYear * CoreXT.Time.__millisecondsPerDay));
                 };
@@ -80,54 +103,92 @@ var CoreXT;
                 TimeSpan.utcTimeToLocalTime = function (timeInMs) {
                     return System.TimeSpan.new((timeInMs || 0) - CoreXT.Time.__localTimeZoneOffset);
                 };
+                /** Creates and returns a TimeSpan that represents the date object.
+                   * This relates to the 'date.getTime()' function, which returns the internal date span in milliseconds (from Epoch) with the time zone added.
+                   * See also: fromLocalDateAsUTC().
+                   */
                 TimeSpan.fromDate = function (date) {
                     if (!date.valueOf || isNaN(date.valueOf()))
-                        return null;
-                    return System.TimeSpan.new(date.getTime());
+                        return null; // (date is invalid)
+                    return System.TimeSpan.new(date.getTime()); // (note: 'getTime()' returns the UTC time)
                 };
+                /**
+                   * Creates and returns a TimeSpan that represents the date object's localized time as Coordinated Universal Time (UTC).
+                   * Note: This removes the time zone added to 'date.getTime()' to make a TimeSpan with localized values, but remember that values in a TimeSpan
+                   * instance always represent UTC time by default.
+                   * See also: fromDate().
+                   */
                 TimeSpan.fromLocalDateAsUTC = function (date) {
                     if (!date.valueOf || isNaN(date.valueOf()))
-                        return null;
-                    return TimeSpan.utcTimeToLocalTime(date.getTime());
+                        return null; // (date is invalid)
+                    return TimeSpan.utcTimeToLocalTime(date.getTime()); // (note: 'getTime()' returns the UTC time)
                 };
                 TimeSpan.__parseSQLDateTime = function (dateString) {
-                    dateString = dateString.replace(' ', 'T');
+                    dateString = dateString.replace(' ', 'T'); // TODO: Make more compliant.
                     var ms = Date.parse(dateString);
                     ms += CoreXT.Time.__localTimeZoneOffset;
-                    return System.TimeSpan.new(ms);
+                    return System.TimeSpan.new(ms); // (the parsed date will have the time zone added)
                 };
+                /** Creates and returns a TimeSpan that represents the specified date string as the local time.
+                    * Note: The 'Date.parse()' function is used to parse the text, so any ISO-8601 formatted dates (YYYY-MM-DDTHH:mm:ss.sssZ) will be treated as UTC
+                    * based (no time zone applied). You can detect such cases using 'isISO8601()', or call 'parseLocal()' instead.
+                    * This function also supports the SQL standard Date/Time format (see 'isSQLDateTime()'), which is not supported in IE (yet).
+                    */
                 TimeSpan.parse = function (dateString) {
                     if (TimeSpan.isSQLDateTime(dateString, true))
                         return TimeSpan.__parseSQLDateTime(dateString);
                     var ms = Date.parse(dateString);
                     if (isNaN(ms))
-                        return null;
-                    return System.TimeSpan.new(ms);
+                        return null; // (date is invalid)
+                    return System.TimeSpan.new(ms); // (the parsed date will have the time zone added)
                 };
+                ///** Creates and returns a TimeSpan that represents the specified date string as the local time, regardless if an ISO based date is given or not.
+                //* This function also supports the SQL standard Date/Time format (see 'isSQLDateTime()'), which is not supported in IE.
+                //*/
+                //??static parseLocal(dateString: string): TimeSpan {
+                //    var ms = Date.parse(dateString);
+                //    if (isNaN(ms)) return null; // (date is invalid)
+                //    if (TimeSpan.isISO8601(dateString))
+                //        ms += TimeSpan.__localTimeZoneOffset;
+                //    return new TimeSpan(ms); // (the parsed date will have the time zone added)
+                //}
+                /** Creates and returns a TimeSpan that represents the specified date string as Coordinated Universal Time (UTC). */
                 TimeSpan.parseAsUTC = function (dateString) {
                     var ms = Date.parse(dateString);
                     if (isNaN(ms))
-                        return null;
+                        return null; // (date is invalid)
                     return TimeSpan.utcTimeToLocalTime(ms);
                 };
+                /** Returns true if the specified date is in the ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ).
+                     * Since JavaScript 'Date' objects parse ISO strings as UTC based (not localized), this function help detect such cases.
+                     * Note: This returns true if the date string matches at least the first parts of the format (i.e. date, or date+time, or date+time+timezone).
+                     */
                 TimeSpan.isISO8601 = function (dateStr) {
                     return CoreXT.Time.__ISO8601RegEx.test(dateStr);
                 };
+                /** Returns true if the specified date is in the standard SQL based Date/Time format (YYYY-MM-DD HH:mm:ss.sss+ZZ).
+                    * Note: This returns true if the date string matches at least the first parts of the format (i.e. date, or date+time).
+                    * @param (boolean) requireTimeMatch If true, the space delimiter and time part MUST exist for the match, otherwise the date portion is only
+                    * required.  It's important to note that the date part of the ISO 8601 format is the same as the standard SQL Date/Time, and browsers will
+                    * treat the date portion of the SQL date as an ISO 8601 date at UTC+0.
+                    */
                 TimeSpan.isSQLDateTime = function (dateStr, requireTimeMatch) {
                     if (requireTimeMatch === void 0) { requireTimeMatch = false; }
                     return requireTimeMatch ?
                         CoreXT.Time.__SQLDateTimeStrictRegEx.test(dateStr)
                         : CoreXT.Time.__SQLDateTimeRegEx.test(dateStr);
                 };
+                /** Calculates the number of leap days since Epoch up to a given year (note: cannot be less than the Epoch year [1970]). */
                 TimeSpan.daysSinceEpoch = function (year) {
                     if (year < CoreXT.Time.__EpochYear)
                         throw System.Exception.from("Invalid year: Must be <= " + CoreXT.Time.__EpochYear);
-                    year = Math.floor(year - CoreXT.Time.__EpochYear);
+                    year = Math.floor(year - CoreXT.Time.__EpochYear); // (NOTE: 'year' is a DIFFERENCE after this, NOT the actual year)
                     return 365 * year
                         + Math.floor((year + 1) / 4)
                         - Math.floor((year + 69) / 100)
-                        + Math.floor((year + 369) / 400);
+                        + Math.floor((year + 369) / 400); // (+1, +69, and +369 because the year is delta from Epoch)
                 };
+                /** Calculates the number of years from the specified milliseconds, taking leap years into account. */
                 TimeSpan.yearsSinceEpoch = function (ms) {
                     var mpy = CoreXT.Time.__millisecondsPerYear, mpd = CoreXT.Time.__millisecondsPerDay;
                     return CoreXT.Time.__EpochYear + Math.floor((ms - Math.floor((ms + mpy) / (4 * mpy)) * mpd
@@ -151,6 +212,10 @@ var CoreXT;
                         + seconds * CoreXT.Time.__millisecondsPerSecond
                         + milliseconds;
                 };
+                //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+                /** Returns the time zone as a string in the format "UTC[+/-]####".
+                    * @param {number} timezoneOffsetInMs The number of milliseconds to offset from local time to UTC time (eg. UTC-05:00 would be -(-5*60*60*1000), or 18000000).
+                    */
                 TimeSpan.getTimeZoneSuffix = function (timezoneOffsetInMs) {
                     if (timezoneOffsetInMs === void 0) { timezoneOffsetInMs = CoreXT.Time.__localTimeZoneOffset; }
                     var tzInHours = -(timezoneOffsetInMs / CoreXT.Time.__millisecondsPerHour);
@@ -159,6 +224,9 @@ var CoreXT;
                         + System.String.pad(Math.floor(hours), 2, '0')
                         + System.String.pad(Math.floor(hours % 1 * CoreXT.Time.__minsPerHour), 2, '0');
                 };
+                /** Returns the ISO-8601 time zone as a string in the format "[+/-]hh:mm:ss.sssZ".
+                    * @param {number} timezoneOffsetInMs The number of milliseconds to offset from local time to UTC time (eg. UTC-05:00 would be -(-5*60*60*1000), or 18000000).
+                    */
                 TimeSpan.getISOTimeZoneSuffix = function (timezoneOffsetInMs) {
                     if (timezoneOffsetInMs === void 0) { timezoneOffsetInMs = CoreXT.Time.__localTimeZoneOffset; }
                     var tzInHours = -(timezoneOffsetInMs / CoreXT.Time.__millisecondsPerHour);
@@ -169,9 +237,17 @@ var CoreXT;
                         + System.String.pad(hours, 2, '0') + ":"
                         + System.String.pad(minutes, 2, '0') + ":"
                         + System.String.pad(Math.floor(seconds), 2, '0') + "."
-                        + System.String.pad(Math.floor(seconds % 1 * 1000), 3, null, '0')
+                        + System.String.pad(Math.floor(seconds % 1 * 1000), 3, null, '0') // (1000th decimal precision)
                         + "Z";
                 };
+                /** Returns the time span as a string (note: this is NOT a date string).
+                    * To exclude milliseconds, set 'includeMilliseconds' false.
+                    * @param {boolean} includeTime If true (default), the time part is included, otherwise only the date part is returned.
+                    * @param {boolean} includeMilliseconds If true (default), the millisecond part is included, otherwise only the date and time parts are returned.
+                    * Note: This is ignored if 'includeTime' is false.
+                    * @param {boolean} includeTimezone If true (default), the time zone part is included.
+                    * Note: This is ignored if 'includeTime' is false.
+                    */
                 TimeSpan.prototype.toString = function (includeTime, includeMilliseconds, includeTimezone) {
                     if (includeTime === void 0) { includeTime = true; }
                     if (includeMilliseconds === void 0) { includeMilliseconds = true; }
@@ -185,6 +261,12 @@ var CoreXT;
                             + (includeTimezone ? " " + TimeSpan.getTimeZoneSuffix() : "")
                             : "");
                 };
+                /** Returns the time span as a string (note: this is NOT a date string).
+                    * To exclude milliseconds, set 'includeMilliseconds' false.
+                    * @param {boolean} includeTime If true (default), the time part is included, otherwise only the date part is returned.
+                    * @param {boolean} includeMilliseconds If true (default), the millisecond part is included, otherwise only the date and time parts are returned.
+                    * Note: This is ignored if 'includeTime' is false.
+                    */
                 TimeSpan.prototype.toUTCString = function (includeTime, includeMilliseconds) {
                     if (includeTime === void 0) { includeTime = true; }
                     if (includeMilliseconds === void 0) { includeMilliseconds = true; }
@@ -193,6 +275,14 @@ var CoreXT;
                             + (includeMilliseconds && this.milliseconds ? ":" + this.milliseconds : "")
                             : "");
                 };
+                /** Returns the time span as a local string in the standard international ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ).
+                    * To exclude milliseconds, set 'includeMilliseconds' false.
+                    * @param {boolean} includeTime If true (default), the time part is included, otherwise only the date part is returned.
+                    * @param {boolean} includeMilliseconds If true (default), the millisecond part is included, otherwise only the date and time parts are returned.
+                    * Note: This is ignored if 'includeTime' is false.
+                    * @param {boolean} includeTimezone If true (default), the time zone part is included.
+                    * Note: This is ignored if 'includeTime' is false.
+                    */
                 TimeSpan.prototype.toISODateString = function (includeTime, includeMilliseconds, includeTimezone) {
                     if (includeTime === void 0) { includeTime = true; }
                     if (includeMilliseconds === void 0) { includeMilliseconds = true; }
@@ -205,6 +295,14 @@ var CoreXT;
                             + (includeTimezone ? TimeSpan.getISOTimeZoneSuffix() : "")
                             : "");
                 };
+                /** Returns the time span as a Coordinated Universal Time (UTC) string in the standard international ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ).
+                    * To exclude milliseconds, set 'includeMilliseconds' false.
+                    * @param {boolean} includeTime If true (default), the time part is included, otherwise only the date part is returned.
+                    * @param {boolean} includeMilliseconds If true (default), the millisecond part is included, otherwise only the date and time parts are returned.
+                    * Note: This is ignored if 'includeTime' is false.
+                    * @param {boolean} includeTimezone If true (default), the time zone part is included.
+                    * Note: This is ignored if 'includeTime' is false.
+                    */
                 TimeSpan.prototype.toUTCISODateString = function (includeTime, includeMilliseconds, includeTimezone) {
                     if (includeTime === void 0) { includeTime = true; }
                     if (includeMilliseconds === void 0) { includeMilliseconds = true; }
@@ -220,7 +318,8 @@ var CoreXT;
                 TimeSpan.prototype.toValue = function () {
                     return this.__ms;
                 };
-                TimeSpan['TimeSpanFactory'] = (function (_super) {
+                //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
+                TimeSpan['TimeSpanFactory'] = /** @class */ (function (_super) {
                     __extends(Factory, _super);
                     function Factory() {
                         return _super !== null && _super.apply(this, arguments) || this;
@@ -236,9 +335,13 @@ var CoreXT;
                     return Factory;
                 }(CoreXT.FactoryBase(TimeSpan, base['ObjectFactory'])));
                 return TimeSpan;
-            }(base));
+            }(base)); // (TimeSpan)
             return [TimeSpan, TimeSpan["TimeSpanFactory"]];
         }, "TimeSpan");
+        // =======================================================================================================================
     })(System = CoreXT.System || (CoreXT.System = {}));
 })(CoreXT || (CoreXT = {}));
+// ###########################################################################################################################
+// Notes:
+//   * https://stackoverflow.com/questions/20028945/calculation-of-leap-years-doesnt-seem-to-match-javascript-date
 //# sourceMappingURL=CoreXT.System.Time.js.map

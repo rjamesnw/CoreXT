@@ -1,12 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreXT.Entities
 {
-    public interface ICoreXTDBContext : IDisposable
+    public interface IDbContext : IDisposable, IInfrastructure<IServiceProvider>, IDbContextDependencies, IDbSetCache, IDbContextPoolable
+    {
+
+    }
+
+    public interface ICoreXTDBContext : IDbContext
     {
         bool IsReadonly { get; }
 

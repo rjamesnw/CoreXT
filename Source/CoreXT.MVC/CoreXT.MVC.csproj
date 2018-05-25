@@ -35,12 +35,12 @@ This package is the real meat of the whole system.  It injects it's own types in
 
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.ApiExplorer" Version="2.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ApiExplorer" Version="2.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.0.3" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.0.1" />
   </ItemGroup>
 

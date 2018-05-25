@@ -8,8 +8,10 @@
     "forceConsistentCasingInFileNames": false,
     "noImplicitAny": true,
     "noEmitOnError": true,
-    "removeComments": true,
+    "removeComments": false,
     "noEmitHelpers": true,
+    //"declaration": true,
+    //"declarationDir": "wwwroot/js",
     //"typeRoots": [ "typings" ],
     "sourceMap": true,
     "target": "es5", // IE11=es5, Edge+ es2015=ES6
@@ -20,6 +22,26 @@
   },
   "include": [
     "typings/**/*.ts",
+    "Scripts/**/*.d.ts",
+    //"Scripts/app.ts",
+    //"Scripts/corext.ts",
+    //"Scripts/corext.utilities.ts",
+    //"Scripts/corext.browser.ts",
+    //"Scripts/corext.globals.ts",
+    //"Scripts/corext.polyfills.ts",
+    //"Scripts/corext.scripts.ts",
+    //"Scripts/corext.vdom.canvas.ts",
+    //"Scripts/corext.vdom.ts",
+    //"Scripts/manifest.ts",
+    //"Scripts/System/CoreXT.System.ts"
+    //"Scripts/System/CoreXT.System.IO.ts",
+    //"Scripts/System/CoreXT.System.Exception.ts",
+    //"Scripts/System/CoreXT.System.Events.ts",
+    //"Scripts/System/CoreXT.System.Diagnostics.ts",
+    //"Scripts/System/CoreXT.System.Diagnostics.ts",
+    //"Scripts/System/CoreXT.System.AppDomain.ts",
+    //"Scripts/System/CoreXT.System.Delegate.ts",
+    //"Scripts/System/CoreXT.System.Time.ts"
     "Scripts/**/*.ts"
   ],
   "exclude": [
@@ -28,7 +50,7 @@
     "Scripts/__references.ts",
     "Scripts/CoreXT.VDom.Canvas.ts",
     "Scripts/CoreXT.VDom.ts",
-    "Scripts/Twitter/**/*.ts" //,
+    "Scripts/Twitter/**/*.ts"
     //"Scripts/System/CoreXT.System.Platform*.ts",
     //"Scripts/System/CoreXT.System.Properties.ts",
     //"Scripts/System/CoreXT.System.AppDomain.ts"

@@ -1,19 +1,29 @@
+// #######################################################################################
+// Types for time management.
+// #######################################################################################
 var CoreXT;
 (function (CoreXT) {
     var System;
     (function (System) {
+        // =============================================================================================
+        /** Contains diagnostic based functions, such as those needed for logging purposes. */
         var Diagnostics;
         (function (Diagnostics) {
             CoreXT.registerNamespace("CoreXT", "System", "Diagnostics");
+            // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
             Diagnostics.__logItems = [];
             var __logItemsSequenceCounter = 0;
             var __logCaptureStack = [];
+            // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
             Diagnostics.LogItem = CoreXT.ClassFactory(Diagnostics, void 0, function (base) {
-                var LogItem = (function () {
+                var LogItem = /** @class */ (function () {
                     function LogItem() {
+                        /** The parent log item. */
                         this.parent = null;
-                        this.sequence = __logItemsSequenceCounter++;
+                        /** The sequence count of this log item. */
+                        this.sequence = __logItemsSequenceCounter++; // (to maintain correct ordering, as time is not reliable if log items are added too fast)
                         this.marginIndex = void 0;
+                        // ------------------------------------------------------------------------------------------------------------
                     }
                     LogItem.prototype.write = function (message, type, outputToConsole) {
                         if (type === void 0) { type = CoreXT.LogTypes.Normal; }
@@ -33,11 +43,23 @@ var CoreXT;
                         this.subItems.push(logItem);
                         return logItem;
                     };
+                    /** Causes all future log writes to be nested under this log entry.
+                    * This is usually called at the start of a block of code, where following function calls may trigger nested log writes. Don't forget to call 'endCapture()' when done.
+                    * The current instance is returned to allow chaining function calls.
+                    * Note: The number of calls to 'endCapture()' must match the number of calls to 'beginCapture()', or an error will occur.
+                    */
                     LogItem.prototype.beginCapture = function () {
+                        //? if (__logCaptureStack.indexOf(this) < 0)
                         __logCaptureStack.push(this);
                         return this;
                     };
+                    /** Undoes the call to 'beginCapture()', activating any previous log item that called 'beginCapture()' before this instance.
+                    * See 'beginCapture()' for more details.
+                    * Note: The number of calls to 'endCapture()' must match the number of calls to 'beginCapture()', or an error will occur.
+                    */
                     LogItem.prototype.endCapture = function () {
+                        //var i = __logCaptureStack.lastIndexOf(this);
+                        //if (i >= 0) __logCaptureStack.splice(i, 1);
                         var item = __logCaptureStack.pop();
                         if (item != null)
                             throw System.Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);
@@ -48,7 +70,8 @@ var CoreXT;
                         var txt = "[" + this.sequence + "] (" + timeStr + ") " + this.title + ": " + this.message;
                         return txt;
                     };
-                    LogItem['LogItemFactory'] = (function (_super) {
+                    // ------------------------------------------------------------------------------------------------------------
+                    LogItem['LogItemFactory'] = /** @class */ (function (_super) {
                         __extends(Factory, _super);
                         function Factory() {
                             return _super !== null && _super.apply(this, arguments) || this;
@@ -78,10 +101,10 @@ var CoreXT;
                             o.parent = parent;
                             o.title = title;
                             o.message = message;
-                            o.time = Date.now();
+                            o.time = Date.now(); /*ms*/
                             o.type = type;
-                            if (console && outputToConsole) {
-                                var _title = title, margin = "";
+                            if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
+                                var _title = title, margin = ""; // (modify a copy so we can continue to pass along the unaltered title text)
                                 if (_title.charAt(title.length - 1) != ":")
                                     _title += ": ";
                                 else
@@ -96,7 +119,7 @@ var CoreXT;
                                         + " " + margin + _title + o.message;
                                 }
                                 else
-                                    consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message;
+                                    consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
                                 CoreXT.log(null, consoleText, type, void 0, false, false);
                             }
                         };
@@ -115,7 +138,7 @@ var CoreXT;
                     if (lastLogEntry)
                         return lastLogEntry.log(title, message, type, outputToConsole);
                     else
-                        return capturedLogItem.log(title, message, type, outputToConsole);
+                        return capturedLogItem.log(title, message, type, outputToConsole); //capturedLogItem.log("", "");
                 }
                 var logItem = Diagnostics.LogItem.new(null, title, message, type, outputToConsole);
                 Diagnostics.__logItems.push(logItem);
@@ -173,12 +196,15 @@ var CoreXT;
                     if (marginIndex && !margins[marginIndex])
                         margins[marginIndex] = margins[marginIndex - 1] + "&nbsp;&nbsp;&nbsp;&nbsp;";
                     logItem.marginIndex = marginIndex;
+                    // ... reserve the margins needed for the child items ...
                     if (logItem.subItems && logItem.subItems.length) {
                         for (i = 0, n = logItem.subItems.length; i < n; ++i)
                             setMarginIndexes(logItem.subItems[i], marginIndex + 1);
                     }
                 }
+                // ... reorganize the events by sequence ...
                 reorganizeEventsBySequence(Diagnostics.__logItems);
+                // ... format the log ...
                 for (i = 0, n = orderedLogItems.length; i < n; ++i) {
                     logItem = orderedLogItems[i];
                     if (!logItem)
@@ -209,16 +235,29 @@ var CoreXT;
             }
             Diagnostics.getLogAsHTML = getLogAsHTML;
             function getLogAsText() {
+                //??var logText = "";
+                //??for (var i = 0, n = __logItems.length; i < n; ++i)
+                //??    logText += String.replaceTags(__logItems[i].title) + ": " + String.replaceTags(__logItems[i].message) + "\r\n";
                 return System.String.replaceTags(System.String.replace(getLogAsHTML(), "&nbsp;", " "));
             }
             Diagnostics.getLogAsText = getLogAsText;
+            // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
         })(Diagnostics = System.Diagnostics || (System.Diagnostics = {}));
+        // =============================================================================================
     })(System = CoreXT.System || (CoreXT.System = {}));
 })(CoreXT || (CoreXT = {}));
+// #######################################################################################
+// Basic Window hooks for client-side diagnostics (CTRL+~ to dump the log).
+// TODO: Consider opening the load in either a popup or overlay (user's choice).
 if (typeof window !== 'undefined') {
+    // If a window error event callback is available, hook into it to provide some visual feedback in case of errors.
+    // (Note: Supports the Bootstrap UI, though it may not be available if an error occurs too early)
     window.onerror = function (eventOrMessage, source, fileno) {
+        // ... create a log entry of this first ...
         CoreXT.System.Diagnostics.log("window.onerror", eventOrMessage + " in '" + source + "' on line " + fileno + ".", CoreXT.LogTypes.Error);
-        document.body.style.display = "";
+        // ... make sure the body is visible ...
+        document.body.style.display = ""; // (show the body in case it's hidden)
+        // ... format the error ...
         if (typeof eventOrMessage !== 'string')
             eventOrMessage = "" + eventOrMessage;
         var msgElement = document.createElement("div");
@@ -227,6 +266,7 @@ if (typeof window !== 'undefined') {
         msgElement.className = "alert alert-danger";
         document.body.appendChild(msgElement);
     };
+    // Add a simple keyboard hook to display debug information.
     document.onkeypress = document.onkeydown = function (e) {
         var keyCode;
         var evt = e ? e : window.event;
@@ -236,10 +276,10 @@ if (typeof window !== 'undefined') {
         else {
             keyCode = evt.charCode ? evt.charCode : evt.keyCode;
         }
-        if (keyCode == 192 && evt.ctrlKey && CoreXT.debugMode) {
+        if (keyCode == 192 && evt.ctrlKey && CoreXT.debugMode) { // (CTRL+~) key
             var body = document.getElementById("main");
             if (body)
-                body.style.display = "";
+                body.style.display = ""; // (show the main element if hidden)
             var headerDiv = document.createElement("h1");
             headerDiv.innerHTML = "<h1><a name='__dslog__' id='__dslog__'>CoreXT Log:</a></h1>\r\n";
             var div = document.createElement("div");
@@ -251,4 +291,5 @@ if (typeof window !== 'undefined') {
         }
     };
 }
+// #######################################################################################
 //# sourceMappingURL=CoreXT.System.Diagnostics.js.map

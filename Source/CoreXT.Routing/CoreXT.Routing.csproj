@@ -28,8 +28,8 @@ Used by some other CoreXT packages to help deal with various routing aspects.</D
 
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.0.3" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

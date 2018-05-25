@@ -1,4 +1,5 @@
-var __xregexp_info = (function () {
+// Description for
+var __xregexp_info = /** @class */ (function () {
     function __xregexp_info() {
         this.title = "XRegExp";
         this.owner = "Steven Levithan";

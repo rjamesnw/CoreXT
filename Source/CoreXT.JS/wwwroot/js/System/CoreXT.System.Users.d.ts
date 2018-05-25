@@ -1,0 +1,2 @@
+declare namespace CoreXT.System {
+}

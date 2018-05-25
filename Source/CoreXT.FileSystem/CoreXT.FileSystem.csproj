@@ -36,9 +36,9 @@ This package will contain some additional file systems, such as a virtual memory
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="2.0.1" />
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.0.4" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

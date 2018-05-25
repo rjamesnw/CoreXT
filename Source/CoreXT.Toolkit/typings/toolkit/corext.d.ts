@@ -22,7 +22,7 @@ declare namespace CoreXT {
      */
     class DataClient {
         readonly url: string;
-        readonly options: IDataClientOptions;
+        readonly options?: IDataClientOptions;
         /** If true (default) uses the included HoldOn.js to block the user while data is being sent. */
         static enableAutoUserBlockOnDataSend: boolean;
         data: string;
