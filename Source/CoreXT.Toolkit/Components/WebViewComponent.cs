@@ -28,6 +28,7 @@ namespace CoreXT.Toolkit.Components
     // ########################################################################################################################
 
     public delegate object RazorTemplateDelegate<in TModel>(TModel item);
+    public delegate IHtmlContent RazorHtmlContentTemplateDelegate<in TModel>(TModel item);
 
     // ########################################################################################################################
 
