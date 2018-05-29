@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System.Diagnostics;
+using System.IO;
 using System.Text.Encodings.Web;
 
 namespace CoreXT.MVC
@@ -14,6 +15,8 @@ namespace CoreXT.MVC
     public class CoreXTRazorPageActivator : IRazorPageActivator
     {
         RazorPageActivator _RazorPageActivator;
+
+        int _ActivationSequence = 1;
 
         public CoreXTRazorPageActivator(
             IModelMetadataProvider metadataProvider,
@@ -35,7 +38,16 @@ namespace CoreXT.MVC
         public virtual void Activate(IRazorPage page, ViewContext context)
         {
             _RazorPageActivator.Activate(page, context);
-            (page as IViewPageRenderEvents)?.OnViewActivated(page, context);
+            var view = page as IViewPageRenderEvents;
+            if (view != null)
+            {
+                view.OnViewActivated(page, context);
+                var viewFilename = Path.GetFileName(page.Path).ToLower();
+                if (viewFilename == "_layout.cshtml")
+                    view.ActivationSequence = 0;
+                else
+                    view.ActivationSequence = _ActivationSequence++;
+            }
         }
     }
 }

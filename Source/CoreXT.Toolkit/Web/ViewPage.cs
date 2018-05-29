@@ -90,15 +90,17 @@ namespace CoreXT.Toolkit.Web
         /// <summary>
         /// The nesting level of this view within any other views during the rendering process.
         /// </summary>
-        public int RenderingLevel
+        public int RenderingLevel // TODO: The render stack is no longer valid, so need to find a different way for nesting levels.
         {
             get
             {
                 //? var stack = _GetStack_Method?.Invoke(null, new object[] { Context }) as Stack<ITemplateFile>;
                 //? return stack?.Count ?? (int.MaxValue - _CreationSequence);
-                return ViewPageRenderStack != null ? ViewPageRenderStack.Count - 1 : (_CreationSequence++);
+                return ActivationSequence; //! ViewPageRenderStack != null ? ViewPageRenderStack.Count - 1 : (_CreationSequence++);
             }
         }
+
+        public int ActivationSequence { get; set; }
 
         public IViewPageRenderStack ViewPageRenderStack { get; private set; } // (will attempt to use this first if exists)
 

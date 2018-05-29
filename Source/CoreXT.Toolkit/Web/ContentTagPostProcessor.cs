@@ -53,8 +53,8 @@ namespace CoreXT.Toolkit.Web
 
             if (_ResourceList != null)
             {
-                // ... iterate over the resource list, in ascending order as the layout page is usually last to render, but first in the stack, 
-                // and inner partial views are rendered first (keeps scripts grouped in order added, and by view) ...
+                // ... iterate over the resource list, in descending order as the start and layout views are always inserted first in sequence,
+                // and inner partial views are rendered in view activation order (keeps scripts grouped in order added, and by nested view level) ...
 
                 foreach (var resource in (from r in _ResourceList
                                           where r.IsForThisEnvironment(_HostingEnvironment)

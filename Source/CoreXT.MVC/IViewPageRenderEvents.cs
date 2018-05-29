@@ -10,6 +10,13 @@ namespace CoreXT.MVC
     public interface IViewPageRenderEvents
     {
         /// <summary>
+        ///     Gets or sets the sequence in which the view is rendered. This is used by <seealso cref="CoreXTRazorPageActivator"/>
+        ///     in order to tag the render ordering of pages so dependent resources are also rendered in the correct order.
+        /// </summary>
+        /// <value> The identifier of the sequence. </value>
+        int ActivationSequence { get; set; }
+
+        /// <summary>
         /// Executed when a view is found.
         /// </summary>
         void OnViewFound(ActionContext actionContext, ViewResult viewResult, ViewEngineResult searchResult);
