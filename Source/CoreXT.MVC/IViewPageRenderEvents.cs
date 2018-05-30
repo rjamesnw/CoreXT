@@ -17,9 +17,20 @@ namespace CoreXT.MVC
         int ActivationSequence { get; set; }
 
         /// <summary>
-        /// Executed when a view is found.
+        ///     Executed when a view is found via the view engine.  This usually occurs before the rendering process (i.e. before
+        ///     'OnBeforeRenderView' gets called).
+        ///     <para>
+        ///         Just return null, in case you want to change the view engine result.
+        ///     </para>
+        ///     <para>
+        ///           One use for this might be to return 'ViewEngineResult.NotFound()' for views that are restricted. Just be aware
+        ///           that view results may be cached. If this is a problem, consider using 'OnBeforeRenderView()' instead.
+        ///     </para>
         /// </summary>
-        void OnViewFound(ActionContext actionContext, ViewResult viewResult, ViewEngineResult searchResult);
+        /// <param name="actionContext"> Context for the action. </param>
+        /// <param name="searchResult"> The search result. </param>
+        /// <returns> A ViewEngineResult. </returns>
+        ViewEngineResult OnViewFound(ActionContext actionContext, ViewEngineResult searchResult);
 
         /// <summary>
         /// If a render exception occurs, this method is called to provide an error response to the client.

@@ -1,5 +1,4 @@
 ﻿using CoreXT.ASPNet;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -11,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CoreXT.MVC
@@ -20,15 +18,15 @@ namespace CoreXT.MVC
     /// The  CoreXT implementation that locates and executes a Microsoft.AspNetCore.Mvc.ViewEngines.IView for a Microsoft.AspNetCore.Mvc.ViewResult.
     /// 
     /// </summary>
-    public class CoreXTViewResultExecutor : ViewResultExecutor
+    public class CoreXTPartialViewResultExecutor : PartialViewResultExecutor
     {
-        public CoreXTViewResultExecutor(
-            IOptions<MvcViewOptions> viewOptions,
-            IHttpResponseStreamWriterFactory writerFactory,
-            ICompositeViewEngine viewEngine,
-            ITempDataDictionaryFactory tempDataFactory,
-            DiagnosticSource diagnosticSource,
-            ILoggerFactory loggerFactory,
+        public CoreXTPartialViewResultExecutor(
+            IOptions<MvcViewOptions> viewOptions, 
+            IHttpResponseStreamWriterFactory writerFactory, 
+            ICompositeViewEngine viewEngine, 
+            ITempDataDictionaryFactory tempDataFactory, 
+            DiagnosticSource diagnosticSource, 
+            ILoggerFactory loggerFactory, 
             IModelMetadataProvider modelMetadataProvider)
             : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticSource, loggerFactory, modelMetadataProvider)
         {
@@ -42,7 +40,7 @@ namespace CoreXT.MVC
         /// This value is obtained by the system upon calling the accompanying 'FindView()' method in this class.</param>
         /// <param name="viewResult">Represents an <see cref="ActionResult"/> that renders a view to the response.</param>
         /// <returns></returns>
-        public override async Task ExecuteAsync(ActionContext actionContext, IView view, ViewResult viewResult)
+        public async override Task ExecuteAsync(ActionContext actionContext, IView view, PartialViewResult viewResult)
         {
             var viewPage = (view as RazorView)?.RazorPage as IViewPageRenderEvents;
             var renderContext = viewPage == null ? null : actionContext.HttpContext.GetService<IViewPageRenderContext>();
@@ -82,7 +80,7 @@ namespace CoreXT.MVC
         /// </summary>
         /// <param name="actionContext">The action context represented by this view.</param>
         /// <param name="viewResult">Represents an <see cref="ActionResult"/> that renders a view to the response.</param>
-        public override ViewEngineResult FindView(ActionContext actionContext, ViewResult viewResult)
+        public override ViewEngineResult FindView(ActionContext actionContext, PartialViewResult viewResult)
         {
             var result = base.FindView(actionContext, viewResult);
             ((result.View as RazorView)?.RazorPage as IViewPageRenderEvents)?.OnViewFound(actionContext, result);

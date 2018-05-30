@@ -14,7 +14,7 @@ namespace CoreXT.MVC
     {
         public ActionContext ActionContext { get; set; }
         public IView View { get; set; }
-        public ViewResult ViewResult { get; set; }
+        public ActionResult ViewResult { get; set; }
 
         public ViewPageRenderContext() { }
 

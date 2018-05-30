@@ -2,6 +2,7 @@
 using CoreXT.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -59,7 +60,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddSingleton<IRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
             services.TryAddSingleton<ICoreXTRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
-            services.TryAddSingleton<ViewResultExecutor, CoreXTViewResultExecutor>();
+            //services.TryAddSingleton<ViewResultExecutor, CoreXTViewResultExecutor>();
+            //services.TryAddSingleton<PartialViewResultExecutor, CoreXTPartialViewResultExecutor>();
+            services.TryAddSingleton<AspNetCore.Mvc.ViewEngines.ICompositeViewEngine, CompositeViewEngine>();
             services.TryAddSingleton<IRazorPageActivator, CoreXTRazorPageActivator>();
 
             services.TryAddScoped<IViewPageRenderContext, ViewPageRenderContext>(); // (MUST BE "Scoped", since it holds per-request data and requires it's own instance)
@@ -68,6 +71,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.TryAddSingleton<MvcXTMarkerService, MvcXTMarkerService>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
         }
 
         // --------------------------------------------------------------------------------------------------------------------

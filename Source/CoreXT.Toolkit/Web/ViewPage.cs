@@ -181,15 +181,16 @@ namespace CoreXT.Toolkit.Web
                 HostingEnvironment = httpcontext.GetService<IHostingEnvironment>();
         }
 
-        protected virtual void OnViewFound(ActionContext actionContext, ViewResult viewResult, ViewEngineResult searchResult)
+        protected virtual ViewEngineResult OnViewFound(ActionContext actionContext, ViewEngineResult searchResult)
         {
+            return null;
         }
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        void IViewPageRenderEvents.OnViewFound(ActionContext actionContext, ViewResult viewResult, ViewEngineResult searchResult)
+        ViewEngineResult IViewPageRenderEvents.OnViewFound(ActionContext actionContext, ViewEngineResult searchResult)
         {
-            OnViewFound(actionContext, viewResult, searchResult);
+            return OnViewFound(actionContext, searchResult);
         }
 
         void IViewPageRenderEvents.OnBeforeRenderView(IViewPageRenderContext renderContext)

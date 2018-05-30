@@ -9,7 +9,7 @@ namespace CoreXT.MVC
     {
         ActionContext ActionContext { get; set; }
         IView View { get; set; }
-        ViewResult ViewResult { get; set; }
+        ActionResult ViewResult { get; set; }
 
         /// <summary>
         /// Returns true if this context has a filter call-back registered to execute when 'ApplyOutputFilter()' gets called after output is ready to be sent to the client.
