@@ -108,7 +108,7 @@ namespace CoreXT.Toolkit.Web
 #else
                 var debug = false;
 #endif
-                resource = resourceList.Add(name, resourcePath, resourceType, renderTarget, View.RenderingLevel, null, debug);
+                resource = resourceList.Add(name, resourcePath, resourceType, renderTarget, 0 /*x View.ActivationSequence*/, null, debug);
             }
 
             return resource;

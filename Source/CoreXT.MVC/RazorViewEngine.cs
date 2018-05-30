@@ -9,16 +9,16 @@ using System.Text.Encodings.Web;
 
 namespace CoreXT.MVC
 {
-    public interface ICoreXTRazorViewEngine : IRazorViewEngine { }
+    public interface IRazorViewEngine : Microsoft.AspNetCore.Mvc.Razor.IRazorViewEngine { }
 
-    public class CoreXTRazorViewEngine : ICoreXTRazorViewEngine
+    public class RazorViewEngine : IRazorViewEngine
     {
-        RazorViewEngine _RazorViewEngine;
+        Microsoft.AspNetCore.Mvc.Razor.RazorViewEngine _RazorViewEngine;
 
-        public CoreXTRazorViewEngine(IRazorPageFactoryProvider pageFactory, IRazorPageActivator pageActivator,
+        public RazorViewEngine(IRazorPageFactoryProvider pageFactory, IRazorPageActivator pageActivator,
             HtmlEncoder htmlEncoder, IOptions<RazorViewEngineOptions> optionsAccessor, RazorProject razorProject, ILoggerFactory loggerFactory, DiagnosticSource diagnosticSource)
         {
-            _RazorViewEngine = new RazorViewEngine(pageFactory, pageActivator, htmlEncoder, optionsAccessor, razorProject, loggerFactory, diagnosticSource);
+            _RazorViewEngine = new Microsoft.AspNetCore.Mvc.Razor.RazorViewEngine(pageFactory, pageActivator, htmlEncoder, optionsAccessor, razorProject, loggerFactory, diagnosticSource);
         }
 
         public virtual RazorPageResult FindPage(ActionContext context, string pageName)

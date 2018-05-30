@@ -51,9 +51,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddTransient(typeof(ViewHelper<>), typeof(ViewHelper<>));
             //? services.TryAddTransient<ViewHelper, ViewHelper>(); // not sure if this is needed...?
 
-            services.TryAddScoped<IViewPageRenderStack, ViewPageRenderStack>();
             services.TryAddScoped<IResourceList, ResourceList>();
-            services.TryAddScoped<IContentTagProcessingService, ContentTagProcessingService>();
+            services.TryAddScoped<IContentPostProcessor, ContentPostProcessor>();
 
             services.TryAddSingleton<IViewComponentDescriptorLibrary, ViewComponentDescriptorLibrary>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();

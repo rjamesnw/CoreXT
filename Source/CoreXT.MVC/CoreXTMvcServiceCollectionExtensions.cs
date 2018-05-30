@@ -1,10 +1,9 @@
 ﻿using CoreXT.MVC;
+using CoreXT.MVC.Razor;
 using CoreXT.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
@@ -58,13 +57,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static void _AddServices(IServiceCollection services)
         {
-            services.TryAddSingleton<IRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
-            services.TryAddSingleton<ICoreXTRazorViewEngine, CoreXTRazorViewEngine>(); // (this must get added first before MVC core types get added)
-            //services.TryAddSingleton<ViewResultExecutor, CoreXTViewResultExecutor>();
-            //services.TryAddSingleton<PartialViewResultExecutor, CoreXTPartialViewResultExecutor>();
+            services.TryAddSingleton<AspNetCore.Mvc.Razor.IRazorViewEngine, RazorViewEngine>(); // (this must get added first before MVC core types get added)
+            services.TryAddSingleton<IRazorViewEngine, RazorViewEngine>(); // (this must get added first before MVC core types get added)
+            services.TryAddSingleton<AspNetCore.Mvc.ViewFeatures.Internal.ViewResultExecutor, ViewResultExecutor>();
+            services.TryAddSingleton<AspNetCore.Mvc.ViewFeatures.Internal.PartialViewResultExecutor, PartialViewResultExecutor>();
             services.TryAddSingleton<AspNetCore.Mvc.ViewEngines.ICompositeViewEngine, CompositeViewEngine>();
-            services.TryAddSingleton<IRazorPageActivator, CoreXTRazorPageActivator>();
-
+            services.TryAddSingleton<AspNetCore.Mvc.Razor.IRazorPageActivator, RazorPageActivator>();
+            services.TryAddScoped<IViewPageRenderStack, ViewPageRenderStack>();
             services.TryAddScoped<IViewPageRenderContext, ViewPageRenderContext>(); // (MUST BE "Scoped", since it holds per-request data and requires it's own instance)
 
             services.AddRoutingXT();

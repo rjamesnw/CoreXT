@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CoreXT.Toolkit.Web
+namespace CoreXT.MVC
 {
     /// <summary>
     /// Keeps track of the render stack for view pages.

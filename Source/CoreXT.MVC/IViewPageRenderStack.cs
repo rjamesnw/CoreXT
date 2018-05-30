@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CoreXT.Toolkit.Web
+namespace CoreXT.MVC
 {
     /// <summary>
     /// A stack representing the order of nested view pages being rendered.

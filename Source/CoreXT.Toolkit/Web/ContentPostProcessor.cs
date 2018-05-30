@@ -17,7 +17,7 @@ namespace CoreXT.Toolkit.Web
     /// Used to render the control resources to the output before sending to the client.
     /// <para>A new instance of this is created once per scope.</para>
     /// </summary>
-    public class ContentTagProcessingService : IContentTagProcessingService
+    public class ContentPostProcessor : IContentPostProcessor
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ namespace CoreXT.Toolkit.Web
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public ContentTagProcessingService(IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor,
+        public ContentPostProcessor(IUrlHelperFactory urlHelperFactory, IActionContextAccessor actionContextAccessor,
             IResourceList resourceList, IHostingEnvironment hostingEnvironment)
         {
             _UrlHelperFactory = urlHelperFactory;
@@ -107,6 +107,10 @@ namespace CoreXT.Toolkit.Web
             return tag.Render();
         }
 
+        /// <summary> Renders the resource element described by resource. </summary>
+        /// <exception cref="InvalidOperationException"> Thrown if the resource type is invalid. </exception>
+        /// <param name="resource"> The resource to render. </param>
+        /// <returns> The rendered resource as a string. </returns>
         public virtual string RenderResourceElement(ResourceInfo resource)
         {
             var text = string.Empty;

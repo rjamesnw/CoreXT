@@ -9,7 +9,7 @@ using System.Text;
 
 namespace CoreXT.MVC
 {
-    public class CoreXTController : CoreXTBaseController
+    public class CoreXTController : Controller
     {
         /// <summary>
         /// The ISO string format constant, which is simply "o".

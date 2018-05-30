@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using CoreXT.ASPNet;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +19,23 @@ namespace CoreXT.MVC
         /// <value> The original view. </value>
         public IView OriginalView { get; private set; }
 
+        /// <summary>
+        ///     Gets the path of the view as resolved by the <see cref="T:Microsoft.AspNetCore.Mvc.ViewEngines.IViewEngine" />.
+        /// </summary>
+        /// <value> The full pathname of the file. </value>
+        /// <seealso cref="P:Microsoft.AspNetCore.Mvc.ViewEngines.IView.Path"/>
         public string Path => OriginalView.Path;
+
+        /// <summary> Gets Microsoft.AspNetCore.Mvc.Razor.IRazorPage instance that the views executes on. </summary>
+        /// <value> The razor page. </value>
+        public IRazorPage RazorPage => (OriginalView as RazorView)?.RazorPage;
+
+        /// <summary>
+        ///     Gets the sequence of _ViewStart Microsoft.AspNetCore.Mvc.Razor.IRazorPage instances that are executed by this
+        ///     view.
+        /// </summary>
+        /// <value> The view start pages. </value>
+        public IReadOnlyList<IRazorPage> ViewStartPages => (OriginalView as RazorView)?.ViewStartPages;
 
         public ViewResultProxy(IView originalView)
         {
@@ -32,8 +50,8 @@ namespace CoreXT.MVC
             if (renderContext != null)
             {
                 renderContext.ActionContext = context;
-                renderContext.View = this;
-                //renderContext.ViewResult = viewResult;
+                renderContext.ViewStack.Push(viewPage as IViewPage);
+                //x renderContext.ViewResult = viewResult;
                 viewPage?.OnBeforeRenderView(renderContext);
             }
 
@@ -48,8 +66,10 @@ namespace CoreXT.MVC
                 result.WriteTo(context.HttpContext.Response.Body);
             }
 
-            if (renderContext?.HasFilter == true)
-                renderContext.ApplyOutputFilter();
+            if (renderContext != null)
+            {
+                Debug.Assert(renderContext.ViewStack.Pop() == viewPage, "View page render stack not in sync.");
+            }
 
             viewPage?.OnAfterRenderView(renderContext);
         }

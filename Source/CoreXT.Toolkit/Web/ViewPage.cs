@@ -20,12 +20,9 @@ namespace CoreXT.Toolkit.Web
 {
     // ########################################################################################################################
 
-    public interface IViewPage : IRazorPage
+    public interface IViewPage : MVC.IViewPage
     {
         ViewHelper XT { get; }
-        ViewDataDictionary ViewData { get; set; }
-        HttpContext Context { get; }
-        int RenderingLevel { get; }
     }
 
     public interface IViewPage<TModel> : IViewPage
@@ -52,7 +49,7 @@ namespace CoreXT.Toolkit.Web
 
         ViewHelper IViewPage.XT { get { return XT; } }
 
-        ViewDataDictionary IViewPage.ViewData { get { return ViewData; } set { ViewData = new ViewDataDictionary<TModel>(value); } }
+        ViewDataDictionary MVC.IViewPage.ViewData { get { return ViewData; } set { ViewData = new ViewDataDictionary<TModel>(value); } }
 
         public IHostingEnvironment HostingEnvironment { get; private set; }
 
@@ -90,16 +87,21 @@ namespace CoreXT.Toolkit.Web
         /// <summary>
         /// The nesting level of this view within any other views during the rendering process.
         /// </summary>
-        public int RenderingLevel // TODO: The render stack is no longer valid, so need to find a different way for nesting levels.
+        public int NestingingLevel
         {
             get
             {
-                //? var stack = _GetStack_Method?.Invoke(null, new object[] { Context }) as Stack<ITemplateFile>;
-                //? return stack?.Count ?? (int.MaxValue - _CreationSequence);
-                return ActivationSequence; //! ViewPageRenderStack != null ? ViewPageRenderStack.Count - 1 : (_CreationSequence++);
+                //x Classic ASP: var stack = _GetStack_Method?.Invoke(null, new object[] { Context }) as Stack<ITemplateFile>;
+                //x Classic ASP: return stack?.Count ?? (int.MaxValue - _CreationSequence);
+                return ViewPageRenderStack != null ? ViewPageRenderStack.Count - 1 : (_CreationSequence++);
             }
         }
 
+        /// <summary>
+        ///     Gets or sets the sequence in which the view is activated before getting rendered.
+        /// </summary>
+        /// <value> The identifier of the sequence. </value>
+        /// <seealso cref="P:CoreXT.MVC.IViewPageRenderEvents.ActivationSequence"/>
         public int ActivationSequence { get; set; }
 
         public IViewPageRenderStack ViewPageRenderStack { get; private set; } // (will attempt to use this first if exists)
@@ -120,13 +122,11 @@ namespace CoreXT.Toolkit.Web
 
             ConfigureRequiredServices(httpcontext);
 
-            ViewPageRenderStack?.Push(this);
-
             // ... intercept view output to apply the content files ...
 
-            var TagProcessingService = httpcontext.GetService<IContentTagProcessingService>();
-
-            renderContext.BeginOutputFilter(r => TagProcessingService.Process(r));
+            var contentPostProcessor = httpcontext.GetService<IContentPostProcessor>();
+            if (contentPostProcessor != null)
+                renderContext.OnPostProcessing(r => contentPostProcessor.Process(r));
         }
 
         protected virtual IHtmlContent OnRenderException(IViewPageRenderContext renderContext, Exception ex)
@@ -141,8 +141,6 @@ namespace CoreXT.Toolkit.Web
 
         protected virtual void OnAfterRenderView(IViewPageRenderContext renderContext)
         {
-            if (ViewPageRenderStack != null)
-                Debug.Assert(ViewPageRenderStack.Pop() == this, "View page render stack not in sync.");
         }
 
         protected virtual void OnViewActivated(IRazorPage page, ViewContext context)
