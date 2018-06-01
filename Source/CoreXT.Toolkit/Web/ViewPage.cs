@@ -20,7 +20,7 @@ namespace CoreXT.Toolkit.Web
 {
     // ########################################################################################################################
 
-    public interface IViewPage : MVC.IViewPage
+    public interface IViewPage : MVC.Views.IViewPageBase
     {
         ViewHelper XT { get; }
     }
@@ -49,7 +49,7 @@ namespace CoreXT.Toolkit.Web
 
         ViewHelper IViewPage.XT { get { return XT; } }
 
-        ViewDataDictionary MVC.IViewPage.ViewData { get { return ViewData; } set { ViewData = new ViewDataDictionary<TModel>(value); } }
+        ViewDataDictionary MVC.Views.IViewPageBase.ViewData { get { return ViewData; } set { ViewData = new ViewDataDictionary<TModel>(value); } }
 
         public IHostingEnvironment HostingEnvironment { get; private set; }
 

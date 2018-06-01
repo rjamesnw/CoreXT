@@ -63,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<AspNetCore.Mvc.ViewFeatures.Internal.PartialViewResultExecutor, PartialViewResultExecutor>();
             services.TryAddSingleton<AspNetCore.Mvc.ViewEngines.ICompositeViewEngine, CompositeViewEngine>();
             services.TryAddSingleton<AspNetCore.Mvc.Razor.IRazorPageActivator, RazorPageActivator>();
-            services.TryAddScoped<IViewPageRenderStack, ViewPageRenderStack>();
+            services.TryAddScoped(typeof(IViewPageRenderStack<>), typeof(ViewPageRenderStack<>));
             services.TryAddScoped<IViewPageRenderContext, ViewPageRenderContext>(); // (MUST BE "Scoped", since it holds per-request data and requires it's own instance)
 
             services.AddRoutingXT();

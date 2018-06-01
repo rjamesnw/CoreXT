@@ -1,4 +1,5 @@
 ﻿using CoreXT.ASPNet;
+using CoreXT.MVC;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Html;
@@ -48,7 +49,7 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         public IViewPage Page
         {
-            get { return _Page ?? (_Page = _ViewPageRenderStack?.Current); }
+            get { return _Page ?? (_Page = (IViewPage)_ViewPageRenderStack?.Current); }
             set
             {
                 _Page = value;
@@ -727,7 +728,7 @@ namespace CoreXT.Toolkit.Components
         public static IViewPage GetCurrentOrDefaultPage(ActionContext context)
         {
             var pageRenderStack = context.HttpContext.GetService<IViewPageRenderStack>();
-            return pageRenderStack?.Current ?? new _TempViewPage(context);
+            return (IViewPage)pageRenderStack?.Current ?? new _TempViewPage(context);
         }
 
         // --------------------------------------------------------------------------------------------------------------------
@@ -786,7 +787,7 @@ namespace CoreXT.Toolkit.Components
         /// </summary>
         /// <typeparam name="T">The type of component to create.</typeparam>
         /// <param name="controller">The controller to create the component for.</param>
-        public static T GetComponent<T>(this Controller controller) where T : class, IWebViewComponent
+        public static T GetComponent<T>(this Microsoft.AspNetCore.Mvc.Controller controller) where T : class, IWebViewComponent
         {
             var component = controller?.HttpContext?.GetService<T>();
             component.Page = WebViewComponent.GetCurrentOrDefaultPage(controller.ControllerContext);

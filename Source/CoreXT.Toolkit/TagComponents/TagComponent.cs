@@ -1,4 +1,5 @@
 ﻿using CoreXT.ASPNet;
+using CoreXT.MVC;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Http;
@@ -83,7 +84,7 @@ namespace CoreXT.Toolkit.TagComponents
         [HtmlAttributeNotBound]
         public IViewPage Page
         {
-            get { return _Page ?? (_Page = RazorView?.RazorPage as IViewPage ?? ViewPageRenderStack?.Current); }
+            get { return _Page ?? (_Page = RazorView?.RazorPage as IViewPage ?? (IViewPage)ViewPageRenderStack?.Current); }
             set
             {
                 _Page = value;

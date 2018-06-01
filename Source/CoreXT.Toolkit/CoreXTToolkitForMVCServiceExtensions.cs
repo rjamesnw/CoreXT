@@ -53,6 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.TryAddScoped<IResourceList, ResourceList>();
             services.TryAddScoped<IContentPostProcessor, ContentPostProcessor>();
+            services.TryAddScoped<IViewPageRenderStack, ViewPageRenderStack<IViewPage>>();
 
             services.TryAddSingleton<IViewComponentDescriptorLibrary, ViewComponentDescriptorLibrary>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();

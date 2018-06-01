@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CoreXT.MVC.Views;
+using System.Collections.Generic;
 
 namespace CoreXT.MVC
 {
@@ -7,17 +8,36 @@ namespace CoreXT.MVC
     /// </summary>
     public interface IViewPageRenderStack
     {
-        Stack<IViewPage> Views { get; }
+        IReadOnlyCollection<IViewPageBase> Views { get; }
 
-        IViewPage Push(IViewPage view);
+        IViewPageBase Push(IViewPageBase view);
 
-        IViewPage Pop();
+        IViewPageBase Pop();
 
         int Count { get; }
 
         /// <summary>
         /// The current view page being rendered.
         /// </summary>
-        IViewPage Current { get; }
+        IViewPageBase Current { get; }
+    }
+
+    /// <summary>
+    /// A stack representing the order of nested view pages being rendered.
+    /// </summary>
+    public interface IViewPageRenderStack<TView> where TView: class, IViewPageBase
+    {
+        Stack<TView> Views { get; }
+
+        TView Push(TView view);
+
+        TView Pop();
+
+        int Count { get; }
+
+        /// <summary>
+        /// The current view page being rendered.
+        /// </summary>
+        TView Current { get; }
     }
 }

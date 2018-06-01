@@ -14,7 +14,7 @@ namespace CoreXT.Toolkit.Controllers
     /// <summary>
     /// Orders API controller for marshaling client side communication.
     /// </summary>
-    public class TableController : CoreXTController // (not used yet)
+    public class TableController : CommonController // (not used yet)
     {
         public TableController(ICoreXTServiceProvider sp) : base(sp) { }
 

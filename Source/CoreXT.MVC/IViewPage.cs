@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CoreXT.MVC
+namespace CoreXT.MVC.Views
 {
-    public interface IViewPage : IRazorPage
+
+    /// <summary> Interface for a base view page type.  This is mainly used by the toolkit. </summary>
+    public interface IViewPageBase : IRazorPage
     {
         ViewDataDictionary ViewData { get; set; }
         HttpContext Context { get; }

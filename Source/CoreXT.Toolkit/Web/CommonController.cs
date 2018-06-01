@@ -9,7 +9,9 @@ using System.Text;
 
 namespace CoreXT.MVC
 {
-    public class CoreXTController : Controller
+    /// <summary> A controller with common utility methods and properties used by all other controller styles (MVC, API, etc.). </summary>
+    /// <seealso cref="T:CoreXT.MVC.Controller"/>
+    public class CommonController : Controller
     {
         /// <summary>
         /// The ISO string format constant, which is simply "o".
@@ -39,7 +41,7 @@ namespace CoreXT.MVC
 
         public ICoreXTServiceProvider ServiceProvider { get; private set; }
 
-        public CoreXTController(ICoreXTServiceProvider services)
+        public CommonController(ICoreXTServiceProvider services)
         {
             ServiceProvider = services;
         }
