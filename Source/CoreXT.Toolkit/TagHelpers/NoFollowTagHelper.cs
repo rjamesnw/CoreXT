@@ -1,7 +1,6 @@
-﻿using CoreXT;
-using CoreXT.ASPNet;
+﻿using CoreXT.ASPNet;
+using CoreXT.MVC.Components;
 using CoreXT.Services.DI;
-using CoreXT.Toolkit.TagComponents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Text.RegularExpressions;

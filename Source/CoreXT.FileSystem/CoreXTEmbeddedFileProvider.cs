@@ -11,12 +11,17 @@ using System.Linq;
 
 namespace CoreXT.FileSystem
 {
-
-    ///<Summary>
-    /// Looks up files using embedded resources in the specified assembly. This file
-    /// provider is case sensitive.
-    /// </Summary>
-    public class CoreXTEmbeddedFileProvider : IFileProvider
+    /// <summary>
+    ///     Looks up files using embedded resources in the specified assembly.
+    ///     <para>
+    ///       The normal search order goes from 'Assembly 1'-&gt;'Assembly 2'-&gt;'App Static files'.  If the file is found to
+    ///       exist locally within the web app file system a "file not found" result will be returned to allow the static file
+    ///       to be served.
+    ///       </para>
+    ///     </Summary>
+    /// </summary>
+    /// <seealso cref="T:Microsoft.Extensions.FileProviders.IFileProvider"/>
+    public class OverridableEmbeddedFileProvider : IFileProvider
     {
         /// <summary>
         /// The assembly associated with this file provider.
@@ -43,7 +48,7 @@ namespace CoreXT.FileSystem
         /// class using the specified assembly and empty base namespace.
         ///</summary>
         ///<param name="assembly">The assembly that contains the embedded hostingEnvresources.</param>
-        public CoreXTEmbeddedFileProvider(Assembly assembly, IHostingEnvironment hostingEnvironment)
+        public OverridableEmbeddedFileProvider(Assembly assembly, IHostingEnvironment hostingEnvironment)
         {
             Assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
             _EmbeddedFileProvider = new EmbeddedFileProvider(Assembly);
@@ -63,7 +68,7 @@ namespace CoreXT.FileSystem
         ///</summary>
         ///<param name="assembly">The assembly that contains the embedded resources.</param>
         ///<param name="baseNamespace">The base namespace that contains the embedded resources.</param>
-        public CoreXTEmbeddedFileProvider(Assembly assembly, string baseNamespace)
+        public OverridableEmbeddedFileProvider(Assembly assembly, string baseNamespace)
         {
             Assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
             _BaseNamespace = baseNamespace ?? assembly.GetName().Name;

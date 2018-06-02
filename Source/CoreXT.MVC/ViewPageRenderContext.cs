@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace CoreXT.MVC
+namespace CoreXT.MVC.Views
 {
     /// <summary>
     /// Holds details on a page render request via a call to 'ViewResultExecutor.ExecuteAsync()' or 'ViewResultProxy.RenderAsync()''.

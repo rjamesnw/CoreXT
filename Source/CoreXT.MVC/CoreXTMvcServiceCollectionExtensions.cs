@@ -1,5 +1,10 @@
 ﻿using CoreXT.MVC;
+using CoreXT.MVC.Components;
+using CoreXT.MVC.PostProcessing;
 using CoreXT.MVC.Razor;
+using CoreXT.MVC.ResourceManagement;
+using CoreXT.MVC.Views;
+using CoreXT.MVC.Views.Engines;
 using CoreXT.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -63,8 +68,15 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<AspNetCore.Mvc.ViewFeatures.Internal.PartialViewResultExecutor, PartialViewResultExecutor>();
             services.TryAddSingleton<AspNetCore.Mvc.ViewEngines.ICompositeViewEngine, CompositeViewEngine>();
             services.TryAddSingleton<AspNetCore.Mvc.Razor.IRazorPageActivator, RazorPageActivator>();
-            services.TryAddScoped(typeof(IViewPageRenderStack<>), typeof(ViewPageRenderStack<>));
             services.TryAddScoped<IViewPageRenderContext, ViewPageRenderContext>(); // (MUST BE "Scoped", since it holds per-request data and requires it's own instance)
+
+            services.TryAddSingleton<IViewRenderer, ViewRenderer>(); // (IRazorViewEngine and ITempDataProvider are singletons also)
+            services.TryAddTransient(typeof(ViewHelper<>), typeof(ViewHelper<>));
+            //? services.TryAddTransient<ViewHelper, ViewHelper>(); // not sure if this is needed...?
+            services.TryAddScoped<IResourceList, ResourceList>();
+            services.TryAddScoped<IContentPostProcessor, ContentPostProcessor>();
+            services.TryAddScoped<IViewPageRenderStack, ViewPageRenderStack>();
+            services.TryAddSingleton<IViewComponentDescriptorLibrary, ViewComponentDescriptorLibrary>();
 
             services.AddRoutingXT();
 

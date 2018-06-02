@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             app.UseStaticFiles(new StaticFileOptions(new SharedOptions
             {
-                FileProvider = new CoreXTEmbeddedFileProvider(typeof(CoreXTToolkitForMvcApplicationBuilderExtensions).GetTypeInfo().Assembly, hostingEnvironment)
+                FileProvider = new OverridableEmbeddedFileProvider(typeof(CoreXTToolkitForMvcApplicationBuilderExtensions).GetTypeInfo().Assembly, hostingEnvironment)
             }));
 
             //app.UseGlimpse();

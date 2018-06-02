@@ -1,4 +1,5 @@
 ﻿using CoreXT.ASPNet;
+using CoreXT.MVC.Views;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;

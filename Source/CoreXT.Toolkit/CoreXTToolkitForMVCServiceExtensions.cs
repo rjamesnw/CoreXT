@@ -1,10 +1,8 @@
 ﻿using CoreXT.Entities;
 using CoreXT.FileSystem;
-using CoreXT.MVC;
+using CoreXT.MVC.Components.Old;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Components;
-using CoreXT.Toolkit.TagComponents;
-using CoreXT.Toolkit.Web;
 //using Glimpse;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,8 +11,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.Extensions.FileProviders;
 using System;
 using System.Reflection;
 
@@ -46,16 +43,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddTransient(typeof(ITableColumn), typeof(TableColumn<object>));
             services.TryAddTransient(typeof(ITableColumn<>), typeof(TableColumn<>));
 
-            services.TryAddSingleton<IViewRenderer, ViewRenderer>(); // (IRazorViewEngine and ITempDataProvider are singletons also)
-
-            services.TryAddTransient(typeof(ViewHelper<>), typeof(ViewHelper<>));
-            //? services.TryAddTransient<ViewHelper, ViewHelper>(); // not sure if this is needed...?
-
-            services.TryAddScoped<IResourceList, ResourceList>();
-            services.TryAddScoped<IContentPostProcessor, ContentPostProcessor>();
-            services.TryAddScoped<IViewPageRenderStack, ViewPageRenderStack<IViewPage>>();
-
-            services.TryAddSingleton<IViewComponentDescriptorLibrary, ViewComponentDescriptorLibrary>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
@@ -69,7 +56,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Configure<RazorViewEngineOptions>(options =>
             {
                 // TODO: options.FileProviders.Add(new VirtualFileProvider("CoreXT", hostingEnvironment));
-                options.FileProviders.Add(new CoreXTEmbeddedFileProvider(currentAssembly, hostingEnvironment));
+                options.FileProviders.Add(new PhysicalFileProvider(hostingEnvironment.ContentRootPath)); // (allow returning a non-embedded file for overriding embedded ones)
+                // TODO: Needs testing            ^ with v
+                options.FileProviders.Add(new OverridableEmbeddedFileProvider(currentAssembly, (IHostingEnvironment)null/*hostingEnvironment*/));
             });
 
             // ... get MVC builder, which also, by default, adds the physical file provider ...
