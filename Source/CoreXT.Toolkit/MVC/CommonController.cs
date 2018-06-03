@@ -1,12 +1,7 @@
-﻿using CoreXT.ASPNet;
+﻿using CoreXT.MVC;
 using CoreXT.MVC.Components.Old;
 using CoreXT.Services.DI;
-using CoreXT.Toolkit.Components;
-using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 
 namespace CoreXT.Toolkit.MVC
 {

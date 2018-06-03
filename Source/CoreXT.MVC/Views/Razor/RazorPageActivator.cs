@@ -1,5 +1,6 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC.Views;
+using CoreXT.MVC.Views.Razor;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -9,7 +10,7 @@ using System.IO;
 using System.Text.Encodings.Web;
 using MvcRazor = Microsoft.AspNetCore.Mvc.Razor;
 
-namespace CoreXT.MVC.Razor
+namespace CoreXT.MVC.Views.Razor
 {
     /// <summary>
     /// Used to intercept razor page activation, which sets some properties before rendering a view.

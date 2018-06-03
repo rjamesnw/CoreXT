@@ -1,6 +1,7 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC.Components.Old;
 using CoreXT.MVC.ResourceManagement;
+using CoreXT.MVC.Views.Razor;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System;

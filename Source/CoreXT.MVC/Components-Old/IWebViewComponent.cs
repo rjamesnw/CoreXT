@@ -1,5 +1,6 @@
 ﻿using CoreXT.MVC.ResourceManagement;
 using CoreXT.MVC.Views;
+using CoreXT.MVC.Views.Razor;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewComponents;

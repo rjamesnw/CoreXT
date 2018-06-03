@@ -1,10 +1,10 @@
 ﻿using CoreXT.MVC;
 using CoreXT.MVC.Components;
 using CoreXT.MVC.PostProcessing;
-using CoreXT.MVC.Razor;
 using CoreXT.MVC.ResourceManagement;
 using CoreXT.MVC.Views;
 using CoreXT.MVC.Views.Engines;
+using CoreXT.MVC.Views.Razor;
 using CoreXT.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

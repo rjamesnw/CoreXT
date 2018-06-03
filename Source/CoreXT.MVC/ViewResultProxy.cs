@@ -1,5 +1,6 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC.Views;
+using CoreXT.MVC.Views.Razor;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;

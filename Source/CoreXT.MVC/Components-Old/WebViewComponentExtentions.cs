@@ -1,6 +1,7 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC.ResourceManagement;
 using CoreXT.MVC.Views;
+using CoreXT.MVC.Views.Razor;
 using System;
 using System.Collections.Generic;
 using System.Linq;

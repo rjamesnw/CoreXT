@@ -11,7 +11,7 @@ namespace CoreXT.Toolkit
 {
     // ########################################################################################################################
 
-    public abstract partial class ViewPage<TModel>: CoreXT.MVC.Views.ViewPage<TModel>
+    public abstract partial class ViewPage<TModel>: CoreXT.MVC.Views.Razor.ViewPage<TModel>
     {
         // --------------------------------------------------------------------------------------------------------------------
 

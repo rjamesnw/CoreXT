@@ -1,23 +1,21 @@
 ﻿using CoreXT.ASPNet;
-using CoreXT.MVC;
+using CoreXT.MVC.PostProcessing;
+using CoreXT.MVC.ResourceManagement;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using CoreXT.MVC.ResourceManagement;
-using CoreXT.MVC.PostProcessing;
 
-namespace CoreXT.MVC.Views
+namespace CoreXT.MVC.Views.Razor
 {
     // ########################################################################################################################
 
@@ -45,7 +43,7 @@ namespace CoreXT.MVC.Views
 
         ViewHelper IViewPage.XT { get { return XT; } }
 
-        ViewDataDictionary MVC.Views.IViewPage.ViewData { get { return ViewData; } set { ViewData = new ViewDataDictionary<TModel>(value); } }
+        ViewDataDictionary IViewPage.ViewData { get { return ViewData; } set { ViewData = new ViewDataDictionary<TModel>(value); } }
 
         public IHostingEnvironment HostingEnvironment { get; private set; }
 

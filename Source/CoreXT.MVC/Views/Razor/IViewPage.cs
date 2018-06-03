@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CoreXT.MVC.Views
+namespace CoreXT.MVC.Views.Razor
 {
 
     /// <summary> Interface for a base view page type.  This is mainly used by the toolkit. </summary>
