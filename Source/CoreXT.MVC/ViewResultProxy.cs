@@ -52,8 +52,9 @@ namespace CoreXT.MVC
                 renderContext.ActionContext = context;
                 renderContext.ViewStack.Push(viewPage as IViewPage);
                 //x renderContext.ViewResult = viewResult;
-                viewPage?.OnBeforeRenderView(renderContext);
             }
+
+            viewPage?.OnBeforeRenderView(renderContext);
 
             try
             {
@@ -68,7 +69,18 @@ namespace CoreXT.MVC
 
             if (renderContext != null)
             {
-                Debug.Assert(renderContext.ViewStack.Pop() == viewPage, "View page render stack not in sync.");
+                var _view = renderContext.ViewStack.Pop();
+
+                if (System.IO.Path.GetFileNameWithoutExtension(_view.Path).ToLower() == "_layout")
+                {
+                    Debug.Assert(renderContext.Layout != null, "Layout page missing from the render context.");
+                    var layoutPage = _view as IViewPageRenderEvents;
+                    Debug.Assert(layoutPage == renderContext.Layout, "Layout page expected in the view stack - the stack is not in sync.");
+                    layoutPage.OnAfterRenderView(renderContext);
+                    _view = renderContext.ViewStack.Pop();
+                }
+
+                Debug.Assert(_view == viewPage, "View page render stack not in sync.");
             }
 
             viewPage?.OnAfterRenderView(renderContext);

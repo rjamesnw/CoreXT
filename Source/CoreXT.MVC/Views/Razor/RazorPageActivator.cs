@@ -46,9 +46,9 @@ namespace CoreXT.MVC.Views.Razor
             {
                 view.OnViewActivated(page, context);
 
-                var viewFilename = Path.GetFileName(page.Path).ToLower();
+                var viewFilename = Path.GetFileNameWithoutExtension(page.Path).ToLower();
 
-                if (viewFilename == "_layout.cshtml")
+                if (viewFilename == "_layout")
                 {
                     view.ActivationSequence = 0;
                     var renderContext = context.HttpContext.GetService<IViewPageRenderContext>(); // (the layout is the final rendering step)

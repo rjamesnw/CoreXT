@@ -46,9 +46,9 @@ namespace CoreXT.MVC
             var renderContext = viewPage == null ? null : actionContext.HttpContext.GetService<IViewPageRenderContext>();
 
             if (renderContext != null)
-            {
                 renderContext.ActionContext = actionContext;
-            }
+
+            viewPage?.OnViewExecuting(renderContext);
 
             try
             {
@@ -61,19 +61,26 @@ namespace CoreXT.MVC
                 result.WriteTo(actionContext.HttpContext.Response.Body);
             }
 
-            if (renderContext?.ViewStack.Count > 0)
-            {
-                Debug.Assert(renderContext.Layout != null, "Layout page missing from the render context.");
-                var layoutPage = renderContext.ViewStack.Pop() as IViewPageRenderEvents;
-                Debug.Assert(layoutPage == renderContext.Layout, "Layout page expected in the view stack - the stack is not in sync.");
+            // ... apply any post-processing (if a custom filter handler was supplied) ...
 
-                layoutPage.OnAfterRenderView(renderContext);
+            if (renderContext?.HasFilter == true)
+                renderContext.ApplyOutputFilter();
 
-                // ... apply any post-processing (if a custom filter handler was supplied) ...
+            viewPage?.OnViewExecuted(renderContext);
 
-                if (renderContext?.HasFilter == true)
-                    renderContext.ApplyOutputFilter();
-            }
+            //if (renderContext?.ViewStack.Count > 0)
+            //{
+            //    Debug.Assert(renderContext.Layout != null, "Layout page missing from the render context.");
+            //    var layoutPage = renderContext.ViewStack.Pop() as IViewPageRenderEvents;
+            //    Debug.Assert(layoutPage == renderContext.Layout, "Layout page expected in the view stack - the stack is not in sync.");
+
+            //    layoutPage.OnAfterRenderView(renderContext);
+
+            //    // ... apply any post-processing (if a custom filter handler was supplied) ...
+
+            //    if (renderContext?.HasFilter == true)
+            //        renderContext.ApplyOutputFilter();
+            //}
         }
 
         ///// <summary>

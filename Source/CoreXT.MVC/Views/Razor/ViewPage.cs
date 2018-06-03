@@ -109,18 +109,23 @@ namespace CoreXT.MVC.Views.Razor
         }
 
         // --------------------------------------------------------------------------------------------------------------------
+        protected virtual void OnViewExecuting(IViewPageRenderContext renderContext)
+        {
+            // ... intercept view output to apply the content files ...
+            var httpcontext = renderContext.ActionContext.HttpContext;
+            var contentPostProcessor = httpcontext.GetService<IContentPostProcessor>();
+            if (contentPostProcessor != null)
+                renderContext.OnPostProcessing(r => contentPostProcessor.Process(r));
+        }
+
+        protected virtual void OnViewExecuted(IViewPageRenderContext renderContext)
+        {
+        }
 
         protected virtual void OnBeforeRenderView(IViewPageRenderContext renderContext)
         {
             var httpcontext = renderContext.ActionContext.HttpContext;
-
             ConfigureRequiredServices(httpcontext);
-
-            // ... intercept view output to apply the content files ...
-
-            var contentPostProcessor = httpcontext.GetService<IContentPostProcessor>();
-            if (contentPostProcessor != null)
-                renderContext.OnPostProcessing(r => contentPostProcessor.Process(r));
         }
 
         protected virtual IHtmlContent OnRenderException(IViewPageRenderContext renderContext, Exception ex)
@@ -203,6 +208,18 @@ namespace CoreXT.MVC.Views.Razor
         void IViewPageRenderEvents.OnAfterRenderView(IViewPageRenderContext renderContext)
         {
             OnAfterRenderView(renderContext);
+        }
+
+        void IViewPageRenderEvents.OnViewExecuting(IViewPageRenderContext renderContext)
+        {
+            OnViewExecuting(renderContext);
+
+        }
+
+        void IViewPageRenderEvents.OnViewExecuted(IViewPageRenderContext renderContext)
+        {
+            OnViewExecuted(renderContext);
+
         }
 
         // --------------------------------------------------------------------------------------------------------------------

@@ -62,7 +62,8 @@ namespace CoreXT.MVC.Views
                 using (var reader = new StreamReader(bodyStream, Encoding.UTF8))
                 {
                     reader.BaseStream.Seek(0, SeekOrigin.Begin);
-                    var text = _Filter(reader.ReadToEnd());
+                    var contents = reader.ReadToEnd();
+                    var text = _Filter(contents);
                     var buffer = Encoding.UTF8.GetBytes(text);
                     _OriginalBodyStream.Write(buffer, 0, buffer.Length);
                 }

@@ -40,7 +40,21 @@ namespace CoreXT.MVC.Views
         IHtmlContent OnRenderException(IViewPageRenderContext renderContext, Exception ex);
 
         /// <summary>
-        /// Executed after a view is found, but before it is activated and rendered.
+        /// Executed when a root view is about to be executed as part of an action, but just before rendering starts.
+        /// This even is only triggered ONCE for the root view and not all partial views.
+        /// <para>Note: Many RazorPage properties are not set until 'OnViewActived()' is triggered.</para>
+        /// </summary>
+        void OnViewExecuting(IViewPageRenderContext renderContext);
+
+        /// <summary>
+        /// Executed when a root view has completed execution as part of an action, right after rendering completes and post-processing is applied.
+        /// This even is only triggered ONCE for the root view and not all partial views.
+        /// <para>Note: Many RazorPage properties are not set until 'OnViewActived()' is triggered.</para>
+        /// </summary>
+        void OnViewExecuted(IViewPageRenderContext renderContext);
+
+        /// <summary>
+        /// Executed after view execution starts, but before it is activated and rendered.
         /// <para>Note: Many RazorPage properties are not set until 'OnViewActived()' is triggered.</para>
         /// </summary>
         void OnBeforeRenderView(IViewPageRenderContext renderContext);
