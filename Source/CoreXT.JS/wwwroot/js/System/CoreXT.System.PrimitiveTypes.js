@@ -61,6 +61,7 @@ var CoreXT;
                  * Disposes and reinitializes the current instance.
                  */
                 Object.prototype.$__reset = function () {
+                    var _a;
                     // ... do a dispose and complete wipe ...
                     if (this.dispose !== CoreXT.noop)
                         CoreXT.dispose(this, false); // 'false' also keeps the app domain (see 'dispose()' below), and only removes it from the "active" list.
@@ -70,7 +71,6 @@ var CoreXT;
                     instance.$__appDomain.objects.addObject(instance);
                     delete instance.dispose;
                     return this;
-                    var _a;
                 };
                 // -------------------------------------------------------------------------------------------------------------------
                 /** Returns the type name for an object instance registered with 'AppDomain.registerType()'.  If the object does not have

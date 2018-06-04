@@ -10,8 +10,8 @@
     "noEmitOnError": true,
     "removeComments": false,
     "noEmitHelpers": true,
-    //"declaration": true,
-    //"declarationDir": "wwwroot/js",
+    "declaration": true,
+    "declarationDir": "wwwroot/js",
     //"typeRoots": [ "typings" ],
     "sourceMap": true,
     "target": "es5", // IE11=es5, Edge+ es2015=ES6

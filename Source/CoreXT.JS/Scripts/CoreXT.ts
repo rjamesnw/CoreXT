@@ -899,7 +899,7 @@ namespace CoreXT { // (the core scope)
             if (typeof classType !== 'function')
                 error("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-            var _exportName = exportName || getTypeName(cls);
+            var _exportName = <string>exportName || getTypeName(cls);
             if (_exportName.charAt(0) == '$') _exportName = _exportName.substr(1); // TODO: May not need to do this anymore.
             namespace[_exportName] = factoryType; // (usually the name will be set upon return from this function, but the type registration system will need it NOW, so just set it)
 
@@ -998,7 +998,7 @@ namespace CoreXT { // (the core scope)
 
             // ... register the type with the parent namespace ...
 
-            var _type = __registerNamespace(namespace, exportName || getTypeName(type));
+            var _type = __registerNamespace(namespace, <string>exportName || getTypeName(type));
 
             // ... scan the type's prototype functions and update the type information (only function names at this time) ...
             // TODO: Consider parsing the function parameters as well and add this information for developers.
@@ -1228,7 +1228,7 @@ namespace CoreXT { // (the core scope)
         if (!cls) _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class instance, which is required.");
         if (typeof cls != 'function') _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class (function) type object, which is required.");
 
-        var name = exportName || getTypeName(cls);
+        var name = <string>exportName || getTypeName(cls);
         if (name.charAt(0) == '$') name = name.substr(1); // TODO: May not need to do this anymore.
 
         if (!factory) log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
@@ -1253,9 +1253,9 @@ namespace CoreXT { // (the core scope)
             $__disposed?: boolean;
 
             /** The underlying type. */
-            protected static get type() { return this.$__type; }
+            static get type() { return this.$__type; }
             /** The base factory instance. */
-            protected static get super(): TBaseFactory { return this.$__baseFactoryType; }
+            static get super(): TBaseFactory { return this.$__baseFactoryType; }
 
             static 'new'?(...args: any[]): any;
             static init?(o: InstanceType<TClass>, isnew: boolean, ...args: any[]): void;

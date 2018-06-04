@@ -178,6 +178,7 @@ var CoreXT;
                         throw ex;
                     }
                 };
+                var AppDomain_1;
                 /** A list of all application domains in the system. */
                 AppDomain.appDomains = [AppDomain_1.default];
                 // -------------------------------------------------------------------------------------------------------------------------------
@@ -206,7 +207,6 @@ var CoreXT;
                     CoreXT.frozen
                 ], AppDomain);
                 return AppDomain;
-                var AppDomain_1;
             }(base));
             return [AppDomain, AppDomain["AppDomainFactory"]];
         });
@@ -309,6 +309,7 @@ var CoreXT;
                         this._appDomains[i].dispose();
                     this._appDomains[0].dispose();
                 };
+                var Application_1;
                 Application._current = null;
                 Application._focused = null;
                 /** A list of all applications in the system. */
@@ -333,7 +334,6 @@ var CoreXT;
                     CoreXT.frozen
                 ], Application);
                 return Application;
-                var Application_1;
             }(base));
             return [Application, Application["ApplicationFactory"]];
         });

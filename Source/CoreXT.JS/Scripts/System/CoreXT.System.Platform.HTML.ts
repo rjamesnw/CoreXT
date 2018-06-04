@@ -169,7 +169,7 @@
 
                     /** Sets a value on this HTML element object and returns the element (to allow chaining calls). If a DOM element is also associated it's attributes are updated with the specified value. */
                     set<N extends keyof TElement, V extends TElement[N]>(name: N, value: V): this {
-                        return this.setValue(name, value); // (triggers '_onPropertyValueSet()' in this class, which will update the attributes)
+                        return this.setValue(<string>name, value); // (triggers '_onPropertyValueSet()' in this class, which will update the attributes)
                     }
 
                     /** 
@@ -184,10 +184,10 @@
                      */
                     get<N extends keyof TElement, V extends TElement[N]>(name: N, tryElement = false): V {
                         if (tryElement && this.__htmlElement) {
-                            var attr = this.__htmlElement.attributes.getNamedItem(name);
+                            var attr = this.__htmlElement.attributes.getNamedItem(<string>name);
                             if (attr) return <any>attr.value;
                         }
-                        return this.getValue(name);
+                        return this.getValue(<string>name);
                     }
 
                     // ----------------------------------------------------------------------------------------------------------------

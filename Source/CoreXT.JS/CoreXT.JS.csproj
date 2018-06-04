@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.9</TypeScriptToolsVersion>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>CoreXT.JS</AssemblyName>
     <PackageId>CoreXT.JS</PackageId>
@@ -41,6 +41,7 @@
   
   <ItemGroup>
     <None Remove="Scripts\CoreXT.Polyfills.ts" />
+    <None Remove="Scripts\test.ts" />
     <None Remove="Scripts\__references.ts" />
   </ItemGroup>
   

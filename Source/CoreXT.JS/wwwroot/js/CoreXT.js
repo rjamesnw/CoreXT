@@ -795,6 +795,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
         function __new() {
             // ... this is the default 'new' function ...
             // (note: this function may be called with an empty object context [of the expected type] and only one '$__appDomain' property, in which '$__shellType' will be missing)
+            var _a, _b;
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
@@ -856,7 +857,6 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             if (appDomain && appDomain.autoTrackInstances)
                 appDomain.attachObject(instance);
             return instance;
-            var _a, _b;
         }
         Types.__new = __new;
         ///** 
@@ -1196,6 +1196,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
     CoreXT.ClassFactory = ClassFactory;
     /** Builds and returns a base type to be used with creating factory objects that extend from classes. This function stores some type information in static properties for reference. */
     function FactoryBase(type, baseFactoryType) {
+        var _a;
         return _a = /** @class */ (function (_super) {
                 __extends(FactoryBase, _super);
                 function FactoryBase() {
@@ -1231,7 +1232,6 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             /** The base factory type, if any. */
             _a.$__baseFactoryType = baseFactoryType,
             _a;
-        var _a;
     }
     CoreXT.FactoryBase = FactoryBase;
     function registerNamespace() {

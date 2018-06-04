@@ -42,13 +42,13 @@ namespace CoreXT.MVC
         /// <returns></returns>
         public async override Task ExecuteAsync(ActionContext actionContext, IView view, PartialViewResult viewResult)
         {
-            var viewPage = (view as RazorView)?.RazorPage as IViewPageRenderEvents;
+            var viewPage = (view as ViewResultProxy)?.RazorPage as IViewPageRenderEvents;
             var renderContext = viewPage == null ? null : actionContext.HttpContext.GetService<IViewPageRenderContext>();
 
             if (renderContext != null)
-            {
                 renderContext.ActionContext = actionContext;
-            }
+
+            viewPage?.OnViewExecuting(renderContext);
 
             try
             {
@@ -61,10 +61,12 @@ namespace CoreXT.MVC
                 result.WriteTo(actionContext.HttpContext.Response.Body);
             }
 
+            // ... apply any post-processing (if a custom filter handler was supplied) ...
+
             if (renderContext?.HasFilter == true)
                 renderContext.ApplyOutputFilter();
 
-            viewPage?.OnAfterRenderView(renderContext);
+            viewPage?.OnViewExecuted(renderContext);
         }
 
         ///// <summary>

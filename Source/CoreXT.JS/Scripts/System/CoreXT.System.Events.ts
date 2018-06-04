@@ -42,20 +42,20 @@ namespace CoreXT {
               */
             export var EventDispatcher = ClassFactory(Events, void 0,
                 (base) => {
-                    class EventDispatcher<TOwner extends object, TCallback extends EventHandler> extends DependentObject {
+                    var _class = class EventDispatcher<TOwner extends object, TCallback extends EventHandler> extends DependentObject {
 
                         /**
-                         * Registers an event with a class type - typically as a static property. 
-                         * @param type A class reference where the static property will be registered.
-                         * @param eventName The name of the event to register.
-                         * @param eventMode Specifies the desired event traveling mode.
-                         * @param removeOnTrigger If true, the event only fires one time, then clears all event handlers. Attaching handlers once an event fires in this state causes them to be called immediately.
-                         * @param eventTriggerCallback This is a hook which is called every time a handler needs to be called.  This exists mainly to support handlers called with special parameters.
-                         * @param customEventPropName The name of the property that will be associated with this event, and expected on parent objects
-                         * for the capturing and bubbling phases.  If left undefined/null, then the default is assumed to be
-                         * 'on[EventName]', where the first event character is made uppercase automatically.
-                         * @param canCancel If true (default), this event can be cancelled (prevented from completing, so no other events will fire).
-                         */
+                            * Registers an event with a class type - typically as a static property. 
+                            * @param type A class reference where the static property will be registered.
+                            * @param eventName The name of the event to register.
+                            * @param eventMode Specifies the desired event traveling mode.
+                            * @param removeOnTrigger If true, the event only fires one time, then clears all event handlers. Attaching handlers once an event fires in this state causes them to be called immediately.
+                            * @param eventTriggerCallback This is a hook which is called every time a handler needs to be called.  This exists mainly to support handlers called with special parameters.
+                            * @param customEventPropName The name of the property that will be associated with this event, and expected on parent objects
+                            * for the capturing and bubbling phases.  If left undefined/null, then the default is assumed to be
+                            * 'on[EventName]', where the first event character is made uppercase automatically.
+                            * @param canCancel If true (default), this event can be cancelled (prevented from completing, so no other events will fire).
+                            */
                         static registerEvent<TOwner extends object, TCallback extends EventHandler>(type: { new(...args: any[]): TOwner }, eventName: string,
                             eventMode: EventModes = EventModes.Capture, removeOnTrigger: boolean = false, eventTriggerCallback?: EventTriggerHandler<TOwner, TCallback>,
                             customEventPropName?: string, canCancel: boolean = true)
@@ -99,18 +99,18 @@ namespace CoreXT {
                         }
 
                         /**
-                         * Creates an instance property name from a given event name by adding 'on' as a prefix.
-                         * This is mainly used when registering events as static properties on types.
-                         * @param {string} eventName The event name to create an event property from. If the given event name already starts with 'on', then the given name is used as is (i.e. 'click' becomes 'onClick').
-                         */
+                             * Creates an instance property name from a given event name by adding 'on' as a prefix.
+                             * This is mainly used when registering events as static properties on types.
+                             * @param {string} eventName The event name to create an event property from. If the given event name already starts with 'on', then the given name is used as is (i.e. 'click' becomes 'onClick').
+                             */
                         static createEventPropertyNameFromEventName(eventName: string): string {
                             return eventName.match(/^on[^a-z]/) ? eventName : "on" + eventName.charAt(0).toUpperCase() + eventName.substring(1);
                         }
 
                         /** 
-                       * Returns a formatted event name in the form of a private event name like '$__{eventName}Event' (eg. 'click' becomes '$__clickEvent'). 
-                       * The private event names are used to store event instances on the owning instances so each instance has it's own handlers list to manage.
-                       */
+                           * Returns a formatted event name in the form of a private event name like '$__{eventName}Event' (eg. 'click' becomes '$__clickEvent'). 
+                           * The private event names are used to store event instances on the owning instances so each instance has it's own handlers list to manage.
+                           */
                         static createPrivateEventName(eventName: string) { return "$__" + eventName + "Event"; }
 
                         readonly owner: TOwner;
@@ -385,7 +385,7 @@ namespace CoreXT {
 
                         // -------------------------------------------------------------------------------------------------------------------
 
-                        protected static readonly 'EventDispatcherFactory' = function () {
+                        static readonly 'EventDispatcherFactory' = function () {
                             type TInstance<TOwner extends object, TCallback extends EventHandler> = EventDispatcher<TOwner, TCallback>;
 
                             return class Factory extends FactoryBase(EventDispatcher, DependentObject['ObjectFactory'])<object, EventHandler> {
@@ -428,7 +428,7 @@ namespace CoreXT {
 
                         // ----------------------------------------------------------------------------------------------------------------
                     }
-                    return [EventDispatcher, EventDispatcher["EventDispatcherFactory"]];
+                    return [_class, _class["EventDispatcherFactory"]];
                 },
                 "EventDispatcher"
             );
@@ -458,7 +458,7 @@ namespace CoreXT {
 
         export var EventObject = ClassFactory(System, Object,
             (base) => {
-                class EventObject extends Object.$__type implements INotifyPropertyChanged<IEventObject>
+                var _class = class EventObject extends Object.$__type implements INotifyPropertyChanged<IEventObject>
                 {
                     /** Triggered when a supported property is about to change.  This does not work for all properties by default, but only those
                       * which call 'doPropertyChanging' in their implementation.
@@ -511,7 +511,7 @@ namespace CoreXT {
 
                     // -------------------------------------------------------------------------------------------------------------------
                 }
-                return [EventObject, EventObject["EventObjectFactory"]];
+                return [_class, _class["EventObjectFactory"]];
             },
             "EventObject"
         );

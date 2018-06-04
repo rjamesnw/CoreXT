@@ -29,12 +29,12 @@ var CoreXT;
                             return null;
                         };
                         Factory.init = function (o, isnew) {
+                            var _a;
                             var items = [];
                             for (var _i = 2; _i < arguments.length; _i++) {
                                 items[_i - 2] = arguments[_i];
                             }
                             (_a = this.super).init.apply(_a, __spread([o, isnew], items));
-                            var _a;
                         };
                         return Factory;
                     }(CoreXT.FactoryBase(ObservableCollection, base['ArrayFactory'])));
