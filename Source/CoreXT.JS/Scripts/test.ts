@@ -15,8 +15,6 @@
     }
     export namespace Test {
         export class $__type {
-            private x = 1;
-            y = 2;
             private static [constructor](factory: typeof Test) {
                 factory['new'] = (x) => {
                     return null;
@@ -53,5 +51,22 @@
     }
 
     var t2 = A.Test2.new('');
+
+    CoreXT.nameof(() => A.Test2.$__type);
 }
 
+namespace CoreXT {
+    @Namespace(() => CoreXT)
+    export class MyFactory {
+        static 'new': (...args: any[]) => MyFactory.$__type;
+        static init: (o: MyFactory.$__type, isnew: boolean, ...args: any[]) => void;
+    }
+    export namespace MyFactory {
+        @Factory(() => CoreXT.MyFactory)
+        export class $__type {
+            private static [constructor](factory: typeof MyFactory) {
+                factory['init'] = (o, isnew) => { };
+            }
+        }
+    }
+}

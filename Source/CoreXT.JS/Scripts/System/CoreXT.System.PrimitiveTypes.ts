@@ -11,151 +11,142 @@ namespace CoreXT {
         // =======================================================================================================================
 
         /** The base type for many CoreXT classes. */
-        export var Object = ClassFactory(System, void 0,
-            (base) => {
-                class Object extends DisposableFromBase(global.Object) implements ISerializable {
-                    // -------------------------------------------------------------------------------------------------------------------
+        @Namespace(() => System)
+        export class Object {
+            /**
+            * Create a new basic object type.
+            * @param value If specified, the value will be wrapped in the created object.
+            * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
+            */
+            static 'new'(value?: any, makeValuePrivate = false): Object.$__type { return null; }
+            /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
+            * constructor function to get new instances, and 'dispose()' to release them when done.
+            */
+            static init: (o: Object.$__type, isnew: boolean, value?: any, makeValuePrivate?: boolean) => void;
+            static s = 3;
+        }
+        export namespace Object {
+            @Factory(() => Object)
+            export class $__type extends DisposableFromBase(global.Object) implements ISerializable {
+                // -------------------------------------------------------------------------------------------------------------------
 
-                    private $__value?: any;
+                private $__value?: any;
 
-                    // -------------------------------------------------------------------------------------------------------------------
+                // -------------------------------------------------------------------------------------------------------------------
 
-                    /** Returns the type information for this object instance. */
-                    getTypeInfo(): IFunctionInfo {
-                        if (!(<ITypeInfo><any>this.constructor).$__name && (<Object><any>this.constructor).getTypeName)
-                            (<Object><any>this.constructor).getTypeName();
-                        return <IFunctionInfo>this.constructor;
-                    };
+                /** Returns the type information for this object instance. */
+                getTypeInfo(): IFunctionInfo {
+                    if (!(<ITypeInfo><any>this.constructor).$__name && (<$__type><any>this.constructor).getTypeName)
+                        (<$__type><any>this.constructor).getTypeName();
+                    return <IFunctionInfo>this.constructor;
+                };
 
-                    /** Returns true if the specified value is equal to this object.
-                      * The default implementation only compares if the types and references are equal.  Derived types should override this
-                      * with a new more meaningful implementation where necessary.
-                      */
-                    equal(value: any): boolean {
-                        return this === value;
-                    }
-
-                    valueOf(): any { return this.$__value; };
-
-                    toString(): string { return '' + this; };
-
-                    // -------------------------------------------------------------------------------------------------------------------
-
-                    /** Serializes the object's '$__id' value only. */
-                    getData(data: SerializedData): void {
-                    }
-
-                    /** Restores the object's '$__id' value (only works if '$__id' is undefined). */
-                    setData(data: SerializedData): void {
-                    }
-
-                    ///** 
-                    // * Release the object back into the object pool. 
-                    // * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
-                    // *                          false to request that child objects remain connected after disposal (not released). This
-                    // *                          can allow quick initialization of a group of objects, instead of having to pull each one
-                    // *                          from the object pool each time.
-                    // */
-                    //x dispose(release?: boolean): void {
-                    //    // ... this should be the final code executed in the disposal chain (from the derived types, since it should always be top down [opposite of construction]) ...
-                    //    var appDomain = (<IDomainObjectInfo><any>this).$__appDomain; // (note: may be set to UNDEFINED if this is called from '{AppDomain}.dispose()')
-                    //    this.dispose = noop; // (make sure 'appDomain.dispose(object)' doesn't call back; note: this only hides the prototype function)
-                    //    if (appDomain)
-                    //        appDomain.dispose(this, release);
-                    //};
-
-                    // -------------------------------------------------------------------------------------------------------------------
-
-                    /**
-                     * Disposes and reinitializes the current instance.
-                     */
-                    private $__reset(): this {
-                        // ... do a dispose and complete wipe ...
-                        if (this.dispose !== noop)
-                            dispose(this, false); // 'false' also keeps the app domain (see 'dispose()' below), and only removes it from the "active" list.
-                        //??if (!this.constructor.new)
-                        //    throw Exception.error("{object}.new", "You need to register the class/type first: see 'AppDomain.registerClass()'.", this);
-                        var instance = <Object & ITypeInfo>this.init.call(this, this, false, ...arguments);
-                        instance.$__appDomain.objects.addObject(instance);
-                        delete instance.dispose;
-                        return this;
-                    }
-
-                    // -------------------------------------------------------------------------------------------------------------------
-
-                    /** Returns the type name for an object instance registered with 'AppDomain.registerType()'.  If the object does not have
-                    * type information, and the object is a function, then an attempt is made to pull the function name (if one exists).
-                    * Note: This function returns the type name ONLY (not the FULL type name [no namespace path]).
-                    * Note: The name will be undefined if a type name cannot be determined.
-                    * @param {object} object The object to determine a type name for.  If the object type was not registered using 'AppDomain.registerType()',
-                    * and the object is not a function, no type information will be available. Unregistered function objects simply
-                    * return the function's name.
-                    * @param {boolean} cacheTypeName (optional) If true (default), the name is cached using the 'ITypeInfo' interface via the '$__name' property.
-                    * This helps to speed up future calls.
-                    */
-                    static getTypeName(object: object, cacheTypeName = true): string {
-                        this.getTypeName = CoreXT.getTypeName;
-                        return CoreXT.getTypeName(object, cacheTypeName);
-                    }
-
-                    /** Returns true if the given object is empty. */
-                    static isEmpty(obj: any): boolean {
-                        this.isEmpty = CoreXT.isEmpty; // (make future calls use the root namespace function that already exists)
-                        return CoreXT.isEmpty(obj);
-                    }
-
-                    // -------------------------------------------------------------------------------------------------------------------
-                    // This part uses the CoreXT factory pattern
-
-                    protected static readonly 'ObjectFactory' = class Factory extends FactoryBase(Object, null) {
-                        /**
-                             * Create a new basic object type.
-                             * @param value If specified, the value will be wrapped in the created object.
-                             * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
-                             */
-                        static 'new'(value?: any, makeValuePrivate: boolean = false): InstanceType<typeof Factory.$__type> {
-                            return Types.__new.call(this, value, makeValuePrivate);
-                        }
-
-                        //? /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
-                             * constructor function to get new instances, and 'dispose()' to release them when done.
-                             */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any, makePrivate: boolean = false) {
-                            if (!isnew)
-                                o.$__reset();
-
-                            if (o.$__appDomain == void 0 && System.AppDomain)
-                                o.$__appDomain = System.AppDomain.default;
-
-                            if (o.$__app == void 0 && System.Application)
-                                o.$__app = System.Application.default;
-
-                            // ... if a value is given, the behavior changes to latch onto the value ...
-                            if (value != void 0) {
-                                if (makePrivate) {
-                                    o.valueOf = function () { return value; };
-                                    o.toString = function () { return '' + value; };
-                                } else {
-                                    o['$__value'] = value;
-                                }
-                            }
-
-                            //? $this.init = noop;
-                        }
-                    };
-
-                    // -------------------------------------------------------------------------------------------------------------------
+                /** Returns true if the specified value is equal to this object.
+                  * The default implementation only compares if the types and references are equal.  Derived types should override this
+                  * with a new more meaningful implementation where necessary.
+                  */
+                equal(value: any): boolean {
+                    return this === value;
                 }
-                return [Object, Object["ObjectFactory"]];
-            },
-            "Object"
-        );
 
-        export interface IObject extends InstanceType<typeof Object.$__type> { }
+                valueOf(): any { return this.$__value; };
 
-        //export var Object: typeof $Object & typeof $ObjectFactoryRoot.Object_factory & IRegisteredType<typeof $Object> = AppDomain.registerClass($Object, $Object[' '].Object_factory, [CoreXT, System]);
-        // (have to be explicit on the object type since there may be references within the related types [thought nothing on a static level should access the 'Object' property during initialization])
+                toString(): string { return '' + this; };
+
+                // -------------------------------------------------------------------------------------------------------------------
+
+                /** Serializes the object's '$__id' value only. */
+                getData(data: SerializedData): void {
+                }
+
+                /** Restores the object's '$__id' value (only works if '$__id' is undefined). */
+                setData(data: SerializedData): void {
+                }
+
+                ///** 
+                // * Release the object back into the object pool. 
+                // * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+                // *                          false to request that child objects remain connected after disposal (not released). This
+                // *                          can allow quick initialization of a group of objects, instead of having to pull each one
+                // *                          from the object pool each time.
+                // */
+                //x dispose(release?: boolean): void {
+                //    // ... this should be the final code executed in the disposal chain (from the derived types, since it should always be top down [opposite of construction]) ...
+                //    var appDomain = (<IDomainObjectInfo><any>this).$__appDomain; // (note: may be set to UNDEFINED if this is called from '{AppDomain}.dispose()')
+                //    this.dispose = noop; // (make sure 'appDomain.dispose(object)' doesn't call back; note: this only hides the prototype function)
+                //    if (appDomain)
+                //        appDomain.dispose(this, release);
+                //};
+
+                // -------------------------------------------------------------------------------------------------------------------
+
+                /**
+                 * Disposes and reinitializes the current instance.
+                 */
+                private $__reset(): this {
+                    // ... do a dispose and complete wipe ...
+                    if (this.dispose !== noop)
+                        dispose(this, false); // 'false' also keeps the app domain (see 'dispose()' below), and only removes it from the "active" list.
+                    //??if (!this.constructor.new)
+                    //    throw Exception.error("{object}.new", "You need to register the class/type first: see 'AppDomain.registerClass()'.", this);
+                    var instance = <$__type & ITypeInfo>this.init.call(this, this, false, ...arguments);
+                    instance.$__appDomain.objects.addObject(instance);
+                    delete instance.dispose;
+                    return this;
+                }
+
+                // -------------------------------------------------------------------------------------------------------------------
+
+                /** Returns the type name for an object instance registered with 'AppDomain.registerType()'.  If the object does not have
+                * type information, and the object is a function, then an attempt is made to pull the function name (if one exists).
+                * Note: This function returns the type name ONLY (not the FULL type name [no namespace path]).
+                * Note: The name will be undefined if a type name cannot be determined.
+                * @param {object} object The object to determine a type name for.  If the object type was not registered using 'AppDomain.registerType()',
+                * and the object is not a function, no type information will be available. Unregistered function objects simply
+                * return the function's name.
+                * @param {boolean} cacheTypeName (optional) If true (default), the name is cached using the 'ITypeInfo' interface via the '$__name' property.
+                * This helps to speed up future calls.
+                */
+                static getTypeName(object: object, cacheTypeName = true): string {
+                    this.getTypeName = CoreXT.getTypeName;
+                    return CoreXT.getTypeName(object, cacheTypeName);
+                }
+
+                /** Returns true if the given object is empty. */
+                static isEmpty(obj: any): boolean {
+                    this.isEmpty = CoreXT.isEmpty; // (make future calls use the root namespace function that already exists)
+                    return CoreXT.isEmpty(obj);
+                }
+
+                // -------------------------------------------------------------------------------------------------------------------
+                // This part uses the CoreXT factory pattern
+                private static [constructor](factory: typeof Object) {
+                    factory['init'] = (o, isnew, value, makeValuePrivate = false) => {
+                        if (!isnew)
+                            o.$__reset();
+
+                        if (o.$__appDomain == void 0 && System.AppDomain)
+                            o.$__appDomain = System.AppDomain.default;
+
+                        if (o.$__app == void 0 && System.Application)
+                            o.$__app = System.Application.default;
+
+                        // ... if a value is given, the behavior changes to latch onto the value ...
+                        if (value != void 0) {
+                            if (makeValuePrivate) {
+                                o.valueOf = function () { return value; };
+                                o.toString = function () { return '' + value; };
+                            } else {
+                                o['$__value'] = value;
+                            }
+                        }
+                    };
+                }
+                // -------------------------------------------------------------------------------------------------------------------
+            }
+        }
+
+        export interface IObject extends Object.$__type { }
 
         // =======================================================================================================================
 

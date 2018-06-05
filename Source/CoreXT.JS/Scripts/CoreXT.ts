@@ -56,6 +56,16 @@ namespace CoreXT {
     /** Returns true if CoreXT is running in debug mode. */
     export function isDebugging() { return debugMode != DebugModes.Release; }
 
+    /** Returns the name of a namespace or variable reference at runtime. */
+    export function nameof(selector: () => any, fullname = false) {
+        var s = '' + selector;
+        //var m = s.match(/return\s*([A-Z.]+)/i) || s.match(/=>\s*{?\s*([A-Z.]+)/i) || s.match(/function.*?{\s*([A-Z.]+)/i);
+        var m = s.match(/return\s+([A-Z$_.]+)/i) || s.match(/.*?(?:=>|function.*?{(?!\s*return))\s*([A-Z.]+)/i);
+        var name = m && m[1] || "";
+        return fullname ? name : name.split('.').reverse()[0];
+    }
+
+    export var constructor = Symbol("static constructor");
 }
 
 // ===========================================================================================================================
@@ -1209,6 +1219,30 @@ namespace CoreXT { // (the core scope)
         }
         cls.prototype.dispose = CoreXT.Disposable.prototype.dispose; // (make these functions both the same function reference by default)
         return cls;
+    }
+
+    /** 
+     * Associates an instance class type with a static factory class in the CoreXT system. 
+     * Usage: 
+            export class MyFactory {
+                static 'new': (...args:any[]) => MyFactory.$__type;
+                static init: (o: MyFactory.$__type, isnew: boolean, ...args: any[]) => void;
+            }
+            export namespace MyFactory {
+                @Factory(() => AnyNamespace.MyFactory)
+                export class $__type {
+                    private static [constructor](factory: typeof MyFactory) {
+                        factory['init'] = (o, isnew) => { };
+                    }
+                }
+            }
+     */
+    export function Factory(classFactorySelector: () => IType) {
+        return (cls: IType) => <any>cls; // (not used yet)
+    }
+
+    export function Namespace(nsSelector: () => object) {
+        return (cls: IType) => <any>cls; // (not used yet)
     }
 
     /** Constructs factory objects. */
