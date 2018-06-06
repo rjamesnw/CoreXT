@@ -6,27 +6,25 @@
 
 namespace CoreXT {
     export namespace System {
-        registerNamespace("CoreXT", "System");
+        namespace(() => CoreXT.System);
 
         // =======================================================================================================================
 
         /** The base type for many CoreXT classes. */
-        @Namespace(() => System)
-        export class Object {
+        export class Object extends FactoryBase() { // (FACTORY)
             /**
             * Create a new basic object type.
             * @param value If specified, the value will be wrapped in the created object.
             * @param makeValuePrivate If true, the value will not be exposed, making the value immutable.
             */
-            static 'new'(value?: any, makeValuePrivate = false): Object.$__type { return null; }
+            static 'new'(value?: any, makeValuePrivate = false): IObject { return null; }
             /** This is called internally to initialize a blank instance of the underlying type. Users should call the 'new()'
             * constructor function to get new instances, and 'dispose()' to release them when done.
             */
-            static init: (o: Object.$__type, isnew: boolean, value?: any, makeValuePrivate?: boolean) => void;
+            static init: (o: IObject, isnew: boolean, value?: any, makeValuePrivate?: boolean) => void;
             static s = 3;
         }
         export namespace Object {
-            @Factory(() => Object)
             export class $__type extends DisposableFromBase(global.Object) implements ISerializable {
                 // -------------------------------------------------------------------------------------------------------------------
 
@@ -121,7 +119,7 @@ namespace CoreXT {
                 // -------------------------------------------------------------------------------------------------------------------
                 // This part uses the CoreXT factory pattern
                 private static [constructor](factory: typeof Object) {
-                    factory['init'] = (o, isnew, value, makeValuePrivate = false) => {
+                    factory.init = (o, isnew, value, makeValuePrivate = false) => {
                         if (!isnew)
                             o.$__reset();
 
@@ -144,6 +142,7 @@ namespace CoreXT {
                 }
                 // -------------------------------------------------------------------------------------------------------------------
             }
+            Object.register(System);
         }
 
         export interface IObject extends Object.$__type { }
@@ -163,188 +162,175 @@ namespace CoreXT {
 
         /* Note: This is a CoreXT system string object, and not the native JavaScript object. */
         /** Allows manipulation and formatting of text strings, including the determination and location of substrings within strings. */
-        export var String = ClassFactory(System, void 0,
-            (base) => {
-                class String extends DisposableFromBase(global.String) {
-                    [index: number]: string;
+        export class String extends FactoryBase() { // (FACTORY)
+            /** Returns a new string object instance. */
+            static 'new': (value?: any) => IString;
+            /**
+                * Reinitializes a disposed Delegate instance.
+                * @param this The Delegate instance to initialize, or re-initialize.
+                * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+                * @param object The instance to bind to the resulting delegate object.
+                * @param func The function that will be called for the resulting delegate object.
+                */
+            static init: (o: IString, isnew: boolean, value?: any) => void;
+        }
+        export namespace String {
+            export class $__type extends DisposableFromBase(global.String) {
+                [index: number]: string;
 
-                    private $__value?: any;
-                    length: number;
+                private $__value?: any;
+                length: number;
 
-                    /** Replaces one string with another in a given string.
-                    * This function is optimized to select the faster method in the current browser. For instance, 'split()+join()' is
-                    * faster in Chrome, and RegEx based 'replace()' in others.
-                    */
-                    static replace(source: string, replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
-                        // (split+join is faster in some browsers, or very close in speed) http://jsperf.com/split-join-vs-regex-replace-the-raven
-                        if (typeof source !== 'string') source = "" + source;
-                        if (typeof replaceWhat !== 'string') replaceWhat = "" + replaceWhat;
-                        if (typeof replaceWith !== 'string') replaceWith = "" + replaceWith;
-                        if (ignoreCase)
-                            return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'gi'), replaceWith);
+                /** Replaces one string with another in a given string.
+                * This function is optimized to select the faster method in the current browser. For instance, 'split()+join()' is
+                * faster in Chrome, and RegEx based 'replace()' in others.
+                */
+                static replace(source: string, replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
+                    // (split+join is faster in some browsers, or very close in speed) http://jsperf.com/split-join-vs-regex-replace-the-raven
+                    if (typeof source !== 'string') source = "" + source;
+                    if (typeof replaceWhat !== 'string') replaceWhat = "" + replaceWhat;
+                    if (typeof replaceWith !== 'string') replaceWith = "" + replaceWith;
+                    if (ignoreCase)
+                        return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'gi'), replaceWith);
+                    else
+                        if (Browser.type == Browser.BrowserTypes.Chrome)
+                            return source.split(replaceWhat).join(replaceWith); // (MUCH faster in Chrome [including Chrome mobile])
                         else
-                            if (Browser.type == Browser.BrowserTypes.Chrome)
-                                return source.split(replaceWhat).join(replaceWith); // (MUCH faster in Chrome [including Chrome mobile])
-                            else
-                                return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'g'), replaceWith);
-                    }
-
-                    /** Replaces all tags in the given 'HTML' string with 'tagReplacement' (an empty string by default) and returns the result. */
-                    static replaceTags(html: string, tagReplacement?: string): string {
-                        return html.replace(/<[^<>]*|>[^<>]*?>|>/g, tagReplacement);
-                    }
-
-                    /** Pads a string with given characters to make it a given fixed length. If the string is greater or equal to the
-                    * specified fixed length, then the request is ignored, and the given string is returned.
-                    * @param {any} str The string to pad.
-                    * @param {number} fixedLength The fixed length for the given string (note: a length less than the string length will not truncate it).
-                    * @param {string} leftPadChar Padding to add to the left side of the string, or null/undefined to ignore. If 'rightPadChar' is also specified, the string becomes centered.
-                    * @param {string} rightPadChar Padding to add to the right side of the string, or null/undefined to ignore. If 'leftPadChar' is also specified, the string becomes centered.
-                    */
-                    static pad(str: any, fixedLength: number, leftPadChar: string, rightPadChar?: string): string {
-                        if (str === void 0) str = "";
-                        if (leftPadChar === void 0 || leftPadChar === null) leftPadChar = "";
-                        if (rightPadChar === void 0 || rightPadChar === null) rightPadChar = "";
-
-                        var s = "" + str, targetLength = fixedLength || 0, remainder = targetLength - s.length,
-                            lchar = "" + leftPadChar, rchar = "" + rightPadChar,
-                            i: number, n: number, llen: number, rlen: number, lpad: string = "", rpad: string = "";
-
-                        if (remainder == 0 || (!lchar && !rchar)) return str;
-
-                        if (lchar && rchar) {
-                            llen = Math.floor(remainder / 2);
-                            rlen = targetLength - llen;
-                        }
-                        else if (lchar) llen = remainder;
-                        else if (rchar) rlen = remainder;
-
-                        for (i = 0; i < llen; ++i)
-                            lpad += lchar;
-
-                        for (i = 0; i < rlen; ++i)
-                            rpad += rchar;
-
-                        return lpad + s + rpad;
-                    }
-
-                    /** Appends the suffix string to the end of the source string, optionally using a delimiter if the source is not empty.
-                    * Note: If any argument is not a string, the value is converted into a string.
-                    */
-                    static append(source: string, suffix?: string, delimiter?: string): string {
-                        if (source === void 0) source = "";
-                        else if (typeof source != 'string') source = '' + source;
-                        if (typeof suffix != 'string') suffix = '' + suffix;
-                        if (typeof delimiter != 'string') delimiter = '' + delimiter;
-                        if (!source) return suffix;
-                        return source + delimiter + suffix;
-                    }
-
-                    /** Appends the prefix string to the beginning of the source string, optionally using a delimiter if the source is not empty.
-                    * Note: If any argument is not a string, the value is converted into a string.
-                    */
-                    static prepend(source: string, prefix?: string, delimiter?: string): string {
-                        if (source === void 0) source = "";
-                        else if (typeof source != 'string') source = '' + source;
-                        if (typeof prefix != 'string') prefix = '' + prefix;
-                        if (typeof delimiter != 'string') delimiter = '' + delimiter;
-                        if (!source) return prefix;
-                        return prefix + delimiter + source;
-                    }
-
-                    /** Replaces one string with another in the current string. 
-                    * This function is optimized to select the faster method in the current browser. For instance, 'split()+join()' is
-                    * faster in Chrome, and RegEx based 'replace()' in others.
-                    */
-                    replaceAll(replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
-                        return String.replace(this.toString(), replaceWhat, replaceWith, ignoreCase);
-                    }
-
-                    toString(): string { return this.$__value; }
-
-                    valueOf(): any { return this.$__value; }
-                    // (NOTE: This is the magic that makes it work, as 'toString()' is called by the other functions to get the string value, and the native implementation only works on a primitive string only.)
-
-                    // -------------------------------------------------------------------------------------------------------------------
-                    // This part uses the CoreXT factory pattern
-
-                    protected static readonly 'StringFactory' = class Factory extends FactoryBase(String, null) {
-                        /** Returns a new string object instance. */
-                        static 'new'(value?: any): InstanceType<typeof Factory.$__type> { return null; }
-
-                        /**
-                             * Reinitializes a disposed Delegate instance.
-                             * @param this The Delegate instance to initialize, or re-initialize.
-                             * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                             * @param object The instance to bind to the resulting delegate object.
-                             * @param func The function that will be called for the resulting delegate object.
-                             */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, value?: any) {
-                            o.$__value = global.String(value);
-                            //??System.String.prototype.constructor.apply(this, arguments);
-                            // (IE browsers older than v9 do not populate the string object with the string characters)
-                            //if (Browser.type == Browser.BrowserTypes.IE && Browser.version <= 8)
-                            o.length = o.$__value.length;
-                            for (var i = 0; i < o.length; ++i) o[i] = o.charAt(i);
-                        }
-                    };
-
-                    // -------------------------------------------------------------------------------------------------------------------
+                            return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'g'), replaceWith);
                 }
-                return [String, String["StringFactory"]];
-            },
-            "String"
-        );
 
-        export interface IString extends InstanceType<typeof String.$__type> { }
+                /** Replaces all tags in the given 'HTML' string with 'tagReplacement' (an empty string by default) and returns the result. */
+                static replaceTags(html: string, tagReplacement?: string): string {
+                    return html.replace(/<[^<>]*|>[^<>]*?>|>/g, tagReplacement);
+                }
+
+                /** Pads a string with given characters to make it a given fixed length. If the string is greater or equal to the
+                * specified fixed length, then the request is ignored, and the given string is returned.
+                * @param {any} str The string to pad.
+                * @param {number} fixedLength The fixed length for the given string (note: a length less than the string length will not truncate it).
+                * @param {string} leftPadChar Padding to add to the left side of the string, or null/undefined to ignore. If 'rightPadChar' is also specified, the string becomes centered.
+                * @param {string} rightPadChar Padding to add to the right side of the string, or null/undefined to ignore. If 'leftPadChar' is also specified, the string becomes centered.
+                */
+                static pad(str: any, fixedLength: number, leftPadChar: string, rightPadChar?: string): string {
+                    if (str === void 0) str = "";
+                    if (leftPadChar === void 0 || leftPadChar === null) leftPadChar = "";
+                    if (rightPadChar === void 0 || rightPadChar === null) rightPadChar = "";
+
+                    var s = "" + str, targetLength = fixedLength || 0, remainder = targetLength - s.length,
+                        lchar = "" + leftPadChar, rchar = "" + rightPadChar,
+                        i: number, n: number, llen: number, rlen: number, lpad: string = "", rpad: string = "";
+
+                    if (remainder == 0 || (!lchar && !rchar)) return str;
+
+                    if (lchar && rchar) {
+                        llen = Math.floor(remainder / 2);
+                        rlen = targetLength - llen;
+                    }
+                    else if (lchar) llen = remainder;
+                    else if (rchar) rlen = remainder;
+
+                    for (i = 0; i < llen; ++i)
+                        lpad += lchar;
+
+                    for (i = 0; i < rlen; ++i)
+                        rpad += rchar;
+
+                    return lpad + s + rpad;
+                }
+
+                /** Appends the suffix string to the end of the source string, optionally using a delimiter if the source is not empty.
+                * Note: If any argument is not a string, the value is converted into a string.
+                */
+                static append(source: string, suffix?: string, delimiter?: string): string {
+                    if (source === void 0) source = "";
+                    else if (typeof source != 'string') source = '' + source;
+                    if (typeof suffix != 'string') suffix = '' + suffix;
+                    if (typeof delimiter != 'string') delimiter = '' + delimiter;
+                    if (!source) return suffix;
+                    return source + delimiter + suffix;
+                }
+
+                /** Appends the prefix string to the beginning of the source string, optionally using a delimiter if the source is not empty.
+                * Note: If any argument is not a string, the value is converted into a string.
+                */
+                static prepend(source: string, prefix?: string, delimiter?: string): string {
+                    if (source === void 0) source = "";
+                    else if (typeof source != 'string') source = '' + source;
+                    if (typeof prefix != 'string') prefix = '' + prefix;
+                    if (typeof delimiter != 'string') delimiter = '' + delimiter;
+                    if (!source) return prefix;
+                    return prefix + delimiter + source;
+                }
+
+                /** Replaces one string with another in the current string. 
+                * This function is optimized to select the faster method in the current browser. For instance, 'split()+join()' is
+                * faster in Chrome, and RegEx based 'replace()' in others.
+                */
+                replaceAll(replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
+                    return $__type.replace(this.toString(), replaceWhat, replaceWith, ignoreCase);
+                }
+
+                toString(): string { return this.$__value; }
+
+                valueOf(): any { return this.$__value; }
+                // (NOTE: This is the magic that makes it work, as 'toString()' is called by the other functions to get the string value, and the native implementation only works on a primitive string only.)
+
+                private static [constructor](factory: typeof String) {
+                    factory.init = (o, isnew, value) => {
+                        o.$__value = global.String(value);
+                        //??System.String.prototype.constructor.apply(this, arguments);
+                        // (IE browsers older than v9 do not populate the string object with the string characters)
+                        //if (Browser.type == Browser.BrowserTypes.IE && Browser.version <= 8)
+                        o.length = o.$__value.length;
+                        for (var i = 0; i < o.length; ++i) o[i] = o.charAt(i);
+                    };
+                }
+            }
+
+            String.register(System);
+        }
+
+        export interface IString extends String.$__type { }
 
         // =======================================================================================================================
 
         /** Represents an array of items.
-        * Note: This is a CoreXT system array object, and not the native JavaScript object. Because it is not native,
-        * manually setting an array item by index past the end will not modify the length property (this may changed as
-        * new features are introduce in future EcmaScript versions [such as 'Object.observe()' in ES7]).
-        */
-        export var Array = ClassFactory(System, void 0,
-            (base) => {
-                class Array<T> extends DisposableFromBase(global.Array)<T> {
-                    [index: number]: T;
-
-                    // -------------------------------------------------------------------------------------------------------------------
-                    /* ------ This part uses the CoreXT factory pattern ------ */
-
-                    protected static readonly 'ArrayFactory' = class Factory extends FactoryBase(Array, null)<any> {
-                        /** Returns a new array object instance. 
-                            * Note: This is a CoreXT system array object, and not the native JavaScript object. */
-                        static 'new'<T>(...items: T[]): Array<T> { return null; }
-
-                        /**
-                            * Reinitializes a disposed Delegate instance.
-                            * @param this The Delegate instance to initialize, or re-initialize.
-                            * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
-                            * @param object The instance to bind to the resulting delegate object.
-                            * @param func The function that will be called for the resulting delegate object.
-                            */
-                        static init<T>(o: Array<T>, isnew: boolean, ...items: T[]) {
-                            try {
-                                o.push.apply(o, items); // (note: argument limit using this method: http://stackoverflow.com/a/9650855/1236397)
-                            } catch (e) {
-                                // (too many items for arguments, need to add each one by one)
-                                for (var i = 0, n = items.length; i < n; ++i)
-                                    o.push(items[i]);
-                            }
+         * Note: This is a CoreXT system array object, and not the native JavaScript object. Because it is not native,
+         * manually setting an array item by index past the end will not modify the length property (this may changed as
+         * new features are introduce in future EcmaScript versions [such as 'Object.observe()' in ES7]).
+         */
+        export class Array extends FactoryBase() {
+            /** Returns a new array object instance. 
+              * Note: This is a CoreXT system array object, and not the native JavaScript object. */
+            static 'new': <T>(...items: any[]) => IArray<T>;
+            /**
+               * Reinitializes a disposed Delegate instance.
+               * @param this The Delegate instance to initialize, or re-initialize.
+               * @param isnew If true, this is a new instance, otherwise it is from a cache (and may have some preexisting properties).
+               * @param object The instance to bind to the resulting delegate object.
+               * @param func The function that will be called for the resulting delegate object.
+               */
+            static init: <T>(o: IArray<T>, isnew: boolean, ...items: any[]) => void;
+        }
+        export namespace Array {
+            export class $__type<T> extends DisposableFromBase(global.Array)<T> {
+                [index: number]: T;
+                private static [constructor](factory: typeof Array) {
+                    factory.init = (o, isnew, ...items) => {
+                        try {
+                            o.push.apply(o, items); // (note: argument limit using this method: http://stackoverflow.com/a/9650855/1236397)
+                        } catch (e) {
+                            // (too many items for arguments, need to add each one by one)
+                            for (var i = 0, n = items.length; i < n; ++i)
+                                o.push(items[i]);
                         }
                     };
-
-                    /* ------------------------------------------------------- */
-                    // -------------------------------------------------------------------------------------------------------------------
                 }
-                return [Array, Array["ArrayFactory"]];
-            },
-            "Array"
-        );
+            }
+            Array.register(System);
+        }
 
-        export interface IArray extends InstanceType<typeof Array.$__type> { }
+        export interface IArray<T> extends Array.$__type<T> { }
 
         // =======================================================================================================================
 

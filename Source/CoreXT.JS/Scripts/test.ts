@@ -8,6 +8,7 @@
 
     let constructor = Symbol("static constructor");
 
+
     export class Test {
         static 'new': (x: number) => Test.$__type;
         static init: (o: Test.$__type, isnew: boolean, x: number) => void;
@@ -15,11 +16,14 @@
     }
     export namespace Test {
         export class $__type {
+            private x = 1;
+            y = 2;
+            protected p = 3;
             private static [constructor](factory: typeof Test) {
-                factory['new'] = (x) => {
+                factory.new = (x) => {
                     return null;
                 };
-                factory['init'] = (o, isnew, x) => {
+                factory.init = (o, isnew, x) => {
                     o.x = 1;
                 };
             }
@@ -36,17 +40,18 @@
         }
         export namespace Test2 {
             export class $__type {
-                private x = 1;
-                y = 2;
+                private x2 = 1;
+                y2 = 2;
                 private static [constructor](factory: typeof Test2) {
                     factory['new'] = (x) => {
                         return null;
                     };
                     factory['init'] = (o, isnew, x) => {
-                        o.x = 1;
+                        o.x2 = 1;
                     };
                 }
             }
+
         }
     }
 
@@ -56,17 +61,20 @@
 }
 
 namespace CoreXT {
-    @Namespace(() => CoreXT)
-    export class MyFactory {
-        static 'new': (...args: any[]) => MyFactory.$__type;
-        static init: (o: MyFactory.$__type, isnew: boolean, ...args: any[]) => void;
-    }
-    export namespace MyFactory {
-        @Factory(() => CoreXT.MyFactory)
-        export class $__type {
-            private static [constructor](factory: typeof MyFactory) {
-                factory['init'] = (o, isnew) => { };
-            }
+    namespace __Temp {
+        export class MyFactory extends FactoryBase() {
+            static 'new': (...args: any[]) => IMyFactory;
+            static init: (o: IMyFactory, isnew: boolean, ...args: any[]) => void;
         }
+        export namespace MyFactory {
+            export class $__type extends FactoryType(Object) {
+                private static [constructor](factory: typeof MyFactory) {
+                    factory.init = (o, isnew) => {
+                    };
+                }
+            }
+            MyFactory.register(__Temp);
+        }
+        export interface IMyFactory extends MyFactory.$__type { }
     }
 }

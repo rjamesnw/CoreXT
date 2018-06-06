@@ -12,7 +12,7 @@ namespace CoreXT {
       * parameters based on the browser (such as 'Worker.postMessage()' using transferable objects with IE vs All Others [as usual]).
       */
     export namespace Browser {
-        registerNamespace("CoreXT", "Browser");
+        namespace("CoreXT", "Browser");
         // (Browser detection is a highly modified version of "http://www.quirksmode.org/js/detect.html".)
         // (Note: This is only required for quirk detection in special circumstances [such as IE's native JSON whitespace parsing issue], and not for object feature support)
 

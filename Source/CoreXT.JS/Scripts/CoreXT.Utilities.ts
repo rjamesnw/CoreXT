@@ -4,7 +4,7 @@
 
 namespace CoreXT {
     export namespace Utilities {
-        registerNamespace("CoreXT", "Utilities");
+        namespace("CoreXT", "Utilities");
         // -------------------------------------------------------------------------------------------------------------------
 
         /** Escapes a RegEx string so it behaves like a normal string. This is useful for RexEx string based operations, such as 'replace()'. */

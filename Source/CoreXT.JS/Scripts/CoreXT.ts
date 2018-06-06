@@ -57,7 +57,7 @@ namespace CoreXT {
     export function isDebugging() { return debugMode != DebugModes.Release; }
 
     /** Returns the name of a namespace or variable reference at runtime. */
-    export function nameof(selector: () => any, fullname = false) {
+    export function nameof(selector: () => any, fullname = false): string {
         var s = '' + selector;
         //var m = s.match(/return\s*([A-Z.]+)/i) || s.match(/=>\s*{?\s*([A-Z.]+)/i) || s.match(/function.*?{\s*([A-Z.]+)/i);
         var m = s.match(/return\s+([A-Z$_.]+)/i) || s.match(/.*?(?:=>|function.*?{(?!\s*return))\s*([A-Z.]+)/i);
@@ -236,7 +236,7 @@ namespace CoreXT {
         Server
     }
 
-   // =========================================================================================================================================
+    // =========================================================================================================================================
 
     export var FUNC_NAME_REGEX = /^function\s*(\S+)\s*\(/i; // (note: never use the 'g' flag here, or '{regex}.exec()' will only work once every two calls [attempts to traverse])
 
@@ -264,7 +264,7 @@ namespace CoreXT {
 
     }
 
-   // =========================================================================================================================================
+    // =========================================================================================================================================
     // A dump of the functions required by TypeScript in one place.
 
     var extendStatics = Object.setPrototypeOf || ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -272,7 +272,7 @@ namespace CoreXT {
 
     /** Extends from a base type by chaining a derived type's 'prototype' to the base type's prototype.
     * This method takes into account any preset properties that may exist on the derived type's prototype.
-    * Note: Extending an already extended derived type will recreate the prototype connection again using a new prototype instance poing to the given base type.
+    * Note: Extending an already extended derived type will recreate the prototype connection again using a new prototype instance pointing to the given base type.
     * Note: It is not possible to modify any existing chain of constructor calls.  Only the prototype can be changed.
     * @param {Function} derivedType The derived type (function) that will extend from a base type.
     * @param {Function} baseType The base type (function) to extend to the derived type.
@@ -891,37 +891,61 @@ namespace CoreXT { // (the core scope)
 
         /** 
          * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
+         * This method should be called AFTER a factory type is fully defined.
          * 
          * @param {IType} factoryType The factory type to associate with the type.
          * @param {modules} namespace A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
         */
-        export function __registerFactoryType<TClass extends IType, TFactory extends IFactoryTypeInfo, TNamespace extends object>
-            (cls: TClass, factoryType: TFactory & { $__type: TClass }, namespace: TNamespace, addMemberTypeInfo = true, exportName?: keyof TNamespace)
-            : ClassFactoryType<TClass, TFactory> {
+        export function __registerFactoryType<TClass extends IType, TFactory extends IType & IFactory, TNamespace extends object>
+            (factoryType: TFactory & { $__type: TClass }, namespace: TNamespace, addMemberTypeInfo = true) {
+
+            var classType = <IFactory<TClass> & IClassInfo & IType><any>factoryType.$__type;
+            var factoryTypeInfo = <IFactoryTypeInfo><any>factoryType;
 
             if (typeof factoryType !== 'function')
-                error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+                error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-            var classType = <IFactory<TClass> & IClassInfo><any>cls;
+            if (typeof namespace == 'object' || typeof namespace == 'function') {
+                if (!(<ITypeInfo>namespace).$__fullname)
+                    error("__registerFactoryType()", "The specified namespace given for factory type '" + getFullTypeName(factoryType) + "' is not registered. Please call 'namespace()' to register it first (before the factory is defined).", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+            }
 
-            if (typeof classType !== 'function')
-                error("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+            if (typeof classType == 'undefined')
+                error("__registerFactoryType()", "Factory instance type '" + getFullTypeName(factoryType) + ".$__type' is not defined.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-            var _exportName = <string>exportName || getTypeName(cls);
-            if (_exportName.charAt(0) == '$') _exportName = _exportName.substr(1); // TODO: May not need to do this anymore.
-            namespace[_exportName] = factoryType; // (usually the name will be set upon return from this function, but the type registration system will need it NOW, so just set it)
+            if (typeof classType != 'function')
+                error("__registerFactoryType()", "'" + getFullTypeName(factoryType) + ".$__type' is not a valid constructor function.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-            classType.$__parent = factoryType; // (it is never valid to traverse a parent chain from a class up to parent namespaces since the class is not expose but only the factory - so link the class only to the factory)
-            classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
-            classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
-            classType.$__baseFactoryType = factoryType.$__baseFactoryType;
-            classType.$__name = _exportName;
+            // ... register type information first BEFORER we call any static constructor (so it is available to the user)s ...
 
-            // ... if no 'init()' function is specified, just call the base by default ... 
+            var registeredFactory = __registerType(factoryType, namespace, addMemberTypeInfo);
 
-            //x if (!Object.prototype.hasOwnProperty.call(factoryType, "init") || typeof factoryType.init == 'undefined' || factoryType.init == null) {
+            //x factoryTypeInfo.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
+
+            //x classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
+            classType.$__factoryType = factoryTypeInfo; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
+            classType.$__baseFactoryType = factoryTypeInfo.$__baseFactoryType;
+
+            var registeredFactoryType = __registerType(classType, factoryType, addMemberTypeInfo);
+
+            //x .. finally, update the class static properties also with the values set on the factory from the previous line (to be thorough) ...
+
+            //x classType.$__fullname = factoryTypeInfo.$__fullname + "." + classType.$__name; // (the '$__fullname' property on a class should allow absolute reference back to it [note: '__proto__' could work here also due to static inheritance])
+
+            // ... if the user supplied a static constructor then call it now before we do anything more ...
+            // (note: the static constructor may be where 'new' and 'init' factory functions are provided, so we MUST call them first before we hook into anything)
+
+            if (typeof factoryType[constructor] == 'function')
+                factoryType[constructor].call(classType);
+
+            if (typeof classType[constructor] == 'function')
+                classType[constructor](factoryType);
+
+            // ... hook into the 'init' and 'new' factory methods ...
+            // (note: if no 'init()' function is specified, just call the base by default)
+
             if (classType.init)
                 error(getFullTypeName(classType), "You cannot create a static 'init' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
 
@@ -935,11 +959,9 @@ namespace CoreXT { // (the core scope)
                 // TODO: Once parsing of function parameters are in place we can detect this, but for now require it)
                 factoryType.init = originalInit; // (everything is ok here, so bypass this check next time)
             };
-            //x }
 
-            //x if (!Object.prototype.hasOwnProperty.call(factoryType, "new") || typeof factoryType.new == 'undefined' || factoryType.new == null) {
-            if (classType.new)
-                error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
+            //x if (classType.new)
+            //x     error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
 
             var originalNew = typeof factoryType.new == 'function' ? factoryType.new : null; // (take user defined, else set to null)
 
@@ -961,32 +983,9 @@ namespace CoreXT { // (the core scope)
                     factoryType.new = originalNew;
                     return result;
                 };
-            //x }
-            //x else if (!classType.new || typeof classType.new != 'function') // (normally the default 'new' function should exist behind the scenes on the base Object type)
-            //x    classType.new = () => {
-            //x        throw "Invalid operation: no valid 'new()' function was found on type '" + getFullTypeName(classType, false) + "'. This exists on the DomainObject base type, and is required.";
-            //x    }
 
-            //x if ('__register' in _factoryType)
-            //x     _factoryType['__register'] == noop;
-
-            var registeredFactory = __registerType(cls, namespace, addMemberTypeInfo, exportName);
-
-            // .. finally, update the class static properties also with the values set on the factory from the previous line (to be thorough) ...
-
-            classType.$__fullname = factoryType.$__fullname + ".$__type"; // (the '$__fullname' property on a class should allow absolute reference back to it [note: '__proto__' could work here also due to static inheritance])
-
-            return <any>factoryType;
+            return factoryType;
         }
-
-        //x /** Registers a given type by name (constructor function), and creates the function on the last specified module if it doesn't already exist.
-        //x * @param {Function} type The type (constructor function) to register.
-        //x * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
-        //x * @param {boolean} addMemberTypeInfo If true (default), all member functions of any existing type (function object) will have type information
-        //x * applied (using the IFunctionInfo interface).
-        //x */
-        //x static registerType<T extends (...args)=>any>(type: string, parentModules: {}[], addMemberTypeInfo?: boolean): T;
-        //x static registerType(type: Function, parentModules: {}[], addMemberTypeInfo?: boolean): ITypeInfo;
 
         /** 
          * Registers a given type (constructor function) in a specified namespace and builds some relational type properties.
@@ -999,16 +998,16 @@ namespace CoreXT { // (the core scope)
          * @param {boolean} exportName (optional) The name exported from the namespace for this type. By default the type (class) name is assumed.
          * If the name exported from the namespace is different, specify it here.
          */
-        export function __registerType<T extends IType<any>, TNamespaceParent extends object>(type: T, namespace: TNamespaceParent, addMemberTypeInfo = true, exportName?: keyof TNamespaceParent): T {
+        export function __registerType<T extends IType, TParentTypeOrNamespace extends object>(type: T, parentTypeOrNS: TParentTypeOrNamespace, addMemberTypeInfo = true): T {
 
-            var _namespace = <ITypeInfo>namespace;
+            var _namespace = <ITypeInfo>parentTypeOrNS;
 
-            if (_namespace.$__fullname === void 0)
-                error("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", type);
+            if (!_namespace.$__fullname)
+                error("Types.__registerType()", "The specified namespace '" + getTypeName(parentTypeOrNS) + "' is not registered.  Please make sure to call 'namespace()' first at the top of namespace scopes before factories and types are defined.", type);
 
             // ... register the type with the parent namespace ...
 
-            var _type = __registerNamespace(namespace, <string>exportName || getTypeName(type));
+            var _type = __registerNamespace(parentTypeOrNS, getTypeName(type));
 
             // ... scan the type's prototype functions and update the type information (only function names at this time) ...
             // TODO: Consider parsing the function parameters as well and add this information for developers.
@@ -1156,12 +1155,6 @@ namespace CoreXT { // (the core scope)
 
     export interface IClassFactory { }
 
-    export type ClassFactoryType<TClass extends IType = IType, TFactoryType extends IFactoryTypeInfo = IFactoryTypeInfo>
-        = TFactoryType & IClassFactory & {
-            /** This is a reference to the underlying class type for this factory type. */
-            $__type: TClass
-        };
-
     /** A 'Disposable' base type that implements 'IDisposable', which is the base for all CoreXT objects that can be disposed. */
     export class Disposable implements IDisposable {
         /** 
@@ -1221,133 +1214,148 @@ namespace CoreXT { // (the core scope)
         return cls;
     }
 
+    ///** 
+    // * Registers a type in the CoreXT system and associates a type with a parent type or namespace. 
+    // * This decorator is also responsible for calling the static '[constructor]()' function on a type, if one exists.
+    // * Usage: 
+    // *      @factory(ForSomeNamespace)
+    // *      class MyFactory {
+    // *          static 'new': (...args:any[]) => IMyFactory;
+    // *          static init: (o: IMyFactory, isnew: boolean, ...args: any[]) => void;
+    // *      }
+    // *      namespace MyFactory {
+    // *          @factoryInstance(MyFactory)
+    // *          export class $__type {
+    // *              private static [constructor](factory: typeof MyFactory) {
+    // *                  factory.init = (o, isnew) => { };
+    // *              }
+    // *          }
+    // *      }
+    // *      interface IMyFactory extends MyFactory.$__type {}
+    // */
+    //export function type(parentType: IType | object) {
+    //    return (cls: IType) => <any>cls; // (not used yet)
+    //}
+
+    ///** Constructs factory objects. */
+    //x export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IFactoryTypeInfo, TNamespace extends object>
+    //    (namespace: TNamespace, base: IClassFactory & { $__type: TBaseClass }, getType: (base: TBaseClass) => [TClass, TFactory], exportName?: keyof TNamespace, addMemberTypeInfo = true)
+    //    : ClassFactoryType<TClass, TFactory> {
+    //    function _error(msg: string) {
+    //        error("ClassFactory()", msg, namespace);
+    //    }
+    //    if (!getType) _error("A 'getType' selector function is required.");
+    //    if (!namespace) _error("A 'namespace' value is required.");
+
+    //    var types = getType(base && base.$__type || <any>base); // ('$__type' is essentially the same reference as base, but with the original type)
+    //    var cls = types[0];
+    //    var factory = types[1];
+
+    //    if (!cls) _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class instance, which is required.");
+    //    if (typeof cls != 'function') _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class (function) type object, which is required.");
+
+    //    var name = <string>exportName || getTypeName(cls);
+    //    if (name.charAt(0) == '$') name = name.substr(1); // TODO: May not need to do this anymore.
+
+    //    if (!factory) log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
+
+    //    return Types.__registerFactoryType(<any>cls, <any>factory, namespace, addMemberTypeInfo, exportName);
+    //}
+
+    export function FactoryType<TBaseFactory extends IType>(baseFactory?: { $__type: TBaseFactory }) {
+        return baseFactory.$__type;
+    }
+
     /** 
-     * Associates an instance class type with a static factory class in the CoreXT system. 
-     * Usage: 
-            export class MyFactory {
-                static 'new': (...args:any[]) => MyFactory.$__type;
-                static init: (o: MyFactory.$__type, isnew: boolean, ...args: any[]) => void;
-            }
-            export namespace MyFactory {
-                @Factory(() => AnyNamespace.MyFactory)
-                export class $__type {
-                    private static [constructor](factory: typeof MyFactory) {
-                        factory['init'] = (o, isnew) => { };
-                    }
-                }
-            }
+     * Builds and returns a base type to be used with creating type factories. This function stores some type
+     * information in static properties for reference.
      */
-    export function Factory(classFactorySelector: () => IType) {
-        return (cls: IType) => <any>cls; // (not used yet)
-    }
-
-    export function Namespace(nsSelector: () => object) {
-        return (cls: IType) => <any>cls; // (not used yet)
-    }
-
-    /** Constructs factory objects. */
-    export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IFactoryTypeInfo, TNamespace extends object>
-        (namespace: TNamespace, base: IClassFactory & { $__type: TBaseClass }, getType: (base: TBaseClass) => [TClass, TFactory], exportName?: keyof TNamespace, addMemberTypeInfo = true)
-        : ClassFactoryType<TClass, TFactory> {
-        function _error(msg: string) {
-            error("ClassFactory()", msg, namespace);
-        }
-        if (!getType) _error("A 'getType' selector function is required.");
-        if (!namespace) _error("A 'namespace' value is required.");
-
-        var types = getType(base && base.$__type || <any>base); // ('$__type' is essentially the same reference as base, but with the original type)
-        var cls = types[0];
-        var factory = types[1];
-
-        if (!cls) _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class instance, which is required.");
-        if (typeof cls != 'function') _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class (function) type object, which is required.");
-
-        var name = <string>exportName || getTypeName(cls);
-        if (name.charAt(0) == '$') name = name.substr(1); // TODO: May not need to do this anymore.
-
-        if (!factory) log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
-
-        return Types.__registerFactoryType(<any>cls, <any>factory, namespace, addMemberTypeInfo, exportName);
-    }
-
-    /** Builds and returns a base type to be used with creating factory objects that extend from classes. This function stores some type information in static properties for reference. */
-    export function FactoryBase<TClass extends IType<object>, TBaseFactory extends IFactoryTypeInfo, TStaticProperties extends keyof TClass>
-        (type: TClass, baseFactoryType: TBaseFactory) {
-        return class FactoryBase extends type implements IDisposable {
+    export function FactoryBase<TBaseFactory extends IFactory>
+        (baseFactoryType?: TBaseFactory) {
+        var cls = class FactoryBase {
             /** The underlying type associated with this factory type. */
-            static $__type = type;
-            //x /** The factory type instance for the underlying type '$__type'. */
-            //x static $__factory: IFactory;
-            /** The base factory type, if any. */
-            static $__baseFactoryType = baseFactoryType;
+            static $__type: IType;
 
             /** Set to true when the object is being disposed. By default this is undefined.  This is only set to true when 'dispose()' is first call to prevent cyclical calls. */
             $__disposing?: boolean;
             /** Set to true once the object is disposed. By default this is undefined, which means "not disposed".  This is only set to true when disposed, and false when reinitialized. */
             $__disposed?: boolean;
 
-            /** The underlying type. */
-            static get type() { return this.$__type; }
-            /** The base factory instance. */
-            static get super(): TBaseFactory { return this.$__baseFactoryType; }
+            /** References the base factory. */
+            static get super(): TBaseFactory { return baseFactoryType; }
 
             static 'new'?(...args: any[]): any;
-            static init?(o: InstanceType<TClass>, isnew: boolean, ...args: any[]): void;
-
-            /** 
-             * Releases the object back into the object pool. This is the default implementation which simply calls 'Types.dispose(this, release)'.
-             * If overriding, make sure to call 'super.dispose()' or 'Types.dispose()' to complete the disposal process.
-             * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
-             *                          false to request that child objects remain connected after disposal (not released). This
-             *                          can allow quick initialization of a group of objects, instead of having to pull each one
-             *                          from the object pool each time.
-             */
-            dispose(release?: boolean): void { Types.dispose(this, release); }
+            static init?(o: object, isnew: boolean, ...args: any[]): void;
 
             ///** 
-            // * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
-            // * 
-            // * @param {modules} namespace A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
-            // * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
-            // * applied (using the IFunctionInfo interface).
-            //*/
-            //x static register<TClass extends IType<object>, TFactory extends { new(): IFactory }>(this: TFactory & ITypeInfo & IFactoryTypeInfo & { $__type: TClass },
-            //    namespace: object, addMemberTypeInfo = true): InstanceType<TFactory> & IRegisteredFactoryType<TClass, TFactory> {
-            //    return Types.__registerFactoryType(<TFactory & ITypeInfo & IFactoryTypeInfo>this, namespace, addMemberTypeInfo);
-            //}
+            // * Releases the object back into the object pool. This is the default implementation which simply calls 'Types.dispose(this, release)'.
+            // * If overriding, make sure to call 'super.dispose()' or 'Types.dispose()' to complete the disposal process.
+            // * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+            // *                          false to request that child objects remain connected after disposal (not released). This
+            // *                          can allow quick initialization of a group of objects, instead of having to pull each one
+            // *                          from the object pool each time.
+            // */
+            //dispose(release?: boolean): void { Types.dispose(this, release); }
+
+            /** 
+              * Called to register factory types with the internal types system (see also 'Types.__registerType()' for non-factory supported types).
+              * Any static constructors defined will also be called at this point.
+              * 
+              * @param {modules} namespace The parent namespace to the current type.
+              * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
+              * applied (using the IFunctionInfo interface).
+             */
+            static register<TClass extends IType, TFactory extends IFactory & IType>(this: TFactory & ITypeInfo & { $__type: TClass },
+                namespace: object, addMemberTypeInfo = true): TFactory {
+                return Types.__registerFactoryType(this, namespace, addMemberTypeInfo);
+            }
         };
+        (<IClassInfo><any>cls).$__baseFactoryType = <any>baseFactoryType;
+        return cls;
     }
     // (call with context vs context as arg?: https://jsperf.com/call-this-vs-this-as-argument/1)
 
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<Z extends keyof T, T extends object = typeof CoreXT.global>(firstNsOrClassName?: Z, root?: T): void;
+    export function namespace<Z extends keyof T, T extends object = typeof CoreXT.global>(firstNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, Z extends keyof T[A], T extends object = typeof CoreXT.global>(ns1: A, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, Z extends keyof T[A], T extends object = typeof CoreXT.global>(ns1: A, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], Z extends keyof T[A][B], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], Z extends keyof T[A][B], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], Z extends keyof T[A][B][C], T extends object = typeof CoreXT>(ns1: A, ns2?: B, ns3?: C, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], Z extends keyof T[A][B][C], T extends object = typeof CoreXT>(ns1: A, ns2?: B, ns3?: C, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], Z extends keyof T[A][B][C][D], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], Z extends keyof T[A][B][C][D], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], Z extends keyof T[A][B][C][D][E], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], Z extends keyof T[A][B][C][D][E], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], Z extends keyof T[A][B][C][D][E][F], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], Z extends keyof T[A][B][C][D][E][F], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], Z extends keyof T[A][B][C][D][E][F][G], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], Z extends keyof T[A][B][C][D][E][F][G], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], Z extends keyof T[A][B][C][D][E][F][G][H], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], Z extends keyof T[A][B][C][D][E][F][G][H], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], I extends keyof T[A][B][C][D][E][F][G][H], Z extends keyof T[A][B][C][D][E][F][G][H][I], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, ns9?: I, lastNsOrClassName?: Z, root?: T): void;
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], I extends keyof T[A][B][C][D][E][F][G][H], Z extends keyof T[A][B][C][D][E][F][G][H][I], T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, ns9?: I, lastNsOrClassName?: Z, root?: T): void;
     /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. */
-    export function registerNamespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], I extends keyof T[A][B][C][D][E][F][G][H], J extends keyof T[A][B][C][D][E][F][G][H][I], Z extends keyof T[A][B][C][D][E][F][G][H][I][J]= any, T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, ns9?: I, ns10?: J, lastNsOrClassName?: Z, root?: T): void;
-    export function registerNamespace(...args: any[]): void {
-        var root = args[args.length - 1];
-        var lastIndex = (typeof root == 'object' ? args.length - 1 : (root = global, args.length));
-        Types.__registerNamespace(root, ...global.Array.prototype.slice.call(arguments, 0, lastIndex));
+    export function namespace<A extends keyof T, B extends keyof T[A], C extends keyof T[A][B], D extends keyof T[A][B][C], E extends keyof T[A][B][C][D], F extends keyof T[A][B][C][D][E], G extends keyof T[A][B][C][D][E][F], H extends keyof T[A][B][C][D][E][F][G], I extends keyof T[A][B][C][D][E][F][G][H], J extends keyof T[A][B][C][D][E][F][G][H][I], Z extends keyof T[A][B][C][D][E][F][G][H][I][J]= any, T extends object = typeof CoreXT.global>(ns1: A, ns2?: B, ns3?: C, ns4?: D, ns5?: E, ns6?: F, ns7?: G, ns8?: H, ns9?: I, ns10?: J, lastNsOrClassName?: Z, root?: T): void;
+    /** Registers a namespace and optional class type. The type information is stored in the namespace objects.  Use 'ITypeInfo' to read the type information from namespaces and classes. 
+     * @param {function} namespacePathSelector A selector in the format '()=>A.B.C' or 'function(){A.B.C}' that specifies the FULL namespace path from the root object on global.
+     */
+    export function namespace(namespacePathSelector: () => object, root?: object): void;
+    export function namespace(...args: any[]): void {
+        if (typeof args[0] == 'function') {
+            var root = args[args.length - 1] || global;
+            if (typeof root != 'object' && typeof root != 'function') root = global;
+            var items = nameof(args[0]).split('.');
+            if (!items.length) error("namespace()", "A valid namespace path selector function was expected (i.e. '()=>First.Second.Third.Etc').");
+            Types.__registerNamespace(root, ...items);
+        } else {
+            var root = args[args.length - 1];
+            var lastIndex = (typeof root == 'object' || typeof root == 'function' ? args.length - 1 : (root = global, args.length));
+            Types.__registerNamespace(root, ...global.Array.prototype.slice.call(arguments, 0, lastIndex));
+        }
     }
 
-    registerNamespace("CoreXT", "Types"); // ('CoreXT.Types' will become the first registered namespace)
+    namespace("CoreXT", "Types"); // ('CoreXT.Types' will become the first registered namespace)
 
     // ========================================================================================================================================
 
@@ -1449,7 +1457,7 @@ namespace CoreXT { // (the core scope)
      * Contains some basic static values and calculations used by time related functions within the system.
      */
     export namespace Time {
-        registerNamespace("CoreXT", "Time");
+        namespace("CoreXT", "Time");
         // =======================================================================================================================
 
         export var __millisecondsPerSecond = 1000;
@@ -1476,7 +1484,7 @@ namespace CoreXT { // (the core scope)
 
     /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
     export namespace System {
-        registerNamespace("CoreXT", "System");
+        namespace("CoreXT", "System");
     }
 
     // *** At this point the core type system, error handling, and console-based logging are now available. ***
@@ -1495,7 +1503,7 @@ namespace CoreXT { // (the core scope)
      * also allows extending (add to) the existing scripts for system upgrades.
      */
     export namespace Loader {
-        registerNamespace("CoreXT", "Loader");
+        namespace("CoreXT", "Loader");
         // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
         export interface ISystemLoadedHandler { (): void }
@@ -1653,644 +1661,642 @@ namespace CoreXT { // (the core scope)
          * Inheritance note: When creating via the 'new' factory method, any already existing instance with the same URL will be returned,
          * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
          */
-        export var ResourceRequest = ClassFactory(Loader, void 0,
-            (base) => {
-                class ResourceRequest { // (inspired by the "promises" methodology: http://www.html5rocks.com/en/tutorials/es6/promises/, http://making.change.org/post/69613524472/promises-and-error-handling, http://goo.gl/9HeBrN)
-                    private $__index: number;
+        export class ResourceRequest extends FactoryBase() {
+            /** 
+             * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
+             * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+             * Each resource request instance can also have its own value set separate from the global one.
+             * Note: CoreXT has its own caching that uses the local storage, where supported.
+             */
+            static cacheBusting = true;
 
-                    /** The requested resource URL. */
-                    _url: string;
-                    get url() {
-                        if (typeof this._url == 'string' && this._url.substr(0, 2) == "~/") {
-                            var _baseURL = this.type == ResourceTypes.Application_Script ? baseScriptsURL : baseURL;
-                            return _baseURL + this._url.substr(2);
-                        }
-                        return this._url;
+            /** See the 'cacheBusting' property. */
+            static cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
+
+            /** Returns a new module object only - does not load it. */
+            static 'new': (...args: any[]) => IResourceRequest;
+            /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+            static init: (o: IResourceRequest, isnew: boolean, url: string, type: ResourceTypes | string, async?: boolean) => void;
+        }
+        export namespace ResourceRequest {
+            export class $__type {
+                private $__index: number;
+
+                /** The requested resource URL. */
+                _url: string;
+                get url() {
+                    if (typeof this._url == 'string' && this._url.substr(0, 2) == "~/") {
+                        var _baseURL = this.type == ResourceTypes.Application_Script ? baseScriptsURL : baseURL;
+                        return _baseURL + this._url.substr(2);
                     }
-                    set url(value: string) { this._url = value; }
-                    /** The requested resource type (to match against the server returned MIME type for data type verification). */
-                    type: ResourceTypes | string;
+                    return this._url;
+                }
+                set url(value: string) { this._url = value; }
+                /** The requested resource type (to match against the server returned MIME type for data type verification). */
+                type: ResourceTypes | string;
 
-                    /** The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
-                      * developers should be able to use it if necessary to further configure the request for advanced reasons.
-                      */
-                    _xhr: XMLHttpRequest; // (for parallel loading, each request has its own connection)
+                /** The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
+                  * developers should be able to use it if necessary to further configure the request for advanced reasons.
+                  */
+                _xhr: XMLHttpRequest; // (for parallel loading, each request has its own connection)
 
-                    /** The raw data returned from the HTTP request.
-                      * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
-                      * the next call [see 'transformedData']).
-                      */
-                    data: any; // (The response entity body according to responseType, as an ArrayBuffer, Blob, Document, JavaScript object (from JSON), or string. This is null if the request is not complete or was not successful.)
+                /** The raw data returned from the HTTP request.
+                  * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
+                  * the next call [see 'transformedData']).
+                  */
+                data: any; // (The response entity body according to responseType, as an ArrayBuffer, Blob, Document, JavaScript object (from JSON), or string. This is null if the request is not complete or was not successful.)
 
-                    /** Set to data returned from callback handlers as the 'data' property value gets transformed.
-                      * If no transformations were made, then the value in 'data' is returned.
-                      */
-                    get transformedData(): any {
-                        return this.$__transformedData === noop ? this.data : this.$__transformedData;
+                /** Set to data returned from callback handlers as the 'data' property value gets transformed.
+                  * If no transformations were made, then the value in 'data' is returned.
+                  */
+                get transformedData(): any {
+                    return this.$__transformedData === noop ? this.data : this.$__transformedData;
+                }
+                private $__transformedData: any = noop;
+
+                /** The response code from the XHR response. */
+                responseCode: number = 0; // (the response code returned)
+                /** The response code message from the XHR response. */
+                responseMessage: string = ""; // (the response code message)
+
+                /** The current request status. */
+                status: RequestStatuses = RequestStatuses.Pending;
+
+                /** 
+                 * A progress/error message related to the status (may not be the same as the response message).
+                 * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
+                 */
+                get message(): string { // (for errors, aborts, timeouts, etc.)
+                    return this._message;
+                }
+                set message(value: string) {
+                    this._message = value;
+                    this.messageLog.push(this._message);
+                    if (this.status == RequestStatuses.Error)
+                        error("ResourceRequest", this._message, this, false); // (send resource loading error messages to the console to aid debugging)
+                    else
+                        log("ResourceRequest", this._message, LogTypes.Normal, this);
+                }
+                private _message: string;
+
+                /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
+                messageLog: string[] = [];
+
+                /** 
+                 * If true (default), them this request is non-blocking, otherwise the calling script will be blocked until the request
+                 * completes loading.  Please note that no progress callbacks can occur during blocked operations (since the thread is
+                 * effectively 'paused' in this scenario).
+                 * Note: Depreciated: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests#Synchronous_request
+                 * "Starting with Gecko 30.0 (Firefox 30.0 / Thunderbird 30.0 / SeaMonkey 2.27), Blink 39.0, and Edge 13, synchronous requests on the main thread have been deprecated due to the negative effects to the user experience."
+                 */
+                async: boolean;
+
+                /** 
+                 * If true (the default) then a '"_="+Date.now()' query item is added to make sure the browser never uses
+                 * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+                 * Note: CoreXT has its own caching that uses the local storage, where supported.
+                 */
+                cacheBusting = ResourceRequest.cacheBusting;
+
+                /** See the 'cacheBusting' property. */
+                cacheBustingVar = ResourceRequest.cacheBustingVar;
+
+                private _onProgress: ICallback<IResourceRequest>[];
+                private _onReady: ICallback<IResourceRequest>[]; // ('onReady' is triggered in order of request made, and only when all included dependencies have completed successfully)
+
+                /** This is a list of all the callbacks waiting on the status of this request (such as on loaded or error).
+                * There's also an 'on finally' which should execute on success OR failure, regardless.
+                * For each entry, only ONE of any callback type will be set.
+                */
+                private _promiseChain: {
+                    onLoaded?: ICallback<IResourceRequest>; // (resource is loaded, but may not be ready [i.e. previous scripts may not have executed yet])
+                    onError?: ICallback<IResourceRequest>; // (there is one error entry [defined or not] for every 'onLoaded' event entry, and vice versa)
+                    onFinally?: ICallback<IResourceRequest>;
+                }[] = [];
+                private _promiseChainIndex: number = 0; // (the current position in the event chain)
+
+                /** 
+                 * A list of parent requests that this request is depending upon.
+                 * When 'start()' is called, all parents are triggered to load first, working downwards.
+                 * Regardless of order, loading is in parallel asynchronously; however, the 'onReady' event will fire in the expected order.
+                 * */
+                _parentRequests: IResourceRequest[];
+                private _parentCompletedCount = 0; // (when this equals the # of 'dependents', the all parent resources have loaded [just faster than iterating over them])
+                _dependants: IResourceRequest[]; // (dependant child resources)
+
+                private _paused = false;
+
+                private _queueDoNext(data: any) {
+                    setTimeout(() => {
+                        // ... before this, fire any handlers that would execute before this ...
+                        this._doNext();
+                    }, 0);
+                } // (simulate an async response, in case more handlers need to be added next)
+                private _queueDoError() { setTimeout(() => { this._doError(); }, 0); } // (simulate an async response, in case more handlers need to be added next)
+                private _requeueHandlersIfNeeded() {
+                    if (this.status == RequestStatuses.Error)
+                        this._queueDoError();
+                    else if (this.status >= RequestStatuses.Waiting) {
+                        this._queueDoNext(this.data);
                     }
-                    private $__transformedData: any = noop;
+                    // ... else, not needed, as the chain is still being traversed, so anything added will get run as expected ...
+                }
 
-                    /** The response code from the XHR response. */
-                    responseCode: number = 0; // (the response code returned)
-                    /** The response code message from the XHR response. */
-                    responseMessage: string = ""; // (the response code message)
-
-                    /** The current request status. */
-                    status: RequestStatuses = RequestStatuses.Pending;
-
-                    /** 
-                     * A progress/error message related to the status (may not be the same as the response message).
-                     * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
-                     */
-                    get message(): string { // (for errors, aborts, timeouts, etc.)
-                        return this._message;
+                then(success: ICallback<IResourceRequest>, error?: IErrorCallback<IResourceRequest>) {
+                    if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
+                        throw "A handler function given is not a function.";
+                    else {
+                        this._promiseChain.push({ onLoaded: success, onError: error });
+                        this._requeueHandlersIfNeeded();
                     }
-                    set message(value: string) {
-                        this._message = value;
-                        this.messageLog.push(this._message);
-                        if (this.status == RequestStatuses.Error)
-                            error("ResourceRequest", this._message, this, false); // (send resource loading error messages to the console to aid debugging)
-                        else
-                            log("ResourceRequest", this._message, LogTypes.Normal, this);
+                    if (this.status == RequestStatuses.Waiting || this.status == RequestStatuses.Ready) {
+                        this.status = RequestStatuses.Loaded; // (back up)
+                        this.message = "New 'then' handler added.";
                     }
-                    private _message: string;
+                    return this;
+                }
 
-                    /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
-                    messageLog: string[] = [];
+                /** Adds another request and makes it dependent on the current 'parent' request.  When all parent requests have completed,
+                  * the dependant request fires its 'onReady' event.
+                  * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
+                  */
+                include(request: IResourceRequest) {
+                    if (!request._parentRequests)
+                        request._parentRequests = [];
+                    if (!this._dependants)
+                        this._dependants = [];
+                    request._parentRequests.push(this);
+                    this._dependants.push(request);
+                    return request;
+                }
 
-                    /** 
-                     * If true (default), them this request is non-blocking, otherwise the calling script will be blocked until the request
-                     * completes loading.  Please note that no progress callbacks can occur during blocked operations (since the thread is
-                     * effectively 'paused' in this scenario).
-                     * Note: Depreciated: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests#Synchronous_request
-                     * "Starting with Gecko 30.0 (Firefox 30.0 / Thunderbird 30.0 / SeaMonkey 2.27), Blink 39.0, and Edge 13, synchronous requests on the main thread have been deprecated due to the negative effects to the user experience."
-                     */
-                    async: boolean;
+                /**
+                 * Add a call-back handler for when the request completes successfully.
+                 * @param handler
+                 */
+                ready(handler: ICallback<IResourceRequest>) {
+                    if (typeof handler == 'function') {
+                        if (!this._onReady)
+                            this._onReady = [];
+                        this._onReady.push(handler);
+                        this._requeueHandlersIfNeeded();
+                    } else throw "Handler is not a function.";
+                    return this;
+                }
 
-                    /** 
-                     * If true (the default) then a '"_="+Date.now()' query item is added to make sure the browser never uses
-                     * the cache. To change the variable used, set the 'cacheBustingVar' property also.
-                     * Note: CoreXT has its own caching that uses the local storage, where supported.
-                     */
-                    cacheBusting = ResourceRequest.cacheBusting;
+                /** Adds a hook into the resource load progress event. */
+                while(progressHandler: ICallback<IResourceRequest>) {
+                    if (typeof progressHandler == 'function') {
+                        if (!this._onProgress)
+                            this._onProgress = [];
+                        this._onProgress.push(progressHandler);
+                        this._requeueHandlersIfNeeded();
+                    } else throw "Handler is not a function.";
+                    return this;
+                }
 
-                    /** 
-                     * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
-                     * the cache. To change the variable used, set the 'cacheBustingVar' property also.
-                     * Each resource request instance can also have its own value set separate from the global one.
-                     * Note: CoreXT has its own caching that uses the local storage, where supported.
-                     */
-                    static cacheBusting = true;
-
-                    /** See the 'cacheBusting' property. */
-                    cacheBustingVar = ResourceRequest.cacheBustingVar;
-                    /** See the 'cacheBusting' property. */
-                    static cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
-
-                    private _onProgress: ICallback<ResourceRequest>[];
-                    private _onReady: ICallback<ResourceRequest>[]; // ('onReady' is triggered in order of request made, and only when all included dependencies have completed successfully)
-
-                    /** This is a list of all the callbacks waiting on the status of this request (such as on loaded or error).
-                    * There's also an 'on finally' which should execute on success OR failure, regardless.
-                    * For each entry, only ONE of any callback type will be set.
-                    */
-                    private _promiseChain: {
-                        onLoaded?: ICallback<ResourceRequest>; // (resource is loaded, but may not be ready [i.e. previous scripts may not have executed yet])
-                        onError?: ICallback<ResourceRequest>; // (there is one error entry [defined or not] for every 'onLoaded' event entry, and vice versa)
-                        onFinally?: ICallback<ResourceRequest>;
-                    }[] = [];
-                    private _promiseChainIndex: number = 0; // (the current position in the event chain)
-
-                    /** 
-                     * A list of parent requests that this request is depending upon.
-                     * When 'start()' is called, all parents are triggered to load first, working downwards.
-                     * Regardless of order, loading is in parallel asynchronously; however, the 'onReady' event will fire in the expected order.
-                     * */
-                    _parentRequests: ResourceRequest[];
-                    private _parentCompletedCount = 0; // (when this equals the # of 'dependents', the all parent resources have loaded [just faster than iterating over them])
-                    _dependants: ResourceRequest[]; // (dependant child resources)
-
-                    private _paused = false;
-
-                    private _queueDoNext(data: any) {
-                        setTimeout(() => {
-                            // ... before this, fire any handlers that would execute before this ...
-                            this._doNext();
-                        }, 0);
-                    } // (simulate an async response, in case more handlers need to be added next)
-                    private _queueDoError() { setTimeout(() => { this._doError(); }, 0); } // (simulate an async response, in case more handlers need to be added next)
-                    private _requeueHandlersIfNeeded() {
-                        if (this.status == RequestStatuses.Error)
-                            this._queueDoError();
-                        else if (this.status >= RequestStatuses.Waiting) {
-                            this._queueDoNext(this.data);
-                        }
-                        // ... else, not needed, as the chain is still being traversed, so anything added will get run as expected ...
+                /** Call this anytime while loading is in progress to terminate the request early. An error event will be triggered as well. */
+                abort(): void {
+                    if (this._xhr.readyState > XMLHttpRequest.UNSENT && this._xhr.readyState < XMLHttpRequest.DONE) {
+                        this._xhr.abort();
                     }
+                }
 
-                    then(success: ICallback<IResourceRequest>, error?: IErrorCallback<IResourceRequest>) {
-                        if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
-                            throw "A handler function given is not a function.";
-                        else {
-                            this._promiseChain.push({ onLoaded: success, onError: error });
-                            this._requeueHandlersIfNeeded();
-                        }
-                        if (this.status == RequestStatuses.Waiting || this.status == RequestStatuses.Ready) {
-                            this.status = RequestStatuses.Loaded; // (back up)
-                            this.message = "New 'then' handler added.";
-                        }
-                        return this;
-                    }
+                /**
+                 * Provide a handler to catch any errors from this request.
+                 */
+                catch(errorHandler: IErrorCallback<IResourceRequest>) {
+                    if (typeof errorHandler == 'function') {
+                        this._promiseChain.push({ onError: errorHandler });
+                        this._requeueHandlersIfNeeded();
+                    } else
+                        throw "Handler is not a function.";
+                    return this;
+                }
 
-                    /** Adds another request and makes it dependent on the current 'parent' request.  When all parent requests have completed,
-                      * the dependant request fires its 'onReady' event.
-                      * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
-                      */
-                    include(request: IResourceRequest) {
-                        if (!request._parentRequests)
-                            request._parentRequests = [];
-                        if (!this._dependants)
-                            this._dependants = [];
-                        request._parentRequests.push(this);
-                        this._dependants.push(request);
-                        return request;
-                    }
+                /**
+                 * Provide a handler which should execute on success OR failure, regardless.
+                 */
+                finally(cleanupHandler: ICallback<IResourceRequest>) {
+                    if (typeof cleanupHandler == 'function') {
+                        this._promiseChain.push({ onFinally: cleanupHandler });
+                        this._requeueHandlersIfNeeded();
+                    } else
+                        throw "Handler is not a function.";
+                    return this;
+                }
 
-                    /**
-                     * Add a call-back handler for when the request completes successfully.
-                     * @param handler
-                     */
-                    ready(handler: ICallback<IResourceRequest>) {
-                        if (typeof handler == 'function') {
-                            if (!this._onReady)
-                                this._onReady = [];
-                            this._onReady.push(handler);
-                            this._requeueHandlersIfNeeded();
-                        } else throw "Handler is not a function.";
-                        return this;
-                    }
+                /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
+                  * order).  Regardless of the start order, all scripts are loaded in parallel.
+                  * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
+                  */
+                start(): this { if (this.async) setTimeout(() => { this._Start(); }, 0); else this._Start(); return this; }
 
-                    /** Adds a hook into the resource load progress event. */
-                    while(progressHandler: ICallback<IResourceRequest>) {
-                        if (typeof progressHandler == 'function') {
-                            if (!this._onProgress)
-                                this._onProgress = [];
-                            this._onProgress.push(progressHandler);
-                            this._requeueHandlersIfNeeded();
-                        } else throw "Handler is not a function.";
-                        return this;
-                    }
+                private _Start() {
+                    // ... start at the top most parent first, and work down ...
+                    if (this._parentRequests)
+                        for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                            this._parentRequests[i].start();
 
-                    /** Call this anytime while loading is in progress to terminate the request early. An error event will be triggered as well. */
-                    abort(): void {
-                        if (this._xhr.readyState > XMLHttpRequest.UNSENT && this._xhr.readyState < XMLHttpRequest.DONE) {
-                            this._xhr.abort();
-                        }
-                    }
+                    if (this.status == RequestStatuses.Pending) {
+                        this.status = RequestStatuses.Loading; // (do this first to protect against any possible cyclical calls)
+                        this.message = "Loading resource '" + this.url + "' ...";
 
-                    /**
-                     * Provide a handler to catch any errors from this request.
-                     */
-                    catch(errorHandler: IErrorCallback<IResourceRequest>) {
-                        if (typeof errorHandler == 'function') {
-                            this._promiseChain.push({ onError: errorHandler });
-                            this._requeueHandlersIfNeeded();
-                        } else
-                            throw "Handler is not a function.";
-                        return this;
-                    }
+                        // ... this request has not been started yet; attempt to load the resource ...
+                        // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
+                        //    (ignore the local caching if in debug or the versions are different)
 
-                    /**
-                     * Provide a handler which should execute on success OR failure, regardless.
-                     */
-                    finally(cleanupHandler: ICallback<IResourceRequest>) {
-                        if (typeof cleanupHandler == 'function') {
-                            this._promiseChain.push({ onFinally: cleanupHandler });
-                            this._requeueHandlersIfNeeded();
-                        } else
-                            throw "Handler is not a function.";
-                        return this;
-                    }
-
-                    /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
-                      * order).  Regardless of the start order, all scripts are loaded in parallel.
-                      * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
-                      */
-                    start(): this { if (this.async) setTimeout(() => { this._Start(); }, 0); else this._Start(); return this; }
-
-                    private _Start() {
-                        // ... start at the top most parent first, and work down ...
-                        if (this._parentRequests)
-                            for (var i = 0, n = this._parentRequests.length; i < n; ++i)
-                                this._parentRequests[i].start();
-
-                        if (this.status == RequestStatuses.Pending) {
-                            this.status = RequestStatuses.Loading; // (do this first to protect against any possible cyclical calls)
-                            this.message = "Loading resource '" + this.url + "' ...";
-
-                            // ... this request has not been started yet; attempt to load the resource ...
-                            // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
-                            //    (ignore the local caching if in debug or the versions are different)
-
-                            if (!isDebugging() && typeof Storage !== void 0)
-                                try {
-                                    var currentAppVersion = getAppVersion();
-                                    var versionInLocalStorage = localStorage.getItem("version");
-                                    var appVersionInLocalStorage = localStorage.getItem("appVersion");
-                                    if (versionInLocalStorage && appVersionInLocalStorage && version == versionInLocalStorage && currentAppVersion == appVersionInLocalStorage) {
-                                        // ... all versions match, just pull from local storage (faster) ...
-                                        this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
-                                        if (this.data !== null && this.data !== void 0) {
-                                            this.status = RequestStatuses.Loaded;
-                                            this._doNext();
-                                            return;
-                                        }
+                        if (!isDebugging() && typeof Storage !== void 0)
+                            try {
+                                var currentAppVersion = getAppVersion();
+                                var versionInLocalStorage = localStorage.getItem("version");
+                                var appVersionInLocalStorage = localStorage.getItem("appVersion");
+                                if (versionInLocalStorage && appVersionInLocalStorage && version == versionInLocalStorage && currentAppVersion == appVersionInLocalStorage) {
+                                    // ... all versions match, just pull from local storage (faster) ...
+                                    this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
+                                    if (this.data !== null && this.data !== void 0) {
+                                        this.status = RequestStatuses.Loaded;
+                                        this._doNext();
+                                        return;
                                     }
-                                } catch (e) {
-                                    // ... not supported? ...
                                 }
+                            } catch (e) {
+                                // ... not supported? ...
+                            }
 
-                            // ... 2. check web SQL for the resource ...
+                        // ... 2. check web SQL for the resource ...
 
-                            // TODO: Consider Web SQL Database as well. (though not supported by IE yet, as usual, but could help greatly on the others) //?
+                        // TODO: Consider Web SQL Database as well. (though not supported by IE yet, as usual, but could help greatly on the others) //?
 
-                            // ... 3. if not in web storage, try loading from a CoreXT core system, if available ...
+                        // ... 3. if not in web storage, try loading from a CoreXT core system, if available ...
 
-                            // TODO: Message CoreXT core system for resource data. // TODO: need to build the bridge class first.
+                        // TODO: Message CoreXT core system for resource data. // TODO: need to build the bridge class first.
 
-                            // ... next, create an XHR object and try to load the resource ...
+                        // ... next, create an XHR object and try to load the resource ...
 
-                            if (!this._xhr) {
-                                this._xhr = new XMLHttpRequest();
+                        if (!this._xhr) {
+                            this._xhr = new XMLHttpRequest();
 
-                                var xhr = this._xhr;
+                            var xhr = this._xhr;
 
-                                var loaded = () => {
-                                    if (xhr.status == 200 || xhr.status == 304) {
-                                        this.data = xhr.response;
-                                        this.status == RequestStatuses.Loaded;
-                                        this.message = xhr.status == 304 ? "Loading completed (from browser cache)." : "Loading completed.";
+                            var loaded = () => {
+                                if (xhr.status == 200 || xhr.status == 304) {
+                                    this.data = xhr.response;
+                                    this.status == RequestStatuses.Loaded;
+                                    this.message = xhr.status == 304 ? "Loading completed (from browser cache)." : "Loading completed.";
 
-                                        // ... check if the expected mime type matches, otherwise throw an error to be safe ...
-                                        var responseType = xhr.getResponseHeader('content-type');
-                                        if (this.type && responseType && <string><any>this.type != responseType) {
-                                            this.setError("Resource type mismatch: expected type was '" + this.type + "', but received '" + responseType + "' (XHR type '" + xhr.responseType + "').\r\n");
-                                        }
-                                        else {
-                                            if (typeof Storage !== void 0)
-                                                try {
-                                                    localStorage.setItem("version", version);
-                                                    localStorage.setItem("appVersion", getAppVersion());
-                                                    localStorage.setItem("resource:" + this.url, this.data);
-                                                    this.message = "Resource '" + this.url + "' loaded from local storage.";
-                                                } catch (e) {
-                                                    // .. failed: out of space? ...
-                                                    // TODO: consider saving to web SQL as well, or on failure (as a backup; perhaps create a storage class with this support). //?
-                                                }
-
-                                            this._doNext();
-                                        }
+                                    // ... check if the expected mime type matches, otherwise throw an error to be safe ...
+                                    var responseType = xhr.getResponseHeader('content-type');
+                                    if (this.type && responseType && <string><any>this.type != responseType) {
+                                        this.setError("Resource type mismatch: expected type was '" + this.type + "', but received '" + responseType + "' (XHR type '" + xhr.responseType + "').\r\n");
                                     }
                                     else {
-                                        this.setError("There was a problem loading the resource '" + this.url + "' (status code " + xhr.status + ": " + xhr.statusText + ").\r\n");
+                                        if (typeof Storage !== void 0)
+                                            try {
+                                                localStorage.setItem("version", version);
+                                                localStorage.setItem("appVersion", getAppVersion());
+                                                localStorage.setItem("resource:" + this.url, this.data);
+                                                this.message = "Resource '" + this.url + "' loaded from local storage.";
+                                            } catch (e) {
+                                                // .. failed: out of space? ...
+                                                // TODO: consider saving to web SQL as well, or on failure (as a backup; perhaps create a storage class with this support). //?
+                                            }
+
+                                        this._doNext();
                                     }
-                                };
-
-                                // ... this script is not cached, so load it ...
-
-                                xhr.onreadystatechange = () => { // (onreadystatechange is supported by all browsers)
-                                    switch (xhr.readyState) {
-                                        case XMLHttpRequest.UNSENT: break;
-                                        case XMLHttpRequest.OPENED: this.message = "Opened connection to '" + this.url + "'."; break;
-                                        case XMLHttpRequest.HEADERS_RECEIVED: this.message = "Headers received for '" + this.url + "'."; break;
-                                        case XMLHttpRequest.LOADING: break; // (this will be handled by the progress event)
-                                        case XMLHttpRequest.DONE: loaded(); break;
-                                    }
-                                };
-
-                                xhr.onerror = (ev: ErrorEvent) => { this.setError(void 0, ev); this._doError(); };
-                                xhr.onabort = () => { this.setError("Request aborted."); };
-                                xhr.ontimeout = () => { this.setError("Request timed out."); };
-                                xhr.onprogress = (evt: ProgressEvent) => {
-                                    this.message = "Loaded " + Math.round(evt.loaded / evt.total * 100) + "%.";
-                                    if (this._onProgress && this._onProgress.length)
-                                        this._doOnProgress(evt.loaded / evt.total * 100);
-                                };
-
-                                // (note: all event 'on...' properties only available in IE10+)
-                            }
-
-                        }
-                        else { // (this request was already started)
-                            return;
-                        }
-
-                        if (xhr.readyState != 0)
-                            xhr.abort(); // (abort existing, just in case)
-
-                        var url = this.url;
-
-                        try {
-                            // ... check if we need to bust the cache ...
-                            if (this.cacheBusting) {
-                                var bustVar = this.cacheBustingVar || "_v_";
-                                if (bustVar.indexOf(" ") >= 0) log("start()", "There is a space character in the cache busting query name for resource '" + url + "'.", LogTypes.Warning);
-                            }
-
-                            xhr.open("get", url, this.async);
-                        }
-                        catch (ex) {
-                            error("start()", "Failed to load resource from URL '" + url + "': " + ((<Error>ex).message || ex), this);
-                        }
-
-                        try {
-                            xhr.send();
-                        }
-                        catch (ex) {
-                            error("start()", "Failed to send request to endpoint for URL '" + url + "': " + ((<Error>ex).message || ex), this);
-                        }
-
-                        //?if (!this.async && (xhr.status)) doSuccess();
-                    }
-
-                    /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
-                    pause() {
-                        if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
-                            || this.status == RequestStatuses.Ready && this._onReady.length)
-                            this._paused = true;
-                        return this;
-                    }
-
-                    /** After calling 'pause()', use this function to re-queue the 'then' or 'ready' even chain for continuation.
-                      * Note: This queues on a timer with a 0 ms delay, and does not call any events before returning to the caller.
-                      */
-                    continue() {
-                        if (this._paused) {
-                            this._paused = false;
-                            this._requeueHandlersIfNeeded();
-                        }
-                        return this;
-                    }
-
-                    private _doOnProgress(percent: number) {
-                        // ... notify any handlers as well ...
-                        if (this._onProgress) {
-                            for (var i = 0, n = this._onProgress.length; i < n; ++i)
-                                try {
-                                    var cb = this._onProgress[i];
-                                    if (cb)
-                                        cb.call(this, this);
-                                } catch (e) {
-                                    this._onProgress[i] = null; // (won't be called again)
-                                    this.setError("'on progress' callback #" + i + " has thrown an error:", e);
-                                    // ... do nothing, not important ...
                                 }
+                                else {
+                                    this.setError("There was a problem loading the resource '" + this.url + "' (status code " + xhr.status + ": " + xhr.statusText + ").\r\n");
+                                }
+                            };
+
+                            // ... this script is not cached, so load it ...
+
+                            xhr.onreadystatechange = () => { // (onreadystatechange is supported by all browsers)
+                                switch (xhr.readyState) {
+                                    case XMLHttpRequest.UNSENT: break;
+                                    case XMLHttpRequest.OPENED: this.message = "Opened connection to '" + this.url + "'."; break;
+                                    case XMLHttpRequest.HEADERS_RECEIVED: this.message = "Headers received for '" + this.url + "'."; break;
+                                    case XMLHttpRequest.LOADING: break; // (this will be handled by the progress event)
+                                    case XMLHttpRequest.DONE: loaded(); break;
+                                }
+                            };
+
+                            xhr.onerror = (ev: ErrorEvent) => { this.setError(void 0, ev); this._doError(); };
+                            xhr.onabort = () => { this.setError("Request aborted."); };
+                            xhr.ontimeout = () => { this.setError("Request timed out."); };
+                            xhr.onprogress = (evt: ProgressEvent) => {
+                                this.message = "Loaded " + Math.round(evt.loaded / evt.total * 100) + "%.";
+                                if (this._onProgress && this._onProgress.length)
+                                    this._doOnProgress(evt.loaded / evt.total * 100);
+                            };
+
+                            // (note: all event 'on...' properties only available in IE10+)
                         }
+
+                    }
+                    else { // (this request was already started)
+                        return;
                     }
 
-                    setError(message: string, error?: { name?: string; message: string; stack?: string }): void { // TODO: Make this better, perhaps with a class to handle error objects (see 'Error' AND 'ErrorEvent'). //?
+                    if (xhr.readyState != 0)
+                        xhr.abort(); // (abort existing, just in case)
 
-                        if (error) {
-                            var errMsg = getErrorMessage(error);
-                            if (errMsg) {
-                                if (message) message += "\r\n";
-                                message += errMsg;
+                    var url = this.url;
+
+                    try {
+                        // ... check if we need to bust the cache ...
+                        if (this.cacheBusting) {
+                            var bustVar = this.cacheBustingVar || "_v_";
+                            if (bustVar.indexOf(" ") >= 0) log("start()", "There is a space character in the cache busting query name for resource '" + url + "'.", LogTypes.Warning);
+                        }
+
+                        xhr.open("get", url, this.async);
+                    }
+                    catch (ex) {
+                        error("start()", "Failed to load resource from URL '" + url + "': " + ((<Error>ex).message || ex), this);
+                    }
+
+                    try {
+                        xhr.send();
+                    }
+                    catch (ex) {
+                        error("start()", "Failed to send request to endpoint for URL '" + url + "': " + ((<Error>ex).message || ex), this);
+                    }
+
+                    //?if (!this.async && (xhr.status)) doSuccess();
+                }
+
+                /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
+                pause() {
+                    if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
+                        || this.status == RequestStatuses.Ready && this._onReady.length)
+                        this._paused = true;
+                    return this;
+                }
+
+                /** After calling 'pause()', use this function to re-queue the 'then' or 'ready' even chain for continuation.
+                  * Note: This queues on a timer with a 0 ms delay, and does not call any events before returning to the caller.
+                  */
+                continue() {
+                    if (this._paused) {
+                        this._paused = false;
+                        this._requeueHandlersIfNeeded();
+                    }
+                    return this;
+                }
+
+                private _doOnProgress(percent: number) {
+                    // ... notify any handlers as well ...
+                    if (this._onProgress) {
+                        for (var i = 0, n = this._onProgress.length; i < n; ++i)
+                            try {
+                                var cb = this._onProgress[i];
+                                if (cb)
+                                    cb.call(this, this);
+                            } catch (e) {
+                                this._onProgress[i] = null; // (won't be called again)
+                                this.setError("'on progress' callback #" + i + " has thrown an error:", e);
+                                // ... do nothing, not important ...
                             }
-                        }
+                    }
+                }
 
-                        this.status = RequestStatuses.Error;
-                        this.message = message; // (automatically adds to 'this.messages' and writes to the console)
+                setError(message: string, error?: { name?: string; message: string; stack?: string }): void { // TODO: Make this better, perhaps with a class to handle error objects (see 'Error' AND 'ErrorEvent'). //?
+
+                    if (error) {
+                        var errMsg = getErrorMessage(error);
+                        if (errMsg) {
+                            if (message) message += "\r\n";
+                            message += errMsg;
+                        }
                     }
 
-                    private _doNext(): void { // (note: because this is a pseudo promise-like implementation on a single object instance, return values from handlers are not wrapped in new request instances [partially against specifications: http://goo.gl/igCsnS])
-                        if (this.status == RequestStatuses.Error) {
-                            this._doError(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
-                            return;
-                        }
+                    this.status = RequestStatuses.Error;
+                    this.message = message; // (automatically adds to 'this.messages' and writes to the console)
+                }
 
-                        if (this._onProgress && this._onProgress.length) {
-                            this._doOnProgress(100);
-                            this._onProgress.length = 0;
-                        }
+                private _doNext(): void { // (note: because this is a pseudo promise-like implementation on a single object instance, return values from handlers are not wrapped in new request instances [partially against specifications: http://goo.gl/igCsnS])
+                    if (this.status == RequestStatuses.Error) {
+                        this._doError(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
+                        return;
+                    }
 
-                        for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
-                            if (this._paused) return;
+                    if (this._onProgress && this._onProgress.length) {
+                        this._doOnProgress(100);
+                        this._onProgress.length = 0;
+                    }
 
-                            var handlers = this._promiseChain[this._promiseChainIndex]; // (get all the handlers waiting for the result of this request)
+                    for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
+                        if (this._paused) return;
 
-                            if (handlers.onLoaded) {
-                                try {
-                                    var data = handlers.onLoaded.call(this, this.transformedData); // (call the handler with the current data and get the resulting data, if any)
-                                } catch (e) {
-                                    this.setError("Success handler failed.", e);
-                                    ++this._promiseChainIndex; // (the success callback failed, so trigger the error chain starting at next index)
+                        var handlers = this._promiseChain[this._promiseChainIndex]; // (get all the handlers waiting for the result of this request)
+
+                        if (handlers.onLoaded) {
+                            try {
+                                var data = handlers.onLoaded.call(this, this.transformedData); // (call the handler with the current data and get the resulting data, if any)
+                            } catch (e) {
+                                this.setError("Success handler failed.", e);
+                                ++this._promiseChainIndex; // (the success callback failed, so trigger the error chain starting at next index)
+                                this._doError();
+                                return;
+                            }
+                            if (typeof data === 'object' && data instanceof $__type) {
+                                // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
+                                if ((<IResourceRequest>data).status == RequestStatuses.Error) {
+                                    this.setError("Rejected request returned.");
+                                    ++this._promiseChainIndex;
                                     this._doError();
                                     return;
-                                }
-                                if (typeof data === 'object' && data instanceof ResourceRequest) {
-                                    // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
-                                    if ((<ResourceRequest>data).status == RequestStatuses.Error) {
-                                        this.setError("Rejected request returned.");
-                                        ++this._promiseChainIndex;
-                                        this._doError();
-                                        return;
-                                    } else {
-                                        // ... get the data from the request object ...
-                                        var newResReq = <ResourceRequest>data;
-                                        if (newResReq.status >= RequestStatuses.Ready) {
-                                            if (newResReq === this) continue; // ('self' [this] was returned, so go directly to the next item)
-                                            data = newResReq.transformedData; // (the data is ready, so read now)
-                                        } else { // (loading is started, or still in progress, so wait; we simply hook into the request object to get notified when the data is ready)
-                                            newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
-                                                .catch((sender) => { this.setError("Resource returned from next handler has failed to load.", sender); this._doError(); });
-                                            return;
-                                        }
-                                    }
-                                }
-                                this.$__transformedData = data;
-                            } else if (handlers.onFinally) {
-                                try {
-                                    handlers.onFinally.call(this);
-                                } catch (e) {
-                                    this.setError("Cleanup handler failed.", e);
-                                    ++this._promiseChainIndex; // (the finally callback failed, so trigger the error chain starting at next index)
-                                    this._doError();
-                                }
-                            }
-                        }
-
-                        this._promiseChain.length = 0;
-                        this._promiseChainIndex = 0;
-
-                        // ... finished: now trigger any "ready" handlers ...
-
-                        if (this.status < RequestStatuses.Waiting)
-                            this.status = RequestStatuses.Waiting; // (default to this next before being 'ready')
-                        this._doReady(); // (this triggers in dependency order)
-                    }
-
-                    private _doReady(): void {
-                        if (this._paused) return;
-
-                        if (this.status < RequestStatuses.Waiting) return; // (the 'ready' event must only trigger after the resource loads, AND all handlers have been called)
-
-                        // ... check parent dependencies first ...
-
-                        if (this.status == RequestStatuses.Waiting)
-                            if (!this._parentRequests || !this._parentRequests.length) {
-                                this.status = RequestStatuses.Ready; // (no parent resource dependencies, so this resource is 'ready' by default)
-                                this.message = "Resource '" + this.url + "' has no dependencies, and is now ready.";
-                            } else // ...need to determine if all parent (dependent) resources are completed first ...
-                                if (this._parentCompletedCount == this._parentRequests.length) {
-                                    this.status = RequestStatuses.Ready; // (all parent resource dependencies are now 'ready')
-                                    this.message = "*** All dependencies for resource '" + this.url + "' have loaded, and are now ready. ***";
                                 } else {
-                                    this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
-                                    return; // (nothing more to do yet)
-                                }
-
-                        // ... call the local 'onReady' event, and then trigger the call on the children as required.
-
-                        if (this.status == RequestStatuses.Ready) {
-                            if (this._onReady && this._onReady.length) {
-                                try {
-                                    this._onReady.shift().call(this, this);
-                                    if (this._paused) return;
-                                } catch (e) {
-                                    this.setError("Error in ready handler.", e);
-                                }
-                            }
-
-                            if (this._dependants)
-                                for (var i = 0, n = this._dependants.length; i < n; ++i) {
-                                    ++this._dependants[i]._parentCompletedCount;
-                                    this._dependants[i]._doReady(); // (notify all children that this resource is now 'ready' for use [all events have been run, as opposed to just being loaded])
-                                }
-                        }
-                    }
-
-                    private _doError(): void { // (note: the following event link handles the preceding error, skipping first any and all 'finally' handlers)
-                        if (this._paused) return;
-
-                        if (this.status != RequestStatuses.Error) {
-                            this._doNext(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
-                            return;
-                        }
-
-                        for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
-                            if (this._paused) return;
-
-                            var handlers = this._promiseChain[this._promiseChainIndex];
-
-                            if (handlers.onError) {
-                                try {
-                                    var newData = handlers.onError.call(this, this, this.message); // (this handler should "fix" the situation and return valid data)
-                                } catch (e) {
-                                    this.setError("Error handler failed.", e);
-                                }
-                                if (typeof newData === 'object' && newData instanceof ResourceRequest) {
-                                    // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
-                                    if ((<ResourceRequest>newData).status == RequestStatuses.Error)
-                                        return; // (no correction made, still in error; terminate the event chain here)
-                                    else {
-                                        var newResReq = <ResourceRequest>newData;
-                                        if (newResReq.status >= RequestStatuses.Ready)
-                                            newData = newResReq.transformedData;
-                                        else { // (loading is started, or still in progress, so wait)
-                                            newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
-                                                .catch((sender) => { this.setError("Resource returned from error handler has failed to load.", sender); this._doError(); });
-                                            return;
-                                        }
+                                    // ... get the data from the request object ...
+                                    var newResReq = <IResourceRequest>data;
+                                    if (newResReq.status >= RequestStatuses.Ready) {
+                                        if (newResReq === this) continue; // ('self' [this] was returned, so go directly to the next item)
+                                        data = newResReq.transformedData; // (the data is ready, so read now)
+                                    } else { // (loading is started, or still in progress, so wait; we simply hook into the request object to get notified when the data is ready)
+                                        newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
+                                            .catch((sender) => { this.setError("Resource returned from next handler has failed to load.", sender); this._doError(); });
+                                        return;
                                     }
                                 }
-                                // ... continue with the value from the error handler (even if none) ...
-                                this.status = RequestStatuses.Loaded;
-                                this._message = void 0; // (clear the current message [but keep history])
-                                ++this._promiseChainIndex; // (pass on to next handler in the chain)
-                                this.$__transformedData = newData;
-                                this._doNext();
-                                return;
-                            } else if (handlers.onFinally) {
-                                try {
-                                    handlers.onFinally.call(this);
-                                } catch (e) {
-                                    this.setError("Cleanup handler failed.", e);
-                                }
+                            }
+                            this.$__transformedData = data;
+                        } else if (handlers.onFinally) {
+                            try {
+                                handlers.onFinally.call(this);
+                            } catch (e) {
+                                this.setError("Cleanup handler failed.", e);
+                                ++this._promiseChainIndex; // (the finally callback failed, so trigger the error chain starting at next index)
+                                this._doError();
+                            }
+                        }
+                    }
+
+                    this._promiseChain.length = 0;
+                    this._promiseChainIndex = 0;
+
+                    // ... finished: now trigger any "ready" handlers ...
+
+                    if (this.status < RequestStatuses.Waiting)
+                        this.status = RequestStatuses.Waiting; // (default to this next before being 'ready')
+                    this._doReady(); // (this triggers in dependency order)
+                }
+
+                private _doReady(): void {
+                    if (this._paused) return;
+
+                    if (this.status < RequestStatuses.Waiting) return; // (the 'ready' event must only trigger after the resource loads, AND all handlers have been called)
+
+                    // ... check parent dependencies first ...
+
+                    if (this.status == RequestStatuses.Waiting)
+                        if (!this._parentRequests || !this._parentRequests.length) {
+                            this.status = RequestStatuses.Ready; // (no parent resource dependencies, so this resource is 'ready' by default)
+                            this.message = "Resource '" + this.url + "' has no dependencies, and is now ready.";
+                        } else // ...need to determine if all parent (dependent) resources are completed first ...
+                            if (this._parentCompletedCount == this._parentRequests.length) {
+                                this.status = RequestStatuses.Ready; // (all parent resource dependencies are now 'ready')
+                                this.message = "*** All dependencies for resource '" + this.url + "' have loaded, and are now ready. ***";
+                            } else {
+                                this.message = "Resource '" + this.url + "' is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
+                                return; // (nothing more to do yet)
+                            }
+
+                    // ... call the local 'onReady' event, and then trigger the call on the children as required.
+
+                    if (this.status == RequestStatuses.Ready) {
+                        if (this._onReady && this._onReady.length) {
+                            try {
+                                this._onReady.shift().call(this, this);
+                                if (this._paused) return;
+                            } catch (e) {
+                                this.setError("Error in ready handler.", e);
                             }
                         }
 
-                        // ... if this is reached, then there are no following error handlers, so throw the existing message ...
-
-                        if (this.status == RequestStatuses.Error) {
-                            var msgs = this.messageLog.join("\r\n· ");
-                            if (msgs) msgs = ":\r\n· " + msgs; else msgs = ".";
-                            throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
-                        }
+                        if (this._dependants)
+                            for (var i = 0, n = this._dependants.length; i < n; ++i) {
+                                ++this._dependants[i]._parentCompletedCount;
+                                this._dependants[i]._doReady(); // (notify all children that this resource is now 'ready' for use [all events have been run, as opposed to just being loaded])
+                            }
                     }
-
-                    /** Resets the current resource data, and optionally all dependencies, and restarts the whole loading process.
-                      * Note: All handlers (including the 'progress' and 'ready' handlers) are cleared and will have to be reapplied (clean slate).
-                      * @param {boolean} includeDependentResources Reload all resource dependencies as well.
-                      */
-                    reload(includeDependentResources: boolean = true) {
-                        if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
-                            this.data = void 0;
-                            this.status = RequestStatuses.Pending;
-                            this.responseCode = 0;
-                            this.responseMessage = "";
-                            this._message = "";
-                            this.messageLog = [];
-
-                            if (includeDependentResources)
-                                for (var i = 0, n = this._parentRequests.length; i < n; ++i)
-                                    this._parentRequests[i].reload(includeDependentResources);
-
-                            if (this._onProgress)
-                                this._onProgress.length = 0;
-
-                            if (this._onReady)
-                                this._onReady.length = 0;
-
-                            if (this._promiseChain)
-                                this._promiseChain.length = 0;
-
-                            this.start();
-                        }
-                        return this;
-                    }
-
-                    // ----------------------------------------------------------------------------------------------------------------
-
-                    protected static readonly 'ResourceRequestFactory' = class Factory extends FactoryBase(ResourceRequest, null) {
-                        /** Returns a new module object only - does not load it. */
-                        static 'new'(url: string, type: ResourceTypes | string, async?: boolean): InstanceType<typeof Factory.$__type> { return null; }
-
-                        /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, url: string, type: ResourceTypes | string, async: boolean = true) {
-                            if (url === void 0 || url === null) throw "A resource URL is required.";
-                            if (type === void 0) throw "The resource type is required.";
-
-                            if ((<any>_resourceRequestByURL)[url])
-                                return (<any>_resourceRequestByURL)[url]; // (abandon this new object instance in favor of the one already existing and returned it)
-
-                            o.url = url;
-                            o.type = type;
-                            o.async = async;
-
-                            o.$__index = _resourceRequests.length;
-
-                            _resourceRequests.push(o);
-                            _resourceRequestByURL[o.url] = o;
-                        }
-                    };
-
-                    // ----------------------------------------------------------------------------------------------------------------
                 }
-                return [ResourceRequest, ResourceRequest["ResourceRequestFactory"]];
-            }
-        );
 
-        export interface IResourceRequest extends InstanceType<typeof ResourceRequest.$__type> { }
+                private _doError(): void { // (note: the following event link handles the preceding error, skipping first any and all 'finally' handlers)
+                    if (this._paused) return;
+
+                    if (this.status != RequestStatuses.Error) {
+                        this._doNext(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
+                        return;
+                    }
+
+                    for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
+                        if (this._paused) return;
+
+                        var handlers = this._promiseChain[this._promiseChainIndex];
+
+                        if (handlers.onError) {
+                            try {
+                                var newData = handlers.onError.call(this, this, this.message); // (this handler should "fix" the situation and return valid data)
+                            } catch (e) {
+                                this.setError("Error handler failed.", e);
+                            }
+                            if (typeof newData === 'object' && newData instanceof $__type) {
+                                // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
+                                if ((<IResourceRequest>newData).status == RequestStatuses.Error)
+                                    return; // (no correction made, still in error; terminate the event chain here)
+                                else {
+                                    var newResReq = <IResourceRequest>newData;
+                                    if (newResReq.status >= RequestStatuses.Ready)
+                                        newData = newResReq.transformedData;
+                                    else { // (loading is started, or still in progress, so wait)
+                                        newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
+                                            .catch((sender) => { this.setError("Resource returned from error handler has failed to load.", sender); this._doError(); });
+                                        return;
+                                    }
+                                }
+                            }
+                            // ... continue with the value from the error handler (even if none) ...
+                            this.status = RequestStatuses.Loaded;
+                            this._message = void 0; // (clear the current message [but keep history])
+                            ++this._promiseChainIndex; // (pass on to next handler in the chain)
+                            this.$__transformedData = newData;
+                            this._doNext();
+                            return;
+                        } else if (handlers.onFinally) {
+                            try {
+                                handlers.onFinally.call(this);
+                            } catch (e) {
+                                this.setError("Cleanup handler failed.", e);
+                            }
+                        }
+                    }
+
+                    // ... if this is reached, then there are no following error handlers, so throw the existing message ...
+
+                    if (this.status == RequestStatuses.Error) {
+                        var msgs = this.messageLog.join("\r\n· ");
+                        if (msgs) msgs = ":\r\n· " + msgs; else msgs = ".";
+                        throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
+                    }
+                }
+
+                /** Resets the current resource data, and optionally all dependencies, and restarts the whole loading process.
+                  * Note: All handlers (including the 'progress' and 'ready' handlers) are cleared and will have to be reapplied (clean slate).
+                  * @param {boolean} includeDependentResources Reload all resource dependencies as well.
+                  */
+                reload(includeDependentResources: boolean = true) {
+                    if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
+                        this.data = void 0;
+                        this.status = RequestStatuses.Pending;
+                        this.responseCode = 0;
+                        this.responseMessage = "";
+                        this._message = "";
+                        this.messageLog = [];
+
+                        if (includeDependentResources)
+                            for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                                this._parentRequests[i].reload(includeDependentResources);
+
+                        if (this._onProgress)
+                            this._onProgress.length = 0;
+
+                        if (this._onReady)
+                            this._onReady.length = 0;
+
+                        if (this._promiseChain)
+                            this._promiseChain.length = 0;
+
+                        this.start();
+                    }
+                    return this;
+                }
+
+                private static [constructor](factory: typeof ResourceRequest) {
+                    factory.init = (o, isnew, url, type, async = true) => {
+                        if (url === void 0 || url === null) throw "A resource URL is required.";
+                        if (type === void 0) throw "The resource type is required.";
+
+                        if ((<any>_resourceRequestByURL)[url])
+                            return (<any>_resourceRequestByURL)[url]; // (abandon this new object instance in favor of the one already existing and returned it)
+
+                        o.url = url;
+                        o.type = type;
+                        o.async = async;
+
+                        o.$__index = _resourceRequests.length;
+
+                        _resourceRequests.push(o);
+                        _resourceRequestByURL[o.url] = o;
+                    };
+                }
+            }
+
+            ResourceRequest.register(Loader);
+        }
+
+        export interface IResourceRequest extends ResourceRequest.$__type { }
 
         // ====================================================================================================================
 

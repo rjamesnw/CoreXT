@@ -5,7 +5,7 @@
 /** Types and functions for loading scripts into the CoreXT system. */
 namespace CoreXT {
     export namespace Scripts {
-        registerNamespace("CoreXT", "Scripts");
+        namespace("CoreXT", "Scripts");
         // =======================================================================================================================
 
         /** Used to strip out the module header */
@@ -45,55 +45,50 @@ namespace CoreXT {
 
         // ====================================================================================================================
 
-        export var ScriptResource = ClassFactory(Scripts, Loader.ResourceRequest,
-            (base) => {
-                class ScriptResource extends base {
-
-                    /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
-                    registerGlobal<T>(name: string, initialValue: T, asHostGlobal?: boolean): string {
-                        return Globals.register(this, name, initialValue, asHostGlobal);
-                    }
-                    /** For help, see 'CoreXT.Globals'. */
-                    globalExists<T>(name: string): boolean {
-                        return Globals.exists(this, name);
-                    }
-                    /** For help, see 'CoreXT.Globals'. */
-                    eraseGlobal<T>(name: string): boolean {
-                        return Globals.erase(this, name);
-                    }
-                    /** For help, see 'CoreXT.Globals'. */
-                    clearGlobals<T>(): boolean {
-                        return Globals.clear(this);
-                    }
-                    /** For help, see 'CoreXT.Globals'. */
-                    setGlobalValue<T>(name: string, value: T): T {
-                        return Globals.setValue<T>(this, name, value);
-                    }
-                    /** For help, see 'CoreXT.Globals'. */
-                    getGlobalValue<T>(name: string): T {
-                        return Globals.getValue<T>(this, name);
-                    }
-
-                    // ----------------------------------------------------------------------------------------------------------------
-
-                    protected static ScriptResourceFactory = class Factory extends FactoryBase(ScriptResource, base["ResourceRequestFactory"]) {
-                        /** Returns a new module object only - does not load it. */
-                        static 'new'(url: string): InstanceType<typeof Factory.$__type> { return null; }
-
-                        /** Returns a new module object only - does not load it. */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, url: string) {
-                            this.super.init(o, isnew, url, Loader.ResourceTypes.Application_Script);
-                        }
-                    };
-
-                    // ----------------------------------------------------------------------------------------------------------------
+        export class ScriptResource extends FactoryBase(Loader.ResourceRequest) {
+            /** Returns a new module object only - does not load it. */
+            static 'new': (url: string) => IScriptResource;
+            /** Returns a new module object only - does not load it. */
+            static init: (o: IScriptResource, isnew: boolean, url: string) => void;
+        }
+        export namespace ScriptResource {
+            export class $__type extends FactoryType(Loader.ResourceRequest) {
+                /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
+                registerGlobal<T>(name: string, initialValue: T, asHostGlobal?: boolean): string {
+                    return Globals.register(this, name, initialValue, asHostGlobal);
                 }
-                return [ScriptResource, ScriptResource["ScriptResourceFactory"]];
-            },
-            "ScriptResource"
-        );
+                /** For help, see 'CoreXT.Globals'. */
+                globalExists<T>(name: string): boolean {
+                    return Globals.exists(this, name);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                eraseGlobal<T>(name: string): boolean {
+                    return Globals.erase(this, name);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                clearGlobals<T>(): boolean {
+                    return Globals.clear(this);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                setGlobalValue<T>(name: string, value: T): T {
+                    return Globals.setValue<T>(this, name, value);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                getGlobalValue<T>(name: string): T {
+                    return Globals.getValue<T>(this, name);
+                }
 
-        export interface IScriptResource extends InstanceType<typeof ScriptResource.$__type> { }
+                private static [constructor](factory: typeof ScriptResource) {
+                    factory.init = (o, isnew, url) => {
+                        factory.super.init(o, isnew, url, Loader.ResourceTypes.Application_Script);
+                    };
+                }
+            }
+
+            ScriptResource.register(Scripts);
+        }
+
+        export interface IScriptResource extends ScriptResource.$__type { }
 
         // ====================================================================================================================
 
@@ -102,29 +97,52 @@ namespace CoreXT {
         * 'Manifest' inherits from 'ScriptResource', providing the loaded manifests the ability to register globals for the
         * CoreXT context, instead of the global 'window' context.
         */
-        export var Manifest = ClassFactory(Scripts, ScriptResource,
-            (base) => {
-                @sealed
-                class Manifest extends base {
-                    // ----------------------------------------------------------------------------------------------------------------
-
-                    protected static readonly ManifestFactory = class Factory extends FactoryBase(ScriptResource, base["ScriptResourceFactory"]) {
-                        /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                        static 'new'(url: string): Manifest { return null; }
-
-                        /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                        static init(o: Manifest, isnew: boolean, url: string) {
-                            this.super.init(o, isnew, url);
-                        }
-                    }
-
-                    // ----------------------------------------------------------------------------------------------------------------
+        export class Manifest extends FactoryBase(ScriptResource) {
+            /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
+            static 'new': (url: string) => IManifest;
+            /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
+            static init: (o: IManifest, isnew: boolean, url: string) => void;
+        }
+        export namespace Manifest {
+             // (evaluated last, but called first)
+            export class $__type extends FactoryType(ScriptResource) {
+                /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
+                registerGlobal<T>(name: string, initialValue: T, asHostGlobal?: boolean): string {
+                    return Globals.register(this, name, initialValue, asHostGlobal);
                 }
-                return [Manifest, Manifest["ManifestFactory"]];
-            },
-            "Manifest"
-        );
-        export interface IManifest extends InstanceType<typeof Manifest.$__type> { }
+                /** For help, see 'CoreXT.Globals'. */
+                globalExists<T>(name: string): boolean {
+                    return Globals.exists(this, name);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                eraseGlobal<T>(name: string): boolean {
+                    return Globals.erase(this, name);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                clearGlobals<T>(): boolean {
+                    return Globals.clear(this);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                setGlobalValue<T>(name: string, value: T): T {
+                    return Globals.setValue<T>(this, name, value);
+                }
+                /** For help, see 'CoreXT.Globals'. */
+                getGlobalValue<T>(name: string): T {
+                    return Globals.getValue<T>(this, name);
+                }
+
+                private static [constructor](factory: typeof ScriptResource) {
+                    factory.init = (o, isnew, url) => {
+                        factory.super.init(o, isnew, url, Loader.ResourceTypes.Application_Script);
+                    };
+                }
+            }
+
+            Manifest.register(Scripts);
+            sealed($__type);
+        }
+
+        export interface IManifest extends Manifest.$__type { }
 
         // ====================================================================================================================
 
@@ -211,126 +229,124 @@ namespace CoreXT {
         interface _IModuleAccessors { get: (varName: string) => any; set: (varName: string, value: any) => any }
 
         /** Contains static module properties and functions. */
-        export var Module = ClassFactory(Scripts, ScriptResource,
-            (base) => {
-                class Module extends base {
-                    /** The full type name for this module. */
-                    fullname: string;
+        export class Module extends FactoryBase(ScriptResource) {
+            /** Returns a new module object only - does not load it. */
+            static 'new': (fullname: string, url: string, minifiedUrl?: string) => IModule;
+            /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+            static init: (o: IModule, isnew: boolean, fullname: string, url: string, minifiedUrl?: string) => void;
+        }
+        export namespace Module {
+            export class $__type extends FactoryType(ScriptResource) {
 
-                    /** The URL to the non-minified version of this module script. */
-                    nonMinifiedURL: string;
-                    /** The URL to the minified version of this module script. */
-                    minifiedURL: string;
+                /** The full type name for this module. */
+                fullname: string;
 
-                    required: boolean = false; // (true if the script is required - the application will fail to execute if this occurs, and an exception will be thrown)
+                /** The URL to the non-minified version of this module script. */
+                nonMinifiedURL: string;
+                /** The URL to the minified version of this module script. */
+                minifiedURL: string;
 
-                    isInclude() { return this.url && this.fullname == this.url; }
+                required: boolean = false; // (true if the script is required - the application will fail to execute if this occurs, and an exception will be thrown)
 
-                    /** If true, then the module is waiting to complete based on some outside custom script/event. */
-                    customWait: boolean = false;
+                isInclude() { return this.url && this.fullname == this.url; }
 
-                    /** Holds a reference to the executed function that wraps the loaded script. */
-                    private $__modFunc: (corext: typeof CoreXT, module: IModule, exports: {}, ...args: any[]) => _IModuleAccessors;
+                /** If true, then the module is waiting to complete based on some outside custom script/event. */
+                customWait: boolean = false;
 
-                    /** Returns a variable value from the executed module's local scope.
-                      * Module scripts that are wrapped in functions may have defined global variables that become locally scoped instead. In
-                      * these cases, use this function to read the required values.  This is an expensive operation that should only be used to 
-                      * retrieve object references.  If performance is required to access non-reference values, the script must be applied to
-                      * the global scope as normal.
-                      */
-                    getVar: <T extends any>(varName: string) => T = noop;
-                    setVar: <T extends any>(varName: string, value: T) => T = noop;
+                /** Holds a reference to the executed function that wraps the loaded script. */
+                private $__modFunc: (corext: typeof CoreXT, module: IModule, exports: {}, ...args: any[]) => _IModuleAccessors;
 
-                    /** This 'exports' container exists to support loading client-side modules in a NodeJS-type fashion.  The main exception is that
-                      * 'require()' is not supported as it is synchronous, and an asynchronous method is required on the client side.  Instead, the
-                      * reference to a 'manifest' variable (of type 'CoreXT.Scripts.IManifest') is also given to the script, and can be used to
-                      * further chain more modules to load.
-                      * Note: 'exports' (a module-global object) does not apply to scripts executed in the global scope (i.e. if 'execute(true)' is called).
-                      */
-                    exports: {} = {};
+                /** Returns a variable value from the executed module's local scope.
+                  * Module scripts that are wrapped in functions may have defined global variables that become locally scoped instead. In
+                  * these cases, use this function to read the required values.  This is an expensive operation that should only be used to 
+                  * retrieve object references.  If performance is required to access non-reference values, the script must be applied to
+                  * the global scope as normal.
+                  */
+                getVar: <T extends any>(varName: string) => T = noop;
+                setVar: <T extends any>(varName: string, value: T) => T = noop;
 
-                    /** A temp reference to the object returned from executing the generated '$__modFunc' wrapper function. */
-                    private _moduleGlobalAccessors: _IModuleAccessors;
-                    private static readonly _globalaccessors: _IModuleAccessors = (() => { return safeEval("({ get: function(varName) { return p0.global[varName]; }, set: function(varName, val) { return p0.global[varName] = val; } })", CoreXT); })();
+                /** This 'exports' container exists to support loading client-side modules in a NodeJS-type fashion.  The main exception is that
+                  * 'require()' is not supported as it is synchronous, and an asynchronous method is required on the client side.  Instead, the
+                  * reference to a 'manifest' variable (of type 'CoreXT.Scripts.IManifest') is also given to the script, and can be used to
+                  * further chain more modules to load.
+                  * Note: 'exports' (a module-global object) does not apply to scripts executed in the global scope (i.e. if 'execute(true)' is called).
+                  */
+                exports: {} = {};
 
-                    private __onLoaded() {
-                        // ... script is loaded (not executed), but may be waiting on dependencies; for now, check for in-script dependencies/flags and apply those now ...
-                        return this;
-                    }
+                /** A temp reference to the object returned from executing the generated '$__modFunc' wrapper function. */
+                private _moduleGlobalAccessors: _IModuleAccessors;
+                private static readonly _globalaccessors: _IModuleAccessors = (() => { return safeEval("({ get: function(varName) { return p0.global[varName]; }, set: function(varName, val) { return p0.global[varName] = val; } })", CoreXT); })();
 
-                    private __onReady(request: Loader.IResourceRequest) {
-                        // ... script is loaded (not executed) and ready to be applied ...
-                        if (this.fullname == "app" || this.fullname == "application") {
-                            _appModule = this;
-                            if (_runMode) // (if run was requested)
-                                _tryRunApp();
-                        }
-                        return this;
-                    }
-
-                    toString() { return this.fullname; }
-                    toValue() { return this.fullname; }
-
-                    /** Begin loading the module's script. After the loading is completed, any dependencies are automatically detected and loaded as well. */
-                    start(): this {
-                        if (this.status == Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
-                            this.url = debugMode ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL); // (just in case the debugging flag changed)
-                            return super.start();
-                        }
-                        return this;
-                    }
-
-                    /** Executes the underlying script by either wrapping it in another function (the default), or running it in the global window scope. */
-                    execute(useGlobalScope = false): void {
-                        if (this.status == Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
-                            // ... first, make sure all parent modules have been executed first ...
-                            for (var i = 0, n = this._parentRequests.length, dep: Loader.IResourceRequest; i < n; ++i)
-                                if ((dep = this._parentRequests[i]).status == Loader.RequestStatuses.Ready)
-                                    (<IModule>dep).execute();
-
-                            var accessors: _IModuleAccessors;
-                            if (useGlobalScope) {
-                                this._moduleGlobalAccessors = (globalEval(this.data), Module._globalaccessors); // (use the global accessors, as the module was run in the global scope)
-                            } else {
-                                var tsHelpers = renderHelperVarDeclarations("arguments[3]");
-                                this.$__modFunc = <any>new Function("CoreXT", "module", "exports", tsHelpers[0] + this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
-                                this._moduleGlobalAccessors = this.$__modFunc(CoreXT, this, this.exports, tsHelpers); // (note that 'this.' effectively prevents polluting the global scope in case 'this' is used)
-                            }
-
-                            this.getVar = this._moduleGlobalAccessors.get;
-                            this.setVar = this._moduleGlobalAccessors.set;
-
-                            this.status = Loader.RequestStatuses.Executed;
-                        }
-                    }
-
-                    // ----------------------------------------------------------------------------------------------------------------
-
-                    protected static readonly 'ModuleFactory' = class Factory extends FactoryBase(Module, base['ScriptResourceFactory']) {
-                        /** Returns a new module object only - does not load it. */
-                        static 'new'(fullname: string, path: string, minifiedPath?: string): InstanceType<typeof Factory.$__type> { return null; }
-
-                        /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                        static init(o: InstanceType<typeof Factory.$__type>, isnew: boolean, fullname: string, url: string, minifiedURL: string = null) {
-                            this.super.init(o, isnew, debugMode ? url : (minifiedURL || url));
-
-                            if (!o.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
-                                throw System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", o);
-
-                            o.fullname = fullname;
-                            o.nonMinifiedURL = url;
-                            o.minifiedURL = minifiedURL;
-
-                            o.then(o.__onLoaded).ready(o.__onReady);
-                        }
-                    };
-
-                    // ----------------------------------------------------------------------------------------------------------------
+                private __onLoaded() {
+                    // ... script is loaded (not executed), but may be waiting on dependencies; for now, check for in-script dependencies/flags and apply those now ...
+                    return this;
                 }
-                return [Module, Module["ModuleFactory"]];
-            },
-            "Module"
-        );
+
+                private __onReady(request: Loader.IResourceRequest) {
+                    // ... script is loaded (not executed) and ready to be applied ...
+                    if (this.fullname == "app" || this.fullname == "application") {
+                        _appModule = this;
+                        if (_runMode) // (if run was requested)
+                            _tryRunApp();
+                    }
+                    return this;
+                }
+
+                toString() { return this.fullname; }
+                toValue() { return this.fullname; }
+
+                /** Begin loading the module's script. After the loading is completed, any dependencies are automatically detected and loaded as well. */
+                start(): this {
+                    if (this.status == Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
+                        this.url = debugMode ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL); // (just in case the debugging flag changed)
+                        return super.start();
+                    }
+                    return this;
+                }
+
+                /** Executes the underlying script by either wrapping it in another function (the default), or running it in the global window scope. */
+                execute(useGlobalScope = false): void {
+                    if (this.status == Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
+                        // ... first, make sure all parent modules have been executed first ...
+                        for (var i = 0, n = this._parentRequests.length, dep: Loader.IResourceRequest; i < n; ++i)
+                            if ((dep = this._parentRequests[i]).status == Loader.RequestStatuses.Ready)
+                                (<IModule>dep).execute();
+
+                        var accessors: _IModuleAccessors;
+                        if (useGlobalScope) {
+                            this._moduleGlobalAccessors = (globalEval(this.data), $__type._globalaccessors); // (use the global accessors, as the module was run in the global scope)
+                        } else {
+                            var tsHelpers = renderHelperVarDeclarations("arguments[3]");
+                            this.$__modFunc = <any>new Function("CoreXT", "module", "exports", tsHelpers[0] + this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
+                            this._moduleGlobalAccessors = this.$__modFunc(CoreXT, this, this.exports, tsHelpers); // (note that 'this.' effectively prevents polluting the global scope in case 'this' is used)
+                        }
+
+                        this.getVar = this._moduleGlobalAccessors.get;
+                        this.setVar = this._moduleGlobalAccessors.set;
+
+                        this.status = Loader.RequestStatuses.Executed;
+                    }
+                }
+
+                private static [constructor](factory: typeof Module) {
+                    factory.init = (o, isnew, fullname, url, minifiedUrl?) => {
+                        factory.super.init(o, isnew, debugMode ? url : (minifiedUrl || url));
+
+                        if (!o.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
+                            throw System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", o);
+
+                        o.fullname = fullname;
+                        o.nonMinifiedURL = url;
+                        o.minifiedURL = minifiedUrl;
+
+                        o.then(o.__onLoaded).ready(o.__onReady);
+                    };
+                }
+            }
+
+            Module.register(Scripts);
+        }
+
         export interface IModule extends InstanceType<typeof Module.$__type> { }
 
         var _runMode = 0; // (0=auto run, depending on debug flag; 1=user has requested run before the app module was ready; 2=running)

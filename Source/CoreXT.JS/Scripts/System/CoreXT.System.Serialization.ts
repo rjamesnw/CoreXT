@@ -3,7 +3,7 @@
 // ###########################################################################################################################
 
 namespace CoreXT.System {
-    registerNamespace("CoreXT", "System");
+    namespace(() => CoreXT.System);
     // =======================================================================================================================
 
     /** An empty object that contains prototype methods for serializing data.
