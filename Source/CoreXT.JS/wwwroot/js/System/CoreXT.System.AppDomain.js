@@ -5,7 +5,7 @@ var CoreXT;
 (function (CoreXT) {
     var System;
     (function (System) {
-        CoreXT.registerNamespace("CoreXT", "System");
+        CoreXT.namespace(function () { return CoreXT.System; });
         // ====================================================================================================================================
         //x export class $DomainObject extends Factory(Object) {
         //    //static ' '?= class FactoryRoot {
@@ -21,39 +21,48 @@ var CoreXT;
         ///** The base type for all CoreXT classes. Users should normally reference 'System.Object' instead of this lower level object. */
         //export var DomainObject = factoryRoot.__register<$DomainObject, typeof $DomainObject, typeof factoryRoot.DomainObject_factory>();
         // ====================================================================================================================================
-        /** Application domains encapsulate applications and confine them to a root working space.  When application scripts are
-             * loaded, they are isolated and run in the context of a new global scope.  This protects the main window UI, and also
-             * protects the user from malicious applications that may try to hook into and read a user's key strokes to steal
-             * logins, payment details, etc.
-             * Note: While script isolation is the default, trusted scripts can run in the system context, and are thus not secured.
-             */
-        System.AppDomain = CoreXT.ClassFactory(System, System.Object, function (base) {
-            var AppDomain = /** @class */ (function (_super) {
-                __extends(AppDomain, _super);
-                function AppDomain() {
+        /**
+         * Application domains encapsulate applications and confine them to a root working space.  When application scripts are
+         * loaded, they are isolated and run in the context of a new global scope.  This protects the main window UI, and also
+         * protects the user from malicious applications that may try to hook into and read a user's key strokes to steal
+         * logins, payment details, etc.
+         * Note: While script isolation is the default, trusted scripts can run in the system context, and are thus not secured.
+         */
+        var AppDomain = /** @class */ (function (_super) {
+            __extends(AppDomain, _super);
+            function AppDomain() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Object.defineProperty(AppDomain, "default", {
+                /** The default system wide application domain.
+                  * See 'System.Platform.AppDomain' for more details.
+                  */
+                get: function () { return AppDomain._default; },
+                set: function (value) {
+                    if (!value || !(value instanceof this.$__type))
+                        CoreXT.error("AppDomain.default", "A valid 'AppDomain' instance is required.");
+                    this._default = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            /** A list of all application domains in the system. */
+            AppDomain.appDomains = [AppDomain.default];
+            return AppDomain;
+        }(CoreXT.FactoryBase(System.Object)));
+        System.AppDomain = AppDomain;
+        (function (AppDomain) {
+            var $__type = /** @class */ (function (_super) {
+                __extends($__type, _super);
+                function $__type() {
                     var _this = _super !== null && _super.apply(this, arguments) || this;
                     /** A type bridge is a object instance who's prototype points to the actual static function object.
                       * Each time "{AppDomain}.with()" is used, a bridge is created and cached here under the type name for reuse.
                       */
                     _this.__typeBridges = {};
                     return _this;
-                    // -------------------------------------------------------------------------------------------------------------------------------
                 }
-                AppDomain_1 = AppDomain;
-                Object.defineProperty(AppDomain, "default", {
-                    /** The default system wide application domain.
-                      * See 'System.Platform.AppDomain' for more details.
-                      */
-                    get: function () { return AppDomain_1._default; },
-                    set: function (value) {
-                        if (!value || !(value instanceof AppDomain_1))
-                            CoreXT.error("AppDomain.default", "A valid 'AppDomain' instance is required.");
-                        this._default = value;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(AppDomain.prototype, "objects", {
+                Object.defineProperty($__type.prototype, "objects", {
                     /**
                      * A collection of all objects tracked by this application domain instance (see the 'autoTrackInstances' property).
                      * Each object is given an ID value that is unique for this specific AppDomain instance only.
@@ -65,12 +74,12 @@ var CoreXT;
                 // (why an object pool? http://www.html5rocks.com/en/tutorials/speed/static-mem-pools/)
                 // Note: requires calling '{System.Object}.track()' or setting '{System.AppDomain}.autoTrack=true'.
                 /** Returns the default (first) application for this domain. */
-                AppDomain.prototype.application = function () {
+                $__type.prototype.application = function () {
                     if (!this.applications.length)
                         throw System.Exception.error("AppDomain", "This application domain has no application instances.", this);
                     return this.applications[0];
                 };
-                AppDomain.prototype.dispose = function (object, release) {
+                $__type.prototype.dispose = function (object, release) {
                     if (release === void 0) { release = true; }
                     var _object = object;
                     if (arguments.length > 0) {
@@ -109,7 +118,7 @@ var CoreXT;
                 //    // ***************
                 //    if (typeof type !== FUNCTION)
                 //        throw Exception.error("registerClass()", "The 'classType' argument is not a valid constructor function.", type); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
-                //    //if (!(type instanceof Object))
+                //    //if (!(type instanceof Object.$__type))
                 //    //    throw Exception.error("registerClass()", "Class is not of type 'System.Object'.", type);
                 //    var classTypeInfo: ITypeInfo = <any>type;
                 //    // ... validate that type info and module info exists, otherwise add/update it ...
@@ -132,7 +141,7 @@ var CoreXT;
                   * @param {{}} parentModule The parent module or scope in which the type exists.
                   * @param {{}} parentModule The parent module or scope in which the type exists.
                   */
-                AppDomain.prototype.attachObject = function (object) {
+                $__type.prototype.attachObject = function (object) {
                     //var type: IFunctionInfo = <IFunctionInfo>object.constructor;
                     var type = object;
                     if (type.$__disposing || type.$__disposed)
@@ -148,7 +157,7 @@ var CoreXT;
                   * as a chain method for getting a new instance from a type.
                   * Note: The focus for this AppDomain instance is limited to this call only (i.e. not persisted).
                   */
-                AppDomain.prototype.with = function (type) {
+                $__type.prototype.with = function (type) {
                     var typeInfo = type;
                     if (!typeInfo.$__parent || !typeInfo.$__name || !typeInfo.$__fullname)
                         throw System.Exception.error("with()", "The specified type has not yet been registered properly. Extend from 'CoreXT.ClassFactory()' or use utility functions in 'CoreXT.Types' when creating factory types.", type);
@@ -163,7 +172,7 @@ var CoreXT;
                     }
                     return bridge;
                 };
-                AppDomain.prototype.createApplication = function (factory, title, description) {
+                $__type.prototype.createApplication = function (factory, title, description) {
                     //if (!Platform.UIApplication)
                     //    throw Exception.error("AppDomain.createApplication()", "");
                     var appIndex = this.applications.length;
@@ -178,22 +187,9 @@ var CoreXT;
                         throw ex;
                     }
                 };
-                var AppDomain_1;
-                /** A list of all application domains in the system. */
-                AppDomain.appDomains = [AppDomain_1.default];
-                // -------------------------------------------------------------------------------------------------------------------------------
-                AppDomain['AppDomainFactory'] = /** @class */ (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    /** Get a new app domain instance.
-                        * @param application An optional application to add to the new domain.
-                        */
-                    Factory['new'] = function (application) { return null; };
-                    /** Constructs an application domain for the specific application instance. */
-                    Factory.init = function (o, isnew, application) {
-                        this.super.init(o, isnew);
+                $__type[CoreXT.constructor] = function (factory) {
+                    factory.init = function (o, isnew, application) {
+                        factory.super.init(o, isnew);
                         o.$__appDomain = o;
                         o.__objects = System.Collections.IndexedObjectCollection.new();
                         o.__objects.__IDPropertyName = "$__appDomainId";
@@ -201,147 +197,148 @@ var CoreXT;
                         //? if (global.Object.freeze)
                         //?    global.Object.freeze($this); // (properties cannot be modified once set)
                     };
-                    return Factory;
-                }(CoreXT.FactoryBase(AppDomain_1, base['ObjectFactory'])));
-                AppDomain = AppDomain_1 = __decorate([
-                    CoreXT.frozen
-                ], AppDomain);
-                return AppDomain;
-            }(base));
-            return [AppDomain, AppDomain["AppDomainFactory"]];
-        });
+                };
+                return $__type;
+            }(CoreXT.FactoryType(System.Object)));
+            AppDomain.$__type = $__type;
+            AppDomain.$__register(System);
+        })(AppDomain = System.AppDomain || (System.AppDomain = {}));
         //x $AppDomain.prototype.createApplication = function createApplication<TApp extends typeof $Application>(classFactory?: IFactory<TApp>, parent?: Platform.UI.GraphNode, title?: string, description?: string, targetElement?: HTMLElement): TApp {
         //    if (!Platform.UIApplication)
         //        throw Exception.error("AppDomain.createApplication()", "");
         //    return (<$AppDomain>this).with(<any>classFactory || Platform.UIApplication)(parent, title, description, targetElement);
         //};
-        // ==========================================================================================
+        // ===================================================================================================================================
         /** Applications wrap window reference targets, and any specified HTML for configuration and display. There can be many
           * applications in a single AppDomain.
           */
-        System.Application = CoreXT.ClassFactory(System, System.Object, function (base) {
-            var Application = /** @class */ (function (_super) {
-                __extends(Application, _super);
-                function Application() {
+        var Application = /** @class */ (function (_super) {
+            __extends(Application, _super);
+            function Application() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            Object.defineProperty(Application, "default", {
+                // -------------------------------------------------------------------------------------------------------------------------------
+                /** The default system wide application domain.
+                  * See 'System.Platform.AppDomain' for more details.
+                  */
+                get: function () { return Application._default; },
+                set: function (value) {
+                    if (!value || !(value instanceof Application.$__type))
+                        CoreXT.error("Application.default", "A valid 'Application' instance is required.");
+                    Application._default = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Application, "current", {
+                // -------------------------------------------------------------------------------------------------------------------------------
+                /** References the current running application that owns the current running environment. */
+                get: function () {
+                    return Application._current;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Application, "focused", {
+                /** References the application who's window currently has user focus. You can also set this property to change window focus. */
+                get: function () {
+                    return Application._focused;
+                },
+                set: function (value) {
+                    if (Application._focused !== value) {
+                        Application._focused = value;
+                        if (typeof value == 'object' && typeof value.focus == 'function')
+                            value.focus();
+                    }
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Application._current = null;
+            // -------------------------------------------------------------------------------------------------------------------------------
+            /** A list of all applications in the system. */
+            Application.applications = [Application._default];
+            Application._focused = null;
+            return Application;
+        }(CoreXT.FactoryBase(System.Object)));
+        System.Application = Application;
+        (function (Application) {
+            var $__type = /** @class */ (function (_super) {
+                __extends($__type, _super);
+                function $__type() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
-                Application_1 = Application;
-                Object.defineProperty(Application, "current", {
-                    // ----------------------------------------------------------------------------------------------------------------
-                    /** References the current running application that owns the current running environment. */
-                    get: function () {
-                        return Application_1._current;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(Application, "focused", {
-                    /** References the application who's window currently has user focus. You can also set this property to change window focus. */
-                    get: function () {
-                        return Application_1._focused;
-                    },
-                    set: function (value) {
-                        if (Application_1._focused !== value) {
-                            Application_1._focused = value;
-                            if (typeof value == 'object' && typeof value.focus == 'function')
-                                value.focus();
-                        }
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(Application.prototype, "isFocused", {
+                Object.defineProperty($__type.prototype, "isFocused", {
+                    // --------------------------------------------------------------------------------------------------------------------------
                     /** Returns true if this application is focused. */
                     get: function () { return this._isFocused; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Application.prototype, "appID", {
+                Object.defineProperty($__type.prototype, "appID", {
                     get: function () { return this._appID; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Application.prototype, "title", {
+                Object.defineProperty($__type.prototype, "title", {
                     get: function () { return this._title; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Application.prototype, "description", {
+                Object.defineProperty($__type.prototype, "description", {
                     get: function () { return this._description; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Application.prototype, "appDomains", {
+                Object.defineProperty($__type.prototype, "appDomains", {
                     get: function () { return this._appDomains; },
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(Application, "default", {
-                    /** The default system wide application domain.
-                      * See 'System.Platform.AppDomain' for more details.
-                      */
-                    get: function () { return Application_1._default; },
-                    set: function (value) {
-                        if (!value || !(value instanceof Application_1))
-                            CoreXT.error("Application.default", "A valid 'Application' instance is required.");
-                        Application_1._default = value;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
                 /** Returns the default (first) application for this domain. */
-                Application.prototype.application = function () {
+                $__type.prototype.application = function () {
                     if (!this.applications.length)
                         throw System.Exception.error("AppDomain", "This application domain has no application instances.", this);
                     return this.applications[0];
                 };
-                Application.prototype._onAddToAppDomain = function (appDomain, app) {
+                // -------------------------------------------------------------------------------------------------------------------------------
+                $__type.prototype._onAddToAppDomain = function (appDomain, app) {
                 };
                 // -------------------------------------------------------------------------------------------------------------------------------
                 /** Try to bring the window for this application to the front. */
-                Application.prototype.focus = function () {
+                $__type.prototype.focus = function () {
                 };
                 // -------------------------------------------------------------------------------------------------------------------------------
                 /** Closes the application by disposing all owned AppDomain instances, which also closes any opened windows, including the application's own window as well. */
-                Application.prototype.close = function () {
+                $__type.prototype.close = function () {
                     // ... close all except "self" ([0]), then close "self" ...
                     for (var i = this._appDomains.length - 1; i > 0; --i)
                         this._appDomains[i].dispose();
                     this._appDomains[0].dispose();
                 };
-                var Application_1;
-                Application._current = null;
-                Application._focused = null;
-                /** A list of all applications in the system. */
-                Application.applications = [Application_1._default];
                 // -------------------------------------------------------------------------------------------------------------------------------
-                Application['ApplicationFactory'] = /** @class */ (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    Factory.prototype['new'] = function (title, description, appID) { return null; };
-                    Factory.prototype.init = function (o, isnew, title, description, appID) {
-                        this.super.init(o, isnew);
+                $__type[CoreXT.constructor] = function (factory) {
+                    factory.init = function (o, isnew, title, description, appID) {
+                        factory.super.init(o, isnew);
                         o.$__app = o;
                         o._title = title;
                         o._description = description;
                         o._appID = appID;
                     };
-                    return Factory;
-                }(CoreXT.FactoryBase(Application_1, base['ObjectFactory'])));
-                Application = Application_1 = __decorate([
-                    CoreXT.frozen
-                ], Application);
-                return Application;
-            }(base));
-            return [Application, Application["ApplicationFactory"]];
-        });
+                };
+                return $__type;
+            }(CoreXT.FactoryType(System.Object)));
+            Application.$__type = $__type;
+            Application.$__register(System);
+        })(Application = System.Application || (System.Application = {}));
         // ===================================================================================================================================
         // Create a default application domain and default application.
         // The default app domain is used for new objects created, and the default application can be used to easily represent the current web application.
-        System.AppDomain.default = System.AppDomain.new();
-        System.Application.default = System.Application.new(window.document.title, "Default Application", 0);
+        AppDomain.default = AppDomain.new();
+        Application.default = Application.new(window.document.title, "Default Application", 0);
+        CoreXT.frozen(AppDomain);
+        CoreXT.frozen(Application);
     })(System = CoreXT.System || (CoreXT.System = {}));
     // ========================================================================================================================================
 })(CoreXT || (CoreXT = {}));

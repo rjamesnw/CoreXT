@@ -56,7 +56,7 @@ namespace CoreXT {
               */
             static get default(): IAppDomain { return AppDomain._default; }
             static set default(value: IAppDomain) {
-                if (!value || !(value instanceof AppDomain)) error("AppDomain.default", "A valid 'AppDomain' instance is required.");
+                if (!value || !(value instanceof this.$__type)) error("AppDomain.default", "A valid 'AppDomain' instance is required.");
                 this._default = value;
             }
             private static _default: IAppDomain;
@@ -166,7 +166,7 @@ namespace CoreXT {
                 //    if (typeof type !== FUNCTION)
                 //        throw Exception.error("registerClass()", "The 'classType' argument is not a valid constructor function.", type); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
 
-                //    //if (!(type instanceof Object))
+                //    //if (!(type instanceof Object.$__type))
                 //    //    throw Exception.error("registerClass()", "Class is not of type 'System.Object'.", type);
 
                 //    var classTypeInfo: ITypeInfo = <any>type;
@@ -260,7 +260,7 @@ namespace CoreXT {
                 }
             }
 
-            AppDomain.register(System);
+            AppDomain.$__register(System);
         }
 
         export interface IAppDomain extends AppDomain.$__type { }
@@ -287,7 +287,7 @@ namespace CoreXT {
               */
             static get default(): IApplication { return Application._default; }
             static set default(value: IApplication) {
-                if (!value || !(value instanceof Application)) error("Application.default", "A valid 'Application' instance is required.");
+                if (!value || !(value instanceof Application.$__type)) error("Application.default", "A valid 'Application' instance is required.");
                 Application._default = value;
             }
             private static _default: IApplication;
@@ -388,7 +388,7 @@ namespace CoreXT {
                 }
             }
 
-            Application.register(System);
+            Application.$__register(System);
         }
 
         export interface IApplication extends Application.$__type { }

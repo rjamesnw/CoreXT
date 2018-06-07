@@ -61,20 +61,20 @@
 }
 
 namespace CoreXT {
-    namespace __Temp {
-        export class MyFactory extends FactoryBase() {
+    namespace __Temp {/*
+        export class MyFactory extends FactoryBase(Object) {
             static 'new': (...args: any[]) => IMyFactory;
             static init: (o: IMyFactory, isnew: boolean, ...args: any[]) => void;
         }
         export namespace MyFactory {
             export class $__type extends FactoryType(Object) {
                 private static [constructor](factory: typeof MyFactory) {
-                    factory.init = (o, isnew) => {
-                    };
+                    //factory.init = (o, isnew) => {
+                    //};
                 }
             }
-            MyFactory.register(__Temp);
+            MyFactory.$__register(__Temp);
         }
         export interface IMyFactory extends MyFactory.$__type { }
-    }
+    */}
 }

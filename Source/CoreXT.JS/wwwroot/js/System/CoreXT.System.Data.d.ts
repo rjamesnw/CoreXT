@@ -34,14 +34,14 @@ declare namespace CoreXT.System {
         class PropertyPath {
             private static __PathPartRegEx;
             origin: {};
-            namePath: Array<string>;
-            arguments: Array<any[]>;
-            indexes: Array<any>;
+            namePath: NativeTypes.IArray<string>;
+            arguments: NativeTypes.IArray<any[]>;
+            indexes: NativeTypes.IArray<any>;
             constructor(origin: {}, path: string);
             /** Parses the specified path string and updates this PropertyPath instance with the details. */
             parsePath(path: string): PropertyPath;
             /** Reconstructs the property path string using the internal path array details. */
-            private __getPathString(level);
+            private __getPathString;
             /** Traverses the property path information and returns the final endpoint details.
             * @param {object} origin The root object to begin the traversal on.  If an object was supplied to the constructor,
             * then this parameter is optional; though, it can be used to override that object (for the call only).
@@ -58,7 +58,7 @@ declare namespace CoreXT.System {
             /** Inverts OneWay mode so that the source updates when the target changes. */
             OneWayToSource = 2,
             /** Updates only the target property once when bound.  Subsequent source changes are ignored. */
-            OneTime = 3,
+            OneTime = 3
         }
         /** Represents a binding between object properties. */
         class Binding {

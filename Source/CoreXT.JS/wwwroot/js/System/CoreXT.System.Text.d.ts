@@ -8,7 +8,7 @@ declare namespace CoreXT.System.Text {
             /** Use custom user-supplied Base64 encoding characters (the last character is used for padding, so there should be 65 characters total).
             * Set 'Security.__64BASE_ENCODING_CHARS_CUSTOM' to your custom characters for this option (defaults to standard characters).
             */
-            Custom = 2,
+            Custom = 2
         }
         var __64BASE_ENCODING_CHARS_STANDARD: string;
         var __64BASE_ENCODING_CHARS_URI: string;

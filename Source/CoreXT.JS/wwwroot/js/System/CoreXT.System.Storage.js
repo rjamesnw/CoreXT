@@ -9,7 +9,7 @@ var CoreXT;
         /** Web storage utilities. */
         var Storage;
         (function (Storage) {
-            CoreXT.registerNamespace("CoreXT", "System", "Storage");
+            CoreXT.namespace(function () { return CoreXT.System.Storage; });
             // ------------------------------------------------------------------------------------------------------------------
             // Feature Detection 
             function _storageAvailable(storageType) {

@@ -18,7 +18,7 @@ var CoreXT;
 (function (CoreXT) {
     var Globals;
     (function (Globals) {
-        CoreXT.registerNamespace("CoreXT", "Globals");
+        CoreXT.namespace("CoreXT", "Globals");
         /** Internal: used when initializing CoreXT. */
         var _globals = CoreXT.Globals;
         var _namespaces = {};

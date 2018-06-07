@@ -11,7 +11,7 @@ var CoreXT;
       */
     var Browser;
     (function (Browser) {
-        CoreXT.registerNamespace("CoreXT", "Browser");
+        CoreXT.namespace("CoreXT", "Browser");
         // (Browser detection is a highly modified version of "http://www.quirksmode.org/js/detect.html".)
         // (Note: This is only required for quirk detection in special circumstances [such as IE's native JSON whitespace parsing issue], and not for object feature support)
         /** A list of browsers that can be currently detected. */

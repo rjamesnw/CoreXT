@@ -167,7 +167,7 @@ namespace CoreXT.System {
                 };
             }
         }
-        Exception.register(System);
+        Exception.$__register(System);
     }
 
     export interface IException extends InstanceType<typeof Exception.$__type> { }

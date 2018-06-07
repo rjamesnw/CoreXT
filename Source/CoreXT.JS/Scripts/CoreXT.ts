@@ -1305,7 +1305,7 @@ namespace CoreXT { // (the core scope)
               * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
               * applied (using the IFunctionInfo interface).
              */
-            static register<TClass extends IType, TFactory extends IFactory & IType>(this: TFactory & ITypeInfo & { $__type: TClass },
+            static $__register<TClass extends IType, TFactory extends IFactory & IType>(this: TFactory & ITypeInfo & { $__type: TClass },
                 namespace: object, addMemberTypeInfo = true): TFactory {
                 return Types.__registerFactoryType(this, namespace, addMemberTypeInfo);
             }
@@ -1410,7 +1410,7 @@ namespace CoreXT { // (the core scope)
         if (typeof errorSource == 'string')
             return errorSource;
         else if (typeof errorSource == 'object') {
-            if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem) {
+            if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem.$__type) {
                 return errorSource.toString();
             } else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
                 var error: _IError = errorSource;
@@ -2293,7 +2293,7 @@ namespace CoreXT { // (the core scope)
                 }
             }
 
-            ResourceRequest.register(Loader);
+            ResourceRequest.$__register(Loader);
         }
 
         export interface IResourceRequest extends ResourceRequest.$__type { }

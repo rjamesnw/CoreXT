@@ -12,7 +12,7 @@ var CoreXT;
             /** Path/URL based utilities. */
             var Path;
             (function (Path) {
-                CoreXT.registerNamespace("CoreXT", "System", "IO", "Path");
+                CoreXT.namespace(function () { return CoreXT.System.IO.Path; });
                 // ===================================================================================================================
                 /** Appends 'path2' to 'path1', inserting a path separator character if required. */
                 function combineURLPaths(path1, path2) {
@@ -44,22 +44,29 @@ var CoreXT;
                 /** Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
                   * pairs from a URI or 'location.search' string, and converting the object to a string results in a proper query/search string
                   * with all values escaped and ready to be appended to a URI. */
-                Path.Query = CoreXT.ClassFactory(Path, null, function (base) {
-                    var Query = /** @class */ (function (_super) {
-                        __extends(Query, _super);
-                        function Query() {
+                var Query = /** @class */ (function (_super) {
+                    __extends(Query, _super);
+                    function Query() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    return Query;
+                }(CoreXT.FactoryBase()));
+                Path.Query = Query;
+                (function (Query) {
+                    var $__type = /** @class */ (function (_super) {
+                        __extends($__type, _super);
+                        function $__type() {
                             // ----------------------------------------------------------------------------------------------------------------
                             var _this = _super !== null && _super.apply(this, arguments) || this;
                             _this.values = {};
                             return _this;
-                            // ---------------------------------------------------------------------------------------------------------------
                         }
                         // ----------------------------------------------------------------------------------------------------------------
                         /** Use to add additional query string values. The function returns the current object to allow chaining calls.
                             * Example: add({'name1':'value1', 'name2':'value2', ...});
                             * Note: Use this to also change existing values.
                             */
-                        Query.prototype.addOrUpdate = function (newValues) {
+                        $__type.prototype.addOrUpdate = function (newValues) {
                             if (newValues)
                                 for (var pname in newValues)
                                     this.values[pname] = newValues[pname];
@@ -70,7 +77,7 @@ var CoreXT;
                             * Example: rename({'oldName':'newName', 'oldname2':'newName2', ...});
                             * Warning: If the new name already exists, it will be replaced.
                             */
-                        Query.prototype.rename = function (newNames) {
+                        $__type.prototype.rename = function (newNames) {
                             for (var pname in this.values)
                                 for (var pexistingname in newNames)
                                     if (pexistingname == pname && newNames[pexistingname] && newNames[pexistingname] != pname) { // (&& make sure the new name is actually different)
@@ -83,7 +90,7 @@ var CoreXT;
                         /** Use to remove a series of query parameter names.  The function returns the current object to allow chaining calls.
                             * Example: remove(['name1', 'name2', 'name3']);
                             */
-                        Query.prototype.remove = function (namesToDelete) {
+                        $__type.prototype.remove = function (namesToDelete) {
                             if (namesToDelete && namesToDelete.length)
                                 for (var i = 0, n = namesToDelete.length; i < n; ++i)
                                     if (this.values[namesToDelete[i]])
@@ -92,40 +99,40 @@ var CoreXT;
                         };
                         // ---------------------------------------------------------------------------------------------------------------
                         /** Creates and returns a duplicate of this object. */
-                        Query.prototype.clone = function () {
+                        $__type.prototype.clone = function () {
                             var q = Path.Query.new();
                             for (var pname in this.values)
                                 q.values[pname] = this.values[pname];
                             return q;
                         };
                         // ---------------------------------------------------------------------------------------------------------------
-                        Query.prototype.appendTo = function (uri) {
+                        $__type.prototype.appendTo = function (uri) {
                             return uri.match(/^[^\?]*/g)[0] + this.toString();
                         };
                         // ---------------------------------------------------------------------------------------------------------------
                         /** Returns the specified value, or a default value if nothing was found. */
-                        Query.prototype.getValue = function (name, defaultValueIfUndefined) {
+                        $__type.prototype.getValue = function (name, defaultValueIfUndefined) {
                             var value = this.values[name];
                             if (value === void 0)
                                 value = defaultValueIfUndefined;
                             return value;
                         };
                         /** Returns the specified value as a lowercase string, or a default value (also made lowercase) if nothing was found. */
-                        Query.prototype.getLCValue = function (name, defaultValueIfUndefined) {
+                        $__type.prototype.getLCValue = function (name, defaultValueIfUndefined) {
                             var value = this.values[name];
                             if (value === void 0)
                                 value = defaultValueIfUndefined;
                             return ("" + value).toLowerCase();
                         };
                         /** Returns the specified value as an uppercase string, or a default value (also made uppercase) if nothing was found. */
-                        Query.prototype.getUCValue = function (name, defaultValueIfUndefined) {
+                        $__type.prototype.getUCValue = function (name, defaultValueIfUndefined) {
                             var value = this.values[name];
                             if (value === void 0)
                                 value = defaultValueIfUndefined;
                             return ("" + value).toUpperCase();
                         };
                         /** Returns the specified value as an uppercase string, or a default value (also made uppercase) if nothing was found. */
-                        Query.prototype.getNumber = function (name, defaultValueIfUndefined) {
+                        $__type.prototype.getNumber = function (name, defaultValueIfUndefined) {
                             var value = parseFloat(this.values[name]);
                             if (value === void 0)
                                 value = defaultValueIfUndefined;
@@ -136,7 +143,7 @@ var CoreXT;
                             * The existing value is replaced by the encoded value, and the encoded value is returned.
                             * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
                             */
-                        Query.prototype.encodeValue = function (name) {
+                        $__type.prototype.encodeValue = function (name) {
                             var value = this.values[name], result;
                             if (value !== void 0 && value !== null) {
                                 this.values[name] = result = System.Text.Encoding.base64Encode(value, System.Text.Encoding.Base64Modes.URI);
@@ -146,7 +153,7 @@ var CoreXT;
                         /** De-obfuscates the specified query value (to make it harder for end users to read naturally).  This expects Base64 encoding.
                             * The existing value is replaced by the decoded value, and the decoded value is returned.
                             */
-                        Query.prototype.decodeValue = function (name) {
+                        $__type.prototype.decodeValue = function (name) {
                             var value = this.values[name], result;
                             if (value !== void 0 && value !== null) {
                                 this.values[name] = result = System.Text.Encoding.base64Decode(value, System.Text.Encoding.Base64Modes.URI);
@@ -156,46 +163,29 @@ var CoreXT;
                         /** Encode ALL query values (see 'encodeValue()').
                             * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
                             */
-                        Query.prototype.encodeAll = function () {
+                        $__type.prototype.encodeAll = function () {
                             for (var p in this.values)
                                 this.encodeValue(p);
                         };
                         /** Decode ALL query values (see 'encodeValue()').
                             * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
                             */
-                        Query.prototype.decodeAll = function () {
+                        $__type.prototype.decodeAll = function () {
                             for (var p in this.values)
                                 this.decodeValue(p);
                         };
                         // ---------------------------------------------------------------------------------------------------------------
                         /** Converts the underlying query values to a proper search string that can be appended to a URI. */
-                        Query.prototype.toString = function () {
+                        $__type.prototype.toString = function () {
                             var qstr = "";
                             for (var pname in this.values)
                                 if (this.values[pname] !== void 0)
                                     qstr += (qstr ? "&" : "?") + encodeURIComponent(pname) + "=" + encodeURIComponent(this.values[pname]);
                             return qstr;
                         };
-                        // ----------------------------------------------------------------------------------------------------------------
-                        Query['QueryFactory'] = /** @class */ (function (_super) {
-                            __extends(Factory, _super);
-                            function Factory() {
-                                return _super !== null && _super.apply(this, arguments) || this;
-                            }
-                            /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
-                                * @param {string} searchString A URI or 'location.search' string.
-                                * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
-                                */
-                            Factory['new'] = function (searchString, makeNamesLowercase) {
-                                if (searchString === void 0) { searchString = null; }
-                                if (makeNamesLowercase === void 0) { makeNamesLowercase = false; }
-                                return null;
-                            };
-                            /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
-                                * @param {string} searchString A URI or 'location.search' string.
-                                * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
-                                */
-                            Factory.init = function (o, isnew, searchString, makeNamesLowercase) {
+                        // ---------------------------------------------------------------------------------------------------------------
+                        $__type[CoreXT.constructor] = function (factory) {
+                            factory.init = function (o, isnew, searchString, makeNamesLowercase) {
                                 if (searchString === void 0) { searchString = null; }
                                 if (makeNamesLowercase === void 0) { makeNamesLowercase = false; }
                                 if (searchString) {
@@ -214,19 +204,19 @@ var CoreXT;
                                         }
                                 }
                             };
-                            return Factory;
-                        }(CoreXT.FactoryBase(Query, null)));
-                        return Query;
+                        };
+                        return $__type;
                     }(CoreXT.Disposable));
-                    return [Query, Query["QueryFactory"]];
-                }, "Query");
+                    Query.$__type = $__type;
+                    Query.$__register(Path);
+                })(Query = Path.Query || (Path.Query = {}));
                 // ===================================================================================================================
                 //! if (pageQuery.getValue('debug', '') == 'true') Diagnostics.debug = Diagnostics.DebugModes.Debug_Run; // (only allow this on the sandbox and development servers)
                 //! var demo = demo || pageQuery.getValue('demo', '') == 'true'; // (only allow this on the sandbox and development servers)
                 function setLocation(url, includeExistingQuery, bustCache) {
                     if (includeExistingQuery === void 0) { includeExistingQuery = false; }
                     if (bustCache === void 0) { bustCache = false; }
-                    var query = Path.Query.new(url);
+                    var query = Query.new(url);
                     if (bustCache)
                         query.values['_'] = new Date().getTime().toString();
                     if (includeExistingQuery)
@@ -263,7 +253,7 @@ var CoreXT;
                 Path.isView = isView;
                 // ===================================================================================================================
                 /** This is set automatically to the query for the current page. */
-                Path.pageQuery = Path.Query.new(location.href);
+                Path.pageQuery = Query.new(location.href);
                 // ===================================================================================================================
             })(Path = IO.Path || (IO.Path = {}));
             /** This even is triggered when the user should wait for an action to complete. */

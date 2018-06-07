@@ -7,7 +7,7 @@ var CoreXT;
     (function (System) {
         var Collections;
         (function (Collections) {
-            CoreXT.registerNamespace("CoreXT", "System", "Collections");
+            CoreXT.namespace(function () { return CoreXT.System.Collections; });
             // ========================================================================================================================================
             /** Returns an ID based on the index position of the added object, or from a list of previously released object IDs (indexes).
             * There are 2 main goals of this object: 1. to help prevent ID numbers from wrapping for server apps that may be running
@@ -16,10 +16,43 @@ var CoreXT;
             * Note: A property '$__id' is added/updated on the objects automatically.  You can change this property name by setting
             * a new value for 'IndexedObjectCollcetion.__IDPropertyName'.
             */
-            Collections.IndexedObjectCollection = CoreXT.ClassFactory(Collections, System.Array, function (base) {
-                var IndexedObjectCollection = /** @class */ (function (_super) {
-                    __extends(IndexedObjectCollection, _super);
-                    function IndexedObjectCollection() {
+            var IndexedObjectCollection = /** @class */ (function (_super) {
+                __extends(IndexedObjectCollection, _super);
+                function IndexedObjectCollection() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                /** @param {TObject[]} objects Initial objects to add to the collection. */
+                IndexedObjectCollection['new'] = function () {
+                    var objects = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        objects[_i] = arguments[_i];
+                    }
+                    return null;
+                };
+                IndexedObjectCollection.init = function (o, isnew) {
+                    var objects = [];
+                    for (var _i = 2; _i < arguments.length; _i++) {
+                        objects[_i - 2] = arguments[_i];
+                    }
+                    this.super.init.apply(this.super, arguments);
+                    o.clear();
+                    for (var i = 0, n = objects.length; i < n; ++i)
+                        o.addObject(objects[i]);
+                };
+                /**
+                 * Holds the name of the internal property created on the objects in order to track indexes.
+                 * This defaults to "$__index".
+                 */
+                IndexedObjectCollection.__IDPropertyName = "$__index";
+                IndexedObjectCollection.__validIDIndexPropertyName = "__.validIDIndex.__"; // (should never need to be accessed, so named as such to discourage it)
+                return IndexedObjectCollection;
+            }(CoreXT.FactoryBase(System.Array)));
+            Collections.IndexedObjectCollection = IndexedObjectCollection;
+            (function (IndexedObjectCollection) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
+                        // -------------------------------------------------------------------------------------------------------------------------------
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         /**
                          * Holds the name of the internal property created on the objects in order to track indexes.
@@ -32,10 +65,10 @@ var CoreXT;
                         _this.__releasedIDs = []; // (holds all the released object indexes for quick lookup)
                         _this.__releasedIDsReadIndex = -1;
                         return _this;
-                        // --------------------------------------------------------------------------------------------------------------------------
+                        // -------------------------------------------------------------------------------------------------------------------------------
                     }
                     /** Adds an object and returns it's index number as the ID for the object. */
-                    IndexedObjectCollection.prototype.addObject = function (obj) {
+                    $__type.prototype.addObject = function (obj) {
                         if (obj === void 0 || obj === null)
                             return void 0;
                         var id = obj[this.__IDPropertyName];
@@ -60,7 +93,7 @@ var CoreXT;
                         this.__validIDs[++this.__validIDsReadIndex] = id;
                         obj[IndexedObjectCollection.__validIDIndexPropertyName] = this.__validIDsReadIndex;
                     };
-                    IndexedObjectCollection.prototype.removeObject = function (idOrObj) {
+                    $__type.prototype.removeObject = function (idOrObj) {
                         var id, obj, objGiven = null;
                         id = typeof idOrObj === 'number' ? idOrObj : (objGiven = idOrObj)[this.__IDPropertyName];
                         if (!(id === 0 || id > 0 && id < this.__objects.length))
@@ -78,78 +111,53 @@ var CoreXT;
                         this.__validIDs[validIDIndex] = this.__validIDs[this.__validIDsReadIndex--]; // (put the last id in place of the one to be removed [simple switch and decrement])
                     };
                     /** Return the object associated with the specified ID (index) value cast to the specified type. */
-                    IndexedObjectCollection.prototype.getObject = function (id) {
+                    $__type.prototype.getObject = function (id) {
                         if (!(id === 0 || id > 0 && id < this.__objects.length))
                             return void 0; // (make sure the ID is valid)
                         return this.__objects[id] || void 0; // (null items are empty positions, like accessing outside array bounds, and will always be translated to "undefined")
                     };
                     /** Return the object associated with the specified ID (index) value and forcibly cast it to the specified type. */
-                    IndexedObjectCollection.prototype.getObjectForceCast = function (id) { return this.getObject(id); };
+                    $__type.prototype.getObjectForceCast = function (id) { return this.getObject(id); };
                     /** Returns the number of objects in this collection.
-                    * You can use this number with the 'getObjectAt()' function to iterate over all the objects.
-                    */
-                    IndexedObjectCollection.prototype.count = function () { return this.__validIDs.length; };
+                     * You can use this number with the 'getObjectAt()' function to iterate over all the objects.
+                     */
+                    $__type.prototype.count = function () { return this.__validIDs.length; };
                     /** Returns an object at a specified index. This allows iterating over the objects in a linear fashion.
-                    * Internally, objects are stored in an array that may have a lot of 'null' items where objects have been removed. A
-                    * separate internal array holds a list of valid object IDs for quick reference, and it is this array that the 'index'
-                    * parameter applies to.
-                    * Warning: When objects are removed, their IDs in the internal "valid IDs" array are swapped with the end item, so never
-                    * remove objects while iterating over them using this function, otherwise many objects may be skipped in the process.
-                    * If objects must be deleted during iteration, get the complete array of objects first by calling the 'getItems()' function.
-                    */
-                    IndexedObjectCollection.prototype.getObjectAt = function (index) {
+                     * Internally, objects are stored in an array that may have a lot of 'null' items where objects have been removed. A
+                     * separate internal array holds a list of valid object IDs for quick reference, and it is this array that the 'index'
+                     * parameter applies to.
+                     * Warning: When objects are removed, their IDs in the internal "valid IDs" array are swapped with the end item, so never
+                     * remove objects while iterating over them using this function, otherwise many objects may be skipped in the process.
+                     * If objects must be deleted during iteration, get the complete array of objects first by calling the 'getItems()' function.
+                     */
+                    $__type.prototype.getObjectAt = function (index) {
                         if (index < 0 || index >= this.__validIDs.length)
                             return void 0;
                         return this.__objects[this.__validIDs[index]];
                     };
                     /** Returns an array of all the objects in this collection. */
-                    IndexedObjectCollection.prototype.getItems = function () {
+                    $__type.prototype.getItems = function () {
                         var items = [];
                         for (var i = 0, n = this.__validIDs.length; i < n; ++i)
                             items[i] = this.__objects[this.__validIDs[i]];
                         return items;
                     };
                     /** Removes all objects from the collection. */
-                    IndexedObjectCollection.prototype.clear = function () {
+                    $__type.prototype.clear = function () {
                         for (var i = 0, n = this.__validIDs.length; i < n; ++i)
                             this.removeObject(this.__validIDs[i]);
+                        return _super.prototype.clear.call(this);
                     };
-                    /**
-                     * Holds the name of the internal property created on the objects in order to track indexes.
-                     * This defaults to "$__index".
-                     */
-                    IndexedObjectCollection.__IDPropertyName = "$__index";
-                    IndexedObjectCollection.__validIDIndexPropertyName = "__.validIDIndex.__"; // (should never need to be accessed, so named as such to discourage it)
-                    // --------------------------------------------------------------------------------------------------------------------------
-                    IndexedObjectCollection['IndexedObjectCollectionFactory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        /** @param {TObject[]} objects Initial objects to add to the collection. */
-                        Factory['new'] = function () {
-                            var objects = [];
-                            for (var _i = 0; _i < arguments.length; _i++) {
-                                objects[_i] = arguments[_i];
-                            }
-                            return null;
-                        };
-                        Factory.init = function (o, isnew) {
-                            var objects = [];
-                            for (var _i = 2; _i < arguments.length; _i++) {
-                                objects[_i - 2] = arguments[_i];
-                            }
-                            this.super.init.apply(this.super, arguments);
-                            o.clear();
-                            for (var i = 0, n = objects.length; i < n; ++i)
-                                o.addObject(objects[i]);
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase(IndexedObjectCollection, base['ArrayFactory'])));
-                    return IndexedObjectCollection;
-                }(base));
-                return [IndexedObjectCollection, IndexedObjectCollection["IndexedObjectCollectionFactory"]];
-            }, "IndexedObjectCollection");
+                    // -------------------------------------------------------------------------------------------------------------------------------
+                    $__type[CoreXT.constructor] = function (factory) {
+                        //factory.init = (o, isnew) => {
+                        //};
+                    };
+                    return $__type;
+                }(CoreXT.FactoryType(System.Array)));
+                IndexedObjectCollection.$__type = $__type;
+                IndexedObjectCollection.$__register(Collections);
+            })(IndexedObjectCollection = Collections.IndexedObjectCollection || (Collections.IndexedObjectCollection = {}));
             // ========================================================================================================================================
         })(Collections = System.Collections || (System.Collections = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));

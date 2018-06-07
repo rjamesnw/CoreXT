@@ -85,7 +85,7 @@ namespace CoreXT {
                 }
             }
 
-            ScriptResource.register(Scripts);
+            ScriptResource.$__register(Scripts);
         }
 
         export interface IScriptResource extends ScriptResource.$__type { }
@@ -138,7 +138,7 @@ namespace CoreXT {
                 }
             }
 
-            Manifest.register(Scripts);
+            Manifest.$__register(Scripts);
             sealed($__type);
         }
 
@@ -344,7 +344,7 @@ namespace CoreXT {
                 }
             }
 
-            Module.register(Scripts);
+            Module.$__register(Scripts);
         }
 
         export interface IModule extends InstanceType<typeof Module.$__type> { }

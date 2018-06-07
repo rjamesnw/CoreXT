@@ -9,7 +9,7 @@ declare namespace CoreXT.System {
             /** Use the local storage. This is a permanent store, until data is removed, or it gets cleared by the user. */
             Local = 0,
             /** Use the session storage. This is a temporary store, and only lasts for as long as the current browser session is open. */
-            Session = 1,
+            Session = 1
         }
         function getStorage(type: StorageType): Storage;
         /** The delimiter used to separate key name parts and data values in storage. This should be a Unicode character that is usually never used in most cases. */

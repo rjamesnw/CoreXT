@@ -142,7 +142,7 @@ namespace CoreXT {
                 }
                 // -------------------------------------------------------------------------------------------------------------------
             }
-            Object.register(System);
+            Object.$__register(System);
         }
 
         export interface IObject extends Object.$__type { }
@@ -173,6 +173,87 @@ namespace CoreXT {
                 * @param func The function that will be called for the resulting delegate object.
                 */
             static init: (o: IString, isnew: boolean, value?: any) => void;
+
+            /** Replaces one string with another in a given string.
+                * This function is optimized to select the faster method in the current browser. For instance, 'split()+join()' is
+                * faster in Chrome, and RegEx based 'replace()' in others.
+                */
+            static replace(source: string, replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
+                // (split+join is faster in some browsers, or very close in speed) http://jsperf.com/split-join-vs-regex-replace-the-raven
+                if (typeof source !== 'string') source = "" + source;
+                if (typeof replaceWhat !== 'string') replaceWhat = "" + replaceWhat;
+                if (typeof replaceWith !== 'string') replaceWith = "" + replaceWith;
+                if (ignoreCase)
+                    return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'gi'), replaceWith);
+                else
+                    if (Browser.type == Browser.BrowserTypes.Chrome)
+                        return source.split(replaceWhat).join(replaceWith); // (MUCH faster in Chrome [including Chrome mobile])
+                    else
+                        return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'g'), replaceWith);
+            }
+
+            /** Replaces all tags in the given 'HTML' string with 'tagReplacement' (an empty string by default) and returns the result. */
+            static replaceTags(html: string, tagReplacement?: string): string {
+                return html.replace(/<[^<>]*|>[^<>]*?>|>/g, tagReplacement);
+            }
+
+            /** Pads a string with given characters to make it a given fixed length. If the string is greater or equal to the
+              * specified fixed length, then the request is ignored, and the given string is returned.
+              * @param {any} str The string to pad.
+              * @param {number} fixedLength The fixed length for the given string (note: a length less than the string length will not truncate it).
+              * @param {string} leftPadChar Padding to add to the left side of the string, or null/undefined to ignore. If 'rightPadChar' is also specified, the string becomes centered.
+              * @param {string} rightPadChar Padding to add to the right side of the string, or null/undefined to ignore. If 'leftPadChar' is also specified, the string becomes centered.
+              */
+            static pad(str: any, fixedLength: number, leftPadChar: string, rightPadChar?: string): string {
+                if (str === void 0) str = "";
+                if (leftPadChar === void 0 || leftPadChar === null) leftPadChar = "";
+                if (rightPadChar === void 0 || rightPadChar === null) rightPadChar = "";
+
+                var s = "" + str, targetLength = fixedLength || 0, remainder = targetLength - s.length,
+                    lchar = "" + leftPadChar, rchar = "" + rightPadChar,
+                    i: number, n: number, llen: number, rlen: number, lpad: string = "", rpad: string = "";
+
+                if (remainder == 0 || (!lchar && !rchar)) return str;
+
+                if (lchar && rchar) {
+                    llen = Math.floor(remainder / 2);
+                    rlen = targetLength - llen;
+                }
+                else if (lchar) llen = remainder;
+                else if (rchar) rlen = remainder;
+
+                for (i = 0; i < llen; ++i)
+                    lpad += lchar;
+
+                for (i = 0; i < rlen; ++i)
+                    rpad += rchar;
+
+                return lpad + s + rpad;
+            }
+
+            /** Appends the suffix string to the end of the source string, optionally using a delimiter if the source is not empty.
+              * Note: If any argument is not a string, the value is converted into a string.
+              */
+            static append(source: string, suffix?: string, delimiter?: string): string {
+                if (source === void 0) source = "";
+                else if (typeof source != 'string') source = '' + source;
+                if (typeof suffix != 'string') suffix = '' + suffix;
+                if (typeof delimiter != 'string') delimiter = '' + delimiter;
+                if (!source) return suffix;
+                return source + delimiter + suffix;
+            }
+
+            /** Appends the prefix string to the beginning of the source string, optionally using a delimiter if the source is not empty.
+              * Note: If any argument is not a string, the value is converted into a string.
+              */
+            static prepend(source: string, prefix?: string, delimiter?: string): string {
+                if (source === void 0) source = "";
+                else if (typeof source != 'string') source = '' + source;
+                if (typeof prefix != 'string') prefix = '' + prefix;
+                if (typeof delimiter != 'string') delimiter = '' + delimiter;
+                if (!source) return prefix;
+                return prefix + delimiter + source;
+            }
         }
         export namespace String {
             export class $__type extends DisposableFromBase(global.String) {
@@ -181,93 +262,12 @@ namespace CoreXT {
                 private $__value?: any;
                 length: number;
 
-                /** Replaces one string with another in a given string.
-                * This function is optimized to select the faster method in the current browser. For instance, 'split()+join()' is
-                * faster in Chrome, and RegEx based 'replace()' in others.
-                */
-                static replace(source: string, replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
-                    // (split+join is faster in some browsers, or very close in speed) http://jsperf.com/split-join-vs-regex-replace-the-raven
-                    if (typeof source !== 'string') source = "" + source;
-                    if (typeof replaceWhat !== 'string') replaceWhat = "" + replaceWhat;
-                    if (typeof replaceWith !== 'string') replaceWith = "" + replaceWith;
-                    if (ignoreCase)
-                        return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'gi'), replaceWith);
-                    else
-                        if (Browser.type == Browser.BrowserTypes.Chrome)
-                            return source.split(replaceWhat).join(replaceWith); // (MUCH faster in Chrome [including Chrome mobile])
-                        else
-                            return source.replace(new RegExp(Utilities.escapeRegex(replaceWhat), 'g'), replaceWith);
-                }
-
-                /** Replaces all tags in the given 'HTML' string with 'tagReplacement' (an empty string by default) and returns the result. */
-                static replaceTags(html: string, tagReplacement?: string): string {
-                    return html.replace(/<[^<>]*|>[^<>]*?>|>/g, tagReplacement);
-                }
-
-                /** Pads a string with given characters to make it a given fixed length. If the string is greater or equal to the
-                * specified fixed length, then the request is ignored, and the given string is returned.
-                * @param {any} str The string to pad.
-                * @param {number} fixedLength The fixed length for the given string (note: a length less than the string length will not truncate it).
-                * @param {string} leftPadChar Padding to add to the left side of the string, or null/undefined to ignore. If 'rightPadChar' is also specified, the string becomes centered.
-                * @param {string} rightPadChar Padding to add to the right side of the string, or null/undefined to ignore. If 'leftPadChar' is also specified, the string becomes centered.
-                */
-                static pad(str: any, fixedLength: number, leftPadChar: string, rightPadChar?: string): string {
-                    if (str === void 0) str = "";
-                    if (leftPadChar === void 0 || leftPadChar === null) leftPadChar = "";
-                    if (rightPadChar === void 0 || rightPadChar === null) rightPadChar = "";
-
-                    var s = "" + str, targetLength = fixedLength || 0, remainder = targetLength - s.length,
-                        lchar = "" + leftPadChar, rchar = "" + rightPadChar,
-                        i: number, n: number, llen: number, rlen: number, lpad: string = "", rpad: string = "";
-
-                    if (remainder == 0 || (!lchar && !rchar)) return str;
-
-                    if (lchar && rchar) {
-                        llen = Math.floor(remainder / 2);
-                        rlen = targetLength - llen;
-                    }
-                    else if (lchar) llen = remainder;
-                    else if (rchar) rlen = remainder;
-
-                    for (i = 0; i < llen; ++i)
-                        lpad += lchar;
-
-                    for (i = 0; i < rlen; ++i)
-                        rpad += rchar;
-
-                    return lpad + s + rpad;
-                }
-
-                /** Appends the suffix string to the end of the source string, optionally using a delimiter if the source is not empty.
-                * Note: If any argument is not a string, the value is converted into a string.
-                */
-                static append(source: string, suffix?: string, delimiter?: string): string {
-                    if (source === void 0) source = "";
-                    else if (typeof source != 'string') source = '' + source;
-                    if (typeof suffix != 'string') suffix = '' + suffix;
-                    if (typeof delimiter != 'string') delimiter = '' + delimiter;
-                    if (!source) return suffix;
-                    return source + delimiter + suffix;
-                }
-
-                /** Appends the prefix string to the beginning of the source string, optionally using a delimiter if the source is not empty.
-                * Note: If any argument is not a string, the value is converted into a string.
-                */
-                static prepend(source: string, prefix?: string, delimiter?: string): string {
-                    if (source === void 0) source = "";
-                    else if (typeof source != 'string') source = '' + source;
-                    if (typeof prefix != 'string') prefix = '' + prefix;
-                    if (typeof delimiter != 'string') delimiter = '' + delimiter;
-                    if (!source) return prefix;
-                    return prefix + delimiter + source;
-                }
-
                 /** Replaces one string with another in the current string. 
                 * This function is optimized to select the faster method in the current browser. For instance, 'split()+join()' is
                 * faster in Chrome, and RegEx based 'replace()' in others.
                 */
                 replaceAll(replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
-                    return $__type.replace(this.toString(), replaceWhat, replaceWith, ignoreCase);
+                    return String.replace(this.toString(), replaceWhat, replaceWith, ignoreCase);
                 }
 
                 toString(): string { return this.$__value; }
@@ -287,7 +287,7 @@ namespace CoreXT {
                 }
             }
 
-            String.register(System);
+            String.$__register(System);
         }
 
         export interface IString extends String.$__type { }
@@ -302,7 +302,7 @@ namespace CoreXT {
         export class Array extends FactoryBase() {
             /** Returns a new array object instance. 
               * Note: This is a CoreXT system array object, and not the native JavaScript object. */
-            static 'new': <T>(...items: any[]) => IArray<T>;
+            static 'new': <T=any>(...items: any[]) => IArray<T>;
             /**
                * Reinitializes a disposed Delegate instance.
                * @param this The Delegate instance to initialize, or re-initialize.
@@ -310,13 +310,27 @@ namespace CoreXT {
                * @param object The instance to bind to the resulting delegate object.
                * @param func The function that will be called for the resulting delegate object.
                */
-            static init: <T>(o: IArray<T>, isnew: boolean, ...items: any[]) => void;
+            static init: <T=any>(o: IArray<T>, isnew: boolean, ...items: any[]) => void;
         }
         export namespace Array {
-            export class $__type<T> extends DisposableFromBase(global.Array)<T> {
+            export class $__type<T=any> extends DisposableFromBase(global.Array)<T> {
                 [index: number]: T;
+
+                length: number;
+                private _length: number;
+
+                /** Clears the array and returns it. */
+                clear() { this.length = 0; return this; }
+
                 private static [constructor](factory: typeof Array) {
+                    if (!ES6) // (if 'class' syntax is not supported then the 'length' property will not behave like an normal array so try to polyfill this somewhat)
+                        global.Object.defineProperty(Array, "length", {
+                            get: function (this: IArray) { return this._length; },
+                            set: function (this: IArray, v: number) { this._length = +v || 0; global.Array.prototype.splice(this._length); }
+                        });
+
                     factory.init = (o, isnew, ...items) => {
+                        if (!ES6) o._length = 0;
                         try {
                             o.push.apply(o, items); // (note: argument limit using this method: http://stackoverflow.com/a/9650855/1236397)
                         } catch (e) {
@@ -327,10 +341,11 @@ namespace CoreXT {
                     };
                 }
             }
-            Array.register(System);
+
+            Array.$__register(System);
         }
 
-        export interface IArray<T> extends Array.$__type<T> { }
+        export interface IArray<T=any> extends Array.$__type<T> { }
 
         // =======================================================================================================================
 

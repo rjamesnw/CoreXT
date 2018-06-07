@@ -10,7 +10,7 @@ var CoreXT;
          */
         var Markup;
         (function (Markup) {
-            CoreXT.registerNamespace("CoreXT", "System", "Markup");
+            CoreXT.namespace(function () { return CoreXT.System.Markup; });
             // ========================================================================================================================
             var HTMLReaderModes;
             (function (HTMLReaderModes) {
@@ -32,10 +32,24 @@ var CoreXT;
               * Performance note: Since HTML can be large, it's not efficient to scan the HTML character by character. Instead, the HTML reader uses the native
               * RegEx engine to split up the HTML into chunks of delimiter text, which makes reading it much faster.
               */
-            Markup.HTMLReader = CoreXT.ClassFactory(Markup, System.Object, function (base) {
-                var HTMLReader = /** @class */ (function (_super) {
-                    __extends(HTMLReader, _super);
-                    function HTMLReader() {
+            var HTMLReader = /** @class */ (function (_super) {
+                __extends(HTMLReader, _super);
+                function HTMLReader() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                /**
+                     * Create a new HTMLReader instance to parse the given HTML text.
+                     * @param html The HTML text to parse.
+                     */
+                HTMLReader['new'] = function (html) { return null; };
+                HTMLReader.init = function (o, isnew, html) { };
+                return HTMLReader;
+            }(CoreXT.FactoryBase(System.Object)));
+            Markup.HTMLReader = HTMLReader;
+            (function (HTMLReader) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
                         // -------------------------------------------------------------------------------------------------------------------
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         // (The RegEx above will identify areas that MAY need to delimited for parsing [not a guarantee].  The area outside of the delimiters is usually
@@ -71,45 +85,44 @@ var CoreXT;
                         */
                         _this.strictMode = true;
                         return _this;
-                        // -------------------------------------------------------------------------------------------------------------------
                     }
                     /** Returns true if tag current tag block is a mark-up declaration in the form "<!...>", where '...' is any text EXCEPT the start of a comment ('--'). */
-                    HTMLReader.prototype.isMarkupDeclaration = function () {
+                    $__type.prototype.isMarkupDeclaration = function () {
                         return this.readMode == Markup.HTMLReaderModes.Tag
                             && this.tagName.length >= 4 && this.tagName.charAt(0) == '!' && this.tagName.charAt(1) != '-';
                         //(spec reference and info on dashes: http://weblog.200ok.com.au/2008/01/dashing-into-trouble-why-html-comments.html)
                     };
                     /** Returns true if tag current tag block is a mark-up declaration representing a comment block in the form "<!--...-->", where '...' is any text. */
-                    HTMLReader.prototype.isCommentBlock = function () {
+                    $__type.prototype.isCommentBlock = function () {
                         return this.readMode == Markup.HTMLReaderModes.Tag
                             && this.tagName.length >= 7 && this.tagName.charAt(0) == '!' && this.tagName.charAt(1) == '-';
                         ///^!--.*-->$/.test(...) (see http://jsperf.com/test-regex-vs-charat)
                         //(spec reference and info on dashes: http://weblog.200ok.com.au/2008/01/dashing-into-trouble-why-html-comments.html)
                     };
                     /** Return true if the current tag block represents a script. */
-                    HTMLReader.prototype.isScriptBlock = function () {
+                    $__type.prototype.isScriptBlock = function () {
                         return this.readMode == Markup.HTMLReaderModes.Tag
                             && this.tagName.length >= 6 && this.tagName.charAt(0) == 's' && this.tagName.charAt(1) == 'c' && this.tagName.charAt(this.tagName.length - 1) == '>';
                         // (tag is taken from pre - matched names, so no need to match the whole name)
                     };
                     /** Return true if the current tag block represents a style. */
-                    HTMLReader.prototype.isStyleBlock = function () {
+                    $__type.prototype.isStyleBlock = function () {
                         return this.readMode == Markup.HTMLReaderModes.Tag
                             && this.tagName.length >= 5 && this.tagName.charAt(0) == 's' && this.tagName.charAt(1) == 't' && this.tagName.charAt(this.tagName.length - 1) == '>';
                         // (tag is taken from pre-matched names, so no need to match the whole name)
                     };
                     /** Returns true if the current position is a tag closure (i.e. '</', or '/>' [self-closing allowed for non-nestable tags]). */
-                    HTMLReader.prototype.isClosingTag = function () {
+                    $__type.prototype.isClosingTag = function () {
                         return this.readMode == Markup.HTMLReaderModes.Tag && this.tagBracket == '</' || this.readMode == Markup.HTMLReaderModes.EndOfTag && this.delimiter == '/>';
                         // (match "<tag/>" [no inner html/text] and "</tag> [end of inner html/text])
                     };
                     /** Returns true if the current delimiter represents a template token in the form '{{....}}'. */
-                    HTMLReader.prototype.isTempalteToken = function () {
+                    $__type.prototype.isTempalteToken = function () {
                         return this.delimiter.length > 2 && this.delimiter.charAt(0) == '{' && this.delimiter.charAt(1) == '{';
                     };
                     // ----------------------------------------------------------------------------------------------------------------
-                    HTMLReader.prototype.getHTML = function () { return this.html; };
-                    HTMLReader.prototype.__readNext = function () {
+                    $__type.prototype.getHTML = function () { return this.html; };
+                    $__type.prototype.__readNext = function () {
                         if (this.partIndex >= this.nonDelimiters.length) {
                             if (this.readMode != Markup.HTMLReaderModes.End) {
                                 this.__lastTextEndIndex = this.textEndIndex;
@@ -127,13 +140,13 @@ var CoreXT;
                             this.partIndex++;
                         }
                     };
-                    HTMLReader.prototype.__goBack = function () {
+                    $__type.prototype.__goBack = function () {
                         this.partIndex--;
                         this.textEndIndex = this.__lastTextEndIndex;
                         this.text = this.nonDelimiters[this.partIndex];
                         this.delimiter = this.partIndex < this.delimiters.length ? this.delimiters[this.partIndex] : "";
                     };
-                    HTMLReader.prototype.__reQueueDelimiter = function () {
+                    $__type.prototype.__reQueueDelimiter = function () {
                         this.partIndex--;
                         this.textEndIndex -= this.delimiter.length;
                         this.nonDelimiters[this.partIndex] = ""; // (need to make sure not to read the text next time around on this same index point [may be an attribute, which would cause a cyclical read case])
@@ -143,7 +156,7 @@ var CoreXT;
                         * @param {boolean} onlyIfTextIsEmpty If true, advances past the whitespace delimiter ONLY if the preceding text read was also empty.  This can happen
                         * if whitespace immediately follows another delimiter (such as space after a tag name).
                         */
-                    HTMLReader.prototype.__skipWhiteSpace = function (onlyIfTextIsEmpty) {
+                    $__type.prototype.__skipWhiteSpace = function (onlyIfTextIsEmpty) {
                         if (onlyIfTextIsEmpty === void 0) { onlyIfTextIsEmpty = false; }
                         if (this.readMode != Markup.HTMLReaderModes.End
                             && (this.delimiter.length == 0 || this.delimiter.charCodeAt(0) <= 32)
@@ -154,13 +167,13 @@ var CoreXT;
                         else
                             return false;
                     };
-                    HTMLReader.prototype.throwError = function (msg) {
+                    $__type.prototype.throwError = function (msg) {
                         this.__readNext(); // (includes the delimiter and next text in the running text)
                         throw System.Exception.from(msg + " on line " + this.getCurrentLineNumber() + ": <br/>\r\n" + this.getCurrentRunningText());
                     };
                     // -------------------------------------------------------------------------------------------------------------------
                     /** Reads the next tag or attribute in the underlying html. */
-                    HTMLReader.prototype.readNext = function () {
+                    $__type.prototype.readNext = function () {
                         this.textStartIndex = this.textEndIndex + this.delimiter.length;
                         this.__readNext();
                         if (this.readMode == Markup.HTMLReaderModes.Tag
@@ -241,39 +254,31 @@ var CoreXT;
                             this.tagName = "";
                     };
                     // -------------------------------------------------------------------------------------------------------------------
-                    HTMLReader.prototype.getCurrentRunningText = function () {
+                    $__type.prototype.getCurrentRunningText = function () {
                         return this.html.substring(this.textStartIndex, this.textEndIndex);
                     };
-                    HTMLReader.prototype.getCurrentLineNumber = function () {
+                    $__type.prototype.getCurrentLineNumber = function () {
                         for (var ln = 1, i = this.textEndIndex - 1; i >= 0; --i)
                             if (this.html.charCodeAt(i) == 10) // (LF at the very least; see https://en.wikipedia.org/wiki/Newline#Representations)
                                 ++ln;
                         return ln;
                     };
-                    HTMLReader.__splitRegEx = /<!(?:--[\S\s]*?--)?[\S\s]*?>|<script\b[\S\s]*?<\/script[\S\s]*?>|<style\b[\S\s]*?<\/style[\S\s]*?>|<\![A-Z0-9]+|<\/[A-Z0-9]+|<[A-Z0-9]+|\/?>|&[A-Z]+;?|&#[0-9]+;?|&#x[A-F0-9]+;?|(?:'[^<>]*?'|"[^<>]*?")|=|\s+|\{\{[^\{\}]*?\}\}/gi;
-                    HTMLReader['HTMLReaderFactory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        /**
-                             * Create a new HTMLReader instance to parse the given HTML text.
-                             * @param html The HTML text to parse.
-                             */
-                        Factory['new'] = function (html) { return null; };
-                        Factory.init = function (o, isnew, html) {
-                            this.super.init(o, isnew);
+                    // -------------------------------------------------------------------------------------------------------------------
+                    $__type[CoreXT.constructor] = function (factory) {
+                        factory.init = function (o, isnew, html) {
+                            factory.super.init(o, isnew);
                             // ... using RegEx allows the native browser system to split up the HTML text into parts that can be consumed more quickly ...
                             o.html = html;
-                            o.delimiters = html.match(HTMLReader.__splitRegEx); // (get delimiters [inverse of 'split()'])
-                            o.nonDelimiters = o.html.split(HTMLReader.__splitRegEx, void 0, o.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
+                            o.delimiters = html.match($__type.__splitRegEx); // (get delimiters [inverse of 'split()'])
+                            o.nonDelimiters = o.html.split($__type.__splitRegEx, void 0, o.delimiters); // (get text parts [inverse of 'match()']; last argument is ignored on newer systems [see related polyfill in CoreXT.Browser])
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase(HTMLReader, base['ObjectFactory'])));
-                    return HTMLReader;
-                }(base));
-                return [HTMLReader, HTMLReader["HTMLReaderFactory"]];
-            }, "HTMLReader");
+                    };
+                    $__type.__splitRegEx = /<!(?:--[\S\s]*?--)?[\S\s]*?>|<script\b[\S\s]*?<\/script[\S\s]*?>|<style\b[\S\s]*?<\/style[\S\s]*?>|<\![A-Z0-9]+|<\/[A-Z0-9]+|<[A-Z0-9]+|\/?>|&[A-Z]+;?|&#[0-9]+;?|&#x[A-F0-9]+;?|(?:'[^<>]*?'|"[^<>]*?")|=|\s+|\{\{[^\{\}]*?\}\}/gi;
+                    return $__type;
+                }(CoreXT.FactoryType(System.Object)));
+                HTMLReader.$__type = $__type;
+                HTMLReader.$__register(Markup);
+            })(HTMLReader = Markup.HTMLReader || (Markup.HTMLReader = {}));
             // ========================================================================================================================
         })(Markup = System.Markup || (System.Markup = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));

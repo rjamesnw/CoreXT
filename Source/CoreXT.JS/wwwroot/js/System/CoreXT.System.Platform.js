@@ -7,7 +7,7 @@ var CoreXT;
     (function (System) {
         var Platform;
         (function (Platform) {
-            CoreXT.registerNamespace("CoreXT", "System", "Platform");
+            CoreXT.namespace(function () { return CoreXT.System.Platform; });
             // =======================================================================================================================
             // Note: CoreXT.Environments contains the default supported target environments (platforms).
             var Contexts;
@@ -34,41 +34,44 @@ var CoreXT;
              * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
              * workers.  As well, on the client side, workers can be used to simulate server side communication during development.
              */
-            Platform.Context = CoreXT.ClassFactory(Platform, System.Object, function (base) {
-                var Context = /** @class */ (function (_super) {
-                    __extends(Context, _super);
-                    function Context() {
+            var Context = /** @class */ (function (_super) {
+                __extends(Context, _super);
+                function Context() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                /** Abstract: Cannot create instances of this abstract class. */
+                Context['new'] = function () {
+                    throw System.Exception.from("You cannot create instances of the abstract Context class.", this);
+                };
+                Context.init = function (o, isnew, context) {
+                    if (context === void 0) { context = Contexts.Secure; }
+                    this.super.init(o, isnew);
+                    o['_contextType'] = context;
+                };
+                return Context;
+            }(CoreXT.FactoryBase(System.Object)));
+            Platform.Context = Context;
+            (function (Context) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         _this.x = 1;
                         return _this;
-                        // --------------------------------------------------------------------------------------------------------------------
                     }
-                    // ----------------------------------------------------------------------------------------------------------------
                     /** Load a resource (usually a script or page) into this context. */
-                    Context.prototype.load = function (url) {
+                    $__type.prototype.load = function (url) {
                         throw System.Exception.notImplemented("load", this, "Try the default BrowserContext type instead.");
                     };
-                    // ----------------------------------------------------------------------------------------------------------------
-                    Context['ContextFactory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        /** Abstract: Cannot create instances of this abstract class. */
-                        Factory['new'] = function () {
-                            throw System.Exception.from("You cannot create instances of the abstract Context class.", this);
-                        };
-                        Factory.init = function (o, isnew, context) {
-                            if (context === void 0) { context = Contexts.Secure; }
-                            this.super.init(o, isnew);
-                            o['_contextType'] = context;
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase(Context, base['ObjectFactory'])));
-                    return Context;
-                }(base));
-                return [Context, Context["ContextFactory"]];
-            });
+                    $__type[CoreXT.constructor] = function (factory) {
+                        //factory.init = (o, isnew) => {
+                        //};
+                    };
+                    return $__type;
+                }(CoreXT.FactoryType(System.Object)));
+                Context.$__type = $__type;
+                Context.$__register(Platform);
+            })(Context = Platform.Context || (Platform.Context = {}));
             // ========================================================================================================================
             /**
               * Where the Application object represents the base application properties for an AppDomain instance, the UIApplication
@@ -80,29 +83,41 @@ var CoreXT;
               * logins, private information, etc.
               * Note: While script isolation is the default, trusted scripts can run in the system context, and are thus not secured.
               */
-            Platform.UIApplication = CoreXT.ClassFactory(Platform, System.Application, function (base) {
-                var UIApplication = /** @class */ (function (_super) {
-                    __extends(UIApplication, _super);
-                    function UIApplication() {
+            var UIApplication = /** @class */ (function (_super) {
+                __extends(UIApplication, _super);
+                function UIApplication() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                UIApplication['new'] = function (title, appID) { return null; };
+                UIApplication.init = function (o, isnew, title, description, appID) {
+                    this.super.init(o, isnew, title, description, appID);
+                };
+                return UIApplication;
+            }(CoreXT.FactoryBase(System.Application)));
+            Platform.UIApplication = UIApplication;
+            (function (UIApplication) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         _this._windows = []; // (a list of windows owned by this application [there is always one entry, which is the application's own window]; note: Windows are also stored in a master window list in the system [where they are created first])
                         return _this;
-                        // ----------------------------------------------------------------------------------------------------------------
                     }
-                    Object.defineProperty(UIApplication.prototype, "global", {
+                    Object.defineProperty($__type.prototype, "global", {
                         /** Returns the global context reference for the nested application. Each application gets their own virtual global scope. */
                         get: function () { return null; },
                         enumerable: true,
                         configurable: true
                     });
-                    UIApplication.prototype._onAddToAppDomain = function (appDomain) {
+                    // -------------------------------------------------------------------------------------------------------------------
+                    $__type.prototype._onAddToAppDomain = function (appDomain) {
                         for (var i = 0; i < appDomain.applications.length; i++)
                             if (appDomain.applications[i]._RootGraphNode == this._RootGraphNode)
                                 throw "Cannot add application '" + this.title + "' as another application exists with the same target element.  Two applications cannot render to the same target.";
                     };
                     // ----------------------------------------------------------------------------------------------------------------
                     /** Disposes this UIApplication instance. */
-                    UIApplication.prototype.dispose = function (release) {
+                    $__type.prototype.dispose = function (release) {
                         // ... close all windows ([0] should always be the main application window, which will close last) ...
                         for (var i = this._windows.length - 1; i >= 0; --i)
                             if (this._windows[i].target != CoreXT.global)
@@ -127,7 +142,7 @@ var CoreXT;
                       * @param {{}} parentModule The parent module or scope in which the type exists.
                       * @param {{}} parentModule The parent module or scope in which the type exists.
                       */
-                    UIApplication.prototype.attachObject = function (object) {
+                    $__type.prototype.attachObject = function (object) {
                         if (!type.$__parent || !type.$__name || !type.$__fullname)
                             throw System.Exception.error("with()", "The specified type '" + type.$__name + "' has not yet been registered properly using 'AppDomain.registerType()/.registerClass()'.", type);
                         var type = object.constructor;
@@ -156,24 +171,18 @@ var CoreXT;
                     //}
                     // ----------------------------------------------------------------------------------------------------------------
                     /** Try to bring the window for this application to the front. */
-                    UIApplication.prototype.focus = function () {
+                    $__type.prototype.focus = function () {
                     };
-                    // -------------------------------------------------------------------------------------------------------------------
-                    UIApplication['$UIApplication Factory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory['new'] = function (title, appID) { return null; };
-                        Factory.init = function (o, isnew, title, description, appID) {
-                            this.super.init(o, isnew, title, description, appID);
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase(UIApplication, base['ApplicationFactory'])));
-                    return UIApplication;
-                }(base));
-                return [UIApplication, UIApplication["UIApplicationFactory"]];
-            });
+                    // ----------------------------------------------------------------------------------------------------------------
+                    $__type[CoreXT.constructor] = function (factory) {
+                        //factory.init = (o, isnew) => {
+                        //};
+                    };
+                    return $__type;
+                }(CoreXT.FactoryType(System.Application)));
+                UIApplication.$__type = $__type;
+                UIApplication.$__register(Platform);
+            })(UIApplication = Platform.UIApplication || (Platform.UIApplication = {}));
             // ====================================================================================================================
         })(Platform = System.Platform || (System.Platform = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));

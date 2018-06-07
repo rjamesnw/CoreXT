@@ -11,7 +11,7 @@ var CoreXT;
             (function (HTML) {
                 var Application;
                 (function (Application) {
-                    CoreXT.registerNamespace("CoreXT", "System", "Platform", "HTML", "Application");
+                    CoreXT.namespace(function () { return CoreXT.System.Platform.HTML.Application; });
                     // ========================================================================================================================
                     //export var HTMLApplication = ClassFactory(Application, UIApplication,
                     //    (base) => {
@@ -24,13 +24,30 @@ var CoreXT;
                     //export interface IHTMLApplication extends InstanceType<typeof HTMLApplication.$__type> { }
                     // ========================================================================================================================
                     /** An ApplicationElement object is the root object of the graph tree that relates one UIApplication instance. */
-                    Application.ApplicationElement = CoreXT.ClassFactory(Application, HTML.HTMLElement, function (base) {
-                        var ApplicationElement = /** @class */ (function (_super) {
-                            __extends(ApplicationElement, _super);
-                            function ApplicationElement() {
+                    var ApplicationElement = /** @class */ (function (_super) {
+                        __extends(ApplicationElement, _super);
+                        function ApplicationElement() {
+                            return _super !== null && _super.apply(this, arguments) || this;
+                        }
+                        ApplicationElement['new'] = function (title, description, targetElement) {
+                            if (targetElement === void 0) { targetElement = null; }
+                            return null;
+                        };
+                        ApplicationElement.init = function (o, isnew, title, description, targetElement) {
+                            if (targetElement === void 0) { targetElement = null; }
+                        };
+                        ApplicationElement.Title = Platform.GraphNode.registerProperty(ApplicationElement, "title", true);
+                        ApplicationElement.Description = Platform.GraphNode.registerProperty(ApplicationElement, "description", true);
+                        ApplicationElement.Version = Platform.GraphNode.registerProperty(ApplicationElement, "version", true);
+                        return ApplicationElement;
+                    }(CoreXT.FactoryBase(HTML.HTMLElement)));
+                    Application.ApplicationElement = ApplicationElement;
+                    (function (ApplicationElement) {
+                        var $__type = /** @class */ (function (_super) {
+                            __extends($__type, _super);
+                            function $__type() {
                                 // --------------------------------------------------------------------------------------------------------------------
                                 var _this = _super !== null && _super.apply(this, arguments) || this;
-                                // --------------------------------------------------------------------------------------------------------------------
                                 /** A title for the application (required). */
                                 _this.title = Platform.GraphNode.accessor(ApplicationElement.Title);
                                 /** A short application description (optional). */
@@ -43,19 +60,18 @@ var CoreXT;
                                 */
                                 _this.dataTemplates = {};
                                 return _this;
-                                // --------------------------------------------------------------------------------------------------------------------
                             }
-                            ApplicationElement.prototype.getTargetElement = function () { return this.targetElement; };
-                            // -------------------------------------------------------------------------------------------------------------------------------
+                            $__type.prototype.getTargetElement = function () { return this._targetElement; };
+                            // --------------------------------------------------------------------------------------------------------------------
                             /** This generates/updates the HTML elements required to display the application. */
-                            ApplicationElement.prototype.updateLayout = function (recursive) {
+                            $__type.prototype.updateLayout = function (recursive) {
                                 if (recursive === void 0) { recursive = true; }
                                 var log = CoreXT.isDebugging() ? System.Diagnostics.log(ApplicationElement, "Application is updating its layout ...").beginCapture() : null;
                                 _super.prototype.updateLayout.call(this, recursive);
                                 if (this.__element != null) {
-                                    var node = this.targetElement.firstChild;
+                                    var node = this._targetElement.firstChild;
                                     if (node == null || !node['replaceNode'])
-                                        this.targetElement.appendChild(this.__element);
+                                        this._targetElement.appendChild(this.__element);
                                     else
                                         node['replaceNode'](this.__element);
                                 }
@@ -68,7 +84,7 @@ var CoreXT;
                             * If 'CoreXT.isServer()' returns true, then you should call 'parseTemplate()'
                             * @param {HTMLElement} element HTML root element to traverse.
                             */
-                            ApplicationElement.prototype.applyTemplate = function (element) {
+                            $__type.prototype.applyTemplate = function (element) {
                                 // ... 'element' is the application root ...
                             };
                             /** Parses HTML text to build the visual graph tree.
@@ -79,7 +95,7 @@ var CoreXT;
                             * HTML for UI DESIGN ONLY.  Expect that any code you place in the HTML will not execute server side. "Business" logic should always be in your script
                             * files and NOT inline within the HTML.
                             */
-                            ApplicationElement.prototype.parseTemplate = function (html) {
+                            $__type.prototype.parseTemplate = function (html) {
                                 if (html === void 0) { html = null; }
                                 var log = System.Diagnostics.log(ApplicationElement, "Parsing application HTML template ...").beginCapture();
                                 if (!html)
@@ -104,7 +120,7 @@ var CoreXT;
                             * @param {boolean} fallbackToDOM If true (the default), then the HTML template will be extracted from the currently loaded DOM as a fallback (i.e. if the
                             * URI is invalid, or access fails due to a sudden connection failure).
                             */
-                            ApplicationElement.prototype.loadTemplate = function (htmlFileURI, fallbackToDOM) {
+                            $__type.prototype.loadTemplate = function (htmlFileURI, fallbackToDOM) {
                                 if (fallbackToDOM === void 0) { fallbackToDOM = true; }
                                 var contents = null;
                                 var log = System.Diagnostics.log("Application.loadTemplate()", "Loading template from '" + htmlFileURI + "' ...").beginCapture();
@@ -152,7 +168,7 @@ var CoreXT;
                             };
                             // --------------------------------------------------------------------------------------------------------------------
                             /** Returns a template with the specified ID.  Returns null if nothing was found. */
-                            ApplicationElement.prototype.getDataTemplate = function (id) {
+                            $__type.prototype.getDataTemplate = function (id) {
                                 return this.dataTemplates && this.dataTemplates[id] || null;
                             };
                             // --------------------------------------------------------------------------------------------------------------------
@@ -161,37 +177,26 @@ var CoreXT;
                             * JavaScript 1.7 implements the 'JSON.stringify()' function to convert values into the JSON format.  The implementation looks for a 'toJSON()'
                             * function on an object and calls it if found.
                             */
-                            ApplicationElement.prototype.toJSON = function () {
+                            $__type.prototype.toJSON = function () {
                                 return null;
                             };
-                            ApplicationElement.Title = Platform.GraphNode.registerProperty(ApplicationElement, "title", true);
-                            ApplicationElement.Description = Platform.GraphNode.registerProperty(ApplicationElement, "description", true);
-                            ApplicationElement.Version = Platform.GraphNode.registerProperty(ApplicationElement, "version", true);
                             // --------------------------------------------------------------------------------------------------------------------
-                            ApplicationElement['ApplicationElementFactory'] = /** @class */ (function (_super) {
-                                __extends(Factory, _super);
-                                function Factory() {
-                                    return _super !== null && _super.apply(this, arguments) || this;
-                                }
-                                Factory['new'] = function (title, description, targetElement) {
+                            $__type[CoreXT.constructor] = function (factory) {
+                                factory.init = function (o, isnew, title, description, targetElement) {
                                     if (targetElement === void 0) { targetElement = null; }
-                                    return null;
-                                };
-                                Factory.init = function (o, isnew, title, description, targetElement) {
-                                    if (targetElement === void 0) { targetElement = null; }
-                                    this.super.init(o, isnew, null);
+                                    factory.super.init(o, isnew, null);
                                     if (typeof title == "undefined" || "" + title == "")
                                         throw "An application title is required.";
                                     o.title(title);
                                     o.description(description);
-                                    o.targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
+                                    o._targetElement = targetElement || document.getElementsByTagName("body")[0] || null;
                                 };
-                                return Factory;
-                            }(CoreXT.FactoryBase(ApplicationElement, base['HTMLElementFactory'])));
-                            return ApplicationElement;
-                        }(base));
-                        return [ApplicationElement, ApplicationElement["ApplicationElementFactory"]];
-                    }, "ApplicationElement");
+                            };
+                            return $__type;
+                        }(CoreXT.FactoryType(HTML.HTMLElement)));
+                        ApplicationElement.$__type = $__type;
+                        ApplicationElement.$__register(Application);
+                    })(ApplicationElement = Application.ApplicationElement || (Application.ApplicationElement = {}));
                     // ========================================================================================================================
                 })(Application = HTML.Application || (HTML.Application = {}));
             })(HTML = Platform.HTML || (Platform.HTML = {}));

@@ -51,6 +51,17 @@ var CoreXT;
     /** Returns true if CoreXT is running in debug mode. */
     function isDebugging() { return CoreXT.debugMode != DebugModes.Release; }
     CoreXT.isDebugging = isDebugging;
+    /** Returns the name of a namespace or variable reference at runtime. */
+    function nameof(selector, fullname) {
+        if (fullname === void 0) { fullname = false; }
+        var s = '' + selector;
+        //var m = s.match(/return\s*([A-Z.]+)/i) || s.match(/=>\s*{?\s*([A-Z.]+)/i) || s.match(/function.*?{\s*([A-Z.]+)/i);
+        var m = s.match(/return\s+([A-Z$_.]+)/i) || s.match(/.*?(?:=>|function.*?{(?!\s*return))\s*([A-Z.]+)/i);
+        var name = m && m[1] || "";
+        return fullname ? name : name.split('.').reverse()[0];
+    }
+    CoreXT.nameof = nameof;
+    CoreXT.constructor = Symbol("static constructor");
 })(CoreXT || (CoreXT = {}));
 // =======================================================================================================================
 /** The "fake" host object is only used when there is no .NET host wrapper integration available.
@@ -155,7 +166,7 @@ var scriptsBaseURL;
                 d[p] = b[p]; };
     /** Extends from a base type by chaining a derived type's 'prototype' to the base type's prototype.
     * This method takes into account any preset properties that may exist on the derived type's prototype.
-    * Note: Extending an already extended derived type will recreate the prototype connection again using a new prototype instance poing to the given base type.
+    * Note: Extending an already extended derived type will recreate the prototype connection again using a new prototype instance pointing to the given base type.
     * Note: It is not possible to modify any existing chain of constructor calls.  Only the prototype can be changed.
     * @param {Function} derivedType The derived type (function) that will extend from a base type.
     * @param {Function} baseType The base type (function) to extend to the derived type.
@@ -871,30 +882,44 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
         //x export function __registerFactoryType<TClass extends IType<object>, TFactory extends IFactory<object>>(type: TClass, factoryType: new () => TFactory, parentModules: object[], addMemberTypeInfo = true): TClass & TFactory {
         /**
          * Called to register factory types for a class (see also 'Types.__registerType()' for non-factory supported types).
+         * This method should be called AFTER a factory type is fully defined.
          *
          * @param {IType} factoryType The factory type to associate with the type.
          * @param {modules} namespace A list of all namespaces up to the current type, usually starting with 'CoreXT' as the first namespace.
          * @param {boolean} addMemberTypeInfo If true (default), all member functions on the type (function object) will have type information
          * applied (using the IFunctionInfo interface).
         */
-        function __registerFactoryType(cls, factoryType, namespace, addMemberTypeInfo, exportName) {
+        function __registerFactoryType(factoryType, namespace, addMemberTypeInfo) {
             if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
+            var classType = factoryType.$__type;
+            var factoryTypeInfo = factoryType;
             if (typeof factoryType !== 'function')
-                error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
-            var classType = cls;
-            if (typeof classType !== 'function')
-                error("__registerFactoryType()", "The 'factoryType.$__type' property is not a valid constructor function.", classType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
-            var _exportName = exportName || getTypeName(cls);
-            if (_exportName.charAt(0) == '$')
-                _exportName = _exportName.substr(1); // TODO: May not need to do this anymore.
-            namespace[_exportName] = factoryType; // (usually the name will be set upon return from this function, but the type registration system will need it NOW, so just set it)
-            classType.$__parent = factoryType; // (it is never valid to traverse a parent chain from a class up to parent namespaces since the class is not expose but only the factory - so link the class only to the factory)
-            classType.$__type = classType; // (the class type AND factory type should both have a reference to the underlying type)
-            classType.$__factoryType = factoryType; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
-            classType.$__baseFactoryType = factoryType.$__baseFactoryType;
-            classType.$__name = _exportName;
-            // ... if no 'init()' function is specified, just call the base by default ... 
-            //x if (!Object.prototype.hasOwnProperty.call(factoryType, "init") || typeof factoryType.init == 'undefined' || factoryType.init == null) {
+                error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+            if (typeof namespace == 'object' || typeof namespace == 'function') {
+                if (!namespace.$__fullname)
+                    error("__registerFactoryType()", "The specified namespace given for factory type '" + getFullTypeName(factoryType) + "' is not registered. Please call 'namespace()' to register it first (before the factory is defined).", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+            }
+            if (typeof classType == 'undefined')
+                error("__registerFactoryType()", "Factory instance type '" + getFullTypeName(factoryType) + ".$__type' is not defined.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+            if (typeof classType != 'function')
+                error("__registerFactoryType()", "'" + getFullTypeName(factoryType) + ".$__type' is not a valid constructor function.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
+            // ... register type information first BEFORER we call any static constructor (so it is available to the user)s ...
+            var registeredFactory = __registerType(factoryType, namespace, addMemberTypeInfo);
+            //x factoryTypeInfo.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
+            //x classType.$__type = <any>classType; // (the class type AND factory type should both have a reference to the underlying type)
+            classType.$__factoryType = factoryTypeInfo; // (a properly registered class that supports the factory pattern should have a reference to its underlying factory type)
+            classType.$__baseFactoryType = factoryTypeInfo.$__baseFactoryType;
+            var registeredFactoryType = __registerType(classType, factoryType, addMemberTypeInfo);
+            //x .. finally, update the class static properties also with the values set on the factory from the previous line (to be thorough) ...
+            //x classType.$__fullname = factoryTypeInfo.$__fullname + "." + classType.$__name; // (the '$__fullname' property on a class should allow absolute reference back to it [note: '__proto__' could work here also due to static inheritance])
+            // ... if the user supplied a static constructor then call it now before we do anything more ...
+            // (note: the static constructor may be where 'new' and 'init' factory functions are provided, so we MUST call them first before we hook into anything)
+            if (typeof factoryType[CoreXT.constructor] == 'function')
+                factoryType[CoreXT.constructor].call(classType);
+            if (typeof classType[CoreXT.constructor] == 'function')
+                classType[CoreXT.constructor](factoryType);
+            // ... hook into the 'init' and 'new' factory methods ...
+            // (note: if no 'init()' function is specified, just call the base by default)
             if (classType.init)
                 error(getFullTypeName(classType), "You cannot create a static 'init' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
             var originalInit = typeof factoryType.init == 'function' ? factoryType.init : null; // (take user defined, else set to null)
@@ -906,10 +931,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 // TODO: Once parsing of function parameters are in place we can detect this, but for now require it)
                 factoryType.init = originalInit; // (everything is ok here, so bypass this check next time)
             };
-            //x }
-            //x if (!Object.prototype.hasOwnProperty.call(factoryType, "new") || typeof factoryType.new == 'undefined' || factoryType.new == null) {
-            if (classType.new)
-                error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
+            //x if (classType.new)
+            //x     error(getFullTypeName(classType), "You cannot create a static 'new' function directly on a class that implements the factory pattern (which could also create inheritance problems).");
             var originalNew = typeof factoryType.new == 'function' ? factoryType.new : null; // (take user defined, else set to null)
             if (!originalNew)
                 factoryType.new = __new; // ('new' is missing, so just use the default handler)
@@ -928,27 +951,9 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     factoryType.new = originalNew;
                     return result;
                 };
-            //x }
-            //x else if (!classType.new || typeof classType.new != 'function') // (normally the default 'new' function should exist behind the scenes on the base Object type)
-            //x    classType.new = () => {
-            //x        throw "Invalid operation: no valid 'new()' function was found on type '" + getFullTypeName(classType, false) + "'. This exists on the DomainObject base type, and is required.";
-            //x    }
-            //x if ('__register' in _factoryType)
-            //x     _factoryType['__register'] == noop;
-            var registeredFactory = __registerType(cls, namespace, addMemberTypeInfo, exportName);
-            // .. finally, update the class static properties also with the values set on the factory from the previous line (to be thorough) ...
-            classType.$__fullname = factoryType.$__fullname + ".$__type"; // (the '$__fullname' property on a class should allow absolute reference back to it [note: '__proto__' could work here also due to static inheritance])
             return factoryType;
         }
         Types.__registerFactoryType = __registerFactoryType;
-        //x /** Registers a given type by name (constructor function), and creates the function on the last specified module if it doesn't already exist.
-        //x * @param {Function} type The type (constructor function) to register.
-        //x * @param {modules} parentModules A list of all modules up to the current type, usually starting with 'CoreXT' as the first module.
-        //x * @param {boolean} addMemberTypeInfo If true (default), all member functions of any existing type (function object) will have type information
-        //x * applied (using the IFunctionInfo interface).
-        //x */
-        //x static registerType<T extends (...args)=>any>(type: string, parentModules: {}[], addMemberTypeInfo?: boolean): T;
-        //x static registerType(type: Function, parentModules: {}[], addMemberTypeInfo?: boolean): ITypeInfo;
         /**
          * Registers a given type (constructor function) in a specified namespace and builds some relational type properties.
          *
@@ -960,13 +965,13 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
          * @param {boolean} exportName (optional) The name exported from the namespace for this type. By default the type (class) name is assumed.
          * If the name exported from the namespace is different, specify it here.
          */
-        function __registerType(type, namespace, addMemberTypeInfo, exportName) {
+        function __registerType(type, parentTypeOrNS, addMemberTypeInfo) {
             if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
-            var _namespace = namespace;
-            if (_namespace.$__fullname === void 0)
-                error("Types.__registerType()", "The specified namespace '" + getTypeName(namespace) + "' is not registered.  Please make sure to call 'registerNamespace()' first at the top of namespace scopes before classes are defined.", type);
+            var _namespace = parentTypeOrNS;
+            if (!_namespace.$__fullname)
+                error("Types.__registerType()", "The specified namespace '" + getTypeName(parentTypeOrNS) + "' is not registered.  Please make sure to call 'namespace()' first at the top of namespace scopes before factories and types are defined.", type);
             // ... register the type with the parent namespace ...
-            var _type = __registerNamespace(namespace, exportName || getTypeName(type));
+            var _type = __registerNamespace(parentTypeOrNS, getTypeName(type));
             // ... scan the type's prototype functions and update the type information (only function names at this time) ...
             // TODO: Consider parsing the function parameters as well and add this information for developers.
             if (addMemberTypeInfo) {
@@ -1169,82 +1174,114 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
         return cls;
     }
     CoreXT.DisposableFromBase = DisposableFromBase;
-    /** Constructs factory objects. */
-    function ClassFactory(namespace, base, getType, exportName, addMemberTypeInfo) {
-        if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
-        function _error(msg) {
-            error("ClassFactory()", msg, namespace);
-        }
-        if (!getType)
-            _error("A 'getType' selector function is required.");
-        if (!namespace)
-            _error("A 'namespace' value is required.");
-        var types = getType(base && base.$__type || base); // ('$__type' is essentially the same reference as base, but with the original type)
-        var cls = types[0];
-        var factory = types[1];
-        if (!cls)
-            _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class instance, which is required.");
-        if (typeof cls != 'function')
-            _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class (function) type object, which is required.");
-        var name = exportName || getTypeName(cls);
-        if (name.charAt(0) == '$')
-            name = name.substr(1); // TODO: May not need to do this anymore.
-        if (!factory)
-            log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
-        return Types.__registerFactoryType(cls, factory, namespace, addMemberTypeInfo, exportName);
+    ///** 
+    // * Registers a type in the CoreXT system and associates a type with a parent type or namespace. 
+    // * This decorator is also responsible for calling the static '[constructor]()' function on a type, if one exists.
+    // * Usage: 
+    // *      @factory(ForSomeNamespace)
+    // *      class MyFactory {
+    // *          static 'new': (...args:any[]) => IMyFactory;
+    // *          static init: (o: IMyFactory, isnew: boolean, ...args: any[]) => void;
+    // *      }
+    // *      namespace MyFactory {
+    // *          @factoryInstance(MyFactory)
+    // *          export class $__type {
+    // *              private static [constructor](factory: typeof MyFactory) {
+    // *                  factory.init = (o, isnew) => { };
+    // *              }
+    // *          }
+    // *      }
+    // *      interface IMyFactory extends MyFactory.$__type {}
+    // */
+    //export function type(parentType: IType | object) {
+    //    return (cls: IType) => <any>cls; // (not used yet)
+    //}
+    ///** Constructs factory objects. */
+    //x export function ClassFactory<TBaseClass extends object, TClass extends IType, TFactory extends IFactoryTypeInfo, TNamespace extends object>
+    //    (namespace: TNamespace, base: IClassFactory & { $__type: TBaseClass }, getType: (base: TBaseClass) => [TClass, TFactory], exportName?: keyof TNamespace, addMemberTypeInfo = true)
+    //    : ClassFactoryType<TClass, TFactory> {
+    //    function _error(msg: string) {
+    //        error("ClassFactory()", msg, namespace);
+    //    }
+    //    if (!getType) _error("A 'getType' selector function is required.");
+    //    if (!namespace) _error("A 'namespace' value is required.");
+    //    var types = getType(base && base.$__type || <any>base); // ('$__type' is essentially the same reference as base, but with the original type)
+    //    var cls = types[0];
+    //    var factory = types[1];
+    //    if (!cls) _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class instance, which is required.");
+    //    if (typeof cls != 'function') _error("'getType: (base: TBaseClass) => [TClass, TFactory]' did not return a class (function) type object, which is required.");
+    //    var name = <string>exportName || getTypeName(cls);
+    //    if (name.charAt(0) == '$') name = name.substr(1); // TODO: May not need to do this anymore.
+    //    if (!factory) log("ClassFactory()", "Warning: No factory was supplied for class type '" + name + "' in namespace '" + getFullTypeName(namespace) + "'.", LogTypes.Warning, cls);
+    //    return Types.__registerFactoryType(<any>cls, <any>factory, namespace, addMemberTypeInfo, exportName);
+    //}
+    function FactoryType(baseFactory) {
+        return baseFactory.$__type;
     }
-    CoreXT.ClassFactory = ClassFactory;
-    /** Builds and returns a base type to be used with creating factory objects that extend from classes. This function stores some type information in static properties for reference. */
-    function FactoryBase(type, baseFactoryType) {
-        var _a;
-        return _a = /** @class */ (function (_super) {
-                __extends(FactoryBase, _super);
-                function FactoryBase() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                Object.defineProperty(FactoryBase, "type", {
-                    /** The underlying type. */
-                    get: function () { return this.$__type; },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(FactoryBase, "super", {
-                    /** The base factory instance. */
-                    get: function () { return this.$__baseFactoryType; },
-                    enumerable: true,
-                    configurable: true
-                });
-                /**
-                 * Releases the object back into the object pool. This is the default implementation which simply calls 'Types.dispose(this, release)'.
-                 * If overriding, make sure to call 'super.dispose()' or 'Types.dispose()' to complete the disposal process.
-                 * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
-                 *                          false to request that child objects remain connected after disposal (not released). This
-                 *                          can allow quick initialization of a group of objects, instead of having to pull each one
-                 *                          from the object pool each time.
-                 */
-                FactoryBase.prototype.dispose = function (release) { Types.dispose(this, release); };
-                return FactoryBase;
-            }(type)),
-            /** The underlying type associated with this factory type. */
-            _a.$__type = type,
-            //x /** The factory type instance for the underlying type '$__type'. */
-            //x static $__factory: IFactory;
-            /** The base factory type, if any. */
-            _a.$__baseFactoryType = baseFactoryType,
-            _a;
+    CoreXT.FactoryType = FactoryType;
+    /**
+     * Builds and returns a base type to be used with creating type factories. This function stores some type
+     * information in static properties for reference.
+     */
+    function FactoryBase(baseFactoryType) {
+        var cls = /** @class */ (function () {
+            function FactoryBase() {
+            }
+            Object.defineProperty(FactoryBase, "super", {
+                /** References the base factory. */
+                get: function () { return baseFactoryType; },
+                enumerable: true,
+                configurable: true
+            });
+            ///** 
+            // * Releases the object back into the object pool. This is the default implementation which simply calls 'Types.dispose(this, release)'.
+            // * If overriding, make sure to call 'super.dispose()' or 'Types.dispose()' to complete the disposal process.
+            // * @param {boolean} release If true (default) allows the objects to be released back into the object pool.  Set this to
+            // *                          false to request that child objects remain connected after disposal (not released). This
+            // *                          can allow quick initialization of a group of objects, instead of having to pull each one
+            // *                          from the object pool each time.
+            // */
+            //dispose(release?: boolean): void { Types.dispose(this, release); }
+            /**
+              * Called to register factory types with the internal types system (see also 'Types.__registerType()' for non-factory supported types).
+              * Any static constructors defined will also be called at this point.
+              *
+              * @param {modules} namespace The parent namespace to the current type.
+              * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
+              * applied (using the IFunctionInfo interface).
+             */
+            FactoryBase.$__register = function (namespace, addMemberTypeInfo) {
+                if (addMemberTypeInfo === void 0) { addMemberTypeInfo = true; }
+                return Types.__registerFactoryType(this, namespace, addMemberTypeInfo);
+            };
+            return FactoryBase;
+        }());
+        cls.$__baseFactoryType = baseFactoryType;
+        return cls;
     }
     CoreXT.FactoryBase = FactoryBase;
-    function registerNamespace() {
+    function namespace() {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
         }
-        var root = args[args.length - 1];
-        var lastIndex = (typeof root == 'object' ? args.length - 1 : (root = CoreXT.global, args.length));
-        Types.__registerNamespace.apply(Types, __spread([root], CoreXT.global.Array.prototype.slice.call(arguments, 0, lastIndex)));
+        if (typeof args[0] == 'function') {
+            var root = args[args.length - 1] || CoreXT.global;
+            if (typeof root != 'object' && typeof root != 'function')
+                root = CoreXT.global;
+            var items = CoreXT.nameof(args[0]).split('.');
+            if (!items.length)
+                error("namespace()", "A valid namespace path selector function was expected (i.e. '()=>First.Second.Third.Etc').");
+            Types.__registerNamespace.apply(Types, __spread([root], items));
+        }
+        else {
+            var root = args[args.length - 1];
+            var lastIndex = (typeof root == 'object' || typeof root == 'function' ? args.length - 1 : (root = CoreXT.global, args.length));
+            Types.__registerNamespace.apply(Types, __spread([root], CoreXT.global.Array.prototype.slice.call(arguments, 0, lastIndex)));
+        }
     }
-    CoreXT.registerNamespace = registerNamespace;
-    registerNamespace("CoreXT", "Types"); // ('CoreXT.Types' will become the first registered namespace)
+    CoreXT.namespace = namespace;
+    namespace("CoreXT", "Types"); // ('CoreXT.Types' will become the first registered namespace)
     /** Returns the call stack for a given error object. */
     function getErrorCallStack(errorSource) {
         var _e = errorSource;
@@ -1285,7 +1322,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
         if (typeof errorSource == 'string')
             return errorSource;
         else if (typeof errorSource == 'object') {
-            if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem) {
+            if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem.$__type) {
                 return errorSource.toString();
             }
             else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
@@ -1335,7 +1372,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
      */
     var Time;
     (function (Time) {
-        registerNamespace("CoreXT", "Time");
+        namespace("CoreXT", "Time");
         // =======================================================================================================================
         Time.__millisecondsPerSecond = 1000;
         Time.__secondsPerMinute = 60;
@@ -1358,7 +1395,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
     /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
     var System;
     (function (System) {
-        registerNamespace("CoreXT", "System");
+        namespace("CoreXT", "System");
     })(System = CoreXT.System || (CoreXT.System = {}));
     // TODO: Iron this out - we need to make sure the claim below works well, or at least the native browser cache can help with this naturally.
     /**
@@ -1369,7 +1406,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
      */
     var Loader;
     (function (Loader) {
-        registerNamespace("CoreXT", "Loader");
+        namespace("CoreXT", "Loader");
         var _onSystemLoadedHandlers = [];
         /**
          * Use this function to register a handler to be called when the core system is loaded, just before 'app.manifest.ts' gets loaded.
@@ -1518,9 +1555,26 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
          * Inheritance note: When creating via the 'new' factory method, any already existing instance with the same URL will be returned,
          * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
          */
-        Loader.ResourceRequest = ClassFactory(Loader, void 0, function (base) {
-            var ResourceRequest = /** @class */ (function () {
-                function ResourceRequest() {
+        var ResourceRequest = /** @class */ (function (_super) {
+            __extends(ResourceRequest, _super);
+            function ResourceRequest() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            /**
+             * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
+             * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+             * Each resource request instance can also have its own value set separate from the global one.
+             * Note: CoreXT has its own caching that uses the local storage, where supported.
+             */
+            ResourceRequest.cacheBusting = true;
+            /** See the 'cacheBusting' property. */
+            ResourceRequest.cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
+            return ResourceRequest;
+        }(FactoryBase()));
+        Loader.ResourceRequest = ResourceRequest;
+        (function (ResourceRequest) {
+            var $__type = /** @class */ (function () {
+                function $__type() {
                     this.$__transformedData = CoreXT.noop;
                     /** The response code from the XHR response. */
                     this.responseCode = 0; // (the response code returned)
@@ -1546,9 +1600,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     this._promiseChainIndex = 0; // (the current position in the event chain)
                     this._parentCompletedCount = 0; // (when this equals the # of 'dependents', the all parent resources have loaded [just faster than iterating over them])
                     this._paused = false;
-                    // ----------------------------------------------------------------------------------------------------------------
                 }
-                Object.defineProperty(ResourceRequest.prototype, "url", {
+                Object.defineProperty($__type.prototype, "url", {
                     get: function () {
                         if (typeof this._url == 'string' && this._url.substr(0, 2) == "~/") {
                             var _baseURL = this.type == ResourceTypes.Application_Script ? CoreXT.baseScriptsURL : CoreXT.baseURL;
@@ -1560,7 +1613,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(ResourceRequest.prototype, "transformedData", {
+                Object.defineProperty($__type.prototype, "transformedData", {
                     /** Set to data returned from callback handlers as the 'data' property value gets transformed.
                       * If no transformations were made, then the value in 'data' is returned.
                       */
@@ -1570,7 +1623,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     enumerable: true,
                     configurable: true
                 });
-                Object.defineProperty(ResourceRequest.prototype, "message", {
+                Object.defineProperty($__type.prototype, "message", {
                     /**
                      * A progress/error message related to the status (may not be the same as the response message).
                      * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
@@ -1589,18 +1642,18 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     enumerable: true,
                     configurable: true
                 });
-                ResourceRequest.prototype._queueDoNext = function (data) {
+                $__type.prototype._queueDoNext = function (data) {
                     var _this = this;
                     setTimeout(function () {
                         // ... before this, fire any handlers that would execute before this ...
                         _this._doNext();
                     }, 0);
                 }; // (simulate an async response, in case more handlers need to be added next)
-                ResourceRequest.prototype._queueDoError = function () {
+                $__type.prototype._queueDoError = function () {
                     var _this = this;
                     setTimeout(function () { _this._doError(); }, 0);
                 }; // (simulate an async response, in case more handlers need to be added next)
-                ResourceRequest.prototype._requeueHandlersIfNeeded = function () {
+                $__type.prototype._requeueHandlersIfNeeded = function () {
                     if (this.status == RequestStatuses.Error)
                         this._queueDoError();
                     else if (this.status >= RequestStatuses.Waiting) {
@@ -1608,7 +1661,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     }
                     // ... else, not needed, as the chain is still being traversed, so anything added will get run as expected ...
                 };
-                ResourceRequest.prototype.then = function (success, error) {
+                $__type.prototype.then = function (success, error) {
                     if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
                         throw "A handler function given is not a function.";
                     else {
@@ -1625,7 +1678,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                   * the dependant request fires its 'onReady' event.
                   * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
                   */
-                ResourceRequest.prototype.include = function (request) {
+                $__type.prototype.include = function (request) {
                     if (!request._parentRequests)
                         request._parentRequests = [];
                     if (!this._dependants)
@@ -1638,7 +1691,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                  * Add a call-back handler for when the request completes successfully.
                  * @param handler
                  */
-                ResourceRequest.prototype.ready = function (handler) {
+                $__type.prototype.ready = function (handler) {
                     if (typeof handler == 'function') {
                         if (!this._onReady)
                             this._onReady = [];
@@ -1650,7 +1703,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     return this;
                 };
                 /** Adds a hook into the resource load progress event. */
-                ResourceRequest.prototype.while = function (progressHandler) {
+                $__type.prototype.while = function (progressHandler) {
                     if (typeof progressHandler == 'function') {
                         if (!this._onProgress)
                             this._onProgress = [];
@@ -1662,7 +1715,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     return this;
                 };
                 /** Call this anytime while loading is in progress to terminate the request early. An error event will be triggered as well. */
-                ResourceRequest.prototype.abort = function () {
+                $__type.prototype.abort = function () {
                     if (this._xhr.readyState > XMLHttpRequest.UNSENT && this._xhr.readyState < XMLHttpRequest.DONE) {
                         this._xhr.abort();
                     }
@@ -1670,7 +1723,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 /**
                  * Provide a handler to catch any errors from this request.
                  */
-                ResourceRequest.prototype.catch = function (errorHandler) {
+                $__type.prototype.catch = function (errorHandler) {
                     if (typeof errorHandler == 'function') {
                         this._promiseChain.push({ onError: errorHandler });
                         this._requeueHandlersIfNeeded();
@@ -1682,7 +1735,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 /**
                  * Provide a handler which should execute on success OR failure, regardless.
                  */
-                ResourceRequest.prototype.finally = function (cleanupHandler) {
+                $__type.prototype.finally = function (cleanupHandler) {
                     if (typeof cleanupHandler == 'function') {
                         this._promiseChain.push({ onFinally: cleanupHandler });
                         this._requeueHandlersIfNeeded();
@@ -1695,7 +1748,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                   * order).  Regardless of the start order, all scripts are loaded in parallel.
                   * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
                   */
-                ResourceRequest.prototype.start = function () {
+                $__type.prototype.start = function () {
                     var _this = this;
                     if (this.async)
                         setTimeout(function () { _this._Start(); }, 0);
@@ -1703,7 +1756,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                         this._Start();
                     return this;
                 };
-                ResourceRequest.prototype._Start = function () {
+                $__type.prototype._Start = function () {
                     var _this = this;
                     // ... start at the top most parent first, and work down ...
                     if (this._parentRequests)
@@ -1824,7 +1877,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     //?if (!this.async && (xhr.status)) doSuccess();
                 };
                 /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
-                ResourceRequest.prototype.pause = function () {
+                $__type.prototype.pause = function () {
                     if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
                         || this.status == RequestStatuses.Ready && this._onReady.length)
                         this._paused = true;
@@ -1833,14 +1886,14 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 /** After calling 'pause()', use this function to re-queue the 'then' or 'ready' even chain for continuation.
                   * Note: This queues on a timer with a 0 ms delay, and does not call any events before returning to the caller.
                   */
-                ResourceRequest.prototype.continue = function () {
+                $__type.prototype.continue = function () {
                     if (this._paused) {
                         this._paused = false;
                         this._requeueHandlersIfNeeded();
                     }
                     return this;
                 };
-                ResourceRequest.prototype._doOnProgress = function (percent) {
+                $__type.prototype._doOnProgress = function (percent) {
                     // ... notify any handlers as well ...
                     if (this._onProgress) {
                         for (var i = 0, n = this._onProgress.length; i < n; ++i)
@@ -1856,7 +1909,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                             }
                     }
                 };
-                ResourceRequest.prototype.setError = function (message, error) {
+                $__type.prototype.setError = function (message, error) {
                     if (error) {
                         var errMsg = getErrorMessage(error);
                         if (errMsg) {
@@ -1868,7 +1921,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     this.status = RequestStatuses.Error;
                     this.message = message; // (automatically adds to 'this.messages' and writes to the console)
                 };
-                ResourceRequest.prototype._doNext = function () {
+                $__type.prototype._doNext = function () {
                     var _this = this;
                     if (this.status == RequestStatuses.Error) {
                         this._doError(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
@@ -1892,7 +1945,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                                 this._doError();
                                 return;
                             }
-                            if (typeof data === 'object' && data instanceof ResourceRequest) {
+                            if (typeof data === 'object' && data instanceof $__type) {
                                 // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
                                 if (data.status == RequestStatuses.Error) {
                                     this.setError("Rejected request returned.");
@@ -1935,7 +1988,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                         this.status = RequestStatuses.Waiting; // (default to this next before being 'ready')
                     this._doReady(); // (this triggers in dependency order)
                 };
-                ResourceRequest.prototype._doReady = function () {
+                $__type.prototype._doReady = function () {
                     if (this._paused)
                         return;
                     if (this.status < RequestStatuses.Waiting)
@@ -1974,7 +2027,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                             }
                     }
                 };
-                ResourceRequest.prototype._doError = function () {
+                $__type.prototype._doError = function () {
                     var _this = this;
                     if (this._paused)
                         return;
@@ -1993,7 +2046,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                             catch (e) {
                                 this.setError("Error handler failed.", e);
                             }
-                            if (typeof newData === 'object' && newData instanceof ResourceRequest) {
+                            if (typeof newData === 'object' && newData instanceof $__type) {
                                 // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
                                 if (newData.status == RequestStatuses.Error)
                                     return; // (no correction made, still in error; terminate the event chain here)
@@ -2039,7 +2092,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                   * Note: All handlers (including the 'progress' and 'ready' handlers) are cleared and will have to be reapplied (clean slate).
                   * @param {boolean} includeDependentResources Reload all resource dependencies as well.
                   */
-                ResourceRequest.prototype.reload = function (includeDependentResources) {
+                $__type.prototype.reload = function (includeDependentResources) {
                     if (includeDependentResources === void 0) { includeDependentResources = true; }
                     if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
                         this.data = void 0;
@@ -2061,25 +2114,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     }
                     return this;
                 };
-                /**
-                 * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
-                 * the cache. To change the variable used, set the 'cacheBustingVar' property also.
-                 * Each resource request instance can also have its own value set separate from the global one.
-                 * Note: CoreXT has its own caching that uses the local storage, where supported.
-                 */
-                ResourceRequest.cacheBusting = true;
-                /** See the 'cacheBusting' property. */
-                ResourceRequest.cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
-                // ----------------------------------------------------------------------------------------------------------------
-                ResourceRequest['ResourceRequestFactory'] = /** @class */ (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    /** Returns a new module object only - does not load it. */
-                    Factory['new'] = function (url, type, async) { return null; };
-                    /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                    Factory.init = function (o, isnew, url, type, async) {
+                $__type[CoreXT.constructor] = function (factory) {
+                    factory.init = function (o, isnew, url, type, async) {
                         if (async === void 0) { async = true; }
                         if (url === void 0 || url === null)
                             throw "A resource URL is required.";
@@ -2094,12 +2130,12 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                         _resourceRequests.push(o);
                         _resourceRequestByURL[o.url] = o;
                     };
-                    return Factory;
-                }(FactoryBase(ResourceRequest, null)));
-                return ResourceRequest;
+                };
+                return $__type;
             }());
-            return [ResourceRequest, ResourceRequest["ResourceRequestFactory"]];
-        });
+            ResourceRequest.$__type = $__type;
+            ResourceRequest.$__register(Loader);
+        })(ResourceRequest = Loader.ResourceRequest || (Loader.ResourceRequest = {}));
         // ====================================================================================================================
         var _resourceRequests = []; // (requests are loaded in parallel, but executed in order of request)
         var _resourceRequestByURL = {}; // (a quick named index lookup into '__loadRequests')
@@ -2119,7 +2155,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             }
             var request = _resourceRequestByURL[url]; // (try to load any already existing requests)
             if (!request)
-                request = Loader.ResourceRequest.new(url, type, asyc);
+                request = ResourceRequest.new(url, type, asyc);
             return request;
         }
         Loader.get = get;

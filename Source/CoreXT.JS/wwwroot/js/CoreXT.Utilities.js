@@ -5,7 +5,7 @@ var CoreXT;
 (function (CoreXT) {
     var Utilities;
     (function (Utilities) {
-        CoreXT.registerNamespace("CoreXT", "Utilities");
+        CoreXT.namespace("CoreXT", "Utilities");
         // -------------------------------------------------------------------------------------------------------------------
         /** Escapes a RegEx string so it behaves like a normal string. This is useful for RexEx string based operations, such as 'replace()'. */
         function escapeRegex(regExStr) {

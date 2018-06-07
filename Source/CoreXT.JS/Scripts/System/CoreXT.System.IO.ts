@@ -223,7 +223,7 @@ namespace CoreXT.System {
                     }
                 }
 
-                Query.register(Path);
+                Query.$__register(Path);
             }
 
             export interface IQuery extends Query.$__type { }

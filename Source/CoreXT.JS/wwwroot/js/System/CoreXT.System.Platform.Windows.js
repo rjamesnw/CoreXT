@@ -7,7 +7,7 @@ var CoreXT;
     (function (System) {
         var Platform;
         (function (Platform) {
-            CoreXT.registerNamespace("CoreXT", "System", "Platform");
+            CoreXT.namespace(function () { return CoreXT.System.Platform; });
             // =======================================================================================================================
             //?export enum WindowTypes {
             //    /** A DOM element, usually a DIV, is the window target.  This is usually for system windows. */
@@ -21,33 +21,37 @@ var CoreXT;
             //      */
             //    Native
             //}
-            Platform.Window = CoreXT.ClassFactory(Platform, System.Object, function (base) {
-                var Window = /** @class */ (function (_super) {
-                    __extends(Window, _super);
-                    function Window() {
+            var Window = /** @class */ (function (_super) {
+                __extends(Window, _super);
+                function Window() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
+                Window['new'] = function (rootElement, url) { return null; };
+                Window.init = function (o, isnew, rootElement, url) { };
+                return Window;
+            }(CoreXT.FactoryBase(System.Object)));
+            Platform.Window = Window;
+            (function (Window) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         _this._guid = CoreXT.Utilities.createGUID(false);
                         return _this;
-                        // ----------------------------------------------------------------------------------------------------------------
                     }
                     // ----------------------------------------------------------------------------------------------------------------
-                    Window.prototype.show = function () {
+                    $__type.prototype.show = function () {
                         if (!this._target)
                             this._target = window.open(this._url, this._guid);
                     };
                     // ----------------------------------------------------------------------------------------------------------------
-                    Window.prototype.moveTo = function (x, y) { };
-                    Window.prototype.moveby = function (deltaX, deltaY) { };
+                    $__type.prototype.moveTo = function (x, y) { };
+                    $__type.prototype.moveby = function (deltaX, deltaY) { };
                     // ----------------------------------------------------------------------------------------------------------------
-                    Window['WindowFactory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
-                        Factory['new'] = function (rootElement, url) { return null; };
-                        Factory.init = function (o, isnew, rootElement, url) {
-                            this.super.init(o, isnew);
+                    $__type[CoreXT.constructor] = function (factory) {
+                        factory.init = function (o, isnew, rootElement, url) {
+                            factory.super.init(o, isnew);
                             if (typeof rootElement !== 'object' || !rootElement.style)
                                 rootElement = null;
                             if (rootElement != null)
@@ -55,12 +59,12 @@ var CoreXT;
                             o._target = rootElement;
                             o._url = url;
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase(Window, base['ObjectFactory'])));
-                    return Window;
-                }(base));
-                return [Window, Window["WindowFactory"]];
-            }, "Window");
+                    };
+                    return $__type;
+                }(CoreXT.FactoryType(System.Object)));
+                Window.$__type = $__type;
+                Window.$__register(Platform);
+            })(Window = Platform.Window || (Platform.Window = {}));
             // ====================================================================================================================
         })(Platform = System.Platform || (System.Platform = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));

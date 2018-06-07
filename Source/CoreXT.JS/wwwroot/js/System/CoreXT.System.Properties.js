@@ -7,12 +7,29 @@ var CoreXT;
     (function (System) {
         var Platform;
         (function (Platform) {
-            CoreXT.registerNamespace("CoreXT", "System", "Platform");
+            CoreXT.namespace(function () { return CoreXT.System.Platform; });
             // ========================================================================================================================
-            Platform.PropertyEventBase = CoreXT.ClassFactory(Platform, System.EventObject, function (base) {
-                var PropertyEventBase = /** @class */ (function (_super) {
-                    __extends(PropertyEventBase, _super);
-                    function PropertyEventBase() {
+            var PropertyEventBase = /** @class */ (function (_super) {
+                __extends(PropertyEventBase, _super);
+                function PropertyEventBase() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                /**
+                   * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
+                   * layout that can render a view, or partial view.
+                   * @param parent If specified, the value will be wrapped in the created object.
+                   */
+                PropertyEventBase['new'] = function () { return null; };
+                PropertyEventBase.init = function (o, isnew) {
+                    this.super.init(o, isnew);
+                };
+                return PropertyEventBase;
+            }(CoreXT.FactoryBase(System.EventObject)));
+            Platform.PropertyEventBase = PropertyEventBase;
+            (function (PropertyEventBase) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
                         // -------------------------------------------------------------------------------------------------------------------
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         /** A list of callbacks to execute BEFORE a value changes. */
@@ -23,13 +40,12 @@ var CoreXT;
                         * or translate inherited property values into new values as they are passed down the inheritance hierarchy chain. */
                         _this.filters = null;
                         return _this;
-                        // -------------------------------------------------------------------------------------------------------------------
                     }
                     // -------------------------------------------------------------------------------------------------------------------
                     /**
                     * @param {Property} property The source of this event.
                     */
-                    PropertyEventBase.prototype.__DoOnPropertyChanging = function (owner, property, newValue) {
+                    $__type.prototype.__DoOnPropertyChanging = function (owner, property, newValue) {
                         if (this.interceptors != null)
                             for (var i = 0, n = this.interceptors.length; i < n; ++i)
                                 newValue = this.interceptors[i].call(owner, property, newValue);
@@ -38,7 +54,7 @@ var CoreXT;
                     /**
                     * @param {Property} property The source of this event.
                     */
-                    PropertyEventBase.prototype.__DoOnPropertyChanged = function (owner, property, initialValue) {
+                    $__type.prototype.__DoOnPropertyChanged = function (owner, property, initialValue) {
                         if (this.listeners != null)
                             for (var i = 0, n = this.listeners.length; i < n; ++i)
                                 this.listeners[i].call(owner, property, initialValue);
@@ -47,7 +63,7 @@ var CoreXT;
                     * @param {Property} property The source of this event.
                     * @param {any} value The result of each filter call is passed into this parameter for each successive call (in filter creation order).
                     */
-                    PropertyEventBase.prototype.__FilerValue = function (owner, property, value) {
+                    $__type.prototype.__FilerValue = function (owner, property, value) {
                         if (this.filters != null)
                             for (var i = 0, n = this.filters.length; i < n; ++i)
                                 value = this.filters[i].call(owner, property, value);
@@ -55,7 +71,7 @@ var CoreXT;
                     };
                     // -------------------------------------------------------------------------------------------------------------------
                     /** A list of callbacks to execute BEFORE this value changes. */
-                    PropertyEventBase.prototype.registerInterceptor = function (interceptor) {
+                    $__type.prototype.registerInterceptor = function (interceptor) {
                         if (!this.interceptors)
                             this.interceptors = [];
                         for (var i = this.interceptors.length - 1; i >= 0; --i)
@@ -63,7 +79,7 @@ var CoreXT;
                                 return;
                         this.interceptors.push(interceptor);
                     };
-                    PropertyEventBase.prototype.unregisterInterceptor = function (interceptor) {
+                    $__type.prototype.unregisterInterceptor = function (interceptor) {
                         if (!this.interceptors)
                             return;
                         for (var i = this.interceptors.length - 1; i >= 0; --i)
@@ -74,7 +90,7 @@ var CoreXT;
                     };
                     // -------------------------------------------------------------------------------------------------------------------
                     /** A list of callbacks to execute AFTER this value changes. */
-                    PropertyEventBase.prototype.registerListener = function (listener) {
+                    $__type.prototype.registerListener = function (listener) {
                         if (!this.listeners)
                             this.listeners = [];
                         for (var i = this.listeners.length - 1; i >= 0; --i)
@@ -82,7 +98,7 @@ var CoreXT;
                                 return;
                         this.listeners.push(listener);
                     };
-                    PropertyEventBase.prototype.unregisterListener = function (listener) {
+                    $__type.prototype.unregisterListener = function (listener) {
                         if (!this.listeners)
                             return;
                         for (var i = this.listeners.length - 1; i >= 0; --i)
@@ -96,7 +112,7 @@ var CoreXT;
                     * Derived types should create filters if there's a need to notify a stored value before use (such as when formatting data,
                     * such as converting 'M' to 'Male', '20131006' to 'October 6th, 2013', or trimming spaces/formatting text, etc.).
                     */
-                    PropertyEventBase.prototype.registerFilter = function (filter) {
+                    $__type.prototype.registerFilter = function (filter) {
                         if (!this.filters)
                             this.filters = [];
                         for (var i = this.filters.length - 1; i >= 0; --i)
@@ -104,7 +120,7 @@ var CoreXT;
                                 return;
                         this.filters.push(filter);
                     };
-                    PropertyEventBase.prototype.unregisterFilter = function (filter) {
+                    $__type.prototype.unregisterFilter = function (filter) {
                         if (!this.filters)
                             return;
                         for (var i = this.filters.length - 1; i >= 0; --i)
@@ -114,80 +130,80 @@ var CoreXT;
                             }
                     };
                     // -------------------------------------------------------------------------------------------------------------------
-                    // This part uses the CoreXT factory pattern
-                    PropertyEventBase['PropertyEventBaseFactory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        /**
-                           * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
-                           * layout that can render a view, or partial view.
-                           * @param parent If specified, the value will be wrapped in the created object.
-                           */
-                        Factory['new'] = function () { return null; };
-                        Factory.init = function (o, isnew) {
-                            this.super.init(o, isnew);
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase(PropertyEventBase, base['EventObjectFactory'])));
-                    return PropertyEventBase;
-                }(base));
-                return [PropertyEventBase, PropertyEventBase["PropertyEventBaseFactory"]];
-            });
+                    $__type[CoreXT.constructor] = function (factory) {
+                        //factory.init = (o, isnew) => {
+                        //};
+                    };
+                    return $__type;
+                }(CoreXT.FactoryType(System.EventObject)));
+                PropertyEventBase.$__type = $__type;
+                PropertyEventBase.$__register(Platform);
+            })(PropertyEventBase = Platform.PropertyEventBase || (Platform.PropertyEventBase = {}));
             // =======================================================================================================================
-            Platform.StaticProperty = CoreXT.ClassFactory(Platform, Platform.PropertyEventBase, function (base) {
-                var StaticProperty = /** @class */ (function (_super) {
-                    __extends(StaticProperty, _super);
-                    function StaticProperty() {
+            var StaticProperty = /** @class */ (function (_super) {
+                __extends(StaticProperty, _super);
+                function StaticProperty() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                /**
+                   * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
+                   * layout that can render a view, or partial view.
+                   * @param parent If specified, the value will be wrapped in the created object.
+                   */
+                StaticProperty['new'] = function (name, isVisual) { return null; };
+                StaticProperty.init = function (o, isnew, name, isVisual) {
+                    this.super.init(o, isnew);
+                    o.name = name;
+                    o.isVisual = isVisual;
+                };
+                return StaticProperty;
+            }(CoreXT.FactoryBase(PropertyEventBase)));
+            Platform.StaticProperty = StaticProperty;
+            (function (StaticProperty) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
                         var _this = _super !== null && _super.apply(this, arguments) || this;
                         /** If true (false by default), then 'onRedraw()' will be called when this property is updated. */
                         _this.isVisual = false;
                         return _this;
                     }
-                    // -------------------------------------------------------------------------------------------------------------------
-                    StaticProperty.prototype.createPropertyInstance = function (owner, value) {
+                    $__type.prototype.createPropertyInstance = function (owner, value) {
                         return Platform.Property.new(owner, this, value === void 0 ? this.defaultValue : value);
                     };
-                    StaticProperty.prototype.toString = function () { return this.name; };
-                    StaticProperty.prototype.toLocaleString = function () { return this.name; };
-                    StaticProperty.prototype.valueOf = function () { return this.name; };
-                    // -------------------------------------------------------------------------------------------------------------------
-                    // This part uses the CoreXT factory pattern
-                    StaticProperty['StaticPropertyFactory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        /**
-                           * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
-                           * layout that can render a view, or partial view.
-                           * @param parent If specified, the value will be wrapped in the created object.
-                           */
-                        Factory['new'] = function (name, isVisual) { return null; };
-                        Factory.init = function (o, isnew, name, isVisual) {
-                            this.super.init(o, isnew);
-                            o.name = name;
-                            o.isVisual = isVisual;
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase(StaticProperty, base['PropertyEventBaseFactory'])));
-                    return StaticProperty;
-                }(base));
-                return [StaticProperty, StaticProperty["StaticPropertyFactory"]];
-            });
+                    $__type.prototype.toString = function () { return this.name; };
+                    $__type.prototype.toLocaleString = function () { return this.name; };
+                    $__type.prototype.valueOf = function () { return this.name; };
+                    $__type[CoreXT.constructor] = function (factory) {
+                        //factory.init = (o, isnew) => {
+                        //};
+                    };
+                    return $__type;
+                }(CoreXT.FactoryType(PropertyEventBase)));
+                StaticProperty.$__type = $__type;
+                StaticProperty.$__register(Platform);
+            })(StaticProperty = Platform.StaticProperty || (Platform.StaticProperty = {}));
             // =======================================================================================================================
             /** Represents a GraphItem instance property which holds a reference to the related static property information, and also stores the current instance value. */
-            Platform.Property = CoreXT.ClassFactory(Platform, Platform.PropertyEventBase, function (base) {
-                var Property = /** @class */ (function (_super) {
-                    __extends(Property, _super);
-                    function Property() {
+            var Property = /** @class */ (function (_super) {
+                __extends(Property, _super);
+                function Property() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                Property['new'] = function (owner, staticProperty, value) { return null; };
+                return Property;
+            }(CoreXT.FactoryBase(PropertyEventBase)));
+            Platform.Property = Property;
+            (function (Property) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
                         return _super !== null && _super.apply(this, arguments) || this;
                     }
                     // --------------------------------------------------------------------------------------------------------------------------
-                    Property.prototype.setValue = function (value, triggerChangeEvents) {
+                    $__type.prototype.setValue = function (value, triggerChangeEvents) {
                         if (triggerChangeEvents === void 0) { triggerChangeEvents = true; }
-                        if (value !== this.value) {
+                        if (value !== this.__value) {
                             if (triggerChangeEvents && this.owner.__initialProperties) { // (events are never triggered until the initial layout call has been made, since constructors may be setting up properties)
                                 if (this.staticProperty && this.staticProperty.interceptors) // (note: ad-hoc properties don't have static info)
                                     value = this.staticProperty.__DoOnPropertyChanging(this.owner, this, value);
@@ -196,16 +212,16 @@ var CoreXT;
                                 if (this.interceptors)
                                     value = this.__DoOnPropertyChanging(this.owner, this, value); // (the more local call takes precedence [has the final say])
                             }
-                            this.value = value;
-                            this.valueIsProperty = typeof value === 'object' && value instanceof Property;
+                            this.__value = value;
+                            this.__valueIsProperty = typeof value === 'object' && value instanceof Property.$__type;
                             if (triggerChangeEvents && this.owner.__initialProperties) { // (events are never triggered until the initial layout call has been made, since constructors may be setting up properties)
                                 if (this.triggerChangedEvent())
                                     this.owner.onRedraw(true); // (make sure to update the display if a UI related property has changed)
                             }
                         }
                     };
-                    Property.prototype.getValue = function () {
-                        var value = (this.valueIsProperty && this.value !== this) ? this.value.getValue() : this.value;
+                    $__type.prototype.getValue = function () {
+                        var value = (this.__valueIsProperty && this.__value !== this) ? this.__value.getValue() : this.__value;
                         if (this.owner.__initialProperties) { // (events are never triggered until the initial layout call has been made, since constructors may be setting up properties)
                             if (this.staticProperty && this.staticProperty.filters) // (note: ad-hoc properties don't have static info)
                                 value = this.staticProperty.__FilerValue(this.owner, this, value);
@@ -216,11 +232,11 @@ var CoreXT;
                         }
                         return value;
                     };
-                    Property.prototype.hasValue = function () { return !!this.value; };
+                    $__type.prototype.hasValue = function () { return !!this.__value; };
                     // -------------------------------------------------------------------------------------------------------------------
                     /** Trigger a 'changed' event - useful for reverting state changes made directly on UI elements. Also called initially
                     * on new UI elements during the initial layout phase.  */
-                    Property.prototype.triggerChangedEvent = function (initialValue) {
+                    $__type.prototype.triggerChangedEvent = function (initialValue) {
                         if (initialValue === void 0) { initialValue = false; }
                         if (this.staticProperty && this.staticProperty.listeners) // (note: ad-hoc properties don't have static info)
                             this.staticProperty.__DoOnPropertyChanged(this.owner, this, initialValue);
@@ -235,31 +251,26 @@ var CoreXT;
                         return this.staticProperty && this.staticProperty.isVisual && CoreXT.host.isClient();
                     };
                     // -------------------------------------------------------------------------------------------------------------------
-                    Property.prototype.toString = function () { return (this.value || "").toString(); };
-                    Property.prototype.toLocaleString = function () { return (this.value || "").toLocaleString(); };
-                    Property.prototype.valueOf = function () { return this.value; };
+                    $__type.prototype.toString = function () { return (this.__value || "").toString(); };
+                    $__type.prototype.toLocaleString = function () { return (this.__value || "").toLocaleString(); };
+                    $__type.prototype.valueOf = function () { return this.__value; };
                     // -------------------------------------------------------------------------------------------------------------------
                     /** Creates a deep copy of this graph item property instance via a call to 'Utilities.clone()'. */
-                    Property.prototype.clone = function () { return Platform.Property.new(this.owner, this.staticProperty, CoreXT.Utilities.clone(this.value)); };
-                    // --------------------------------------------------------------------------------------------------------------------------
-                    Property.PropertyFactory = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory['new'] = function (owner, staticProperty, value) { return null; };
-                        Factory.init = function (o, isnew, owner, staticProperty, value) {
-                            this.super.init(o, isnew);
+                    $__type.prototype.clone = function () { return Platform.Property.new(this.owner, this.staticProperty, CoreXT.Utilities.clone(this.__value)); };
+                    // -------------------------------------------------------------------------------------------------------------------
+                    $__type[CoreXT.constructor] = function (factory) {
+                        factory.init = function (o, isnew, owner, staticProperty, value) {
+                            factory.super.init(o, isnew);
                             o.owner = owner;
                             o.staticProperty = staticProperty;
-                            o.value = value;
+                            o.__value = value;
                         };
-                        return Factory;
-                    }(CoreXT.FactoryBase(Property, base["PropertyEventBaseFactory"])));
-                    return Property;
-                }(base));
-                return [Property, Property["PropertyFactory"]];
-            });
+                    };
+                    return $__type;
+                }(CoreXT.FactoryType(PropertyEventBase)));
+                Property.$__type = $__type;
+                Property.$__register(Platform);
+            })(Property = Platform.Property || (Platform.Property = {}));
             // =======================================================================================================================
         })(Platform = System.Platform || (System.Platform = {}));
     })(System = CoreXT.System || (CoreXT.System = {}));

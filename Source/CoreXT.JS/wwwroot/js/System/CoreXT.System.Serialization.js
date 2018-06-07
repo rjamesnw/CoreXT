@@ -5,7 +5,7 @@ var CoreXT;
 (function (CoreXT) {
     var System;
     (function (System) {
-        CoreXT.registerNamespace("CoreXT", "System");
+        CoreXT.namespace(function () { return CoreXT.System; });
         // =======================================================================================================================
         /** An empty object that contains prototype methods for serializing data.
         */

@@ -19,7 +19,7 @@ declare namespace CoreXT {
             OmniWeb = 7,
             iCab = 8,
             Konqueror = 9,
-            Camino = 10,
+            Camino = 10
         }
         /** A list of operating systems that can be currently detected. */
         enum OperatingSystems {
@@ -28,7 +28,7 @@ declare namespace CoreXT {
             Windows = 1,
             Mac = 2,
             Linux = 3,
-            iOS = 4,
+            iOS = 4
         }
         /** Holds detection parameters for a single browser agent string version.
         * Note: This is agent string related, as the version number itself is pulled dynamically based on 'versionPrefix'.
@@ -87,8 +87,8 @@ declare namespace CoreXT {
 }
 declare namespace CoreXT.DOM {
     /** True when the HTML has completed loading and was parsed. */
-    var onDOMLoaded: any;
+    var onDOMLoaded: System.Events.IEventDispatcher<typeof Loader, System.Events.EventHandler>;
     /** True when the DOM has completed loading. */
     function isDOMReady(): boolean;
-    var onPageLoaded: any;
+    var onPageLoaded: System.Events.IEventDispatcher<typeof Loader, System.Events.EventHandler>;
 }

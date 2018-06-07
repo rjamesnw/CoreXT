@@ -9,23 +9,81 @@ var CoreXT;
         /** Contains diagnostic based functions, such as those needed for logging purposes. */
         var Diagnostics;
         (function (Diagnostics) {
-            CoreXT.registerNamespace("CoreXT", "System", "Diagnostics");
+            CoreXT.namespace(function () { return CoreXT.System.Diagnostics; });
             // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
             Diagnostics.__logItems = [];
             var __logItemsSequenceCounter = 0;
             var __logCaptureStack = [];
             // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-            Diagnostics.LogItem = CoreXT.ClassFactory(Diagnostics, void 0, function (base) {
-                var LogItem = /** @class */ (function () {
-                    function LogItem() {
-                        /** The parent log item. */
-                        this.parent = null;
-                        /** The sequence count of this log item. */
-                        this.sequence = __logItemsSequenceCounter++; // (to maintain correct ordering, as time is not reliable if log items are added too fast)
-                        this.marginIndex = void 0;
-                        // ------------------------------------------------------------------------------------------------------------
+            var LogItem = /** @class */ (function (_super) {
+                __extends(LogItem, _super);
+                function LogItem() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                LogItem['new'] = function (parent, title, message, type, outputToConsole) {
+                    if (type === void 0) { type = CoreXT.LogTypes.Normal; }
+                    if (outputToConsole === void 0) { outputToConsole = true; }
+                    return null;
+                };
+                LogItem.init = function (o, isnew, parent, title, message, type, outputToConsole) {
+                    if (type === void 0) { type = CoreXT.LogTypes.Normal; }
+                    if (outputToConsole === void 0) { outputToConsole = true; }
+                    if (title === void 0 || title === null) {
+                        if (CoreXT.isEmpty(message))
+                            CoreXT.error("LogItem()", "A message is required if no title is given.", o);
+                        title = "";
                     }
-                    LogItem.prototype.write = function (message, type, outputToConsole) {
+                    else if (typeof title != 'string')
+                        if (title.$__fullname)
+                            title = title.$__fullname;
+                        else
+                            title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
+                    if (message === void 0 || message === null)
+                        message = "";
+                    else
+                        message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
+                    o.parent = parent;
+                    o.title = title;
+                    o.message = message;
+                    o.time = Date.now(); /*ms*/
+                    o.type = type;
+                    if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
+                        var _title = title, margin = ""; // (modify a copy so we can continue to pass along the unaltered title text)
+                        if (_title.charAt(title.length - 1) != ":")
+                            _title += ": ";
+                        else
+                            _title += " ";
+                        while (parent) {
+                            parent = parent.parent;
+                            margin += "  ";
+                        }
+                        if (System.TimeSpan) {
+                            var time = System.TimeSpan.utcTimeToLocalTime(o.time);
+                            var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
+                                + " " + margin + _title + o.message;
+                        }
+                        else
+                            consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
+                        CoreXT.log(null, consoleText, type, void 0, false, false);
+                    }
+                };
+                return LogItem;
+            }(CoreXT.FactoryBase()));
+            Diagnostics.LogItem = LogItem;
+            (function (LogItem) {
+                var $__type = /** @class */ (function (_super) {
+                    __extends($__type, _super);
+                    function $__type() {
+                        // --------------------------------------------------------------------------------------------------------------------------
+                        var _this = _super !== null && _super.apply(this, arguments) || this;
+                        /** The parent log item. */
+                        _this.parent = null;
+                        /** The sequence count of this log item. */
+                        _this.sequence = __logItemsSequenceCounter++; // (to maintain correct ordering, as time is not reliable if log items are added too fast)
+                        _this.marginIndex = void 0;
+                        return _this;
+                    }
+                    $__type.prototype.write = function (message, type, outputToConsole) {
                         if (type === void 0) { type = CoreXT.LogTypes.Normal; }
                         if (outputToConsole === void 0) { outputToConsole = true; }
                         var logItem = Diagnostics.LogItem.new(this, null, message, type);
@@ -34,7 +92,7 @@ var CoreXT;
                         this.subItems.push(logItem);
                         return this;
                     };
-                    LogItem.prototype.log = function (title, message, type, outputToConsole) {
+                    $__type.prototype.log = function (title, message, type, outputToConsole) {
                         if (type === void 0) { type = CoreXT.LogTypes.Normal; }
                         if (outputToConsole === void 0) { outputToConsole = true; }
                         var logItem = Diagnostics.LogItem.new(this, title, message, type, outputToConsole);
@@ -48,7 +106,7 @@ var CoreXT;
                     * The current instance is returned to allow chaining function calls.
                     * Note: The number of calls to 'endCapture()' must match the number of calls to 'beginCapture()', or an error will occur.
                     */
-                    LogItem.prototype.beginCapture = function () {
+                    $__type.prototype.beginCapture = function () {
                         //? if (__logCaptureStack.indexOf(this) < 0)
                         __logCaptureStack.push(this);
                         return this;
@@ -57,78 +115,29 @@ var CoreXT;
                     * See 'beginCapture()' for more details.
                     * Note: The number of calls to 'endCapture()' must match the number of calls to 'beginCapture()', or an error will occur.
                     */
-                    LogItem.prototype.endCapture = function () {
+                    $__type.prototype.endCapture = function () {
                         //var i = __logCaptureStack.lastIndexOf(this);
                         //if (i >= 0) __logCaptureStack.splice(i, 1);
                         var item = __logCaptureStack.pop();
                         if (item != null)
                             throw System.Exception.from("Your calls to begin/end log capture do not match up. Make sure the calls to 'endCapture()' match up to your calls to 'beginCapture()'.", this);
                     };
-                    LogItem.prototype.toString = function () {
+                    $__type.prototype.toString = function () {
                         var time = System.TimeSpan && System.TimeSpan.utcTimeToLocalTime(this.time) || null;
                         var timeStr = time && (time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)) || "" + new Date(this.time).toLocaleTimeString();
                         var txt = "[" + this.sequence + "] (" + timeStr + ") " + this.title + ": " + this.message;
                         return txt;
                     };
-                    // ------------------------------------------------------------------------------------------------------------
-                    LogItem['LogItemFactory'] = /** @class */ (function (_super) {
-                        __extends(Factory, _super);
-                        function Factory() {
-                            return _super !== null && _super.apply(this, arguments) || this;
-                        }
-                        Factory['new'] = function (parent, title, message, type, outputToConsole) {
-                            if (type === void 0) { type = CoreXT.LogTypes.Normal; }
-                            if (outputToConsole === void 0) { outputToConsole = true; }
-                            return null;
-                        };
-                        Factory.init = function (o, isnew, parent, title, message, type, outputToConsole) {
-                            if (type === void 0) { type = CoreXT.LogTypes.Normal; }
-                            if (outputToConsole === void 0) { outputToConsole = true; }
-                            if (title === void 0 || title === null) {
-                                if (CoreXT.isEmpty(message))
-                                    CoreXT.error("LogItem()", "A message is required if no title is given.", o);
-                                title = "";
-                            }
-                            else if (typeof title != 'string')
-                                if (title.$__fullname)
-                                    title = title.$__fullname;
-                                else
-                                    title = title.toString && title.toString() || title.toValue && title.toValue() || "" + title;
-                            if (message === void 0 || message === null)
-                                message = "";
-                            else
-                                message = message.toString && message.toString() || message.toValue && message.toValue() || "" + message;
-                            o.parent = parent;
-                            o.title = title;
-                            o.message = message;
-                            o.time = Date.now(); /*ms*/
-                            o.type = type;
-                            if (console && outputToConsole) { // (if the console object is supported, and the user allows it for this item, then send this log message to it now)
-                                var _title = title, margin = ""; // (modify a copy so we can continue to pass along the unaltered title text)
-                                if (_title.charAt(title.length - 1) != ":")
-                                    _title += ": ";
-                                else
-                                    _title += " ";
-                                while (parent) {
-                                    parent = parent.parent;
-                                    margin += "  ";
-                                }
-                                if (System.TimeSpan) {
-                                    var time = System.TimeSpan.utcTimeToLocalTime(o.time);
-                                    var consoleText = time.hours + ":" + (time.minutes < 10 ? "0" + time.minutes : "" + time.minutes) + ":" + (time.seconds < 10 ? "0" + time.seconds : "" + time.seconds)
-                                        + " " + margin + _title + o.message;
-                                }
-                                else
-                                    consoleText = (new Date()).toLocaleTimeString() + " " + margin + _title + o.message; // TODO: Make a utility function to format Date() similar to hh:mm:ss
-                                CoreXT.log(null, consoleText, type, void 0, false, false);
-                            }
-                        };
-                        return Factory;
-                    }(CoreXT.FactoryBase(LogItem, null)));
-                    return LogItem;
-                }());
-                return [LogItem, LogItem["LogItemFactory"]];
-            });
+                    // --------------------------------------------------------------------------------------------------------------------------
+                    $__type[CoreXT.constructor] = function (factory) {
+                        //factory.init = (o, isnew) => { // not dealing with private properties, so this is not needed!
+                        //};
+                    };
+                    return $__type;
+                }(CoreXT.Disposable));
+                LogItem.$__type = $__type;
+                LogItem.$__register(Diagnostics);
+            })(LogItem = Diagnostics.LogItem || (Diagnostics.LogItem = {}));
             function log(title, message, type, outputToConsole) {
                 if (type === void 0) { type = CoreXT.LogTypes.Normal; }
                 if (outputToConsole === void 0) { outputToConsole = true; }
@@ -140,7 +149,7 @@ var CoreXT;
                     else
                         return capturedLogItem.log(title, message, type, outputToConsole); //capturedLogItem.log("", "");
                 }
-                var logItem = Diagnostics.LogItem.new(null, title, message, type, outputToConsole);
+                var logItem = LogItem.new(null, title, message, type, outputToConsole);
                 Diagnostics.__logItems.push(logItem);
                 return logItem;
             }

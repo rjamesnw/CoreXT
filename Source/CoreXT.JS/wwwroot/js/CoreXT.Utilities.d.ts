@@ -51,4 +51,9 @@ declare namespace CoreXT {
          */
         function createGUID(hyphens?: boolean): string;
     }
+    /**
+     * This is a special override to the default TypeScript '__extends' code for extending types in the CoreXT system.
+     * It's also a bit more efficient given that the 'extendStatics' part is run only once and cached and not every time '__extends' is called.
+     * Note: This property simply references 'CoreXT.Utilities.extend'.
+     */
 }

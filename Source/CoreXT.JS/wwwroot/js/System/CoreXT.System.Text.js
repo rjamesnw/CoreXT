@@ -10,7 +10,7 @@ var CoreXT;
             // =======================================================================================================================
             var Encoding;
             (function (Encoding) {
-                CoreXT.registerNamespace("CoreXT", "System", "Text", "Encoding");
+                CoreXT.namespace(function () { return CoreXT.System.Text.Encoding; });
                 //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
                 var Base64Modes;
                 (function (Base64Modes) {
@@ -32,7 +32,7 @@ var CoreXT;
                 function __CreateCharIndex(str) {
                     if (str.length < 65)
                         throw System.Exception.from("65 characters expected for base64 encoding characters (last character is for padding), but only " + str.length + " were specified.", str);
-                    if (typeof str !== "object" && !(str instanceof System.String))
+                    if (typeof str !== "object" && !(str instanceof System.String.$__type))
                         throw System.Exception.from("The encoding characters must be set in a valid 'String' OBJECT (not as a string VALUE).");
                     if (!str['charIndex']) {
                         var index = {};
@@ -67,7 +67,7 @@ var CoreXT;
                     for (var i = value.length - 1; i >= 0; --i)
                         if (value.charCodeAt(i) > 255) {
                             srcCharBitDepth = 16; // (Unicode mode [16-bit])
-                            value = System.String.fromCharCode(0) + value; // (note: 0 is usually understood to be a null character, and is used here to flag Unicode encoding [two 0 bytes at the beginning])
+                            value = CoreXT.global.String.fromCharCode(0) + value; // (note: 0 is usually understood to be a null character, and is used here to flag Unicode encoding [two 0 bytes at the beginning])
                             break;
                         }
                     var shiftCount = srcCharBitDepth - 1;
@@ -160,7 +160,7 @@ var CoreXT;
                         if (writeBitIndex == srcCharBitDepth) {
                             writeBitIndex = 0;
                             if (baseCode) // (should never be 0 [null char])
-                                result += System.String.fromCharCode(baseCode);
+                                result += CoreXT.global.String.fromCharCode(baseCode);
                             if (++charCount >= resultLength)
                                 break; // (all expected characters written)
                             baseCode = 0;
@@ -173,7 +173,7 @@ var CoreXT;
             // =======================================================================================================================
             var HTML;
             (function (HTML) {
-                CoreXT.registerNamespace("CoreXT", "System", "Text", "HTML");
+                CoreXT.namespace(function () { return CoreXT.System.Text.HTML; });
                 // -------------------------------------------------------------------------------------------------------------------
                 // Removes the '<!-- -->' comment sequence from the ends of the specified HTML.
                 function uncommentHTML(html) {

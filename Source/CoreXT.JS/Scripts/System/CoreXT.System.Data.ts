@@ -9,7 +9,7 @@ namespace CoreXT.System {
 
         /** Provides basic functions for working with JSON data. */
         export namespace JSON {
-            registerNamespace("CoreXT", "System", "Data", "JSON");
+            namespace(() => CoreXT.System.Data.JSON);
             // ===================================================================================================================
 
             /** Converts a JSON string into an object with nested objects as required.
@@ -92,9 +92,9 @@ namespace CoreXT.System {
             private static __PathPartRegEx = /\[|\]|\(|\)|"|'|\\|\.|[^\[\]\(\)"'\.\\]*/gi;
 
             origin: {};
-            namePath: Array<string>;
-            arguments: Array<any[]>;
-            indexes: Array<any>;
+            namePath: NativeTypes.IArray<string>;
+            arguments: NativeTypes.IArray<any[]>;
+            indexes: NativeTypes.IArray<any>;
 
             // ---------------------------------------------------------------------------------------------------------------
 

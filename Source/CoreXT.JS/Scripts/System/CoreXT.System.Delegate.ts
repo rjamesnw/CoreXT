@@ -165,7 +165,7 @@ namespace CoreXT.System {
                     Exception.error("Delegate", "The function value is not a function:\r\n {Delegate}.func = " + this.func, this.func);
                 if (this.func.bind)
                     this.__boundFunc = this.func.bind(this, this.object); // (this can be faster in some cases [i.e. IE])
-                if (this.object instanceof Object)
+                if (this.object instanceof Object.$__type)
                     this.__key = Delegate.getKey(<any>this.object, this.func); // (this also validates the properties first)
                 else
                     this.__key = void 0;
@@ -219,7 +219,7 @@ namespace CoreXT.System {
             }
 
             equal(value: any): boolean {
-                return typeof value == 'object' && value instanceof Delegate
+                return typeof value == 'object' && value instanceof Delegate.$__type
                     && (<IDelegate<any, any>>value).object === this.object && (<IDelegate<any, any>>value).func === this.func;
             }
 
@@ -235,7 +235,7 @@ namespace CoreXT.System {
                 };
             }
         }
-        Delegate.register(System);
+        Delegate.$__register(System);
     }
 
     export interface IDelegate<TObj extends object=object, TFunc extends DelegateFunction=DelegateFunction>

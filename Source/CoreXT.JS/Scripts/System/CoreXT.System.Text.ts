@@ -6,7 +6,7 @@ namespace CoreXT.System.Text {
     // =======================================================================================================================
 
     export namespace Encoding {
-        registerNamespace("CoreXT", "System", "Text", "Encoding");
+        namespace(() => CoreXT.System.Text.Encoding);
         //  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
 
         export enum Base64Modes {
@@ -26,10 +26,10 @@ namespace CoreXT.System.Text {
         // (Note: There must be exactly 65 characters [64 + 1 for padding])
         // (Note: 'String' objects MUST be used in order for the encoding functions to populate the reverse lookup indexes)
 
-        function __CreateCharIndex(str: String) {
+        function __CreateCharIndex(str: NativeTypes.IString) {
             if (str.length < 65)
                 throw Exception.from("65 characters expected for base64 encoding characters (last character is for padding), but only " + str.length + " were specified.", <any>str);
-            if (typeof str !== "object" && !(<any>str instanceof String))
+            if (typeof str !== "object" && !(<any>str instanceof String.$__type))
                 throw Exception.from("The encoding characters must be set in a valid 'String' OBJECT (not as a string VALUE).");
             if (!str['charIndex']) {
                 var index: { [index: string]: number } = {};
@@ -53,7 +53,7 @@ namespace CoreXT.System.Text {
             if (usePadding === void 0)
                 usePadding = (mode != Base64Modes.URI);
 
-            var encodingChars: String = (mode == Base64Modes.Standard ? __64BASE_ENCODING_CHARS_STANDARD : (mode == Base64Modes.URI ? __64BASE_ENCODING_CHARS_URI : __64BASE_ENCODING_CHARS_CUSTOM));
+            var encodingChars: NativeTypes.IString = (mode == Base64Modes.Standard ? __64BASE_ENCODING_CHARS_STANDARD : (mode == Base64Modes.URI ? __64BASE_ENCODING_CHARS_URI : __64BASE_ENCODING_CHARS_CUSTOM));
 
             // ... make sure the reverse lookup exists, and populate if missing  (which also serves to validate the encoding chars) ...
 
@@ -66,7 +66,7 @@ namespace CoreXT.System.Text {
             for (var i = value.length - 1; i >= 0; --i)
                 if (value.charCodeAt(i) > 255) {
                     srcCharBitDepth = 16; // (Unicode mode [16-bit])
-                    value = String.fromCharCode(0) + value; // (note: 0 is usually understood to be a null character, and is used here to flag Unicode encoding [two 0 bytes at the beginning])
+                    value = global.String.fromCharCode(0) + value; // (note: 0 is usually understood to be a null character, and is used here to flag Unicode encoding [two 0 bytes at the beginning])
                     break;
                 }
             var shiftCount = srcCharBitDepth - 1;
@@ -123,7 +123,7 @@ namespace CoreXT.System.Text {
             if (value === void 0 || value === null) value = ""; else value = "" + value;
             if (value.length == 0) return "";
 
-            var encodingChars: String = (mode == Base64Modes.Standard ? __64BASE_ENCODING_CHARS_STANDARD : (mode == Base64Modes.URI ? __64BASE_ENCODING_CHARS_URI : __64BASE_ENCODING_CHARS_CUSTOM));
+            var encodingChars: NativeTypes.IString = (mode == Base64Modes.Standard ? __64BASE_ENCODING_CHARS_STANDARD : (mode == Base64Modes.URI ? __64BASE_ENCODING_CHARS_URI : __64BASE_ENCODING_CHARS_CUSTOM));
 
             // ... make sure the reverse lookup exists, and populate if missing  (which also serves to validate the encoding chars) ...
 
@@ -171,7 +171,7 @@ namespace CoreXT.System.Text {
                 if (writeBitIndex == srcCharBitDepth) {
                     writeBitIndex = 0;
                     if (baseCode) // (should never be 0 [null char])
-                        result += String.fromCharCode(baseCode);
+                        result += global.String.fromCharCode(baseCode);
                     if (++charCount >= resultLength) break; // (all expected characters written)
                     baseCode = 0;
                 }
@@ -184,7 +184,7 @@ namespace CoreXT.System.Text {
     // =======================================================================================================================
 
     export namespace HTML {
-        registerNamespace("CoreXT", "System", "Text", "HTML");
+        namespace(() => CoreXT.System.Text.HTML);
         // -------------------------------------------------------------------------------------------------------------------
 
         // Removes the '<!-- -->' comment sequence from the ends of the specified HTML.

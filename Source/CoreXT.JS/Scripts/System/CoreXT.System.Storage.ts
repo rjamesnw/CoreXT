@@ -7,7 +7,7 @@ namespace CoreXT.System {
 
     /** Web storage utilities. */
     export namespace Storage {
-        registerNamespace("CoreXT", "System", "Storage");
+        namespace(() => CoreXT.System.Storage);
         // ------------------------------------------------------------------------------------------------------------------
         // Feature Detection 
 

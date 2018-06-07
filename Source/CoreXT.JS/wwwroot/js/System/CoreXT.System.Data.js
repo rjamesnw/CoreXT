@@ -12,7 +12,7 @@ var CoreXT;
             /** Provides basic functions for working with JSON data. */
             var JSON;
             (function (JSON) {
-                CoreXT.registerNamespace("CoreXT", "System", "Data", "JSON");
+                CoreXT.namespace(function () { return CoreXT.System.Data.JSON; });
                 // ===================================================================================================================
                 /** Converts a JSON string into an object with nested objects as required.
                 */

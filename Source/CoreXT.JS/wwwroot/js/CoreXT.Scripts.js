@@ -6,7 +6,7 @@ var CoreXT;
 (function (CoreXT) {
     var Scripts;
     (function (Scripts) {
-        CoreXT.registerNamespace("CoreXT", "Scripts");
+        CoreXT.namespace("CoreXT", "Scripts");
         // =======================================================================================================================
         /** Used to strip out the module header */
         Scripts.MANIFEST_DEPENDENCIES_REGEX = /\bmodule\s*\(\s*\[(.*)\]/gim;
@@ -22,87 +22,110 @@ var CoreXT;
         }
         Scripts.fullTypeNameToFolderPath = fullTypeNameToFolderPath;
         // ====================================================================================================================
-        Scripts.ScriptResource = CoreXT.ClassFactory(Scripts, CoreXT.Loader.ResourceRequest, function (base) {
-            var ScriptResource = /** @class */ (function (_super) {
-                __extends(ScriptResource, _super);
-                function ScriptResource() {
+        var ScriptResource = /** @class */ (function (_super) {
+            __extends(ScriptResource, _super);
+            function ScriptResource() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return ScriptResource;
+        }(CoreXT.FactoryBase(CoreXT.Loader.ResourceRequest)));
+        Scripts.ScriptResource = ScriptResource;
+        (function (ScriptResource) {
+            var $__type = /** @class */ (function (_super) {
+                __extends($__type, _super);
+                function $__type() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
                 /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
-                ScriptResource.prototype.registerGlobal = function (name, initialValue, asHostGlobal) {
+                $__type.prototype.registerGlobal = function (name, initialValue, asHostGlobal) {
                     return CoreXT.Globals.register(this, name, initialValue, asHostGlobal);
                 };
                 /** For help, see 'CoreXT.Globals'. */
-                ScriptResource.prototype.globalExists = function (name) {
+                $__type.prototype.globalExists = function (name) {
                     return CoreXT.Globals.exists(this, name);
                 };
                 /** For help, see 'CoreXT.Globals'. */
-                ScriptResource.prototype.eraseGlobal = function (name) {
+                $__type.prototype.eraseGlobal = function (name) {
                     return CoreXT.Globals.erase(this, name);
                 };
                 /** For help, see 'CoreXT.Globals'. */
-                ScriptResource.prototype.clearGlobals = function () {
+                $__type.prototype.clearGlobals = function () {
                     return CoreXT.Globals.clear(this);
                 };
                 /** For help, see 'CoreXT.Globals'. */
-                ScriptResource.prototype.setGlobalValue = function (name, value) {
+                $__type.prototype.setGlobalValue = function (name, value) {
                     return CoreXT.Globals.setValue(this, name, value);
                 };
                 /** For help, see 'CoreXT.Globals'. */
-                ScriptResource.prototype.getGlobalValue = function (name) {
+                $__type.prototype.getGlobalValue = function (name) {
                     return CoreXT.Globals.getValue(this, name);
                 };
-                // ----------------------------------------------------------------------------------------------------------------
-                ScriptResource.ScriptResourceFactory = /** @class */ (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    /** Returns a new module object only - does not load it. */
-                    Factory['new'] = function (url) { return null; };
-                    /** Returns a new module object only - does not load it. */
-                    Factory.init = function (o, isnew, url) {
-                        this.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
+                $__type[CoreXT.constructor] = function (factory) {
+                    factory.init = function (o, isnew, url) {
+                        factory.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
                     };
-                    return Factory;
-                }(CoreXT.FactoryBase(ScriptResource, base["ResourceRequestFactory"])));
-                return ScriptResource;
-            }(base));
-            return [ScriptResource, ScriptResource["ScriptResourceFactory"]];
-        }, "ScriptResource");
+                };
+                return $__type;
+            }(CoreXT.FactoryType(CoreXT.Loader.ResourceRequest)));
+            ScriptResource.$__type = $__type;
+            ScriptResource.$__register(Scripts);
+        })(ScriptResource = Scripts.ScriptResource || (Scripts.ScriptResource = {}));
         // ====================================================================================================================
         /**
         * Represents a loaded manifest that describes some underlying resource (typically JavaScript).
         * 'Manifest' inherits from 'ScriptResource', providing the loaded manifests the ability to register globals for the
         * CoreXT context, instead of the global 'window' context.
         */
-        Scripts.Manifest = CoreXT.ClassFactory(Scripts, Scripts.ScriptResource, function (base) {
-            var Manifest = /** @class */ (function (_super) {
-                __extends(Manifest, _super);
-                function Manifest() {
+        var Manifest = /** @class */ (function (_super) {
+            __extends(Manifest, _super);
+            function Manifest() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return Manifest;
+        }(CoreXT.FactoryBase(ScriptResource)));
+        Scripts.Manifest = Manifest;
+        (function (Manifest) {
+            // (evaluated last, but called first)
+            var $__type = /** @class */ (function (_super) {
+                __extends($__type, _super);
+                function $__type() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
-                // ----------------------------------------------------------------------------------------------------------------
-                Manifest.ManifestFactory = /** @class */ (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                    Factory['new'] = function (url) { return null; };
-                    /** Holds variables required for manifest execution (for example, callback functions for 3rd party libraries, such as the Google Maps API). */
-                    Factory.init = function (o, isnew, url) {
-                        this.super.init(o, isnew, url);
+                /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
+                $__type.prototype.registerGlobal = function (name, initialValue, asHostGlobal) {
+                    return CoreXT.Globals.register(this, name, initialValue, asHostGlobal);
+                };
+                /** For help, see 'CoreXT.Globals'. */
+                $__type.prototype.globalExists = function (name) {
+                    return CoreXT.Globals.exists(this, name);
+                };
+                /** For help, see 'CoreXT.Globals'. */
+                $__type.prototype.eraseGlobal = function (name) {
+                    return CoreXT.Globals.erase(this, name);
+                };
+                /** For help, see 'CoreXT.Globals'. */
+                $__type.prototype.clearGlobals = function () {
+                    return CoreXT.Globals.clear(this);
+                };
+                /** For help, see 'CoreXT.Globals'. */
+                $__type.prototype.setGlobalValue = function (name, value) {
+                    return CoreXT.Globals.setValue(this, name, value);
+                };
+                /** For help, see 'CoreXT.Globals'. */
+                $__type.prototype.getGlobalValue = function (name) {
+                    return CoreXT.Globals.getValue(this, name);
+                };
+                $__type[CoreXT.constructor] = function (factory) {
+                    factory.init = function (o, isnew, url) {
+                        factory.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
                     };
-                    return Factory;
-                }(CoreXT.FactoryBase(Scripts.ScriptResource, base["ScriptResourceFactory"])));
-                Manifest = __decorate([
-                    CoreXT.sealed
-                ], Manifest);
-                return Manifest;
-            }(base));
-            return [Manifest, Manifest["ManifestFactory"]];
-        }, "Manifest");
+                };
+                return $__type;
+            }(CoreXT.FactoryType(ScriptResource)));
+            Manifest.$__type = $__type;
+            Manifest.$__register(Scripts);
+            CoreXT.sealed($__type);
+        })(Manifest = Scripts.Manifest || (Scripts.Manifest = {}));
         // ====================================================================================================================
         var _manifests = []; // (holds a list of all 
         var _manifestsByURL = {};
@@ -125,7 +148,7 @@ var CoreXT;
             var request = _manifestsByURL[path];
             if (request)
                 return request; // (request already made)
-            request = (Scripts.Manifest.new(path)).then(function (request) {
+            request = (Manifest.new(path)).then(function (request) {
                 // ... the manifest script is loaded, now extract any dependencies ...
                 if (request.data == void 0 || request.data == null)
                     return;
@@ -183,10 +206,18 @@ var CoreXT;
         var _modules = {};
         var _appModule = null; // (becomes set to the app module when the app module is finally loaded and ready to be executed)
         /** Contains static module properties and functions. */
-        Scripts.Module = CoreXT.ClassFactory(Scripts, Scripts.ScriptResource, function (base) {
-            var Module = /** @class */ (function (_super) {
-                __extends(Module, _super);
-                function Module() {
+        var Module = /** @class */ (function (_super) {
+            __extends(Module, _super);
+            function Module() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return Module;
+        }(CoreXT.FactoryBase(ScriptResource)));
+        Scripts.Module = Module;
+        (function (Module) {
+            var $__type = /** @class */ (function (_super) {
+                __extends($__type, _super);
+                function $__type() {
                     var _this = _super !== null && _super.apply(this, arguments) || this;
                     _this.required = false; // (true if the script is required - the application will fail to execute if this occurs, and an exception will be thrown)
                     /** If true, then the module is waiting to complete based on some outside custom script/event. */
@@ -207,14 +238,13 @@ var CoreXT;
                       */
                     _this.exports = {};
                     return _this;
-                    // ----------------------------------------------------------------------------------------------------------------
                 }
-                Module.prototype.isInclude = function () { return this.url && this.fullname == this.url; };
-                Module.prototype.__onLoaded = function () {
+                $__type.prototype.isInclude = function () { return this.url && this.fullname == this.url; };
+                $__type.prototype.__onLoaded = function () {
                     // ... script is loaded (not executed), but may be waiting on dependencies; for now, check for in-script dependencies/flags and apply those now ...
                     return this;
                 };
-                Module.prototype.__onReady = function (request) {
+                $__type.prototype.__onReady = function (request) {
                     // ... script is loaded (not executed) and ready to be applied ...
                     if (this.fullname == "app" || this.fullname == "application") {
                         _appModule = this;
@@ -223,10 +253,10 @@ var CoreXT;
                     }
                     return this;
                 };
-                Module.prototype.toString = function () { return this.fullname; };
-                Module.prototype.toValue = function () { return this.fullname; };
+                $__type.prototype.toString = function () { return this.fullname; };
+                $__type.prototype.toValue = function () { return this.fullname; };
                 /** Begin loading the module's script. After the loading is completed, any dependencies are automatically detected and loaded as well. */
-                Module.prototype.start = function () {
+                $__type.prototype.start = function () {
                     if (this.status == CoreXT.Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
                         this.url = CoreXT.debugMode ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL); // (just in case the debugging flag changed)
                         return _super.prototype.start.call(this);
@@ -234,7 +264,7 @@ var CoreXT;
                     return this;
                 };
                 /** Executes the underlying script by either wrapping it in another function (the default), or running it in the global window scope. */
-                Module.prototype.execute = function (useGlobalScope) {
+                $__type.prototype.execute = function (useGlobalScope) {
                     if (useGlobalScope === void 0) { useGlobalScope = false; }
                     if (this.status == CoreXT.Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
                         // ... first, make sure all parent modules have been executed first ...
@@ -243,7 +273,7 @@ var CoreXT;
                                 dep.execute();
                         var accessors;
                         if (useGlobalScope) {
-                            this._moduleGlobalAccessors = (CoreXT.globalEval(this.data), Module._globalaccessors); // (use the global accessors, as the module was run in the global scope)
+                            this._moduleGlobalAccessors = (CoreXT.globalEval(this.data), $__type._globalaccessors); // (use the global accessors, as the module was run in the global scope)
                         }
                         else {
                             var tsHelpers = CoreXT.renderHelperVarDeclarations("arguments[3]");
@@ -255,32 +285,23 @@ var CoreXT;
                         this.status = CoreXT.Loader.RequestStatuses.Executed;
                     }
                 };
-                Module._globalaccessors = (function () { return CoreXT.safeEval("({ get: function(varName) { return p0.global[varName]; }, set: function(varName, val) { return p0.global[varName] = val; } })", CoreXT); })();
-                // ----------------------------------------------------------------------------------------------------------------
-                Module['ModuleFactory'] = /** @class */ (function (_super) {
-                    __extends(Factory, _super);
-                    function Factory() {
-                        return _super !== null && _super.apply(this, arguments) || this;
-                    }
-                    /** Returns a new module object only - does not load it. */
-                    Factory['new'] = function (fullname, path, minifiedPath) { return null; };
-                    /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-                    Factory.init = function (o, isnew, fullname, url, minifiedURL) {
-                        if (minifiedURL === void 0) { minifiedURL = null; }
-                        this.super.init(o, isnew, CoreXT.debugMode ? url : (minifiedURL || url));
+                $__type[CoreXT.constructor] = function (factory) {
+                    factory.init = function (o, isnew, fullname, url, minifiedUrl) {
+                        factory.super.init(o, isnew, CoreXT.debugMode ? url : (minifiedUrl || url));
                         if (!o.type) // (if the base resource loader fails to initialize, then another resource already exists for the same location)
                             throw CoreXT.System.Exception.from("Duplicate module load request: A previous request for '" + url + "' was already made.", o);
                         o.fullname = fullname;
                         o.nonMinifiedURL = url;
-                        o.minifiedURL = minifiedURL;
+                        o.minifiedURL = minifiedUrl;
                         o.then(o.__onLoaded).ready(o.__onReady);
                     };
-                    return Factory;
-                }(CoreXT.FactoryBase(Module, base['ScriptResourceFactory'])));
-                return Module;
-            }(base));
-            return [Module, Module["ModuleFactory"]];
-        }, "Module");
+                };
+                $__type._globalaccessors = (function () { return CoreXT.safeEval("({ get: function(varName) { return p0.global[varName]; }, set: function(varName, val) { return p0.global[varName] = val; } })", CoreXT); })();
+                return $__type;
+            }(CoreXT.FactoryType(ScriptResource)));
+            Module.$__type = $__type;
+            Module.$__register(Scripts);
+        })(Module = Scripts.Module || (Scripts.Module = {}));
         var _runMode = 0; // (0=auto run, depending on debug flag; 1=user has requested run before the app module was ready; 2=running)
         /** Used internally to see if the application should run automatically. Developers should NOT call this directly and call 'runApp()' instead. */
         function _tryRunApp() {
@@ -402,7 +423,7 @@ var CoreXT;
             // ... add the module if it doesn't already exist, otherwise update it ...
             var mod = _modules[moduleFullTypeName];
             if (mod === void 0)
-                _modules[moduleFullTypeName] = mod = Scripts.Module.new(moduleFullTypeName, path, minPath); // (note: this can only be changed if the type hasn't been loaded yet)
+                _modules[moduleFullTypeName] = mod = Module.new(moduleFullTypeName, path, minPath); // (note: this can only be changed if the type hasn't been loaded yet)
             else {
                 mod.fullname = moduleFullTypeName; // (just in case it changed somehow - this must always match the named index)
                 if (!mod.nonMinifiedURL)
