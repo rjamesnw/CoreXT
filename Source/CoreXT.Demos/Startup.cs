@@ -33,23 +33,11 @@ namespace OneCMS
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) // (note: 'env.EnvironmentName' above can also be used in "Configure{0}Services")
         {
-            services.AddLocalization(options => options.ResourcesPath = "Resources");
-
-            // ... register the CDS controls and their related views ...
-
-            services.Configure<RazorViewEngineOptions>(options =>
-            {
-                options.ViewLocationFormats.Add("Areas/{2}/{1}/{0}.cshtml"); //? (needed?)
-            });
+            //services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             // ... register the CDS based application settings ...
 
             services.AddSingleton(_ => Configuration);
-
-            services.AddOptions();
-
-            //Automatically bind AppSettings
-            services.Configure<CoreXTDemoAppSettings>(Configuration.GetSection("AppSettings"));
 
             // ... setup localization ...
 
@@ -110,18 +98,7 @@ namespace OneCMS
             app.UseStaticFiles();
             app.UseSession();
 
-            app.UseCoreXTDemos(routes => // (invokes app.UseRouter(routes.Build()); before returning, which adds a Microsoft.AspNetCore.Routing.RouteCollection [IRouter] instance)
-            {
-                // (areas route)
-                routes.MapRoute(
-                    name: "area",
-                    template: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
-
-                // (default route)
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            }, HostingEnvironment);
+            app.UseCoreXTDemos(HostingEnvironment);
 
             app.Run(async (context) =>
             {

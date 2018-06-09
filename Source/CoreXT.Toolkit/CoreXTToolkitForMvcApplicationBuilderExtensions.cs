@@ -72,6 +72,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // ... need to add a static file provider for the default embedded content files for the controls ...
 
+            app.AddCoreXTJS(hostingEnvironment);
+
             app.UseStaticFiles(new StaticFileOptions(new SharedOptions
             {
                 FileProvider = new OverridableEmbeddedFileProvider(typeof(CoreXTToolkitForMvcApplicationBuilderExtensions).GetTypeInfo().Assembly, hostingEnvironment)

@@ -1,7 +1,6 @@
 ﻿using CoreXT.MVC;
 using CoreXT.Toolkit;
 using CoreXT.Toolkit.Components;
-using CoreXT.Toolkit.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +21,8 @@ namespace CoreXT.Demos.MVC
 {
     public static class CoreXTDemosForMVCServiceExtensions
     {
+        const string APP_SETTINGS_PATH = "AppSettings:CoreXT.Demos";
+  
         /// <summary>
         /// Adds CoreXT.Demos and related services to the specified <see cref="IServiceCollection" />.
         /// </summary>
@@ -42,21 +43,22 @@ namespace CoreXT.Demos.MVC
 
             // ... configure the CoreXT.Demos services and settings ...
 
-            services.Configure<CoreXTDemoAppSettings>(configuration.GetSection("AppSettings:CoreXT.Demos"));
+            services.Configure<CoreXTDemoAppSettings>(configuration.GetSection(APP_SETTINGS_PATH));
 
-            services.AddDbContext<CoreXTDemoContext>(
-                options => options.UseMySql("Server=localhost", b => b.CommandTimeout(120)),
-                ServiceLifetime.Transient
-            );
+            services.AddEntityFrameworkMySql(); // (EF is using MySQL by default now; no default context is given to force using the extension methods to pull one dynamically)
 
-            services.AddDbContext<CoreXTDemoReadonlyContext>(
-                options => options.UseMySql("Server=localhost", b => b.CommandTimeout(120)),
-                ServiceLifetime.Scoped
-            );
+            //services.AddDbContext<CoreXTDemoContext>(
+            //    options => options.UseMySql("Server=localhost", b => b.CommandTimeout(120)),
+            //    ServiceLifetime.Transient
+            //);
 
-            var currentAssembly = typeof(CoreXTDemosForMVCServiceExtensions).GetTypeInfo().Assembly;
+            //services.AddDbContext<CoreXTDemoReadonlyContext>(
+            //    options => options.UseMySql("Server=localhost", b => b.CommandTimeout(120)),
+            //    ServiceLifetime.Scoped
+            //);
 
-            services.AddComponents(currentAssembly); // (this scans CoreXT.Demos for controls [CoreXT WebComponent view components])
+            //x var currentAssembly = typeof(CoreXTDemosForMVCServiceExtensions).GetTypeInfo().Assembly;
+            //x services.AddComponents(currentAssembly); // (this scans CoreXT.Demos for controls [CoreXT WebComponent view components])
 
             // ... continue on to add the CDS, CDS.Core, CDS.Web.Core, CoreXT.MVC, CoreXT.Toolkit, and MVC framework services ...
 

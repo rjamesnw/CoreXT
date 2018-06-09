@@ -64,8 +64,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddSingleton<AspNetCore.Mvc.Razor.IRazorViewEngine, RazorViewEngine>(); // (this must get added first before MVC core types get added)
             services.TryAddSingleton<IRazorViewEngine, RazorViewEngine>(); // (this must get added first before MVC core types get added)
-            services.TryAddSingleton<AspNetCore.Mvc.ViewFeatures.Internal.ViewResultExecutor, ViewResultExecutor>();
-            services.TryAddSingleton<AspNetCore.Mvc.ViewFeatures.Internal.PartialViewResultExecutor, PartialViewResultExecutor>();
+            services.TryAddSingleton<IActionResultExecutor<ViewResult>, ViewResultExecutor>();
+            services.TryAddSingleton<IActionResultExecutor<PartialViewResult>, PartialViewResultExecutor>();
             services.TryAddSingleton<AspNetCore.Mvc.ViewEngines.ICompositeViewEngine, CompositeViewEngine>();
             services.TryAddSingleton<AspNetCore.Mvc.Razor.IRazorPageActivator, RazorPageActivator>();
             services.TryAddScoped<IViewPageRenderContext, ViewPageRenderContext>(); // (MUST BE "Scoped", since it holds per-request data and requires it's own instance)

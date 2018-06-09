@@ -1,11 +1,12 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC.Views;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
+using Microsoft.Extensions.Diagnostics.Tracing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -18,8 +19,12 @@ namespace CoreXT.MVC
     /// The  CoreXT implementation that locates and executes a Microsoft.AspNetCore.Mvc.ViewEngines.IView for a Microsoft.AspNetCore.Mvc.ViewResult.
     /// 
     /// </summary>
-    public class ViewResultExecutor : Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.ViewResultExecutor
+    public class ViewResultExecutor : IActionResultExecutor<ViewResult>
     {
+        Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor _ViewResultExecutor;
+
+        protected ILogger Logger { get; }
+
         public ViewResultExecutor(
             IOptions<MvcViewOptions> viewOptions,
             IHttpResponseStreamWriterFactory writerFactory,
@@ -28,37 +33,76 @@ namespace CoreXT.MVC
             DiagnosticSource diagnosticSource,
             ILoggerFactory loggerFactory,
             IModelMetadataProvider modelMetadataProvider)
-            : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticSource, loggerFactory, modelMetadataProvider)
+            //: base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticSource, loggerFactory, modelMetadataProvider)
         {
+            _ViewResultExecutor = new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor(viewOptions,writerFactory,
+                viewEngine, tempDataFactory, diagnosticSource, loggerFactory, modelMetadataProvider);
+
+            Logger = loggerFactory.CreateLogger<ViewResultExecutor>();
         }
 
         /// <summary>
         /// Called by the standard MVC system to render a view.
         /// </summary>
-        /// <param name="actionContext">The action context represented by this view.</param>
+        /// <param name="context">The action context represented by this view.</param>
         /// <param name="view">The view (usually a RazorView type) that represents the view to be rendered.
         /// This value is obtained by the system upon calling the accompanying 'FindView()' method in this class.</param>
-        /// <param name="viewResult">Represents an <see cref="ActionResult"/> that renders a view to the response.</param>
+        /// <param name="result">Represents an <see cref="ActionResult"/> that renders a view to the response.</param>
         /// <returns></returns>
-        public override async Task ExecuteAsync(ActionContext actionContext, IView view, ViewResult viewResult)
+        public async Task ExecuteAsync(ActionContext context, ViewResult result)
         {
-            var viewPage = (view as ViewResultProxy)?.RazorPage as IViewPageRenderEvents;
-            var renderContext = viewPage == null ? null : actionContext.HttpContext.GetService<IViewPageRenderContext>();
+            // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            if (result == null)
+                throw new ArgumentNullException(nameof(result));
+
+            var stopwatch = ValueStopwatch.StartNew();
+
+            var viewEngineResult = _ViewResultExecutor.FindView(context, result);
+            viewEngineResult.EnsureSuccessful(originalLocations: null);
+
+            // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+            IViewPageRenderEvents viewPage = (viewEngineResult.View as ViewResultProxy)?.RazorPage as IViewPageRenderEvents;
+            var renderContext = viewPage == null ? null : context.HttpContext.GetService<IViewPageRenderContext>();
 
             if (renderContext != null)
-                renderContext.ActionContext = actionContext;
+                renderContext.ActionContext = context;
 
             viewPage?.OnViewExecuting(renderContext);
 
             try
             {
-                await base.ExecuteAsync(actionContext, view, viewResult);
+                //await _ViewResultExecutor.ExecuteAsync(actionContext, viewResult);
+                // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+                var view = viewEngineResult.View;
+                using (view as IDisposable)
+                {
+                    await _ViewResultExecutor.ExecuteAsync(
+                        context,
+                        view,
+                        result.ViewData,
+                        result.TempData,
+                        result.ContentType,
+                        result.StatusCode);
+                }
+
+                var _viewResultExecuted = LoggerMessage.Define<string, double>(
+                    LogLevel.Information,
+                    4,
+                    "Executed ViewResult - view {ViewName} executed in {ElapsedMilliseconds}ms.");
+
+                _viewResultExecuted(Logger, viewEngineResult.ViewName, stopwatch.GetElapsedTime().TotalMilliseconds, null);
+                // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
             }
-            catch (Exception ex) when (actionContext.HttpContext.Response.Body.CanWrite)
+            catch (Exception ex) when (context.HttpContext.Response.Body.CanWrite)
             {
-                var result = viewPage?.OnRenderException(renderContext, ex);
-                if (result == null) throw ex;
-                result.WriteTo(actionContext.HttpContext.Response.Body);
+                var exceptionViewResult = viewPage?.OnRenderException(renderContext, ex);
+                if (exceptionViewResult == null) throw ex;
+                exceptionViewResult.WriteTo(context.HttpContext.Response.Body);
             }
 
             // ... apply any post-processing (if a custom filter handler was supplied) ...
@@ -81,6 +125,8 @@ namespace CoreXT.MVC
             //    if (renderContext?.HasFilter == true)
             //        renderContext.ApplyOutputFilter();
             //}
+
+            // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
         }
 
         ///// <summary>

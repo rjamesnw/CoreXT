@@ -1,0 +1,42 @@
+﻿@{
+    ViewBag.Title = "CoreXT Toolkit Control Demos";
+    WebComponent comp;
+}
+
+<h2>@ViewBag.Title</h2>
+<hr />
+Link: $lt;xt-a href="~/" class="btn btn-default">Go home$lt;/xt-a><br />
+<xt-a href="~/" class="btn btn-default">Go home</xt-a>
+<br />
+<hr />
+Action Link: &lt;xt-action action="Index" controller="Home" protocol="http" fragment="hashtagfragment">Go home&lt;/xt-action><br />
+<xt-action action="Index" controller="Home" protocol="http" fragment="hashtagfragment">Go home</xt-action><br />
+<hr />
+Modal: <br />
+<xt-modal id="modal">
+    <xt-title>Title</xt-title>
+    <xt-header>This is the header area.</xt-header>
+    <xt-body>This is the body of the modal window.</xt-body>
+</xt-modal>
+<a href="modal" role="button" class="btn btn-default" data-toggle="modal">Open Modal</a>
+<hr />
+@*Modal: @@Modal(@("@<div>Title</div>, true, @<div>This is the header area.</div>, @<div>This is the body of the modal window.</div>)")<br />
+    @Modal(@<div>Title</div>, true,
+        @<div>This is the header area.</div>,
+                                @<div>This is the body of the modal window.</div>)<br />
+    <a href="#@comp.ID" role="button" class="btn btn-default" data-toggle="modal">Open Modal</a>
+    <hr />*@
+
+<div>
+    <span id="msg">Loading...</span>
+
+    <x:template id="button" content="...">
+        <button class="someClass">
+            {{content}}
+        </button>
+    </x:template>
+    <x:button>
+        <x:button.content>
+        </x:button.content>
+    </x:button>
+</div>

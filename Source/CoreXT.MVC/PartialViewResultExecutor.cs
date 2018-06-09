@@ -1,9 +1,8 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.MVC.Views;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
@@ -18,7 +17,7 @@ namespace CoreXT.MVC
     /// The  CoreXT implementation that locates and executes a Microsoft.AspNetCore.Mvc.ViewEngines.IView for a Microsoft.AspNetCore.Mvc.ViewResult.
     /// 
     /// </summary>
-    public class PartialViewResultExecutor : Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.PartialViewResultExecutor
+    public class PartialViewResultExecutor: Microsoft.AspNetCore.Mvc.ViewFeatures.PartialViewResultExecutor
     {
         public PartialViewResultExecutor(
             IOptions<MvcViewOptions> viewOptions, 

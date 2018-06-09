@@ -53,6 +53,8 @@ namespace Microsoft.Extensions.DependencyInjection
             // ... add the embedded providers first, then 'AddMvcXT()' will add the physical file provider next ...
             // (NOTE: derived assemblies should ALWAYS add embedded files providers FIRST to make sure the first one takes priority over inner ones)
 
+            services.AddOptions();
+
             services.Configure<RazorViewEngineOptions>(options =>
             {
                 // TODO: options.FileProviders.Add(new VirtualFileProvider("CoreXT", hostingEnvironment));
@@ -97,7 +99,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             // ... register CoreXT service objects ...
 
-            return services.AddToolkit(null, hostingEnvironment);
+            return services.AddToolkit(null, configuration, hostingEnvironment);
         }
     }
 }
