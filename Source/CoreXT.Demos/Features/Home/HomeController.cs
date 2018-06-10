@@ -11,11 +11,10 @@ using System.Threading.Tasks;
 using CoreXT.Toolkit.Components;
 using CoreXT.ASPNet;
 using CoreXT.Demos.Models;
-using CoreXT.Models;
 
 namespace CoreXT.Demos.Controllers
 {
-    public class HomeController : CoreXTController
+    public class HomeController : Toolkit.MVC.CommonController
     {
         CoreXTDemoAppSettings _AppSettings;
 

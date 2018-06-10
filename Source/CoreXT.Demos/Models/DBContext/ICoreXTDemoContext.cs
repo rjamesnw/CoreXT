@@ -3,7 +3,7 @@ using CoreXT.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace CoreXT.Models
+namespace CoreXT.Demos.Models
 {
     public interface ICoreXTDemoContext : ICoreXTDBContext
     {

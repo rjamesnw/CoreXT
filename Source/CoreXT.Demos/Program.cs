@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore;
 
-namespace OneCMS
+namespace CoreXT.Demos
 {
     public class Program
     {

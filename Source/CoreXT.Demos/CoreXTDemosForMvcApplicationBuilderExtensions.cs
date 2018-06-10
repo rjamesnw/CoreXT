@@ -7,7 +7,7 @@ using System;
 using System.Reflection;
 using CoreXT.MVC;
 
-namespace CoreXT.Demos.MVC
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extension methods for <see cref="IApplicationBuilder"/> to add CoreXT.Demos middleware to the request execution pipeline.
@@ -34,10 +34,10 @@ namespace CoreXT.Demos.MVC
         /// </summary>
         /// <param name="app">The <see cref="IApplicationBuilder"/>.</param>
         /// <returns>A reference to this instance after the operation has completed.</returns>
-        public static IApplicationBuilder UseCoreXTDemosWithDefaultRoute(this IApplicationBuilder app, IHostingEnvironment hostingEnvironment)
+        public static IApplicationBuilder UseCoreXTDemosWithDefaultRouting(this IApplicationBuilder app, IHostingEnvironment hostingEnvironment)
         {
             _AddMiddleware(app, hostingEnvironment);
-            return app.UseToolkitWithDefaultRoute(hostingEnvironment);
+            return app.UseToolkitWithFeatureRoutes(hostingEnvironment);
         }
 
         /// <summary>

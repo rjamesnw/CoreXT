@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -71,7 +72,16 @@ namespace CoreXT.MVC.Components
         /// <value> The view context. </value>
         [ViewContext]
         [HtmlAttributeNotBound]
-        public ViewContext ViewContext { get => _ViewContext ?? ViewPageRenderStack?.Current?.ViewContext; set => _ViewContext = value; }
+        public ViewContext ViewContext
+        {
+            get => _ViewContext ?? ViewPageRenderStack?.Current?.ViewContext;
+            set
+            {
+                _ViewContext = value;
+                if (_ViewContext != null && _ViewContext.RouteData.Routers.Count == 0)
+                    _ViewContext.RouteData = HttpContext.GetRouteData(); // (https://stackoverflow.com/questions/44443659/render-view-to-string-argumentoutofrangeexception)
+            }
+        }
         ViewContext _ViewContext;
 
         /// <summary> If 'ViewContext' is set, this returns the underlying IView instance as a RazorView, or null if the view is not a RazorView. </summary>

@@ -24,12 +24,13 @@ namespace CoreXT.Toolkit.Components.Bootstrap
         public async override Task ProcessAsync()
         {
             var modal = TagContext.Items[typeof(Modal)] as Modal;
+            var context = await TagOutput.GetChildContentAsync();
             if (modal != null)
             {
-                modal.Footer = await TagOutput.GetChildContentAsync();
+                modal.Footer = context;
                 TagOutput.SuppressOutput(); // (this will be processed by the parent modal tag component)
             }
-            else TagOutput.Content.SetHtmlContent(await TagOutput.GetChildContentAsync());
+            else TagOutput.Content.SetHtmlContent(context);
         }
 
         // --------------------------------------------------------------------------------------------------------------------

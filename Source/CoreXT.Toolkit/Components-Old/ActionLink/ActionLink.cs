@@ -51,6 +51,8 @@ namespace CoreXT.Toolkit.Components.Old
         public string HostName { get; set; }
 
         public int? Port { get; set; }
+        
+        public string Query { get; set; }
 
         public string Fragment { get; set; }
 
@@ -133,7 +135,7 @@ namespace CoreXT.Toolkit.Components.Old
 
         void _CalcHref()
         {
-            Href = Url?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, HostName, Port, Fragment, RouteValues);
+            Href = Url?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, HostName, Port, Query, Fragment, RouteValues);
         }
 
         public override async Task<WebViewComponent> Update()

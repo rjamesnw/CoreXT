@@ -8,8 +8,8 @@ namespace CoreXT.MVC
     public static class UrlHelperExtensions
     {
         // --------------------------------------------------------------------------------------------------------------------
-        public static string GenerateUrl(this IUrlHelper urlHelper,  string routeName, string actionName, string controllerName, string areaName, string protocol, string hostName,
-            int? port, string fragment, RouteValueDictionary values)
+        public static string GenerateUrl(this IUrlHelper urlHelper, string routeName, string actionName, string controllerName,
+            string areaName, string protocol, string hostName, int? port, string query, string fragment, RouteValueDictionary values)
         {
             // ... get the URL path part for this request ...
 
@@ -23,7 +23,11 @@ namespace CoreXT.MVC
             hostName = string.IsNullOrEmpty(hostName) ? requestUrl.Host : hostName;
             port = port == null || port == 0 ? requestUrl.Port : port;
 
-            var url = new UriBuilder(protocol, hostName, port.Value, virtualPath, fragment);
+            var url = new UriBuilder(protocol, hostName, port.Value, virtualPath);
+            if (!string.IsNullOrWhiteSpace(query))
+                url.Query = query.StartsWith("?") ? query : "?" + query;
+            if (!string.IsNullOrWhiteSpace(fragment))
+                url.Fragment = fragment.StartsWith("#") ? fragment : "#" + fragment;
 
             return url.ToString();
         }

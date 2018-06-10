@@ -70,6 +70,10 @@ namespace CoreXT.Toolkit.Components
         /// <value> The port. </value>
         public int? Port { get; set; }
 
+        /// <summary> Gets or sets the query string part. </summary>
+        /// <value> The query string. </value>
+        public string Query { get; set; }
+
         /// <summary> Gets or sets the fragment (hash-tag style value)). </summary>
         /// <value> The fragment. </value>
         public string Fragment { get; set; }
@@ -80,7 +84,7 @@ namespace CoreXT.Toolkit.Components
 
         /// <summary> Gets the 'href' attribute value. </summary>
         /// <value> The 'href' attribute value. </value>
-        public string Href => Url?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, Host, Port, Fragment, RouteValues) ?? string.Empty;
+        public string Href => Url?.GenerateUrl(RouteName, ActionName, ControllerName, AreaName, Protocol, Host, Port, Query, Fragment, RouteValues) ?? string.Empty;
 
         /// <summary> Something to render immediately after the link start tag. </summary>
         public string Prefix { get; set; }

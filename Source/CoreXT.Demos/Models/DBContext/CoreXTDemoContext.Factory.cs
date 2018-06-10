@@ -10,7 +10,7 @@ using CoreXT.Demos.Models;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 
-namespace CoreXT.Models
+namespace CoreXT.Demos.Models
 {
     // ########################################################################################################################
 
@@ -29,7 +29,8 @@ namespace CoreXT.Models
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public CoreXTDemoContext(DbContextOptions<CoreXTDemoContext> options, ILoggerFactory loggerFactory) : base(options, loggerFactory)
+        public CoreXTDemoContext(DbContextOptions<CoreXTDemoContext> options, ICoreXTServiceProvider services)
+            : base(options, services)
         {
         }
 
@@ -37,12 +38,12 @@ namespace CoreXT.Models
         /// Construct a new CoreXT.Demos entities context object by passing in the name of a connection string in the web.config file, or a whole connecting string itself.
         /// This allows selecting a different database server; for example, based on debug, test, or release (go live) modes.
         /// </summary>
-        internal CoreXTDemoContext(string nameOrConnectionString, ILoggerFactory loggerFactory = null)
-            : base(new DbContextOptionsBuilder().UseMySql(nameOrConnectionString).Options, loggerFactory)
+        internal CoreXTDemoContext(string nameOrConnectionString, ICoreXTServiceProvider services = null)
+            : base(new DbContextOptionsBuilder().UseMySql(nameOrConnectionString).Options, services)
         {
         }
 
-        public CoreXTDemoContext(ILoggerFactory loggerFactory) : base(loggerFactory)
+        public CoreXTDemoContext(ICoreXTServiceProvider services) : base(services)
         {
         }
 
@@ -85,7 +86,7 @@ namespace CoreXT.Models
     {
         public override bool IsReadonly { get { return true; } }
 
-        public CoreXTDemoReadonlyContext(DbContextOptions<CoreXTDemoContext> options, ILoggerFactory loggerFactory) : base(options, loggerFactory)
+        public CoreXTDemoReadonlyContext(DbContextOptions<CoreXTDemoContext> options, ICoreXTServiceProvider services) : base(options, services)
         {
         }
 
@@ -93,12 +94,12 @@ namespace CoreXT.Models
         /// Construct a new CDS READONLY entities context object using a connection string.
         /// This allows selecting a different database server; for example, based on debug, test, or release (go live) modes.
         /// </summary>
-        internal CoreXTDemoReadonlyContext(string nameOrConnectionString, ILoggerFactory loggerFactory = null)
-            : base(nameOrConnectionString, loggerFactory)
+        internal CoreXTDemoReadonlyContext(string nameOrConnectionString, ICoreXTServiceProvider services = null)
+            : base(nameOrConnectionString, services)
         {
         }
 
-        public CoreXTDemoReadonlyContext(ILoggerFactory loggerFactory) : base(loggerFactory)
+        public CoreXTDemoReadonlyContext(ICoreXTServiceProvider services) : base(services)
         {
         }
         public CoreXTDemoReadonlyContext()

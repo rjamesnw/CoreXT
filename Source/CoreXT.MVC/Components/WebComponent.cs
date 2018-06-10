@@ -90,13 +90,27 @@ namespace CoreXT.MVC.Components
             get
             {
                 if (_ViewSearchLocations != null) return _ViewSearchLocations;
+
                 var thisType = GetType();
-                _ViewSearchLocations = new List<string> { "/" + nameof(Components), "/" + DottedNamesToPath(thisType.Namespace) };
+                var thisTypeNSParts = thisType.Namespace.Split('.');
+
+                // ... initialize with default search locations ...
+
+                _ViewSearchLocations = new List<string>();
+
+                // ... add search paths from end of namespace names to the root ...
+                //  (note: most of the time the root namespace name is NOT a sub-folder)
+
+                for (int i = 0, n = thisTypeNSParts.Length - 1; i < n; ++i) // (depth first)
+                    _ViewSearchLocations.Add("/" + JoinURLPathNames(thisTypeNSParts.Skip(i)));
+
+                _ViewSearchLocations.Add("/" + nameof(Components));
+
+                // ... search using namespaces of current and executing assembly, and trim off matching start names (in A.B.C typically only 'B' and 'C' are sub-folders and 'A' is the project root folder) ...
                 var searchNameSpaces = new List<string[]> {
                     Assembly.GetExecutingAssembly().GetName().Name.Split('.'),
                     Assembly.GetEntryAssembly().GetName().Name.Split('.')
                 };
-                var thisTypeNSParts = thisType.Namespace.Split('.');
                 var searchPaths = searchNameSpaces.Select(s => TrimMatchingStartNames(thisTypeNSParts.ToList(), s));
                 foreach (var pathParts in searchPaths)
                 {

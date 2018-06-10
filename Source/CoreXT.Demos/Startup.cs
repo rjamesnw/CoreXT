@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace OneCMS
+namespace CoreXT.Demos
 {
     public class Startup
     {
@@ -91,14 +91,11 @@ namespace OneCMS
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            //? var locOptions = app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();
-            //?  app.UseRequestLocalization(locOptions.Value);
-            //?  (example usage: http://localhost:5000/api/About?culture=en-US)
+            //! var locOptions = app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();
+            //!  app.UseRequestLocalization(locOptions.Value);
+            //!  (example usage: http://localhost:5000/api/About?culture=en-US)
 
-            app.UseStaticFiles();
-            app.UseSession();
-
-            app.UseCoreXTDemos(HostingEnvironment);
+            app.UseCoreXTDemosWithDefaultRouting(HostingEnvironment);
 
             app.Run(async (context) =>
             {

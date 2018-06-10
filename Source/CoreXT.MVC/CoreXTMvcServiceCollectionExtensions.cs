@@ -85,6 +85,37 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
         }
 
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        ///     Configures the "Features" pattern for views where the controller code and view files are in the same directory.
+        ///     <para>
+        ///         To use this, rename '/Views' to '/Features', and move your '/Areas' folder directly under '/Features' as a sub-
+        ///         folder. Each folder should contain a single controller and ALL view files the controller works with. Keeping
+        ///         files in one place makes it easier to find the views related to controller actions.
+        ///     </para>
+        /// </summary>
+        /// <param name="builder"> The builder to act on for this extension method. </param>
+        /// <returns> An IMvcBuilder. </returns>
+        public static IMvcBuilder AddFeatureRouting(this IMvcBuilder builder)
+        {
+            return builder.AddMvcOptions(o => o.Conventions.Add(new FeatureConvention()))
+                .AddRazorOptions(options =>
+                {
+                    // {0} - Action Name
+                    // {1} - Controller Name
+                    // {2} - Area Name
+                    // {3} - Feature Name
+                    //options.ViewLocationFormats.Insert(0, "/{0}.cshtml");
+                    options.ViewLocationFormats.Insert(0, "/Features/Shared/{0}.cshtml");
+                    options.ViewLocationFormats.Insert(0, "/Features/{1}/{0}.cshtml");
+                    options.AreaViewLocationFormats.Insert(0, "/Features/{2}/Shared/{0}.cshtml");
+                    options.AreaViewLocationFormats.Insert(0, "/Features/{2}/{1}/{0}.cshtml"); // (insert more complicated last so it matches first)
+                                                                                               //?options.ViewLocationExpanders.Add(new FeatureViewLocationExpander());
+                });
+        }
+
         // --------------------------------------------------------------------------------------------------------------------
     }
 }

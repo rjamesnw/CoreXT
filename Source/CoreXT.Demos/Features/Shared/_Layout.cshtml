@@ -13,6 +13,7 @@
 
         @Script("https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js", RenderTargets.Footer).SetFallback("~/lib/jquery/dist/jquery.min.js", "window.jQuery");
         @Script("https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js", RenderTargets.Footer).SetFallback("~/lib/bootstrap/dist/js/bootstrap.min.js", "window.jQuery && window.jQuery.fn && window.jQuery.fn.modal");
+        @Script("~/js/corext/corext.js", RenderTargets.Footer).AppendVersion();
         @Script("~/js/app.min.js", RenderTargets.Footer).AppendVersion();
     }
     else
@@ -21,41 +22,47 @@
         @CSS("~/css/site.css").AppendVersion();
 
         @Scripts(RenderTargets.Header, "~/lib/jquery/dist/jquery.js", "~/lib/bootstrap/dist/js/bootstrap.js");
+        @Script("~/js/corext/corext.js", RenderTargets.Footer).AppendVersion();
         @Script("~/js/app.js", RenderTargets.Footer).AppendVersion();
     }
     @RenderStyles()
     @RenderHeaderScripts()
 </head>
 <body>
-    @(await Menu("CoreXT Demo", "Index", "Home").Invert()
-        .SetItem("Home", "Index", "Home")
-        .SetItem("Control Demos", "ControlDemos", "Home")
-        .SetItem("About", "About", "Home")
-        .SetItem("Contact", "Contact", "Home").AsAsync()
-    )
-
+    <xt-menu caption="CoreXT Demo" action="Index" controller="Home" inverse="true">
+        <xt-menuitem action="Index" controller="Home">Home</xt-menuitem>
+        <xt-menuitem action="ControlDemos" controller="Home">Control Demos</xt-menuitem>
+        <xt-menuitem action="About" controller="Home">About</xt-menuitem>
+        <xt-menuitem action="Contact" controller="Home">Contact</xt-menuitem>
+    </xt-menu>
+    @*@(await Menu("CoreXT Demo", "Index", "Home").Invert()
+            .SetItem("Home", "Index", "Home")
+            .SetItem("Control Demos", "ControlDemos", "Home")
+            .SetItem("About", "About", "Home")
+            .SetItem("Contact", "Contact", "Home").AsAsync()
+        )*@
     @*<div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                @ActionLink("One CMS", "Index", "Home").AddClass("navbar-brand")
+            <div class="container">
+                <div class="navbar-header">
+                    @ActionLink("One CMS", "Index", "Home").AddClass("navbar-brand")
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li>@ActionLink("Home", "Index", "Home")</li>
+                        <li>@ActionLink("Control Demos", "ControlDemos", "Home")</li>
+                        <li>@ActionLink("About", "About", "Home")</li>
+                        <li>@ActionLink("Contact", "Contact", "Home")</li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Control Demos <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li>@ActionLink("Logs", "Index", "Log")</li>
+                                <li>@Html.ActionLink("Settings", "Index", "Home", new { area = "UserAccountManagement" }, null)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li>@ActionLink("Home", "Index", "Home")</li>
-                    <li>@ActionLink("Control Demos", "ControlDemos", "Home")</li>
-                    <li>@ActionLink("About", "About", "Home")</li>
-                    <li>@ActionLink("Contact", "Contact", "Home")</li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Control Demos <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li>@ActionLink("Logs", "Index", "Log")</li>
-                            <li>@Html.ActionLink("Settings", "Index", "Home", new { area = "UserAccountManagement" }, null)</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>*@
+        </div>*@
     <div class="container body-content">
         @RenderBody()
         <hr />

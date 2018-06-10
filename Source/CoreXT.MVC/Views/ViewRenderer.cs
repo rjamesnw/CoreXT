@@ -30,8 +30,8 @@ namespace CoreXT.MVC.Views
         //x protected RazorViewEngineOptions RazorViewEngineOptions => _RazorViewEngineOptions ?? (_RazorViewEngineOptions = _ServiceProvider.GetService<IOptions<RazorViewEngineOptions>>().Value);
         //x RazorViewEngineOptions _RazorViewEngineOptions;
 
-        protected IServiceProvider ASPServiceProvider => _ASPServiceProvider ?? (_ASPServiceProvider = _ServiceProvider.GetService<IServiceProvider>());
-        IServiceProvider _ASPServiceProvider;
+        //x protected IServiceProvider ASPServiceProvider => _ASPServiceProvider ?? (_ASPServiceProvider = _ServiceProvider.GetService<IServiceProvider>());
+        //x IServiceProvider _ASPServiceProvider;
 
         //x protected IHostingEnvironment HostingEnvironment => _HostingEnvironment ?? (_HostingEnvironment = _ServiceProvider.GetService<IHostingEnvironment>());
         //x IHostingEnvironment _HostingEnvironment;
@@ -41,6 +41,15 @@ namespace CoreXT.MVC.Views
 
         protected ITempDataProvider TempDataProvider => _TempDataProvider ?? (_TempDataProvider = _ServiceProvider.GetService<ITempDataProvider>());
         ITempDataProvider _TempDataProvider;
+
+        /// <summary> Gets the context accessor. </summary>
+        /// <value> The context accessor. </value>
+        protected IHttpContextAccessor ContextAccessor => _ContextAccessor ?? (_ContextAccessor = _ServiceProvider.GetService<IHttpContextAccessor>());
+        /// <summary> The context accessor. </summary>
+        IHttpContextAccessor _ContextAccessor;
+        /// <summary> Gets a context for the HTTP. </summary>
+        /// <value> The HTTP context. </value>
+        protected HttpContext HttpContext { get { return ContextAccessor.HttpContext; } }
 
         public ViewRenderer(ICoreXTServiceProvider serviceProvider)
         {
@@ -123,8 +132,8 @@ namespace CoreXT.MVC.Views
 
         private ActionContext GetActionContext()
         {
-            var httpContext = new DefaultHttpContext { RequestServices = ASPServiceProvider };
-            return new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+            //var httpContext = new DefaultHttpContext { RequestServices = _ServiceProvider };
+            return new ActionContext(HttpContext, HttpContext.GetRouteData() ?? new RouteData(), new ActionDescriptor());
         }
 
         ///// <summary> Find a view by a specific path and filename. </summary>

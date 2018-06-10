@@ -13,7 +13,6 @@ using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using CoreXT.Services.DI;
 using CoreXT.Demos.Models;
-using CoreXT.Models;
 using Microsoft.EntityFrameworkCore;
 using CoreXT.Entities;
 
@@ -62,7 +61,10 @@ namespace CoreXT.Demos.MVC
 
             // ... continue on to add the CDS, CDS.Core, CDS.Web.Core, CoreXT.MVC, CoreXT.Toolkit, and MVC framework services ...
 
-            return services.AddToolkit(setupAction, configuration, hostingEnvironment);
+            services.AddCoreXTSession();
+
+            return services.AddToolkit(setupAction, configuration, hostingEnvironment)
+                .AddFeatureRouting();
         }
 
         /// <summary>

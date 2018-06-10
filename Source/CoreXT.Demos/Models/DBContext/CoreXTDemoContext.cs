@@ -12,7 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace CoreXT.Models
+namespace CoreXT.Demos.Models
 {
     public partial class CoreXTDemoContext : CoreXTDBContext
     {
