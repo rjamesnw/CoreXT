@@ -8,8 +8,8 @@ namespace CoreXT {
         namespace("CoreXT", "Scripts");
         // =======================================================================================================================
 
-        /** Used to strip out the module header */
-        export var MANIFEST_DEPENDENCIES_REGEX = /\bmodule\s*\(\s*\[(.*)\]/gim;
+        /** Used to strip out manifest dependencies. */
+        export var MANIFEST_DEPENDENCIES_REGEX = /^\s*using:\s*([A-Za-z0-9$_.,\s]*)/gim;
 
         // =======================================================================================================================
 
@@ -171,16 +171,16 @@ namespace CoreXT {
                 if (!data) return;
                 var script: string = (typeof data == 'string' ? data : '' + data);
                 if (script) {
-                    var dependencyGroups: string[] = [], result: RegExpExecArray;
+                    var usingGroups: string[] = [], result: RegExpExecArray;
 
                     MANIFEST_DEPENDENCIES_REGEX.lastIndex = 0;
                     while ((result = MANIFEST_DEPENDENCIES_REGEX.exec(script)) !== null)
-                        dependencyGroups.push(result[1]);
+                        usingGroups.push(result[1]); // ("a.b.x, a.b.y, a.b.z")
 
-                    if (dependencyGroups.length) {
+                    if (usingGroups.length) {
                         var dependencies: string[] = [];
-                        for (var i = 0, n = dependencyGroups.length; i < n; i++) {
-                            var depItems = dependencyGroups[i].split(',');
+                        for (var i = 0, n = usingGroups.length; i < n; i++) {
+                            var depItems = usingGroups[i].split(',');
                             for (var i2 = 0, n2 = depItems.length; i2 < n2; ++i2)
                                 dependencies.push(depItems[i2].trim());
                         }

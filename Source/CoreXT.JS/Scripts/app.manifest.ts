@@ -1,6 +1,11 @@
 ﻿namespace CoreXT.Scripts.Modules {
+    // ... place your module manifest dependencies on their own lines anywhere in the file, 
+    // as long as there is empty space before 'using:' ...
+    
+    using: System.UI_HTML;
 
-    // ... define the components made available by this manifest ...
+    // ... define the components made available by this manifest, including which dependencies are for which module, 
+    // and where the script file can be found ...
 
     export var App = module([System.UI_HTML], 'app{min:.min}');
     // (if your app depends on other JavaScript modules, be sure to register them above [in the correct order as needed])
