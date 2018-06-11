@@ -1,0 +1,13 @@
+﻿@model MenuDropdown
+@{
+    Model.AddClass("dropdown");
+}
+<li @Model.RenderAttributes(true, true)>
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@Model.Caption<span class="caret"></span></a>
+    <ul class="dropdown-menu">
+        @foreach (var item in Model.Items)
+        {
+            @Model.RenderContent(item)
+        }
+    </ul>
+</li>

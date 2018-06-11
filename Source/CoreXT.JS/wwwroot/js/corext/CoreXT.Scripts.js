@@ -148,16 +148,19 @@ var CoreXT;
             var request = _manifestsByURL[path];
             if (request)
                 return request; // (request already made)
-            request = (Manifest.new(path)).then(function (request) {
+            request = (Manifest.new(path)).then(function (request, data) {
                 // ... the manifest script is loaded, now extract any dependencies ...
-                if (request.data == void 0 || request.data == null)
+                if (!data)
                     return;
-                var script = (typeof request.data == 'string' ? request.data : '' + request.data);
+                var script = (typeof data == 'string' ? data : '' + data);
                 if (script) {
-                    var dependencyGroups = script.match(Scripts.MANIFEST_DEPENDENCIES_REGEX);
-                    if (dependencyGroups) {
+                    var dependencyGroups = [], result;
+                    Scripts.MANIFEST_DEPENDENCIES_REGEX.lastIndex = 0;
+                    while ((result = Scripts.MANIFEST_DEPENDENCIES_REGEX.exec(script)) !== null)
+                        dependencyGroups.push(result[1]);
+                    if (dependencyGroups.length) {
                         var dependencies = [];
-                        for (var i = 1, n = dependencyGroups.length; i < n; i++) {
+                        for (var i = 0, n = dependencyGroups.length; i < n; i++) {
                             var depItems = dependencyGroups[i].split(',');
                             for (var i2 = 0, n2 = depItems.length; i2 < n2; ++i2)
                                 dependencies.push(depItems[i2].trim());
@@ -173,11 +176,11 @@ var CoreXT;
                         }
                     }
                 }
-            }).ready(function (request) {
-                var func = Function("manifest", request.transformedData); // (create a manifest wrapper function to isolate the execution context)
-                func.call(_this, request); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
-                request.status = CoreXT.Loader.RequestStatuses.Executed;
-                request.message = "The manifest script has been executed.";
+            }).ready(function (manifestRequest) {
+                var func = Function("manifest", "CoreXT", manifestRequest.transformedData); // (create a manifest wrapper function to isolate the execution context)
+                func.call(_this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
+                manifestRequest.status = CoreXT.Loader.RequestStatuses.Executed;
+                manifestRequest.message = "The manifest script has been executed.";
             });
             _manifests.push(request); // (note: the first and second manifest should be the default root manifests; modules script loading should commence once all manifests are loaded)
             _manifestsByURL[path] = request;
@@ -498,15 +501,15 @@ var CoreXT;
         ;
     })(Scripts = CoreXT.Scripts || (CoreXT.Scripts = {}));
     // =======================================================================================================================
-    /** Use to compile & execute required modules as they are needed.
-      * By default, modules (scripts) are not executed immediately upon loading.  This makes page loading more efficient.
-      */
-    CoreXT.using = Scripts.Modules;
+    ///** Use to compile & execute required modules as they are needed.
+    //  * By default, modules (scripts) are not executed immediately upon loading.  This makes page loading more efficient.
+    //  */
+    //export import using = Scripts.module;
     // =======================================================================================================================
 })(CoreXT || (CoreXT = {}));
 // ###########################################################################################################################
-/** Used to load, compile & execute required plugin scripts. */
-if (!this['using'])
-    var using = CoreXT.using; // (users should reference "using.", but "CoreXT.using" can be used if the global 'using' is needed for something else)
+///** Used to load, compile & execute required plugin scripts. */
+//if (!this['using'])
+//    var using = CoreXT.using; // (users should reference "using.", but "CoreXT.using" can be used if the global 'using' is needed for something else)
 // ###########################################################################################################################
 //# sourceMappingURL=CoreXT.Scripts.js.map

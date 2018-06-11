@@ -18,7 +18,7 @@ namespace CoreXT.Toolkit.Components.Bootstrap
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentTitle"/>
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentHeader"/>
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentFooter"/>
-    [HtmlTargetElement(ComponentPrefix + "menuitem", ParentTag = ComponentPrefix + nameof(Menu))]
+    [HtmlTargetElement(ComponentPrefix + "menuitem")]
     public class MenuItem : ActionLink
     {
         // --------------------------------------------------------------------------------------------------------------------
@@ -34,12 +34,19 @@ namespace CoreXT.Toolkit.Components.Bootstrap
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.TagComponent.ProcessAsync()"/>
         public async override Task ProcessAsync()
         {
-            var modal = TagContext.Items[typeof(Menu)] as Menu;
             var context = await ProcessContent() ? (IHtmlContent)TagOutput : await TagOutput.GetChildContentAsync();
 
-            if (modal != null)
+            TagContext.Items.TryGetValue(typeof(Menu), out var menu);
+            TagContext.Items.TryGetValue(typeof(MenuDropdown), out var menuDropdown);
+
+            if (menu != null)
             {
-                modal.Items.Add(context.Render());
+                ((Menu)menu).Items.Add(context.Render());
+                TagOutput.SuppressOutput(); // (this will be processed by the parent modal tag component)
+            }
+            else  if (menuDropdown != null)
+            {
+                ((MenuDropdown)menuDropdown).Items.Add(context.Render());
                 TagOutput.SuppressOutput(); // (this will be processed by the parent modal tag component)
             }
             else TagOutput.Content.SetHtmlContent(context);

@@ -276,7 +276,10 @@ namespace CoreXT.MVC.Components
         public async Task<IHtmlContent> RenderComponent(OnBeforeViewRender onBeforeViewRender = null, bool required = false, Type type = null)
         {
             if (_renderingTagComponent)
-                throw new InvalidOperationException($"You attempted to render the tag component '{TagContext.TagName}' while it is already being rendered.  Make sure you are calling 'RenderInnerContent()' within views and not 'RenderComponent()'.");
+                return new HtmlString($"<div style='background-color: LightCoral; display:block!; position:absolute; z-index:999; max-wdith:960px; '>You attempted to render the tag component '{TagContext.TagName}' while it is already being rendered, which is a cyclical error. To prevent this:<br/>\r\n" +
+                    $"1. Make sure you are calling 'RenderInnerContent()' within views and not 'RenderComponent()' to render the inner content.<br/>\r\n" +
+                    $"2. Make sure to call 'RenderContent(content)' and not 'RenderComponent()' within the view to render content, if needed.<br/>\r\n" +
+                    $"3. Be careful when using '@' to modify the component properties so as not to return the component to the view by mistake.</div>");
 
             try
             {

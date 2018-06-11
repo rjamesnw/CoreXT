@@ -142,7 +142,7 @@ namespace CoreXT.Toolkit
 
         // --------------------------------------------------------------------------------------------------------------------
 
-        public HtmlString RenderCoreXTBootstrap()
+        public HtmlString RenderCoreXTJSConfigurations()
         {
             return new HtmlString(@"
     <script>

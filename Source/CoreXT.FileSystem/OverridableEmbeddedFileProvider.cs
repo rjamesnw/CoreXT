@@ -126,10 +126,11 @@ namespace CoreXT.FileSystem
                 if (cacheEntry != null && cacheEntry.Length > 0)
                 {
                     var fnlower = fileName.ToLower();
-                    var similar = cacheEntry.Select(s => s.ToLower()).Where(s => s == fnlower || s.EndsWith("." + fnlower) || s.EndsWith("\\" + fnlower) || s.EndsWith("/" + fnlower)).ToArray();
+                    var similar = cacheEntry.Select(s => new { path = s, lcpath = s.ToLower() }).Where(s => s.lcpath == fnlower || s.lcpath.EndsWith("." + fnlower) || s.lcpath.EndsWith("\\" + fnlower) || s.lcpath.EndsWith("/" + fnlower))
+                        .Select(m => m.path).ToArray();
                     if (similar.Length > 0)
                         System.Diagnostics.Debug.WriteLine(" You tried to find an embedded file '" + fileName + "' ('" + subpath + "') in '" + Assembly.FullName + "' using CoreXTEmbeddedFileProvider with base namespace '" + BaseNamespace + "' and the file was not found; however, there IS a similar file under these paths: "
-                            + Environment.NewLine + "  > " + string.Join(Environment.NewLine + "  > ", similar) + Environment.NewLine + "  * Double check that your namespace is correct. Also, path and file names are case-sensitive.", "WARNING");
+                            + Environment.NewLine + "  > " + string.Join(Environment.NewLine + "  > ", similar) + Environment.NewLine + "  * Double check that your namespace is correct. Also, remember that .Net Core file providers are case SENSITIVE.", "WARNING");
                 }
 #endif
             }

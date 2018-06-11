@@ -11,11 +11,11 @@
     "removeComments": false,
     "noEmitHelpers": true,
     "declaration": true,
-    "declarationDir": "Typings/CoreXTJS",
+    "declarationDir": "Typings",
     //"typeRoots": [ "typings" ],
     "sourceMap": true,
     "target": "es5", // IE11=es5, Edge+ es2015=ES6
-    "outDir": "wwwroot/js/corext",
+    "outDir": "wwwroot/js",
     "downlevelIteration": true,
     "rootDir": "Scripts",
     "lib": [ "dom", "es6", "dom.iterable", "scripthost" ] // (target es5 but use es6 libs, since there is partial support of some es6 in es5; lib options: https://www.typescriptlang.org/docs/handbook/compiler-options.html)
@@ -28,10 +28,12 @@
   "exclude": [
     "node_modules",
     "wwwroot/**/*.ts",
-    "Typings/CoreXTJS/**/*.ts",
-    "Scripts/__references.ts",
-    "Scripts/CoreXT.VDom.Canvas.ts",
-    "Scripts/CoreXT.VDom.ts",
-    "Scripts/Twitter/**/*.ts"
+    "Typings/CoreXT/**/*.ts",
+    "Typings/app.d.ts",
+    "Typings/app.manifest.d.ts",
+    "Scripts/CoreXT/__references.ts",
+    "Scripts/CoreXT/CoreXT.VDom.Canvas.ts",
+    "Scripts/CoreXT/CoreXT.VDom.ts",
+    "Scripts/CoreXT/Twitter/**/*.ts"
   ]
 }

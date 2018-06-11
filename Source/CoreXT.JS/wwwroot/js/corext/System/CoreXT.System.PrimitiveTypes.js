@@ -26,7 +26,7 @@ var CoreXT;
             };
             Object.s = 3;
             return Object;
-        }(CoreXT.FactoryBase()));
+        }(CoreXT.FactoryBase(void 0, CoreXT.global.Object)));
         System.Object = Object;
         (function (Object) {
             var $__type = /** @class */ (function (_super) {
@@ -243,7 +243,7 @@ var CoreXT;
                 return prefix + delimiter + source;
             };
             return String;
-        }(CoreXT.FactoryBase()));
+        }(CoreXT.FactoryBase(void 0, CoreXT.global.String)));
         System.String = String;
         (function (String) {
             var $__type = /** @class */ (function (_super) {
@@ -289,7 +289,7 @@ var CoreXT;
                 return _super !== null && _super.apply(this, arguments) || this;
             }
             return Array;
-        }(CoreXT.FactoryBase()));
+        }(CoreXT.FactoryBase(void 0, CoreXT.global.Array)));
         System.Array = Array;
         (function (Array) {
             var $__type = /** @class */ (function (_super) {
@@ -301,7 +301,7 @@ var CoreXT;
                 $__type.prototype.clear = function () { this.length = 0; return this; };
                 $__type[CoreXT.constructor] = function (factory) {
                     if (!CoreXT.ES6) // (if 'class' syntax is not supported then the 'length' property will not behave like an normal array so try to polyfill this somewhat)
-                        CoreXT.global.Object.defineProperty(Array, "length", {
+                        CoreXT.global.Object.defineProperty(Array.$__type.prototype, "length", {
                             get: function () { return this._length; },
                             set: function (v) { this._length = +v || 0; CoreXT.global.Array.prototype.splice(this._length); }
                         });

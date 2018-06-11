@@ -1,8 +1,12 @@
-﻿// / <reference path="_references.ts" />
-// declare var application: CoreXT.System.Platform.UIApplication;
+﻿namespace CoreXT.Demos {
+    function main() {
+        alert("The DOM is now loaded!");
+    }
 
-alert("Almost ready...");
+    if (CoreXT.DOM.isDOMReady)
+        alert("CoreXT system is loaded and ready!");
+    else
+        alert("CoreXT system is loaded and ready! Just waiting on the browser ...");
 
-CoreXT.DOM.onDOMLoaded.attach(() => {
-    alert("DOM loaded!");
-});
+    CoreXT.DOM.onDOMLoaded.attach(main); // (all events fire immediately when the DOM is already loaded)
+}

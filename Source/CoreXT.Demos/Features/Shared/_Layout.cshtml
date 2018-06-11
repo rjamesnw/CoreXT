@@ -13,8 +13,8 @@
 
         @Script("https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js", RenderTargets.Footer).SetFallback("~/lib/jquery/dist/jquery.min.js", "window.jQuery");
         @Script("https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js", RenderTargets.Footer).SetFallback("~/lib/bootstrap/dist/js/bootstrap.min.js", "window.jQuery && window.jQuery.fn && window.jQuery.fn.modal");
-        @Script("~/js/corext/corext.js", RenderTargets.Footer).AppendVersion();
-        @Script("~/js/app.min.js", RenderTargets.Footer).AppendVersion();
+        @*@Script("~/js/app.min.js", RenderTargets.Footer).AppendVersion();*@
+        @Script(CoreXT.JS.Settings.CONTENT_INCLUDE_PATH, RenderTargets.Footer).AppendVersion();
     }
     else
     {
@@ -22,25 +22,23 @@
         @CSS("~/css/site.css").AppendVersion();
 
         @Scripts(RenderTargets.Header, "~/lib/jquery/dist/jquery.js", "~/lib/bootstrap/dist/js/bootstrap.js");
-        @Script("~/js/corext/corext.js", RenderTargets.Footer).AppendVersion();
-        @Script("~/js/app.js", RenderTargets.Footer).AppendVersion();
+        @*@Script("~/js/app.js", RenderTargets.Footer).AppendVersion();*@
+        @Script(CoreXT.JS.Settings.CONTENT_INCLUDE_PATH, RenderTargets.Footer).AppendVersion();
     }
     @RenderStyles()
     @RenderHeaderScripts()
+    @RenderCoreXTJSConfigurations()
 </head>
 <body>
     <xt-menu caption="CoreXT Demo" action="Index" controller="Home" inverse="true">
         <xt-menuitem action="Index" controller="Home">Home</xt-menuitem>
         <xt-menuitem action="ControlDemos" controller="Home">Control Demos</xt-menuitem>
-        <xt-menuitem action="About" controller="Home">About</xt-menuitem>
-        <xt-menuitem action="Contact" controller="Home">Contact</xt-menuitem>
+        <xt-menudropdown caption="Extras">
+            <xt-menuitem action="About" controller="Home">About</xt-menuitem>
+            <xt-menuitem action="Contact" controller="Home">Contact</xt-menuitem>
+        </xt-menudropdown>
     </xt-menu>
-    @*@(await Menu("CoreXT Demo", "Index", "Home").Invert()
-            .SetItem("Home", "Index", "Home")
-            .SetItem("Control Demos", "ControlDemos", "Home")
-            .SetItem("About", "About", "Home")
-            .SetItem("Contact", "Contact", "Home").AsAsync()
-        )*@
+   
     @*<div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
@@ -63,6 +61,7 @@
                 </div>
             </div>
         </div>*@
+
     <div class="container body-content">
         @RenderBody()
         <hr />

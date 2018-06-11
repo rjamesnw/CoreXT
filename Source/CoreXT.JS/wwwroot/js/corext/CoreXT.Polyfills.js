@@ -255,6 +255,20 @@ var CoreXT;
             };
         }
         // -------------------------------------------------------------------------------------------------------------------
+        // (prevent links from clicking into mobile safari if launching from a home screen shortcut [native full-screen mode])
+        if (window.navigator && ("standalone" in window.navigator) && window.navigator["standalone"]) {
+            var noddy, remotes = false;
+            document.addEventListener('click', function (event) {
+                noddy = event.target;
+                // ... locate an anchor parent ...
+                while (noddy.nodeName !== "A" && noddy.nodeName !== "HTML") {
+                    noddy = noddy.parentNode;
+                }
+                if ('href' in noddy && noddy.href == '#') { // ('#' is a special link used for bootstrap buttons)
+                    event.preventDefault();
+                }
+            }, false);
+        }
     })(Polyfills || (Polyfills = {}));
     // =============================================================================================
 })(CoreXT || (CoreXT = {}));

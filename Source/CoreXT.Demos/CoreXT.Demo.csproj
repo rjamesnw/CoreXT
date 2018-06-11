@@ -16,8 +16,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Scripts\CoreXT\**" />
+    <Content Remove="Scripts\CoreXT\**" />
+    <EmbeddedResource Remove="Scripts\CoreXT\**" />
+    <None Remove="Scripts\CoreXT\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="ViewExampleOutput.cs" />
     <Compile Remove="_ViewExampleOutput.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Scripts\app.manifest.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Scripts\app.js" />
+    <Content Include="Scripts\app.js.map" />
+    <Content Include="Scripts\app.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\app.manifest.ts" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,6 +74,8 @@
     <ProjectReference Include="..\CoreXT.ASPNet\CoreXT.ASPNet.csproj" />
     <ProjectReference Include="..\CoreXT.Email\CoreXT.Email.csproj" />
     <ProjectReference Include="..\CoreXT.Entities\CoreXT.Entities.csproj" />
+    <ProjectReference Include="..\CoreXT.FileSystem\CoreXT.FileSystem.csproj" />
+    <ProjectReference Include="..\CoreXT.JS\CoreXT.JS.csproj" />
     <ProjectReference Include="..\CoreXT.MVC\CoreXT.MVC.csproj" />
     <ProjectReference Include="..\CoreXT.Routing\CoreXT.Routing.csproj" />
     <ProjectReference Include="..\CoreXT.Toolkit\CoreXT.Toolkit.csproj" />
@@ -69,8 +92,8 @@
     <Exec Command="dotnet bundle" />
   </Target>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="REM xcopy /s /y /d &quot;$(ProjectDir)..\CoreXT.JS\wwwroot\js\*.js&quot; &quot;$(ProjectDir)wwwroot\js\corextjs\&quot;&#xD;&#xA;REM xcopy /s /y /d &quot;$(ProjectDir)..\CoreXT.JS\wwwroot\js\*.js.map&quot; &quot;$(ProjectDir)wwwroot\js\corextjs\&quot;&#xD;&#xA;" />
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="xcopy /s /y /d &quot;$(ProjectDir)..\CoreXT.JS\Typings\CoreXT\*.*&quot; &quot;$(ProjectDir)Typings\CoreXT\&quot;&#xD;&#xA;REM xcopy /s /y /d &quot;$(ProjectDir)..\CoreXT.JS\wwwroot\js\*.js.map&quot; &quot;$(ProjectDir)wwwroot\js\corextjs\&quot;&#xD;&#xA;" />
   </Target>
 
   <!--<Target Name="PreBuild" BeforeTargets="PreBuildEvent">

@@ -15,6 +15,7 @@ namespace CoreXT.Toolkit.Components.Bootstrap
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentHeader"/>
     /// <seealso cref="T:CoreXT.Toolkit.TagHelpers.IComponentFooter"/>
     [HtmlTargetElement(ComponentPrefix + "menu")]
+    [RestrictChildren(ComponentPrefix + nameof(MenuItem), ComponentPrefix + nameof(MenuDropdown))]
     public class Menu : MenuItem
     {
         // --------------------------------------------------------------------------------------------------------------------
