@@ -40,7 +40,14 @@ declare namespace CoreXT {
     /** Used to strip out script source mappings. Used with 'extractSourceMapping()'. */
     var SCRIPT_SOURCE_MAPPING_REGEX: RegExp;
     /** Extract any source mapping pragmas. This is used with XHR loading of scripts in order to execute them with source mapping support. */
-    function extractSourceMapping(src: string): string[];
+    function extractSourceMapping(src: string): {
+        filteredSource: string;
+        pragmas: {
+            prefix: string;
+            pragma: string;
+            value: string;
+        }[];
+    };
 }
 /** (See 'CoreXT') */
 declare var corext: typeof CoreXT;
@@ -485,6 +492,11 @@ declare namespace CoreXT {
      * If no 'siteBaseURL' global property exists, the current page location is assumed.
      */
     var baseScriptsURL: string;
+    /**
+     * This is set by default when '@RenderCoreXTJSConfigurations()' is called at the top of the layout page and a debugger is attached. It is
+     * used to resolve source maps delivered through XHR while debugging.
+     */
+    var serverWebRoot: string;
     /**
      * Contains some basic static values and calculations used by time related functions within the system.
      */

@@ -56,7 +56,7 @@ var CoreXT;
         DebugModes[DebugModes["Debug_Wait"] = 2] = "Debug_Wait";
     })(DebugModes = CoreXT.DebugModes || (CoreXT.DebugModes = {}));
     /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values. The default is 'Debug_Run'. */
-    CoreXT.debugMode = DebugModes.Debug_Run;
+    CoreXT.debugMode = typeof CoreXT.debugMode != 'number' ? DebugModes.Debug_Run : CoreXT.debugMode;
     /** Returns true if CoreXT is running in debug mode. */
     function isDebugging() { return CoreXT.debugMode != DebugModes.Release; }
     CoreXT.isDebugging = isDebugging;
@@ -106,11 +106,20 @@ var CoreXT;
     CoreXT.SCRIPT_SOURCE_MAPPING_REGEX = /^\s*(\/\/[#@])\s*(source\w+)\s*=\s*(.*)/gim;
     /** Extract any source mapping pragmas. This is used with XHR loading of scripts in order to execute them with source mapping support. */
     function extractSourceMapping(src) {
-        var mappings = [];
-        var matches = CoreXT.matches(CoreXT.SCRIPT_SOURCE_MAPPING_REGEX, src);
-        for (var i = 0, n = matches.length; i < n; ++i)
-            mappings.push(matches[i][0].trim().replace("//@", "//#")); // ('@' is depreciated in favor of '#' because of conflicts with IE, so help out by making this correction automatically)
-        return mappings;
+        var srcMapPragmas = [], result, filteredSrc = src;
+        CoreXT.SCRIPT_SOURCE_MAPPING_REGEX.lastIndex = 0;
+        while ((result = CoreXT.SCRIPT_SOURCE_MAPPING_REGEX.exec(src)) !== null) {
+            var srcMap = {
+                prefix: result[1].trim().replace("//@", "//#"),
+                pragma: result[2].trim(),
+                value: result[3].trim(),
+                toString: function () { return this.prefix + " " + this.pragma + "=" + this.value; },
+                valueOf: function () { return this.prefix + " " + this.pragma + "=" + this.value; }
+            }; // ('@' is depreciated in favor of '#' because of conflicts with IE, so help out by making this correction automatically)
+            srcMapPragmas.push(srcMap);
+            filteredSrc = filteredSrc.substr(0, result.index) + filteredSrc.substr(result.index + result[0].length);
+        }
+        return { filteredSource: filteredSrc, pragmas: srcMapPragmas };
     }
     CoreXT.extractSourceMapping = extractSourceMapping;
     // ------------------------------------------------------------------------------------------------------------------------
@@ -1449,6 +1458,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
         u += '/'; return u + "js/"; })();
     log("CoreXT.baseURL", CoreXT.baseURL + " (If this is wrong, set a global 'siteBaseURL' variable to the correct path, or if using CoreXT.JS for .Net Core MVC, make sure '@RenderCoreXTJSConfigurations()' is called in the header section of your layout view)"); // (requires the exception object, which is the last one to be defined above; now we start the first log entry with the base URI of the site)
     log("CoreXT.baseScriptsURL", CoreXT.baseScriptsURL + " (If this is wrong, set a global 'scriptsBaseURL' variable to the correct path)");
+    if (CoreXT.serverWebRoot)
+        log("CoreXT.serverWebRoot", CoreXT.serverWebRoot + " (typically set server side within the layout view only while debugging to help resolve script source maps)");
     // ========================================================================================================================================
     /**
      * Contains some basic static values and calculations used by time related functions within the system.
@@ -2262,14 +2273,15 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             try {
                 request.message = "Executing script ...";
                 var helpers = CoreXT.renderHelperVarDeclarations("p0");
-                var script = request.transformedData;
-                var sourcePragmas = CoreXT.extractSourceMapping(script);
-                if (sourcePragmas.length) {
-                    var parts = sourcePragmas[0].split('=');
-                    //sourcePragmas[0] = parts[0] + "=" + baseScriptsURL + "CoreXT/" + parts[1];
-                    sourcePragmas[0] = parts[0] + "=C:\\Data\\Visual Studio\\Projects\\CoreXT\\Source\\CoreXT.Demos\\wwwroot\\js\\corext\\" + parts[1];
+                var sourcePragmaInfo = CoreXT.extractSourceMapping(request.transformedData);
+                var script = sourcePragmaInfo.filteredSource;
+                for (var i = 0, n = sourcePragmaInfo.pragmas.length; i < n; ++i) {
+                    var pragma = sourcePragmaInfo.pragmas[i];
+                    if (CoreXT.serverWebRoot)
+                        script += "\r\n" + pragma.prefix + " " + pragma.pragma + "=" + CoreXT.serverWebRoot + "js\\CoreXT\\" + pragma.value;
+                    else
+                        script += "\r\n" + pragma.prefix + " " + pragma.pragma + "=" + CoreXT.baseScriptsURL + "CoreXT/" + pragma.value;
                 }
-                script = script + "\r\n" + sourcePragmas.join("\r\n");
                 CoreXT.safeEval(helpers[0] + " var CoreXT=p1; " + script, /*p0*/ helpers[1], /*p1*/ CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
                 //x (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
                 request.status = RequestStatuses.Executed;
@@ -2309,7 +2321,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 .include(get(Loader.BootSubPath + "CoreXT.Types.js")).ready(onReady) // (common base types)
                 .include(get(Loader.BootSubPath + "CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
                 .include(get(Loader.BootSubPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values without polluting the global scope)
-                .include(get(Loader.BootSubPath + "CoreXT.Scripts.js").ready(onReady)) // (supports CoreXT-based module loading)
+                .include(get(Loader.BootSubPath + "CoreXT.Scripts.js")).ready(onReady) // (supports CoreXT-based module loading)
                 // ... load the rest of the core system next ...
                 //.include(get(BootSubPath + "System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
                 //.include(get(BootSubPath + "System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)

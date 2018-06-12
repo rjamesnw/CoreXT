@@ -207,8 +207,8 @@ namespace CoreXT {
                 var script = manifestRequest.transformedData;
 
                 // ... before we execute the script we need to move down any source mapping pragmas ...
-                var sourcePragmas = extractSourceMapping(script);
-                script = script + "\r\n" + sourcePragmas.join("\r\n");
+                var sourcePragmaInfo = extractSourceMapping(script);
+                script = sourcePragmaInfo.filteredSource + "\r\n" + sourcePragmaInfo.pragmas.join("\r\n");
 
                 var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
                 func.call(this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])

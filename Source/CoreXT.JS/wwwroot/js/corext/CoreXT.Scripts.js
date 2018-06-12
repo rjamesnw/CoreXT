@@ -187,8 +187,8 @@ var CoreXT;
             }).ready(function (manifestRequest) {
                 var script = manifestRequest.transformedData;
                 // ... before we execute the script we need to move down any source mapping pragmas ...
-                var sourcePragmas = CoreXT.extractSourceMapping(script);
-                script = script + "\r\n" + sourcePragmas.join("\r\n");
+                var sourcePragmaInfo = CoreXT.extractSourceMapping(script);
+                script = sourcePragmaInfo.filteredSource + "\r\n" + sourcePragmaInfo.pragmas.join("\r\n");
                 var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
                 func.call(_this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
                 manifestRequest.status = CoreXT.Loader.RequestStatuses.Executed;

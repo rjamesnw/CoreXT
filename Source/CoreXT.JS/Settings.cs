@@ -29,6 +29,21 @@ namespace CoreXT.JS
         /// </summary>
         public const string CONTENT_INCLUDE_PATH = "~/js/CoreXT/" + ROOT_SCRIPT_FILE;
     }
+
+    /// <summary> Debug context modes. </summary>
+    public enum DebugModes
+    {
+        /// <summary> Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. </summary>
+        Release,
+        /// <summary> Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. </summary>
+        Debug_Run,
+        /// <summary> 
+        /// Run in debug mode, which loads all un-minified scripts, but does NOT boot the system nor run the application automatically.
+        /// To manually start the CoreXT system boot process, call 'CoreXT.Loader.bootstrap()'.
+        /// Once the boot process completes, the application will not start automatically. To start the application process, call 'CoreXT.Scripts.runApp()".
+        /// </summary>
+        Debug_Wait
+    }
 }
 
 namespace Microsoft.Extensions.DependencyInjection

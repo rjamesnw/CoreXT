@@ -1,5 +1,6 @@
 ﻿using CoreXT.ASPNet;
 using CoreXT.Entities;
+using CoreXT.JS;
 using CoreXT.MVC.Components.Old;
 using CoreXT.Toolkit.Components.Old;
 using Microsoft.AspNetCore.Html;
@@ -11,7 +12,7 @@ namespace CoreXT.Toolkit
 {
     // ########################################################################################################################
 
-    public abstract partial class ViewPage<TModel>: CoreXT.MVC.Views.Razor.ViewPage<TModel>
+    public abstract partial class ViewPage<TModel> : CoreXT.MVC.Views.Razor.ViewPage<TModel>
     {
         // --------------------------------------------------------------------------------------------------------------------
 
@@ -72,7 +73,7 @@ namespace CoreXT.Toolkit
         /// </summary>
         /// <param name="allowClose"> If true, and "X" button is added to the modal window so it can be closed. </param>
         /// <returns> A Modal. </returns>
-        public Modal Modal(bool allowClose= true)
+        public Modal Modal(bool allowClose = true)
         {
             return GetControl<Modal>().Configure(allowClose);
         }
@@ -144,15 +145,18 @@ namespace CoreXT.Toolkit
 
         public HtmlString RenderCoreXTJSConfigurations()
         {
+            string dirSepChr = System.IO.Path.DirectorySeparatorChar.ToString(), dblDirSepChr = dirSepChr + dirSepChr;
+            var debugMode = (IsEnvironment(Environments.Sandbox) || IsEnvironment(Environments.Development)) ? DebugModes.Debug_Run : DebugModes.Release;
+            string debugModeStr = "CoreXT.debugMode = " + (int)debugMode + ";\r\n";
             return new HtmlString(@"
     <script>
         var CoreXT = function (CoreXT) {
             CoreXT.baseURL = """ + BaseURL + @""";
             CoreXT.controllerName = """ + ControllerName + @""";
             CoreXT.actionName = """ + ActionName + @""";
-            return CoreXT;
-        }
-        (CoreXT || {});
+            " + (System.Diagnostics.Debugger.IsAttached ? @"CoreXT.serverWebRoot = """ + HostingEnvironment.WebRootPath.Replace(dirSepChr, dblDirSepChr) + dblDirSepChr : "") + @"""; /*(this is only set when a debugger is attached in order to resolve source maps delivered through XHR)*/
+            " + debugModeStr + @"return CoreXT;
+        }(CoreXT || {});
     </script>
 ");
         }
