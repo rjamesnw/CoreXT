@@ -1,0 +1,6 @@
+{
+  "extends": "../tsbaseconfig",
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

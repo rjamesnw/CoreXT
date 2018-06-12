@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
-    "noImplicitAny": false,
+    "noImplicitAny": true,
+    "experimentalDecorators": true,
     "noEmitOnError": true,
     "removeComments": false,
     "sourceMap": true,
     "declaration": true,
-    "declarationDir": "typings/toolkit",
+    "declarationDir": "Typings",
     "target": "es5",
     "outDir": "wwwroot/js",
     "rootDir": "Scripts"
   },
   "compileOnSave": true,
   "include": [
-    "typings/index.d.ts",
+    "Typings/index.d.ts",
     "Scripts/**/*.ts"
   ],
   "exclude": [

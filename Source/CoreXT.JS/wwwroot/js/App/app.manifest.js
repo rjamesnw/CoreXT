@@ -4,7 +4,11 @@ var CoreXT;
     (function (Scripts) {
         var Modules;
         (function (Modules) {
-            // ... define the components made available by this manifest ...
+            // ... place your module manifest dependencies on their own lines anywhere in the file, 
+            // as long as there is empty space before 'using:' ...
+            using: Modules.System.UI_HTML;
+            // ... define the components made available by this manifest, including which dependencies are for which module, 
+            // and where the script file can be found ...
             Modules.App = Scripts.module([Modules.System.UI_HTML], 'app{min:.min}');
             // (if your app depends on other JavaScript modules, be sure to register them above [in the correct order as needed])
             // Note: All dependencies here get loaded - even those you may never use.  Only specify dependencies that are common.  Others can be

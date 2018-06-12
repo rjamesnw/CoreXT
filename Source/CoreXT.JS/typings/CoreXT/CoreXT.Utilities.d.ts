@@ -1,4 +1,5 @@
 declare namespace CoreXT {
+    /** One or more utility functions to ease development within CoreXT environments. */
     namespace Utilities {
         /** Escapes a RegEx string so it behaves like a normal string. This is useful for RexEx string based operations, such as 'replace()'. */
         function escapeRegex(regExStr: string): string;

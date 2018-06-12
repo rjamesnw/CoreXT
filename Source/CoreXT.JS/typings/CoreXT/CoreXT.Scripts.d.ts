@@ -1,29 +1,35 @@
 /** Types and functions for loading scripts into the CoreXT system. */
 declare namespace CoreXT {
     namespace Scripts {
-        /** Used to strip out the module header */
+        /** Used to strip out manifest dependencies. */
         var MANIFEST_DEPENDENCIES_REGEX: RegExp;
-        /** A code-completion friendly list of registered modules.
-          * Note: Though module references may show in code completion, the related manifests in each plugin location must be
-          * loaded first before a module is ready for use.
-          * Usage: To load a module, call it using the '[CoreXT.]using.ModuleName(...)' syntax.
-          * Note: If you are developing your own module, use a proper name path under the Modules namespace -
-          * typically something like 'module CoreXT.Scripts.Modules { /** Comments... * / export namespace CompanyOrWebsite.YourModule { ... } }'
-          * (take note that the comments are in their own scope, which is required as well).
-          */
+        /**
+         * A code-completion friendly list of registered modules.
+         * Note: Though module references may show in code completion, the related manifests in each plugin location must be
+         * loaded first before a module is ready for use.
+         * Usage: To load a module, call it using the '[CoreXT.]using.ModuleName(...)' syntax.
+         * Note: If you are developing your own module, use a proper name path under the Modules namespace -
+         * typically something like 'namespace CoreXT.Scripts.Modules { /** Description... * / export namespace CompanyOrWebsite.YourModule { ... } }'
+         * (take note that the comments are in their own scope, which is required as well).
+         * Remember: You can create a sub-namespace name with specific versions of your scripts (i.e. 'export namespace Company.MyScript.v1_0_0').
+         */
         namespace Modules {
-            /** Supported CoreXT system modules.
-              * Note: If you are developing your own module, use a proper name path under the parent 'Modules' namespace -
-              * typically something like 'module CoreXT.Scripts.Modules { /** Comments... * / export namespace CompanyOrWebsite.YourModule { ... } }'
-              * Do not put custom modules directly in the 'CoreXT.Scripts.Modules.System' namespace, nor any sub-namespace from there.
-              */
+            /**
+             * Supported CoreXT system modules.
+             * Note: If you are developing your own module, use a proper name path under the parent 'Modules' namespace -
+             * typically something like 'namespace CoreXT.Scripts.Modules { export namespace CompanyOrWebsite.YourModule { ... } }',
+             * much like how GitHub URLs look like (i.e. 'Microsoft/TypeScript' might be 'Microsoft.TypeScript')
+             * * Do not put custom modules directly in the 'CoreXT.Scripts.Modules.System' namespace, nor any sub-namespace from there.
+             * Remember: You can create a sub-namespace name with specific versions of your scripts (i.e. 'export namespace Company.MyScript.v1_0_0').
+             */
             namespace System {
             }
         }
-        /** Takes a full type name and determines the expected path for the library.
-          * This is used internally to find manifest file locations.
-          */
-        function fullTypeNameToFolderPath(fullTypeName: string): string;
+        /**
+         * Takes a full type name and determines the expected path for the library.
+         * This is used internally to find manifest file locations.
+         */
+        function moduleNamespaceToFolderPath(nsName: string): string;
         const ScriptResource_base: {
             new (...args: any[]): {
                 $__disposing?: boolean;

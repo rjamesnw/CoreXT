@@ -83,7 +83,9 @@
   <ItemGroup>
     <Content Include="bower.json" />
     <Content Include="bundleconfig.json" />
-    <Content Include="tsconfig.json" />
+    <Content Include="Scripts\CoreXT\tsconfig.json" />
+    <Content Include="Scripts\tscorejsconfig.json" />
+    <Content Include="tsbaseconfig.json" />
     <Content Include="typings.json" />
   </ItemGroup>
 
@@ -99,6 +101,8 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Scripts\App\app.manifest.ts" />
+    <EmbeddedResource Include="Scripts\App\app.ts" />
     <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Browser.ts" />
     <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Globals.ts" />
     <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Polyfills.ts" />

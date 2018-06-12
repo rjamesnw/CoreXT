@@ -8,6 +8,7 @@ declare namespace CoreXT {
     var version: string;
     /** Returns the current user defined application version, or a default version. */
     var getAppVersion: () => string;
+    var constructor: symbol;
     enum DebugModes {
         /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
         Release = 0,
@@ -26,12 +27,20 @@ declare namespace CoreXT {
     function isDebugging(): boolean;
     /** Returns the name of a namespace or variable reference at runtime. */
     function nameof(selector: () => any, fullname?: boolean): string;
-    var constructor: symbol;
     /**
      * Returns true if the URL contains the specific action and controller names at the end of the URL path.
      * This of course assumes typical routing patterns in the format '/controller/action' or '/area/controller/action'.
      */
     function isPage(action: string, controller?: string, area?: string): boolean;
+    /**
+     * Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups], where
+     * 'groups' index 0 is the full matched text, and 1 onwards are any matched groups).
+     */
+    function matches(regex: RegExp, text: string): string[][];
+    /** Used to strip out script source mappings. Used with 'extractSourceMapping()'. */
+    var SCRIPT_SOURCE_MAPPING_REGEX: RegExp;
+    /** Extract any source mapping pragmas. This is used with XHR loading of scripts in order to execute them with source mapping support. */
+    function extractSourceMapping(src: string): string[];
 }
 /** (See 'CoreXT') */
 declare var corext: typeof CoreXT;
@@ -113,6 +122,8 @@ declare namespace CoreXT {
         Text: typeof Text;
         Window: typeof Window;
         CoreXT: typeof CoreXT;
+        siteBaseURL: typeof siteBaseURL;
+        scriptsBaseURL: typeof scriptsBaseURL;
     }
     type KeyOf<T> = keyof Required<T>;
     /** A reference to the host's global environment (convenient for nested TypeScript code, or when using strict mode [where this=undefined]).

@@ -242,6 +242,10 @@ var CoreXT;
                     return prefix;
                 return prefix + delimiter + source;
             };
+            /** Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups]). */
+            String.matches = function (regex, text) {
+                return CoreXT.matches(regex, this.toString());
+            };
             return String;
         }(CoreXT.FactoryBase(void 0, CoreXT.global.String)));
         System.String = String;
@@ -257,6 +261,10 @@ var CoreXT;
                 */
                 $__type.prototype.replaceAll = function (replaceWhat, replaceWith, ignoreCase) {
                     return String.replace(this.toString(), replaceWhat, replaceWith, ignoreCase);
+                };
+                /** Returns an array of all matches of 'regex' in the underlying string, grouped into sub-arrays (string[matches][groups]). */
+                $__type.prototype.matches = function (regex) {
+                    return String.matches(regex, this.toString());
                 };
                 $__type.prototype.toString = function () { return this.$__value; };
                 $__type.prototype.valueOf = function () { return this.$__value; };

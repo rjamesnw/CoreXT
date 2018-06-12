@@ -1,4 +1,5 @@
 ﻿namespace CoreXT.Scripts.Modules {
+    using: System.UI_HTML;
 
     // ... define the components made available by this manifest ...
 

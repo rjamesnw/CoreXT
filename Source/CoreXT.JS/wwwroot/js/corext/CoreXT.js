@@ -28,6 +28,7 @@ if (typeof this['Symbol'] == 'undefined') { // (mainly for IE 11)
  */
 var CoreXT;
 (function (CoreXT) {
+    // ------------------------------------------------------------------------------------------------------------------------
     /** The current version of the CoreXT system. */
     CoreXT.version = "0.0.1";
     Object.defineProperty(CoreXT, "version", { writable: false });
@@ -38,6 +39,9 @@ var CoreXT;
             console.log("-=< CoreXT Client OS - v" + CoreXT.version + " >=- ");
         else
             console.log("%c -=< %cCoreXT Client OS - v" + CoreXT.version + " %c>=- ", "background: #000; color: lightblue; font-weight:bold", "background: #000; color: yellow; font-style:italic; font-weight:bold", "background: #000; color: lightblue; font-weight:bold");
+    // ------------------------------------------------------------------------------------------------------------------------
+    CoreXT.constructor = Symbol("static constructor");
+    // ------------------------------------------------------------------------------------------------------------------------
     var DebugModes;
     (function (DebugModes) {
         /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
@@ -66,8 +70,7 @@ var CoreXT;
         return fullname ? name : name.split('.').reverse()[0];
     }
     CoreXT.nameof = nameof;
-    CoreXT.constructor = Symbol("static constructor");
-    // ===================================================================================================================
+    // ------------------------------------------------------------------------------------------------------------------------
     /**
      * Returns true if the URL contains the specific action and controller names at the end of the URL path.
      * This of course assumes typical routing patterns in the format '/controller/action' or '/area/controller/action'.
@@ -83,7 +86,34 @@ var CoreXT;
         return new RegExp(regexStr, "gi").test(location.pathname);
     }
     CoreXT.isPage = isPage;
-    // ===================================================================================================================
+    // ------------------------------------------------------------------------------------------------------------------------
+    /**
+     * Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups], where
+     * 'groups' index 0 is the full matched text, and 1 onwards are any matched groups).
+     */
+    function matches(regex, text) {
+        var matchesFound = [], result;
+        if (!regex.global)
+            throw new Error("The 'global' flag is required in order to find all matches.");
+        regex.lastIndex = 0;
+        while ((result = regex.exec(text)) !== null)
+            matchesFound.push(result.slice());
+        return matchesFound;
+    }
+    CoreXT.matches = matches;
+    // ------------------------------------------------------------------------------------------------------------------------
+    /** Used to strip out script source mappings. Used with 'extractSourceMapping()'. */
+    CoreXT.SCRIPT_SOURCE_MAPPING_REGEX = /^\s*(\/\/[#@])\s*(source\w+)\s*=\s*(.*)/gim;
+    /** Extract any source mapping pragmas. This is used with XHR loading of scripts in order to execute them with source mapping support. */
+    function extractSourceMapping(src) {
+        var mappings = [];
+        var matches = CoreXT.matches(CoreXT.SCRIPT_SOURCE_MAPPING_REGEX, src);
+        for (var i = 0, n = matches.length; i < n; ++i)
+            mappings.push(matches[i][0].trim().replace("//@", "//#")); // ('@' is depreciated in favor of '#' because of conflicts with IE, so help out by making this correction automatically)
+        return mappings;
+    }
+    CoreXT.extractSourceMapping = extractSourceMapping;
+    // ------------------------------------------------------------------------------------------------------------------------
 })(CoreXT || (CoreXT = {}));
 /** (See 'CoreXT') */
 var corext = CoreXT; // (allow all lower case usage)
@@ -2069,19 +2099,26 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                     if (this.status == RequestStatuses.Ready) {
                         if (this._onReady && this._onReady.length) {
                             try {
-                                for (var i = 0, n = this._onReady.length; i < n; ++i)
+                                for (var i = 0, n = this._onReady.length; i < n; ++i) {
                                     this._onReady[i].call(this, this);
+                                    if (this.status < RequestStatuses.Ready)
+                                        return; // (a callback changed state so stop at this point as we are no longer ready!)
+                                }
                                 if (this._paused)
                                     return;
                             }
                             catch (e) {
                                 this.setError("Error in ready handler.", e);
+                                if (CoreXT.isDebugging() && (this.type == ResourceTypes.Application_Script || this.type == ResourceTypes.Application_ECMAScript))
+                                    throw e; // (propagate script errors to the browser for debuggers, if any)
                             }
                         }
                         if (this._dependants)
                             for (var i = 0, n = this._dependants.length; i < n; ++i) {
                                 ++this._dependants[i]._parentCompletedCount;
                                 this._dependants[i]._doReady(); // (notify all children that this resource is now 'ready' for use [all events have been run, as opposed to just being loaded])
+                                if (this.status < RequestStatuses.Ready)
+                                    return; // (something changed the "Ready" state so abort!)
                             }
                     }
                 };
@@ -2225,7 +2262,15 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             try {
                 request.message = "Executing script ...";
                 var helpers = CoreXT.renderHelperVarDeclarations("p0");
-                CoreXT.safeEval(helpers[0] + " var CoreXT=p1; " + request.transformedData, /*p0*/ helpers[1], /*p1*/ CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
+                var script = request.transformedData;
+                var sourcePragmas = CoreXT.extractSourceMapping(script);
+                if (sourcePragmas.length) {
+                    var parts = sourcePragmas[0].split('=');
+                    //sourcePragmas[0] = parts[0] + "=" + baseScriptsURL + "CoreXT/" + parts[1];
+                    sourcePragmas[0] = parts[0] + "=C:\\Data\\Visual Studio\\Projects\\CoreXT\\Source\\CoreXT.Demos\\wwwroot\\js\\corext\\" + parts[1];
+                }
+                script = script + "\r\n" + sourcePragmas.join("\r\n");
+                CoreXT.safeEval(helpers[0] + " var CoreXT=p1; " + script, /*p0*/ helpers[1], /*p1*/ CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
                 //x (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
                 request.status = RequestStatuses.Executed;
                 request.message = "The script has been executed successfully.";
@@ -2234,6 +2279,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 var errorMsg = getErrorMessage(ex);
                 var msg = "There was an error executing script '" + request.url + "'.  The first 255 characters of the response was \r\n\"" + request.transformedData.substr(0, 255) + "\". \r\nError message:";
                 request.setError(msg, ex);
+                if (CoreXT.isDebugging())
+                    throw ex;
             }
         }
         Loader._SystemScript_onReady_Handler = _SystemScript_onReady_Handler;
@@ -2251,32 +2298,33 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
          */
         function bootstrap() {
             // (note: the request order is the dependency order)
-            var BootSubPath = ('' + Loader.BootSubPath);
-            var rbpLastChar = BootSubPath.charAt(BootSubPath.length - 1);
+            Loader.BootSubPath = ('' + Loader.BootSubPath);
+            var rbpLastChar = Loader.BootSubPath.charAt(Loader.BootSubPath.length - 1);
             if (rbpLastChar != '/' && rbpLastChar != '\\')
-                BootSubPath += '/'; // (must end with a slash)
-            log("Loader.BootSubPath", BootSubPath + " (if this path is wrong set 'CoreXT.Loader.BootSubPath' before 'Loader.bootstrap()' gets called)");
+                Loader.BootSubPath += '/'; // (must end with a slash)
+            log("Loader.BootSubPath", Loader.BootSubPath + " (if this path is wrong set 'CoreXT.Loader.BootSubPath' before 'Loader.bootstrap()' gets called)");
             var onReady = _SystemScript_onReady_Handler;
             // ... load the base scripts first (all of these are not modules, so they have to be loaded in the correct order) ...
-            get(BootSubPath + "CoreXT.Polyfills.js").ready(onReady) // (in case some polyfills are needed after this point)
-                .include(get(BootSubPath + "CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
-                .include(get(BootSubPath + "CoreXT.Globals.js")).ready(onReady)
-                .include(get(BootSubPath + "CoreXT.Scripts.js").ready(onReady)) // (supports CoreXT-based module loading)
+            get(Loader.BootSubPath + "CoreXT.Polyfills.js").ready(onReady) // (some polyfills may be needed by the system)
+                .include(get(Loader.BootSubPath + "CoreXT.Types.js")).ready(onReady) // (common base types)
+                .include(get(Loader.BootSubPath + "CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
+                .include(get(Loader.BootSubPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values without polluting the global scope)
+                .include(get(Loader.BootSubPath + "CoreXT.Scripts.js").ready(onReady)) // (supports CoreXT-based module loading)
                 // ... load the rest of the core system next ...
-                .include(get(BootSubPath + "System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
-                .include(get(BootSubPath + "System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
-                .include(get(BootSubPath + "System/CoreXT.System.Time.js")).ready(onReady) // (extends the time utilities and constants into a TimeSpan wrapper)
-                .include(get(BootSubPath + "System/CoreXT.System.Storage.js").ready(onReady)) // (utilities for local storage support in CoreXT)
-                .include(get(BootSubPath + "System/CoreXT.System.Exception.js").ready(onReady)) // (setup exception support)
-                .include(get(BootSubPath + "System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
-                .include(get(BootSubPath + "System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
-                .include(get(BootSubPath + "CoreXT.Browser.js")).ready(onReady) // (uses the event system)
-                .include(get(BootSubPath + "System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
-                .include(get(BootSubPath + "System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady)) // (uses events)
-                .include(get(BootSubPath + "System/CoreXT.System.Text.js").ready(onReady)) // (utilities specific to working with texts)
-                .include(get(BootSubPath + "System/CoreXT.System.Data.js").ready(onReady))
-                .include(get(BootSubPath + "System/CoreXT.System.IO.js").ready(onReady)) // (adds URL query handling and navigation [requires 'Events.EventDispatcher'])
-                .include(get(BootSubPath + "System/CoreXT.System.AppDomain.js").ready(onReady)) // (holds the default app domain and default application)
+                //.include(get(BootSubPath + "System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
+                //.include(get(BootSubPath + "System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
+                //.include(get(BootSubPath + "System/CoreXT.System.Time.js")).ready(onReady) // (extends the time utilities and constants into a TimeSpan wrapper)
+                //.include(get(BootSubPath + "System/CoreXT.System.Storage.js").ready(onReady)) // (utilities for local storage support in CoreXT)
+                //.include(get(BootSubPath + "System/CoreXT.System.Exception.js").ready(onReady)) // (setup exception support)
+                //.include(get(BootSubPath + "System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
+                //.include(get(BootSubPath + "System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
+                .include(get(Loader.BootSubPath + "CoreXT.Browser.js")).ready(onReady) // (uses the event system)
+                //.include(get(BootSubPath + "System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
+                //.include(get(BootSubPath + "System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady)) // (uses events)
+                //.include(get(BootSubPath + "System/CoreXT.System.Text.js").ready(onReady)) // (utilities specific to working with texts)
+                //.include(get(BootSubPath + "System/CoreXT.System.Data.js").ready(onReady))
+                //.include(get(BootSubPath + "System/CoreXT.System.IO.js").ready(onReady)) // (adds URL query handling and navigation [requires 'Events.EventDispatcher'])
+                //.include(get(BootSubPath + "System/CoreXT.System.AppDomain.js").ready(onReady)) // (holds the default app domain and default application)
                 .ready(function () {
                 if (_onSystemLoadedHandlers && _onSystemLoadedHandlers.length)
                     for (var i = 0, n = _onSystemLoadedHandlers.length; i < n; ++i)

@@ -184,9 +184,9 @@ namespace CoreXT {
 // ===================================================================================================================
 // (prevent links from clicking into mobile safari if launching from a home screen shortcut [native full-screen mode])
 
-if (window.navigator && ("standalone" in window.navigator) && window.navigator["standalone"]) {
+if (window.navigator && ("standalone" in window.navigator) && (<any>window).navigator["standalone"]) {
 
-    var noddy, remotes = false;
+    var noddy: any, remotes = false;
 
     document.addEventListener('click', function (event) {
 

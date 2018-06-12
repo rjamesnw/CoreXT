@@ -3,6 +3,7 @@
 // ###########################################################################################################################
 
 namespace CoreXT {
+    /** One or more utility functions to ease development within CoreXT environments. */
     export namespace Utilities {
         namespace("CoreXT", "Utilities");
         // -------------------------------------------------------------------------------------------------------------------

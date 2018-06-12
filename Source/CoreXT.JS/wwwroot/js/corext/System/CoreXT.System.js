@@ -4,7 +4,6 @@
 var CoreXT;
 (function (CoreXT) {
     // ===================================================================================================================
-    // Some core basic interfaces to begin with (interfaces don't contribute to the resulting JS size).
     function dispose(obj, release) {
         if (release === void 0) { release = true; }
         if (typeof obj == 'object')
@@ -41,26 +40,7 @@ var CoreXT;
     }
     CoreXT.disposeProperties = disposeProperties;
     // ========================================================================================================================
-    /**
-     * Supports Iteration for ES5/ES3. To use, create a new type derived from this one, or implement the IEnumerable<T> interface.
-     */
-    var Enumerable = /** @class */ (function () {
-        function Enumerable() {
-        }
-        Enumerable.prototype.next = function (value) {
-            throw CoreXT.System.Exception.notImplemented('next', this);
-        };
-        Enumerable.prototype.return = function (value) {
-            throw CoreXT.System.Exception.notImplemented('return', this);
-        };
-        Enumerable.prototype.throw = function (e) {
-            throw CoreXT.System.Exception.notImplemented('throw', this);
-        };
-        return Enumerable;
-    }());
-    CoreXT.Enumerable = Enumerable;
-    // =======================================================================================================================
 })(CoreXT || (CoreXT = {}));
 // ###########################################################################################################################
-// *************** Consider dependency injection chained classes ******************************************************************************************
+// TODO: Consider adding a dependency injection system layer.
 //# sourceMappingURL=CoreXT.System.js.map

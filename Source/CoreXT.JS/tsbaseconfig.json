@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "traceResolution": true,
+    "listFiles": true,
+    "diagnostics": true,
+    "forceConsistentCasingInFileNames": false,
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "noEmitHelpers": true,
+    "declaration": true,
+    "declarationDir": "Typings",
+    //"typeRoots": [ "typings" ],
+    "sourceMap": true,
+    "target": "es5", // IE11=es5, Edge+ es2015=ES6
+    "outDir": "wwwroot/js",
+    "downlevelIteration": true,
+    "rootDir": "Scripts",
+    "lib": [ "dom", "es6", "dom.iterable", "scripthost" ] // (target es5 but use es6 libs, since there is partial support of some es6 in es5; lib options: https://www.typescriptlang.org/docs/handbook/compiler-options.html)
+  },
+  //"include": [
+  //  "Typings/**/*.ts",
+  //  "Scripts/**/*.d.ts",
+  //  "Scripts/**/*.ts"
+  //],
+  "exclude": [
+    "node_modules",
+    "wwwroot/**/*.ts"
+    //  "Typings/CoreXT/**/*.*",
+    //  "Typings/app.d.ts",
+    //  "Typings/app.manifest.d.ts",
+    //"Scripts/CoreXT/__references.*",
+    //"Scripts/CoreXT/CoreXT.VDom.Canvas.*",
+    //"Scripts/CoreXT/CoreXT.VDom.*",
+    //"Scripts/CoreXT/Twitter/**/*.*"
+  ]
+}

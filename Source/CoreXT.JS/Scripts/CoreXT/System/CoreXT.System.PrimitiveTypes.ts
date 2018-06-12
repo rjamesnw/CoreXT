@@ -254,6 +254,11 @@ namespace CoreXT {
                 if (!source) return prefix;
                 return prefix + delimiter + source;
             }
+
+            /** Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups]). */
+            static matches(regex: RegExp, text: string): string[][] {
+                return CoreXT.matches(regex, this.toString());
+            }
         }
         export namespace String {
             export class $__type extends DisposableFromBase(global.String) {
@@ -268,6 +273,11 @@ namespace CoreXT {
                 */
                 replaceAll(replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string {
                     return String.replace(this.toString(), replaceWhat, replaceWith, ignoreCase);
+                }
+
+                /** Returns an array of all matches of 'regex' in the underlying string, grouped into sub-arrays (string[matches][groups]). */
+                matches(regex: RegExp): string[][] {
+                    return String.matches(regex, this.toString());
                 }
 
                 toString(): string { return this.$__value; }

@@ -1,0 +1,19 @@
+{
+  "extends": "../tscorejsconfig",
+  "compilerOptions": {
+  },
+  "include": [
+    "../Typings/**/*.ts",
+    "**/*.ts",
+    "../App/**/*.ts"
+  ],
+  "exclude": [
+    "__references.*",
+    "CoreXT.VDom.Canvas.ts",
+    "CoreXT.VDom.ts",
+    "Twitter/**/*.*",
+    "../../Typings/CoreXT/**/*.*",
+    "../../Typings/App/app.d.ts",
+    "../../Typings/App/app.manifest.d.ts"
+  ]
+}

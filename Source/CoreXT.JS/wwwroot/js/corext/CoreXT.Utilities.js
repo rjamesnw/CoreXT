@@ -3,6 +3,7 @@
 // ###########################################################################################################################
 var CoreXT;
 (function (CoreXT) {
+    /** One or more utility functions to ease development within CoreXT environments. */
     var Utilities;
     (function (Utilities) {
         CoreXT.namespace("CoreXT", "Utilities");

@@ -8,19 +8,30 @@ var CoreXT;
     (function (Scripts) {
         CoreXT.namespace("CoreXT", "Scripts");
         // =======================================================================================================================
-        /** Used to strip out the module header */
-        Scripts.MANIFEST_DEPENDENCIES_REGEX = /\bmodule\s*\(\s*\[(.*)\]/gim;
-        /** Takes a full type name and determines the expected path for the library.
-          * This is used internally to find manifest file locations.
-          */
-        function fullTypeNameToFolderPath(fullTypeName) {
-            if (fullTypeName === void 0 || fullTypeName === null)
-                throw CoreXT.System.Exception.from("A full type name was expected, but '" + fullTypeName + "' was given.");
-            var parts = fullTypeName.split('.');
+        /** Used to strip out manifest dependencies. */
+        Scripts.MANIFEST_DEPENDENCIES_REGEX = /^\s*using:\s*([A-Za-z0-9$_.,\s]*)/gim;
+        /**
+         * Takes a full type name and determines the expected path for the library.
+         * This is used internally to find manifest file locations.
+         */
+        function moduleNamespaceToFolderPath(nsName) {
+            var _nsName = ('' + nsName).trim();
+            if (!nsName || !_nsName)
+                CoreXT.log(CoreXT.nameof(function () { return moduleNamespaceToFolderPath; }) + "()", "A valid non-empty namespace string was expected.");
+            var sysNs1 = CoreXT.nameof(function () { return CoreXT.Scripts.Modules; }) + "."; // (account for full names or relative names)
+            var sysNs2 = CoreXT.nameof(function () { return Scripts.Modules; }) + ".";
+            var sysNs3 = CoreXT.nameof(function () { return Scripts.Modules; }) + ".";
+            if (_nsName.substr(0, sysNs1.length) === sysNs1)
+                _nsName = _nsName.substr(sysNs1.length);
+            else if (_nsName.substr(0, sysNs2.length) === sysNs2)
+                _nsName = _nsName.substr(sysNs2.length);
+            else if (_nsName.substr(0, sysNs3.length) === sysNs3)
+                _nsName = _nsName.substr(sysNs3.length);
+            var parts = _nsName.split('.');
             parts.splice(parts.length - 1, 1); // (the last name is always the type name, so remove it)
             return parts.join('/');
         }
-        Scripts.fullTypeNameToFolderPath = fullTypeNameToFolderPath;
+        Scripts.moduleNamespaceToFolderPath = moduleNamespaceToFolderPath;
         // ====================================================================================================================
         var ScriptResource = /** @class */ (function (_super) {
             __extends(ScriptResource, _super);
@@ -154,21 +165,18 @@ var CoreXT;
                     return;
                 var script = (typeof data == 'string' ? data : '' + data);
                 if (script) {
-                    var dependencyGroups = [], result;
-                    Scripts.MANIFEST_DEPENDENCIES_REGEX.lastIndex = 0;
-                    while ((result = Scripts.MANIFEST_DEPENDENCIES_REGEX.exec(script)) !== null)
-                        dependencyGroups.push(result[1]);
-                    if (dependencyGroups.length) {
+                    var matches = CoreXT.matches(Scripts.MANIFEST_DEPENDENCIES_REGEX, script); // ("a.b.x, a.b.y, a.b.z")
+                    if (matches.length) {
                         var dependencies = [];
-                        for (var i = 0, n = dependencyGroups.length; i < n; i++) {
-                            var depItems = dependencyGroups[i].split(',');
+                        for (var i = 0, n = matches.length; i < n; i++) {
+                            var depItems = matches[i][1].split(',');
                             for (var i2 = 0, n2 = depItems.length; i2 < n2; ++i2)
                                 dependencies.push(depItems[i2].trim());
                         }
                         if (dependencies.length) {
                             // ... this manifest has dependencies, so convert to folder paths and load them ...
                             for (var i = 0, n = dependencies.length; i < n; ++i) {
-                                var path = fullTypeNameToFolderPath(dependencies[i]);
+                                var path = moduleNamespaceToFolderPath(dependencies[i]);
                                 getManifest(path).start().include(request); // (create a dependency chain; it's ok to do this in the 'then()' callback, as 'ready' events only trigger AFTER the promise sequence completes successfully)
                                 // (Note: The current request is linked as a dependency on the required manifest. 'ready' is called when
                                 //        parent manifests and their dependencies have completed loaded as well)
@@ -177,7 +185,11 @@ var CoreXT;
                     }
                 }
             }).ready(function (manifestRequest) {
-                var func = Function("manifest", "CoreXT", manifestRequest.transformedData); // (create a manifest wrapper function to isolate the execution context)
+                var script = manifestRequest.transformedData;
+                // ... before we execute the script we need to move down any source mapping pragmas ...
+                var sourcePragmas = CoreXT.extractSourceMapping(script);
+                script = script + "\r\n" + sourcePragmas.join("\r\n");
+                var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
                 func.call(_this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
                 manifestRequest.status = CoreXT.Loader.RequestStatuses.Executed;
                 manifestRequest.message = "The manifest script has been executed.";

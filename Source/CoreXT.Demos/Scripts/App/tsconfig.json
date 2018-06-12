@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsbaseconfig",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "../../Typings"
+  },
+  "include": [
+    "../../Typings/**/*.ts",
+    "**/*.ts"
+  ],
+  "exclude": [
+    "../../Typings/App/**/*.*"
+  ]
+}

@@ -4,9 +4,9 @@ var CoreXT;
     (function (Scripts) {
         var Modules;
         (function (Modules) {
-            using: Modules.System.UI_HTML;
+            using: System.UI_HTML;
             // ... define the components made available by this manifest ...
-            Modules.App = Scripts.module([Modules.System.UI_HTML], 'app{min:.min}');
+            Modules.App = module([System.UI_HTML], 'app{min:.min}');
             // (if your app depends on other JavaScript modules, be sure to register them above [in the correct order as needed])
             // Note: All dependencies here get loaded - even those you may never use.  Only specify dependencies that are common.  Others can be
             // loaded and applied as needed via the 'CoreXT.using.{Namespace}.{Module}(onready)...' semantic.
@@ -26,4 +26,3 @@ CoreXT.debugMode = CoreXT.DebugModes.Debug_Run; // ('Debug_*' values cause the n
 //      reference to "using(...)", and a callback function to execute once the module is loaded. This is much more efficient than loading many scripts
 //      on a page that many never get used (hence "on demand").
 // =======================================================================================================================
-//# sourceMappingURL=app.manifest.js.map

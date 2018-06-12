@@ -117,6 +117,8 @@ declare namespace CoreXT {
               * Note: If any argument is not a string, the value is converted into a string.
               */
             static prepend(source: string, prefix?: string, delimiter?: string): string;
+            /** Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups]). */
+            static matches(regex: RegExp, text: string): string[][];
         }
         namespace String {
             const $__type_base_1: {
@@ -133,6 +135,8 @@ declare namespace CoreXT {
                 * faster in Chrome, and RegEx based 'replace()' in others.
                 */
                 replaceAll(replaceWhat: string, replaceWith: string, ignoreCase?: boolean): string;
+                /** Returns an array of all matches of 'regex' in the underlying string, grouped into sub-arrays (string[matches][groups]). */
+                matches(regex: RegExp): string[][];
                 toString(): string;
                 valueOf(): any;
             }

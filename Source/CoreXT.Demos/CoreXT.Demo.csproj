@@ -16,10 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Scripts\CoreXT\**" />
-    <Content Remove="Scripts\CoreXT\**" />
-    <EmbeddedResource Remove="Scripts\CoreXT\**" />
-    <None Remove="Scripts\CoreXT\**" />
+    <Compile Remove="wwwroot\Scripts\**" />
+    <Content Remove="wwwroot\Scripts\**" />
+    <EmbeddedResource Remove="wwwroot\Scripts\**" />
+    <None Remove="wwwroot\Scripts\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,13 +32,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Scripts\app.js" />
-    <Content Include="Scripts\app.js.map" />
-    <Content Include="Scripts\app.ts" />
+    <Content Include="Scripts\App\app.ts" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\app.manifest.ts" />
+    <EmbeddedResource Include="Scripts\App\app.manifest.ts" />
   </ItemGroup>
 
   <ItemGroup>

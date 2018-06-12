@@ -75,7 +75,7 @@ namespace CDS {
                 var recalculating = false;
 
                 if (!deleted) {
-                    var currentRowData = {}, doRecalc = false;
+                    var currentRowData: { [index: string]: any } = {}, doRecalc = false;
 
                     for (var ci = 0; ci < columns.length; ++ci) {
                         var propertyName = columns[ci];
@@ -99,6 +99,7 @@ namespace CDS {
                         xhr.onload = (ev: Event) => {
                             try {
                                 var data: {
+                                    [index: string]: any;
                                     stacktrace: string; exceptiontype: string; exceptionmessage: string; message: string;
                                 } = JSON.parse(xhr.responseText);
                             }
@@ -533,7 +534,7 @@ namespace CDS {
                 order: [[1, "asc"]],
                 bServerSide: true,
                 sAjaxSource: url,
-                fnServerData: function (sSource, aoData, fnCallback, oSettings) {
+                fnServerData: function (sSource: any, aoData: any, fnCallback: any, oSettings: any) {
                     oSettings.jqXHR = $.ajax(<JQueryAjaxSettings>{
                         dataType: 'json',
                         type: oSettings.sServerMethod || "GET",
@@ -566,7 +567,7 @@ namespace CDS {
 
 $(document).ready(() => {
     if ($.fn && $.fn.dataTable)
-        $.fn.dataTable.ext.errMode = function (settings, helpPage, message) {
+        $.fn.dataTable.ext.errMode = function (settings: any, helpPage: any, message: any) {
             throw "Data table error: " + message;
         };
 });

@@ -51,14 +51,14 @@ namespace CoreXT.Toolkit.Components.Bootstrap
             TagContext.Items.TryGetValue(typeof(Menu), out var menu);
             TagContext.Items.TryGetValue(typeof(MenuDropdown), out var menuDropdown);
 
-            if (menu != null)
-            {
-                ((Menu)menu).Items.Add(context.Render());
-                TagOutput.SuppressOutput(); // (this will be processed by the parent modal tag component)
-            }
-            else if (menuDropdown != null)
+            if (menuDropdown != null) // (check this first! these can be nested)
             {
                 ((MenuDropdown)menuDropdown).Items.Add(context.Render());
+                TagOutput.SuppressOutput(); // (this will be processed by the parent modal tag component)
+            }
+            else if (menu != null)
+            {
+                ((Menu)menu).Items.Add(context.Render());
                 TagOutput.SuppressOutput(); // (this will be processed by the parent modal tag component)
             }
             else TagOutput.Content.SetHtmlContent(context);
