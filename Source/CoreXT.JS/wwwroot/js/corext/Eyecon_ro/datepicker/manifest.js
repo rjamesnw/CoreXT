@@ -11,12 +11,13 @@ var CoreXT;
              */
             var Eyecon_ro;
             (function (Eyecon_ro) {
+                using: Modules.JQuery.Latest;
                 // ===================================================================================
                 /**
                  * A date picker.
                  */
                 Eyecon_ro.Datepicker = Scripts.module([Modules.JQuery.V2_2_0], 'bootstrap-datepicker', '~Helpers/Eyecon/js/')
-                    .require(CoreXT.Loader.get("~eyecon.ro/css/datepicker.css"));
+                    .require(CoreXT.System.IO.get("~eyecon.ro/css/datepicker.css"));
                 // ===================================================================================
             })(Eyecon_ro = Modules.Eyecon_ro || (Modules.Eyecon_ro = {}));
         })(Modules = Scripts.Modules || (Scripts.Modules = {}));

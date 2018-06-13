@@ -16,7 +16,7 @@ namespace CoreXT.Scripts.Modules.IO {
      * Source: https://sdkcarlos.github.io/sites/holdon.html
      */
     export var HoldOn = module(null, 'HoldOn.min', '~HoldOn/')
-        .require(Loader.get("~HoldOn/HoldOn.min.css")) // TODO: Support match patterns here also for 'min'.
+        .require(CoreXT.System.IO.get("~HoldOn/HoldOn.min.css")) // TODO: Support match patterns here also for 'min'.
         .ready(r => {
             var holdOn = HoldOn.module.getVar<IHoldOn>("HoldOn");
 

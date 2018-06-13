@@ -39,7 +39,7 @@ var CoreXT;
                 return _super !== null && _super.apply(this, arguments) || this;
             }
             return ScriptResource;
-        }(CoreXT.FactoryBase(CoreXT.Loader.ResourceRequest)));
+        }(CoreXT.FactoryBase(CoreXT.System.IO.ResourceRequest)));
         Scripts.ScriptResource = ScriptResource;
         (function (ScriptResource) {
             var $__type = /** @class */ (function (_super) {
@@ -73,11 +73,11 @@ var CoreXT;
                 };
                 $__type[CoreXT.constructor] = function (factory) {
                     factory.init = function (o, isnew, url) {
-                        factory.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
+                        factory.super.init(o, isnew, url, CoreXT.ResourceTypes.Application_Script);
                     };
                 };
                 return $__type;
-            }(CoreXT.FactoryType(CoreXT.Loader.ResourceRequest)));
+            }(CoreXT.FactoryType(CoreXT.System.IO.ResourceRequest)));
             ScriptResource.$__type = $__type;
             ScriptResource.$__register(Scripts);
         })(ScriptResource = Scripts.ScriptResource || (Scripts.ScriptResource = {}));
@@ -128,7 +128,7 @@ var CoreXT;
                 };
                 $__type[CoreXT.constructor] = function (factory) {
                     factory.init = function (o, isnew, url) {
-                        factory.super.init(o, isnew, url, CoreXT.Loader.ResourceTypes.Application_Script);
+                        factory.super.init(o, isnew, url, CoreXT.ResourceTypes.Application_Script);
                     };
                 };
                 return $__type;
@@ -187,11 +187,11 @@ var CoreXT;
             }).ready(function (manifestRequest) {
                 var script = manifestRequest.transformedData;
                 // ... before we execute the script we need to move down any source mapping pragmas ...
-                var sourcePragmaInfo = CoreXT.extractSourceMapping(script);
+                var sourcePragmaInfo = CoreXT.extractPragmas(script);
                 script = sourcePragmaInfo.filteredSource + "\r\n" + sourcePragmaInfo.pragmas.join("\r\n");
                 var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
                 func.call(_this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
-                manifestRequest.status = CoreXT.Loader.RequestStatuses.Executed;
+                manifestRequest.status = CoreXT.RequestStatuses.Executed;
                 manifestRequest.message = "The manifest script has been executed.";
             });
             _manifests.push(request); // (note: the first and second manifest should be the default root manifests; modules script loading should commence once all manifests are loaded)
@@ -272,7 +272,7 @@ var CoreXT;
                 $__type.prototype.toValue = function () { return this.fullname; };
                 /** Begin loading the module's script. After the loading is completed, any dependencies are automatically detected and loaded as well. */
                 $__type.prototype.start = function () {
-                    if (this.status == CoreXT.Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
+                    if (this.status == CoreXT.RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
                         this.url = CoreXT.debugMode ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL); // (just in case the debugging flag changed)
                         return _super.prototype.start.call(this);
                     }
@@ -281,10 +281,10 @@ var CoreXT;
                 /** Executes the underlying script by either wrapping it in another function (the default), or running it in the global window scope. */
                 $__type.prototype.execute = function (useGlobalScope) {
                     if (useGlobalScope === void 0) { useGlobalScope = false; }
-                    if (this.status == CoreXT.Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
+                    if (this.status == CoreXT.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
                         // ... first, make sure all parent modules have been executed first ...
                         for (var i = 0, n = this._parentRequests.length, dep; i < n; ++i)
-                            if ((dep = this._parentRequests[i]).status == CoreXT.Loader.RequestStatuses.Ready)
+                            if ((dep = this._parentRequests[i]).status == CoreXT.RequestStatuses.Ready)
                                 dep.execute();
                         var accessors;
                         if (useGlobalScope) {
@@ -297,7 +297,7 @@ var CoreXT;
                         }
                         this.getVar = this._moduleGlobalAccessors.get;
                         this.setVar = this._moduleGlobalAccessors.set;
-                        this.status = CoreXT.Loader.RequestStatuses.Executed;
+                        this.status = CoreXT.RequestStatuses.Executed;
                     }
                 };
                 $__type[CoreXT.constructor] = function (factory) {
@@ -323,9 +323,9 @@ var CoreXT;
             if (_runMode < 2)
                 if (_appModule && (_runMode == 1 || !CoreXT.host.isDebugMode() && CoreXT.debugMode != CoreXT.DebugModes.Debug_Wait)) {
                     // (note: if the host is in debug mode, it trumps the internal debug setting)
-                    if (_appModule.status == CoreXT.Loader.RequestStatuses.Ready)
+                    if (_appModule.status == CoreXT.RequestStatuses.Ready)
                         _appModule.execute();
-                    if (_appModule.status == CoreXT.Loader.RequestStatuses.Executed)
+                    if (_appModule.status == CoreXT.RequestStatuses.Executed)
                         _runMode = 2;
                 }
         }
@@ -344,7 +344,7 @@ var CoreXT;
         // =======================================================================================================================
         /** This is the path to the root of the CoreXT JavaScript files ('CoreXT/' by default).
         * Note: This should either be empty, or always end with a URL path separator ('/') character (but the system will assume to add one anyhow if missing). */
-        Scripts.pluginFilesBasePath = CoreXT.System.IO && CoreXT.System.IO.Path ? CoreXT.System.IO.Path.combineURLPaths(CoreXT.baseURL, "wwwroot/js/") : CoreXT.baseURL + "wwwroot/js/";
+        Scripts.pluginFilesBasePath = CoreXT.System.IO && CoreXT.System.IO.Path ? CoreXT.System.IO.Path.combine(CoreXT.baseURL, "wwwroot/js/") : CoreXT.baseURL + "wwwroot/js/";
         /** Translates a module relative or full type name to the actual type name (i.e. '.ABC' to 'CoreXT.ABC', or 'System'/'System.' to 'CoreXT'/'CoreXT.'). */
         function translateModuleTypeName(moduleFullTypeName) {
             if (moduleFullTypeName.charAt(0) == '.')
@@ -413,7 +413,7 @@ var CoreXT;
             var path = moduleFileBasePath != null ? ("" + moduleFileBasePath).trim() : Scripts.pluginFilesBasePath;
             var minPath = null;
             if (path && path.charAt(0) == '~')
-                path = Path.combineURLPaths(Scripts.pluginFilesBasePath, path.substring(1)); // ('~' is a request to insert the current default path; eg. "~CoreXT.System.js" for "CoreXTJS/CoreXT.System.js")
+                path = CoreXT.System.IO.Path.combine(Scripts.pluginFilesBasePath, path.substring(1)); // ('~' is a request to insert the current default path; eg. "~CoreXT.System.js" for "CoreXTJS/CoreXT.System.js")
             results = processMinifyTokens(path);
             if (results[1]) {
                 path = results[0];
@@ -424,14 +424,14 @@ var CoreXT;
             if (!Path.hasFileExt(path, '.js')) { //&& !/^https?:\/\//.test(path)
                 // ... JavaScript filename extension not found, so add it under the assumed name ...
                 if (!path || path.charAt(path.length - 1) == '/')
-                    path = Path.combineURLPaths(path, moduleFullTypeName + ".js");
+                    path = CoreXT.System.IO.Path.combine(path, moduleFullTypeName + ".js");
                 else
                     path += ".js";
             }
             if (minPath && !Path.hasFileExt(minPath, '.js')) { //&& !/^https?:\/\//.test(path)
                 // ... JavaScript filename extension not found, so add it under the assumed name ...
                 if (!minPath || minPath.charAt(minPath.length - 1) == '/')
-                    minPath = Path.combineURLPaths(minPath, minifiedFullTypeName + ".js");
+                    minPath = CoreXT.System.IO.Path.combine(minPath, minifiedFullTypeName + ".js");
                 else
                     minPath += ".js";
             }
@@ -451,18 +451,18 @@ var CoreXT;
                     dependencies[i].module.include(mod);
             var usingPluginFunc = (function (onready, onerror) {
                 // (this is called to trigger the loading of the resource [scripts are only loaded on demand])
-                if (onready === void 0 && onerror === void 0 && mod.status != CoreXT.Loader.RequestStatuses.Executed) {
+                if (onready === void 0 && onerror === void 0 && mod.status != CoreXT.RequestStatuses.Executed) {
                     // ... if no callbacks are given, this is a request to CONFIRM that a script is executed, and to execute it if not ...
                     var msg = '';
-                    if (mod.status >= CoreXT.Loader.RequestStatuses.Waiting) {
+                    if (mod.status >= CoreXT.RequestStatuses.Waiting) {
                         onReadyforUse.call(mod, mod);
                         return usingPluginFunc;
                     }
-                    if (mod.status == CoreXT.Loader.RequestStatuses.Error)
+                    if (mod.status == CoreXT.RequestStatuses.Error)
                         msg = "It is in an error state.";
-                    else if (mod.status == CoreXT.Loader.RequestStatuses.Pending)
+                    else if (mod.status == CoreXT.RequestStatuses.Pending)
                         msg = "It has not been requested to load.  Either supply a callback to execute when the module is ready to be used, or add it as a dependency to the requesting module.";
-                    else if (mod.status < CoreXT.Loader.RequestStatuses.Waiting)
+                    else if (mod.status < CoreXT.RequestStatuses.Waiting)
                         msg = "It is still loading and is not yet ready.  Either supply a callback to execute when the module is ready to be used, or add it as a dependency to the requesting module.";
                     throw CoreXT.System.Exception.from("Cannot use module '" + mod.fullname + "': " + msg, mod);
                 }
@@ -470,7 +470,7 @@ var CoreXT;
                     try {
                         // ... execute the script ...
                         mod.execute();
-                        mod.status = CoreXT.Loader.RequestStatuses.Executed;
+                        mod.status = CoreXT.RequestStatuses.Executed;
                         if (onready)
                             onready(mod);
                     }
@@ -483,17 +483,17 @@ var CoreXT;
                 }
                 // ... request to load the module and execute the script ...
                 switch (mod.status) {
-                    case CoreXT.Loader.RequestStatuses.Error: throw CoreXT.System.Exception.from("The module '" + mod.fullname + "' is in an error state and cannot be used.", mod);
-                    case CoreXT.Loader.RequestStatuses.Pending:
+                    case CoreXT.RequestStatuses.Error: throw CoreXT.System.Exception.from("The module '" + mod.fullname + "' is in an error state and cannot be used.", mod);
+                    case CoreXT.RequestStatuses.Pending:
                         mod.start();
                         break; // (the module is not yet ready and cannot be executed right now; attach callbacks...)
-                    case CoreXT.Loader.RequestStatuses.Loading:
+                    case CoreXT.RequestStatuses.Loading:
                         mod.catch(onerror);
                         break;
-                    case CoreXT.Loader.RequestStatuses.Loaded:
-                    case CoreXT.Loader.RequestStatuses.Waiting:
-                    case CoreXT.Loader.RequestStatuses.Ready:
-                    case CoreXT.Loader.RequestStatuses.Executed:
+                    case CoreXT.RequestStatuses.Loaded:
+                    case CoreXT.RequestStatuses.Waiting:
+                    case CoreXT.RequestStatuses.Ready:
+                    case CoreXT.RequestStatuses.Executed:
                         mod.ready(onReadyforUse);
                         break;
                 }

@@ -36,7 +36,7 @@ declare namespace CoreXT {
                 $__disposed?: boolean;
             };
             $__type: IType<object>;
-            readonly super: typeof Loader.ResourceRequest;
+            readonly super: typeof System.IO.ResourceRequest;
             'new'?(...args: any[]): any;
             init?(o: object, isnew: boolean, ...args: any[]): void;
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
@@ -50,7 +50,7 @@ declare namespace CoreXT {
             static init: (o: IScriptResource, isnew: boolean, url: string) => void;
         }
         namespace ScriptResource {
-            const $__type_base: typeof Loader.ResourceRequest.$__type;
+            const $__type_base: typeof System.IO.ResourceRequest.$__type;
             class $__type extends $__type_base {
                 /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
                 registerGlobal<T>(name: string, initialValue: T, asHostGlobal?: boolean): string;
@@ -221,13 +221,13 @@ declare namespace CoreXT {
             (onready?: (mod: IModule) => any, onerror?: (mod: IModule) => any): IUsingModule;
             /** The plugin object instance details. */
             module: IModule;
-            then: (success: ICallback<Loader.IResourceRequest>, error?: IErrorCallback<Loader.IResourceRequest>) => IUsingModule;
+            then: (success: ICallback<System.IO.IResourceRequest>, error?: IErrorCallback<System.IO.IResourceRequest>) => IUsingModule;
             /** Attach some dependent resources to load with the module (note: the module will not load if the required resources fail to load). */
-            require: (request: Loader.IResourceRequest) => IUsingModule;
-            ready: (handler: ICallback<Loader.IResourceRequest>) => IUsingModule;
-            while: (progressHandler: ICallback<Loader.IResourceRequest>) => IUsingModule;
-            catch: (errorHandler: IErrorCallback<Loader.IResourceRequest>) => IUsingModule;
-            finally: (cleanupHandler: ICallback<Loader.IResourceRequest>) => IUsingModule;
+            require: (request: System.IO.IResourceRequest) => IUsingModule;
+            ready: (handler: ICallback<System.IO.IResourceRequest>) => IUsingModule;
+            while: (progressHandler: ICallback<System.IO.IResourceRequest>) => IUsingModule;
+            catch: (errorHandler: IErrorCallback<System.IO.IResourceRequest>) => IUsingModule;
+            finally: (cleanupHandler: ICallback<System.IO.IResourceRequest>) => IUsingModule;
         }
         /** This is usually called from the 'CoreXT.[ts|js]' file to register script files (plugins), making them available to the application based on module names (instead of file names).
           * When 'CoreXT.using.{...someplugin}()' is called, the required script files are then executed as needed.

@@ -58,14 +58,14 @@ namespace CoreXT {
 
         // ====================================================================================================================
 
-        export class ScriptResource extends FactoryBase(Loader.ResourceRequest) {
+        export class ScriptResource extends FactoryBase(System.IO.ResourceRequest) {
             /** Returns a new module object only - does not load it. */
             static 'new': (url: string) => IScriptResource;
             /** Returns a new module object only - does not load it. */
             static init: (o: IScriptResource, isnew: boolean, url: string) => void;
         }
         export namespace ScriptResource {
-            export class $__type extends FactoryType(Loader.ResourceRequest) {
+            export class $__type extends FactoryType(System.IO.ResourceRequest) {
                 /** A convenient script resource method that simply Calls 'Globals.register()'. For help, see 'CoreXT.Globals' and 'Globals.register()'. */
                 registerGlobal<T>(name: string, initialValue: T, asHostGlobal?: boolean): string {
                     return Globals.register(this, name, initialValue, asHostGlobal);
@@ -93,7 +93,7 @@ namespace CoreXT {
 
                 private static [constructor](factory: typeof ScriptResource) {
                     factory.init = (o, isnew, url) => {
-                        factory.super.init(o, isnew, url, Loader.ResourceTypes.Application_Script);
+                        factory.super.init(o, isnew, url, ResourceTypes.Application_Script);
                     };
                 }
             }
@@ -146,7 +146,7 @@ namespace CoreXT {
 
                 private static [constructor](factory: typeof ScriptResource) {
                     factory.init = (o, isnew, url) => {
-                        factory.super.init(o, isnew, url, Loader.ResourceTypes.Application_Script);
+                        factory.super.init(o, isnew, url, ResourceTypes.Application_Script);
                     };
                 }
             }
@@ -207,12 +207,12 @@ namespace CoreXT {
                 var script = manifestRequest.transformedData;
 
                 // ... before we execute the script we need to move down any source mapping pragmas ...
-                var sourcePragmaInfo = extractSourceMapping(script);
+                var sourcePragmaInfo = extractPragmas(script);
                 script = sourcePragmaInfo.filteredSource + "\r\n" + sourcePragmaInfo.pragmas.join("\r\n");
 
                 var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
                 func.call(this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
-                manifestRequest.status = Loader.RequestStatuses.Executed;
+                manifestRequest.status = RequestStatuses.Executed;
                 manifestRequest.message = "The manifest script has been executed.";
             });
 
@@ -301,7 +301,7 @@ namespace CoreXT {
                     return this;
                 }
 
-                private __onReady(request: Loader.IResourceRequest) {
+                private __onReady(request: System.IO.IResourceRequest) {
                     // ... script is loaded (not executed) and ready to be applied ...
                     if (this.fullname == "app" || this.fullname == "application") {
                         _appModule = this;
@@ -316,7 +316,7 @@ namespace CoreXT {
 
                 /** Begin loading the module's script. After the loading is completed, any dependencies are automatically detected and loaded as well. */
                 start(): this {
-                    if (this.status == Loader.RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
+                    if (this.status == RequestStatuses.Pending && !this._moduleGlobalAccessors) { // (make sure this module was not already started nor applied)
                         this.url = debugMode ? this.nonMinifiedURL : (this.minifiedURL || this.nonMinifiedURL); // (just in case the debugging flag changed)
                         return super.start();
                     }
@@ -325,10 +325,10 @@ namespace CoreXT {
 
                 /** Executes the underlying script by either wrapping it in another function (the default), or running it in the global window scope. */
                 execute(useGlobalScope = false): void {
-                    if (this.status == Loader.RequestStatuses.Ready && !this._moduleGlobalAccessors) {
+                    if (this.status == RequestStatuses.Ready && !this._moduleGlobalAccessors) {
                         // ... first, make sure all parent modules have been executed first ...
-                        for (var i = 0, n = this._parentRequests.length, dep: Loader.IResourceRequest; i < n; ++i)
-                            if ((dep = this._parentRequests[i]).status == Loader.RequestStatuses.Ready)
+                        for (var i = 0, n = this._parentRequests.length, dep: System.IO.IResourceRequest; i < n; ++i)
+                            if ((dep = this._parentRequests[i]).status == RequestStatuses.Ready)
                                 (<IModule>dep).execute();
 
                         var accessors: _IModuleAccessors;
@@ -343,7 +343,7 @@ namespace CoreXT {
                         this.getVar = this._moduleGlobalAccessors.get;
                         this.setVar = this._moduleGlobalAccessors.set;
 
-                        this.status = Loader.RequestStatuses.Executed;
+                        this.status = RequestStatuses.Executed;
                     }
                 }
 
@@ -375,9 +375,9 @@ namespace CoreXT {
             if (_runMode < 2)
                 if (_appModule && (_runMode == 1 || !CoreXT.host.isDebugMode() && CoreXT.debugMode != CoreXT.DebugModes.Debug_Wait)) {
                     // (note: if the host is in debug mode, it trumps the internal debug setting)
-                    if (_appModule.status == Loader.RequestStatuses.Ready)
+                    if (_appModule.status == RequestStatuses.Ready)
                         _appModule.execute();
-                    if (_appModule.status == Loader.RequestStatuses.Executed)
+                    if (_appModule.status == RequestStatuses.Executed)
                         _runMode = 2;
                 }
         }
@@ -397,7 +397,7 @@ namespace CoreXT {
 
         /** This is the path to the root of the CoreXT JavaScript files ('CoreXT/' by default).
         * Note: This should either be empty, or always end with a URL path separator ('/') character (but the system will assume to add one anyhow if missing). */
-        export var pluginFilesBasePath: string = System.IO && System.IO.Path ? System.IO.Path.combineURLPaths(baseURL, "wwwroot/js/") : baseURL + "wwwroot/js/";
+        export var pluginFilesBasePath: string = System.IO && System.IO.Path ? System.IO.Path.combine(baseURL, "wwwroot/js/") : baseURL + "wwwroot/js/";
 
         /** Translates a module relative or full type name to the actual type name (i.e. '.ABC' to 'CoreXT.ABC', or 'System'/'System.' to 'CoreXT'/'CoreXT.'). */
         export function translateModuleTypeName(moduleFullTypeName: string) {
@@ -438,14 +438,14 @@ namespace CoreXT {
             (onready?: (mod: IModule) => any, onerror?: (mod: IModule) => any): IUsingModule;
             /** The plugin object instance details. */
             module: IModule;
-            then: (success: ICallback<Loader.IResourceRequest>, error?: IErrorCallback<Loader.IResourceRequest>) => IUsingModule;
+            then: (success: ICallback<System.IO.IResourceRequest>, error?: IErrorCallback<System.IO.IResourceRequest>) => IUsingModule;
             /** Attach some dependent resources to load with the module (note: the module will not load if the required resources fail to load). */
-            require: (request: Loader.IResourceRequest) => IUsingModule;
+            require: (request: System.IO.IResourceRequest) => IUsingModule;
             //?include: (mod: IUsingModule) => IUsingModule; //? (dangerous and confusing to users I think in regards to module definitions)
-            ready: (handler: ICallback<Loader.IResourceRequest>) => IUsingModule;
-            while: (progressHandler: ICallback<Loader.IResourceRequest>) => IUsingModule;
-            catch: (errorHandler: IErrorCallback<Loader.IResourceRequest>) => IUsingModule;
-            finally: (cleanupHandler: ICallback<Loader.IResourceRequest>) => IUsingModule;
+            ready: (handler: ICallback<System.IO.IResourceRequest>) => IUsingModule;
+            while: (progressHandler: ICallback<System.IO.IResourceRequest>) => IUsingModule;
+            catch: (errorHandler: IErrorCallback<System.IO.IResourceRequest>) => IUsingModule;
+            finally: (cleanupHandler: ICallback<System.IO.IResourceRequest>) => IUsingModule;
         }
 
         /** This is usually called from the 'CoreXT.[ts|js]' file to register script files (plugins), making them available to the application based on module names (instead of file names).
@@ -486,7 +486,7 @@ namespace CoreXT {
             var minPath: string = null;
 
             if (path && path.charAt(0) == '~')
-                path = Path.combineURLPaths(pluginFilesBasePath, path.substring(1)); // ('~' is a request to insert the current default path; eg. "~CoreXT.System.js" for "CoreXTJS/CoreXT.System.js")
+                path = System.IO.Path.combine(pluginFilesBasePath, path.substring(1)); // ('~' is a request to insert the current default path; eg. "~CoreXT.System.js" for "CoreXTJS/CoreXT.System.js")
 
             results = processMinifyTokens(path);
             if (results[1]) {
@@ -498,14 +498,14 @@ namespace CoreXT {
             if (!Path.hasFileExt(path, '.js')) { //&& !/^https?:\/\//.test(path)
                 // ... JavaScript filename extension not found, so add it under the assumed name ...
                 if (!path || path.charAt(path.length - 1) == '/')
-                    path = Path.combineURLPaths(path, moduleFullTypeName + ".js");
+                    path = System.IO.Path.combine(path, moduleFullTypeName + ".js");
                 else
                     path += ".js";
             }
             if (minPath && !Path.hasFileExt(minPath, '.js')) { //&& !/^https?:\/\//.test(path)
                 // ... JavaScript filename extension not found, so add it under the assumed name ...
                 if (!minPath || minPath.charAt(minPath.length - 1) == '/')
-                    minPath = Path.combineURLPaths(minPath, minifiedFullTypeName + ".js");
+                    minPath = System.IO.Path.combine(minPath, minifiedFullTypeName + ".js");
                 else
                     minPath += ".js";
             }
@@ -531,17 +531,17 @@ namespace CoreXT {
             var usingPluginFunc: IUsingModule = <IUsingModule><any>((onready?: (mod: IModule) => any, onerror?: (mod: IModule) => any) => {
                 // (this is called to trigger the loading of the resource [scripts are only loaded on demand])
 
-                if (onready === void 0 && onerror === void 0 && mod.status != Loader.RequestStatuses.Executed) {
+                if (onready === void 0 && onerror === void 0 && mod.status != RequestStatuses.Executed) {
                     // ... if no callbacks are given, this is a request to CONFIRM that a script is executed, and to execute it if not ...
                     var msg = '';
-                    if (mod.status >= Loader.RequestStatuses.Waiting) {
+                    if (mod.status >= RequestStatuses.Waiting) {
                         onReadyforUse.call(mod, mod);
                         return usingPluginFunc;
-                    } if (mod.status == Loader.RequestStatuses.Error)
+                    } if (mod.status == RequestStatuses.Error)
                         msg = "It is in an error state.";
-                    else if (mod.status == Loader.RequestStatuses.Pending)
+                    else if (mod.status == RequestStatuses.Pending)
                         msg = "It has not been requested to load.  Either supply a callback to execute when the module is ready to be used, or add it as a dependency to the requesting module.";
-                    else if (mod.status < Loader.RequestStatuses.Waiting)
+                    else if (mod.status < RequestStatuses.Waiting)
                         msg = "It is still loading and is not yet ready.  Either supply a callback to execute when the module is ready to be used, or add it as a dependency to the requesting module.";
                     throw System.Exception.from("Cannot use module '" + mod.fullname + "': " + msg, mod);
                 }
@@ -550,7 +550,7 @@ namespace CoreXT {
                     try {
                         // ... execute the script ...
                         mod.execute();
-                        mod.status = Loader.RequestStatuses.Executed;
+                        mod.status = RequestStatuses.Executed;
                         if (onready)
                             onready(mod);
                     } catch (e) {
@@ -564,13 +564,13 @@ namespace CoreXT {
                 // ... request to load the module and execute the script ...
 
                 switch (mod.status) {
-                    case Loader.RequestStatuses.Error: throw CoreXT.System.Exception.from("The module '" + mod.fullname + "' is in an error state and cannot be used.", mod);
-                    case Loader.RequestStatuses.Pending: mod.start(); break; // (the module is not yet ready and cannot be executed right now; attach callbacks...)
-                    case Loader.RequestStatuses.Loading: mod.catch(onerror); break;
-                    case Loader.RequestStatuses.Loaded:
-                    case Loader.RequestStatuses.Waiting:
-                    case Loader.RequestStatuses.Ready:
-                    case Loader.RequestStatuses.Executed: mod.ready(onReadyforUse); break;
+                    case RequestStatuses.Error: throw CoreXT.System.Exception.from("The module '" + mod.fullname + "' is in an error state and cannot be used.", mod);
+                    case RequestStatuses.Pending: mod.start(); break; // (the module is not yet ready and cannot be executed right now; attach callbacks...)
+                    case RequestStatuses.Loading: mod.catch(onerror); break;
+                    case RequestStatuses.Loaded:
+                    case RequestStatuses.Waiting:
+                    case RequestStatuses.Ready:
+                    case RequestStatuses.Executed: mod.ready(onReadyforUse); break;
                 }
 
                 return usingPluginFunc;
@@ -579,12 +579,12 @@ namespace CoreXT {
             usingPluginFunc.module = mod;
 
             usingPluginFunc.then = (success, error) => { mod.then(success, error); return this; };
-            usingPluginFunc.require = (request: Loader.IResourceRequest) => { request.include(mod); return this; };
+            usingPluginFunc.require = (request: System.IO.IResourceRequest) => { request.include(mod); return this; };
             //?usingPluginFunc.include = (dependantMod: IUsingModule) => { mod.include(dependantMod.module); return dependantMod; };
-            usingPluginFunc.ready = (handler: ICallback<Loader.IResourceRequest>) => { mod.ready(handler); return this; };
-            usingPluginFunc.while = (progressHandler: ICallback<Loader.IResourceRequest>) => { mod.while(progressHandler); return this; };
-            usingPluginFunc.catch = (errorHandler: IErrorCallback<Loader.IResourceRequest>) => { mod.catch(errorHandler); return this; };
-            usingPluginFunc.finally = (cleanupHandler: ICallback<Loader.IResourceRequest>) => { mod.finally(cleanupHandler); return this; };
+            usingPluginFunc.ready = (handler: ICallback<System.IO.IResourceRequest>) => { mod.ready(handler); return this; };
+            usingPluginFunc.while = (progressHandler: ICallback<System.IO.IResourceRequest>) => { mod.while(progressHandler); return this; };
+            usingPluginFunc.catch = (errorHandler: IErrorCallback<System.IO.IResourceRequest>) => { mod.catch(errorHandler); return this; };
+            usingPluginFunc.finally = (cleanupHandler: ICallback<System.IO.IResourceRequest>) => { mod.finally(cleanupHandler); return this; };
 
             return usingPluginFunc;
         };

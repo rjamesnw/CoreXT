@@ -15,7 +15,7 @@ var CoreXT;
                  * Source: https://sdkcarlos.github.io/sites/holdon.html
                  */
                 IO.HoldOn = Scripts.module(null, 'HoldOn.min', '~HoldOn/')
-                    .require(CoreXT.Loader.get("~HoldOn/HoldOn.min.css")) // TODO: Support match patterns here also for 'min'.
+                    .require(CoreXT.System.IO.get("~HoldOn/HoldOn.min.css")) // TODO: Support match patterns here also for 'min'.
                     .ready(function (r) {
                     var holdOn = IO.HoldOn.module.getVar("HoldOn");
                     function wait(msg) {

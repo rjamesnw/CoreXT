@@ -11,7 +11,7 @@ declare namespace CoreXT.Globals {
     * Registers and initializes a global property for the specified resource, and returns the dot-delimited string reference (see CoreXT.Globals).
     * Subsequent calls with the same resource and identifier name ignores the 'initialValue' and 'asHostGlobal' arguments, and simply returns the
     * existing property path instead.
-    * @param {Loader.ResourceRequest} resource The resource type object associated with the globals to create.
+    * @param {System.IO.ResourceRequest} resource The resource type object associated with the globals to create.
     * @param {T} initialValue  The initial value to set.
     * @param {boolean} asHostGlobal  If true, a host global scope unique variable name is returned. If false (default), a dot-delimited one is returned
     *                                instead which references the global variable within the CoreXT namespace related global scope (so as not to
@@ -19,7 +19,7 @@ declare namespace CoreXT.Globals {
     *                                Some frameworks, such as the Google Maps API, support callbacks with dot-delimited names for nested objects to help
     *                                prevent global scope pollution.
     */
-    function register<T>(resource: Loader.IResourceRequest, name: string, initialValue: T, asHostGlobal?: boolean): string;
+    function register<T>(resource: System.IO.IResourceRequest, name: string, initialValue: T, asHostGlobal?: boolean): string;
     /**
     * Registers and initializes a global property for the specified namespace, and returns the dot-delimited string reference (see CoreXT.Globals).
     * Subsequent calls with the same namespace and identifier name ignores the 'initialValue' and 'asHostGlobal' arguments, and simply returns the
@@ -38,7 +38,7 @@ declare namespace CoreXT.Globals {
     /**
       * Returns true if the specified global variable name is registered.
       */
-    function exists<T>(resource: Loader.IResourceRequest, name: string): boolean;
+    function exists<T>(resource: System.IO.IResourceRequest, name: string): boolean;
     /**
       * Returns true if the specified global variable name is registered.
      */
@@ -47,14 +47,14 @@ declare namespace CoreXT.Globals {
       * Erases the registered global variable (by setting it to 'undefined' - which is faster than deleting it).
       * Returns true if successful.
       */
-    function erase<T>(resource: Loader.IResourceRequest, name: string): boolean;
+    function erase<T>(resource: System.IO.IResourceRequest, name: string): boolean;
     function erase<T>(namespace: string, name: string): boolean;
     /**
       * Clears all registered globals by releasing the associated global object for the specified resource's namespace
       * and creating a new object.  Any host globals are deleted first.
       * Return true on success, and false if the namespace doesn't exist.
       */
-    function clear<T>(resource: Loader.IResourceRequest): boolean;
+    function clear<T>(resource: System.IO.IResourceRequest): boolean;
     /**
       * Clears all registered globals by releasing the associated global object for the specified resource's namespace
       * and creating a new object.  Any host globals are deleted first.
@@ -64,7 +64,7 @@ declare namespace CoreXT.Globals {
     /**
       * Sets and returns a global property value.
       */
-    function setValue<T>(resource: Loader.IResourceRequest, name: string, value: T): T;
+    function setValue<T>(resource: System.IO.IResourceRequest, name: string, value: T): T;
     /**
       * Sets and returns a global property value.
       */
@@ -72,7 +72,7 @@ declare namespace CoreXT.Globals {
     /**
     * Gets a global property value.
     */
-    function getValue<T>(resource: Loader.IResourceRequest, name: string): T;
+    function getValue<T>(resource: System.IO.IResourceRequest, name: string): T;
     /**
     * Gets a global property value.
     */

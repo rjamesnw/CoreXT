@@ -42,87 +42,6 @@ var CoreXT;
     // ------------------------------------------------------------------------------------------------------------------------
     CoreXT.constructor = Symbol("static constructor");
     // ------------------------------------------------------------------------------------------------------------------------
-    var DebugModes;
-    (function (DebugModes) {
-        /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
-        DebugModes[DebugModes["Release"] = 0] = "Release";
-        /** Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. */
-        DebugModes[DebugModes["Debug_Run"] = 1] = "Debug_Run";
-        /**
-          * Run in debug mode, which loads all un-minified scripts, but does NOT boot the system nor run the application automatically.
-          * To manually start the CoreXT system boot process, call 'CoreXT.Loader.bootstrap()'.
-          * Once the boot process completes, the application will not start automatically. To start the application process, call 'CoreXT.Scripts.runApp()".
-          */
-        DebugModes[DebugModes["Debug_Wait"] = 2] = "Debug_Wait";
-    })(DebugModes = CoreXT.DebugModes || (CoreXT.DebugModes = {}));
-    /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values. The default is 'Debug_Run'. */
-    CoreXT.debugMode = typeof CoreXT.debugMode != 'number' ? DebugModes.Debug_Run : CoreXT.debugMode;
-    /** Returns true if CoreXT is running in debug mode. */
-    function isDebugging() { return CoreXT.debugMode != DebugModes.Release; }
-    CoreXT.isDebugging = isDebugging;
-    /** Returns the name of a namespace or variable reference at runtime. */
-    function nameof(selector, fullname) {
-        if (fullname === void 0) { fullname = false; }
-        var s = '' + selector;
-        //var m = s.match(/return\s*([A-Z.]+)/i) || s.match(/=>\s*{?\s*([A-Z.]+)/i) || s.match(/function.*?{\s*([A-Z.]+)/i);
-        var m = s.match(/return\s+([A-Z$_.]+)/i) || s.match(/.*?(?:=>|function.*?{(?!\s*return))\s*([A-Z.]+)/i);
-        var name = m && m[1] || "";
-        return fullname ? name : name.split('.').reverse()[0];
-    }
-    CoreXT.nameof = nameof;
-    // ------------------------------------------------------------------------------------------------------------------------
-    /**
-     * Returns true if the URL contains the specific action and controller names at the end of the URL path.
-     * This of course assumes typical routing patterns in the format '/controller/action' or '/area/controller/action'.
-     */
-    function isPage(action, controller, area) {
-        if (controller === void 0) { controller = "home"; }
-        if (area === void 0) { area = ""; }
-        var regexStr = "\/" + action + "(?:\/?[?&#]|$)";
-        if (controller)
-            regexStr = "\/" + controller + regexStr;
-        if (area)
-            regexStr = "\/" + area + regexStr;
-        return new RegExp(regexStr, "gi").test(location.pathname);
-    }
-    CoreXT.isPage = isPage;
-    // ------------------------------------------------------------------------------------------------------------------------
-    /**
-     * Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups], where
-     * 'groups' index 0 is the full matched text, and 1 onwards are any matched groups).
-     */
-    function matches(regex, text) {
-        var matchesFound = [], result;
-        if (!regex.global)
-            throw new Error("The 'global' flag is required in order to find all matches.");
-        regex.lastIndex = 0;
-        while ((result = regex.exec(text)) !== null)
-            matchesFound.push(result.slice());
-        return matchesFound;
-    }
-    CoreXT.matches = matches;
-    // ------------------------------------------------------------------------------------------------------------------------
-    /** Used to strip out script source mappings. Used with 'extractSourceMapping()'. */
-    CoreXT.SCRIPT_SOURCE_MAPPING_REGEX = /^\s*(\/\/[#@])\s*(source\w+)\s*=\s*(.*)/gim;
-    /** Extract any source mapping pragmas. This is used with XHR loading of scripts in order to execute them with source mapping support. */
-    function extractSourceMapping(src) {
-        var srcMapPragmas = [], result, filteredSrc = src;
-        CoreXT.SCRIPT_SOURCE_MAPPING_REGEX.lastIndex = 0;
-        while ((result = CoreXT.SCRIPT_SOURCE_MAPPING_REGEX.exec(src)) !== null) {
-            var srcMap = {
-                prefix: result[1].trim().replace("//@", "//#"),
-                pragma: result[2].trim(),
-                value: result[3].trim(),
-                toString: function () { return this.prefix + " " + this.pragma + "=" + this.value; },
-                valueOf: function () { return this.prefix + " " + this.pragma + "=" + this.value; }
-            }; // ('@' is depreciated in favor of '#' because of conflicts with IE, so help out by making this correction automatically)
-            srcMapPragmas.push(srcMap);
-            filteredSrc = filteredSrc.substr(0, result.index) + filteredSrc.substr(result.index + result[0].length);
-        }
-        return { filteredSource: filteredSrc, pragmas: srcMapPragmas };
-    }
-    CoreXT.extractSourceMapping = extractSourceMapping;
-    // ------------------------------------------------------------------------------------------------------------------------
 })(CoreXT || (CoreXT = {}));
 /** (See 'CoreXT') */
 var corext = CoreXT; // (allow all lower case usage)
@@ -162,8 +81,10 @@ if (typeof host === 'object' && host.isDebugMode && host.isDebugMode())
 // ===========================================================================================================================
 /** An optional site root URL if the main site root path is in a virtual path. */
 var siteBaseURL;
-/** Root location of the application scripts, which be default is the {site URL}+"/js/". */
+/** Root location of the application scripts, which by default is {site URL}+"/js/". */
 var scriptsBaseURL;
+/** Root location of the CSS files, which by default is {site URL}+"/css/". */
+var cssBaseURL;
 // ===========================================================================================================================
 // Setup some preliminary settings before the core scope, including the "safe" and "global" 'eval()' functions.
 (function (CoreXT) {
@@ -203,6 +124,36 @@ var scriptsBaseURL;
         /** Represents the CoreXT server environment. */
         Environments[Environments["Server"] = 2] = "Server";
     })(Environments = CoreXT.Environments || (CoreXT.Environments = {}));
+    // ------------------------------------------------------------------------------------------------------------------------
+    var DebugModes;
+    (function (DebugModes) {
+        /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
+        DebugModes[DebugModes["Release"] = 0] = "Release";
+        /** Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. */
+        DebugModes[DebugModes["Debug_Run"] = 1] = "Debug_Run";
+        /**
+          * Run in debug mode, which loads all un-minified scripts, but does NOT boot the system nor run the application automatically.
+          * To manually start the CoreXT system boot process, call 'CoreXT.Loader.bootstrap()'.
+          * Once the boot process completes, the application will not start automatically. To start the application process, call 'CoreXT.Scripts.runApp()".
+          */
+        DebugModes[DebugModes["Debug_Wait"] = 2] = "Debug_Wait";
+    })(DebugModes = CoreXT.DebugModes || (CoreXT.DebugModes = {}));
+    /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values. The default is 'Debug_Run'. */
+    CoreXT.debugMode = typeof CoreXT.debugMode != 'number' ? DebugModes.Debug_Run : CoreXT.debugMode;
+    /** Returns true if CoreXT is running in debug mode. */
+    function isDebugging() { return CoreXT.debugMode != DebugModes.Release; }
+    CoreXT.isDebugging = isDebugging;
+    // =========================================================================================================================================
+    /** Returns the name of a namespace or variable reference at runtime. */
+    function nameof(selector, fullname) {
+        if (fullname === void 0) { fullname = false; }
+        var s = '' + selector;
+        //var m = s.match(/return\s*([A-Z.]+)/i) || s.match(/=>\s*{?\s*([A-Z.]+)/i) || s.match(/function.*?{\s*([A-Z.]+)/i);
+        var m = s.match(/return\s+([A-Z$_.]+)/i) || s.match(/.*?(?:=>|function.*?{(?!\s*return))\s*([A-Z.]+)/i);
+        var name = m && m[1] || "";
+        return fullname ? name : name.split('.').reverse()[0];
+    }
+    CoreXT.nameof = nameof;
     // =========================================================================================================================================
     CoreXT.FUNC_NAME_REGEX = /^function\s*(\S+)\s*\(/i; // (note: never use the 'g' flag here, or '{regex}.exec()' will only work once every two calls [attempts to traverse])
     /** Attempts to pull the function name from the function object, and returns an empty string if none could be determined. */
@@ -966,10 +917,10 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             var factoryTypeInfo = factoryType;
             if (typeof factoryType !== 'function')
                 error("__registerFactoryType()", "The 'factoryType' argument is not a valid constructor function.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
-            if (typeof namespace == 'object' || typeof namespace == 'function') {
-                if (!namespace.$__fullname)
-                    error("__registerFactoryType()", "The specified namespace given for factory type '" + getFullTypeName(factoryType) + "' is not registered. Please call 'namespace()' to register it first (before the factory is defined).", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
-            }
+            if (typeof namespace != 'object' && typeof namespace != 'function')
+                error("__registerFactoryType()", "No namespace was specified for factory type '" + getFullTypeName(factoryType) + "', which is required. If the type is in the global scope, then use 'this' or 'CoreXT.global'.", factoryType);
+            if (!namespace.$__fullname)
+                error("__registerFactoryType()", "The specified namespace given for factory type '" + getFullTypeName(factoryType) + "' is not registered. Please call 'namespace()' to register it first (before the factory is defined).", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
             if (typeof classType == 'undefined')
                 error("__registerFactoryType()", "Factory instance type '" + getFullTypeName(factoryType) + ".$__type' is not defined.", factoryType); // TODO: See if this can also be detected in ES2015 (ES6) using the specialized functions.
             if (typeof classType != 'function')
@@ -1443,19 +1394,1264 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
     }
     CoreXT.getErrorMessage = getErrorMessage;
     // ========================================================================================================================================
+    // ... polyfill some XHR 'readyState' constants ...
+    if (!XMLHttpRequest.DONE) {
+        XMLHttpRequest.UNSENT = 0;
+        XMLHttpRequest.OPENED = 1;
+        XMLHttpRequest.HEADERS_RECEIVED = 2;
+        XMLHttpRequest.LOADING = 3;
+        XMLHttpRequest.DONE = 4;
+    }
+    /** The most common mime types.  You can easily extend this enum with custom types, or force-cast strings to this type also. */
+    /* NOTE: The enums entries MUST be prefixed with '<any>' in order for this mapping to work with 'ResourceExtensions' as well implicitly. */
+    var ResourceTypes;
+    (function (ResourceTypes) {
+        // Application
+        ResourceTypes[ResourceTypes["Application_Script"] = "application/javascript"] = "Application_Script";
+        ResourceTypes[ResourceTypes["Application_ECMAScript"] = "application/ecmascript"] = "Application_ECMAScript";
+        ResourceTypes[ResourceTypes["Application_JSON"] = "application/json"] = "Application_JSON";
+        ResourceTypes[ResourceTypes["Application_ZIP"] = "application/zip"] = "Application_ZIP";
+        ResourceTypes[ResourceTypes["Application_GZIP"] = "application/gzip"] = "Application_GZIP";
+        ResourceTypes[ResourceTypes["Application_PDF"] = "application/pdf"] = "Application_PDF";
+        ResourceTypes[ResourceTypes["Application_DefaultFormPost"] = "application/x-www-form-urlencoded"] = "Application_DefaultFormPost";
+        ResourceTypes[ResourceTypes["Application_TTF"] = "application/x-font-ttf"] = "Application_TTF";
+        // Multipart
+        ResourceTypes[ResourceTypes["Multipart_BinaryFormPost"] = "multipart/form-data"] = "Multipart_BinaryFormPost";
+        // Audio
+        ResourceTypes[ResourceTypes["AUDIO_MP4"] = "audio/mp4"] = "AUDIO_MP4";
+        ResourceTypes[ResourceTypes["AUDIO_MPEG"] = "audio/mpeg"] = "AUDIO_MPEG";
+        ResourceTypes[ResourceTypes["AUDIO_OGG"] = "audio/ogg"] = "AUDIO_OGG";
+        ResourceTypes[ResourceTypes["AUDIO_AAC"] = "audio/x-aac"] = "AUDIO_AAC";
+        ResourceTypes[ResourceTypes["AUDIO_CAF"] = "audio/x-caf"] = "AUDIO_CAF";
+        // Image
+        ResourceTypes[ResourceTypes["Image_GIF"] = "image/gif"] = "Image_GIF";
+        ResourceTypes[ResourceTypes["Image_JPEG"] = "image/jpeg"] = "Image_JPEG";
+        ResourceTypes[ResourceTypes["Image_PNG"] = "image/png"] = "Image_PNG";
+        ResourceTypes[ResourceTypes["Image_SVG"] = "image/svg+xml"] = "Image_SVG";
+        ResourceTypes[ResourceTypes["Image_GIMP"] = "image/x-xcf"] = "Image_GIMP";
+        // Text
+        ResourceTypes[ResourceTypes["Text_CSS"] = "text/css"] = "Text_CSS";
+        ResourceTypes[ResourceTypes["Text_CSV"] = "text/csv"] = "Text_CSV";
+        ResourceTypes[ResourceTypes["Text_HTML"] = "text/html"] = "Text_HTML";
+        ResourceTypes[ResourceTypes["Text_Plain"] = "text/plain"] = "Text_Plain";
+        ResourceTypes[ResourceTypes["Text_RTF"] = "text/rtf"] = "Text_RTF";
+        ResourceTypes[ResourceTypes["Text_XML"] = "text/xml"] = "Text_XML";
+        ResourceTypes[ResourceTypes["Text_JQueryTemplate"] = "text/x-jquery-tmpl"] = "Text_JQueryTemplate";
+        ResourceTypes[ResourceTypes["Text_MarkDown"] = "text/x-markdown"] = "Text_MarkDown";
+        // Video
+        ResourceTypes[ResourceTypes["Video_AVI"] = "video/avi"] = "Video_AVI";
+        ResourceTypes[ResourceTypes["Video_MPEG"] = "video/mpeg"] = "Video_MPEG";
+        ResourceTypes[ResourceTypes["Video_MP4"] = "video/mp4"] = "Video_MP4";
+        ResourceTypes[ResourceTypes["Video_OGG"] = "video/ogg"] = "Video_OGG";
+        ResourceTypes[ResourceTypes["Video_MOV"] = "video/quicktime"] = "Video_MOV";
+        ResourceTypes[ResourceTypes["Video_WMV"] = "video/x-ms-wmv"] = "Video_WMV";
+        ResourceTypes[ResourceTypes["Video_FLV"] = "video/x-flv"] = "Video_FLV";
+    })(ResourceTypes = CoreXT.ResourceTypes || (CoreXT.ResourceTypes = {}));
+    /** A map of popular resource extensions to resource enum type names.
+      * Example 1: ResourceTypes[ResourceExtensions[ResourceExtensions.Application_Script]] === "application/javascript"
+      * Example 2: ResourceTypes[ResourceExtensions[<ResourceExtensions><any>'.JS']] === "application/javascript"
+      * Example 3: CoreXT.Loader.getResourceTypeFromExtension(ResourceExtensions.Application_Script);
+      * Example 4: CoreXT.Loader.getResourceTypeFromExtension(".js");
+      */
+    /* NOTE: The enums entries MUST be prefixed with '<any>' in order for this mapping to work with 'ResourceTypes' as well implicitly. */
+    var ResourceExtensions;
+    (function (ResourceExtensions) {
+        ResourceExtensions[ResourceExtensions["Application_Script"] = ".js"] = "Application_Script";
+        ResourceExtensions[ResourceExtensions["Application_ECMAScript"] = ".es"] = "Application_ECMAScript";
+        ResourceExtensions[ResourceExtensions["Application_JSON"] = ".json"] = "Application_JSON";
+        ResourceExtensions[ResourceExtensions["Application_ZIP"] = ".zip"] = "Application_ZIP";
+        ResourceExtensions[ResourceExtensions["Application_GZIP"] = ".gz"] = "Application_GZIP";
+        ResourceExtensions[ResourceExtensions["Application_PDF"] = ".pdf"] = "Application_PDF";
+        ResourceExtensions[ResourceExtensions["Application_TTF"] = ".ttf"] = "Application_TTF";
+        // Audio
+        ResourceExtensions[ResourceExtensions["AUDIO_MP4"] = ".mp4"] = "AUDIO_MP4";
+        ResourceExtensions[ResourceExtensions["AUDIO_MPEG"] = ".mpeg"] = "AUDIO_MPEG";
+        ResourceExtensions[ResourceExtensions["AUDIO_OGG"] = ".ogg"] = "AUDIO_OGG";
+        ResourceExtensions[ResourceExtensions["AUDIO_AAC"] = ".aac"] = "AUDIO_AAC";
+        ResourceExtensions[ResourceExtensions["AUDIO_CAF"] = ".caf"] = "AUDIO_CAF";
+        // Image
+        ResourceExtensions[ResourceExtensions["Image_GIF"] = ".gif"] = "Image_GIF";
+        ResourceExtensions[ResourceExtensions["Image_JPEG"] = ".jpeg"] = "Image_JPEG";
+        ResourceExtensions[ResourceExtensions["Image_PNG"] = ".png"] = "Image_PNG";
+        ResourceExtensions[ResourceExtensions["Image_SVG"] = ".svg"] = "Image_SVG";
+        ResourceExtensions[ResourceExtensions["Image_GIMP"] = ".xcf"] = "Image_GIMP";
+        // Text
+        ResourceExtensions[ResourceExtensions["Text_CSS"] = ".css"] = "Text_CSS";
+        ResourceExtensions[ResourceExtensions["Text_CSV"] = ".csv"] = "Text_CSV";
+        ResourceExtensions[ResourceExtensions["Text_HTML"] = ".html"] = "Text_HTML";
+        ResourceExtensions[ResourceExtensions["Text_Plain"] = ".txt"] = "Text_Plain";
+        ResourceExtensions[ResourceExtensions["Text_RTF"] = ".rtf"] = "Text_RTF";
+        ResourceExtensions[ResourceExtensions["Text_XML"] = ".xml"] = "Text_XML";
+        ResourceExtensions[ResourceExtensions["Text_JQueryTemplate"] = ".tpl.htm"] = "Text_JQueryTemplate";
+        ResourceExtensions[ResourceExtensions["Text_MarkDown"] = ".markdown"] = "Text_MarkDown";
+        // Video
+        ResourceExtensions[ResourceExtensions["Video_AVI"] = ".avi"] = "Video_AVI";
+        ResourceExtensions[ResourceExtensions["Video_MPEG"] = ".mpeg"] = "Video_MPEG";
+        ResourceExtensions[ResourceExtensions["Video_MP4"] = ".mp4"] = "Video_MP4";
+        ResourceExtensions[ResourceExtensions["Video_OGG"] = ".ogg"] = "Video_OGG";
+        ResourceExtensions[ResourceExtensions["Video_MOV"] = ".qt"] = "Video_MOV";
+        ResourceExtensions[ResourceExtensions["Video_WMV"] = ".wmv"] = "Video_WMV";
+        ResourceExtensions[ResourceExtensions["Video_FLV"] = ".flv"] = "Video_FLV";
+    })(ResourceExtensions = CoreXT.ResourceExtensions || (CoreXT.ResourceExtensions = {}));
+    ResourceExtensions['.tpl.html'] = ResourceExtensions[ResourceExtensions.Text_JQueryTemplate]; // (map to the same 'Text_JQueryTemplate' target)
+    ResourceExtensions['.tpl'] = ResourceExtensions[ResourceExtensions.Text_JQueryTemplate]; // (map to the same 'Text_JQueryTemplate' target)
+    function getResourceTypeFromExtension(ext) {
+        if (ext === void 0 || ext === null)
+            return void 0;
+        var _ext = "" + ext; // (make sure it's a string)
+        if (_ext.charAt(0) != '.')
+            _ext = '.' + _ext; // (a period is required)
+        return ResourceTypes[ResourceExtensions[ext]];
+    }
+    CoreXT.getResourceTypeFromExtension = getResourceTypeFromExtension;
+    var RequestStatuses;
+    (function (RequestStatuses) {
+        /** The request has not been executed yet. */
+        RequestStatuses[RequestStatuses["Pending"] = 0] = "Pending";
+        /** The resource failed to load.  Check the request object for the error details. */
+        RequestStatuses[RequestStatuses["Error"] = 1] = "Error";
+        /** The requested resource is loading. */
+        RequestStatuses[RequestStatuses["Loading"] = 2] = "Loading";
+        /** The requested resource has loaded (nothing more). */
+        RequestStatuses[RequestStatuses["Loaded"] = 3] = "Loaded";
+        /** The requested resource is waiting on parent resources to complete. */
+        RequestStatuses[RequestStatuses["Waiting"] = 4] = "Waiting";
+        /** The requested resource is ready to be used. */
+        RequestStatuses[RequestStatuses["Ready"] = 5] = "Ready";
+        /** The source is a script, and was executed (this only occurs on demand [not automatic]). */
+        RequestStatuses[RequestStatuses["Executed"] = 6] = "Executed";
+    })(RequestStatuses = CoreXT.RequestStatuses || (CoreXT.RequestStatuses = {}));
+    // ------------------------------------------------------------------------------------------------------------------------
+    /**
+     * Returns true if the URL contains the specific action and controller names at the end of the URL path.
+     * This of course assumes typical routing patterns in the format '/controller/action' or '/area/controller/action'.
+     */
+    function isPage(action, controller, area) {
+        if (controller === void 0) { controller = "home"; }
+        if (area === void 0) { area = ""; }
+        var regexStr = "\/" + action + "(?:\/?[?&#]|$)";
+        if (controller)
+            regexStr = "\/" + controller + regexStr;
+        if (area)
+            regexStr = "\/" + area + regexStr;
+        return new RegExp(regexStr, "gi").test(location.pathname);
+    }
+    CoreXT.isPage = isPage;
+    // ------------------------------------------------------------------------------------------------------------------------
+    /**
+     * Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups], where
+     * 'groups' index 0 is the full matched text, and 1 onwards are any matched groups).
+     */
+    function matches(regex, text) {
+        var matchesFound = [], result;
+        if (!regex.global)
+            throw new Error("The 'global' flag is required in order to find all matches.");
+        regex.lastIndex = 0;
+        while ((result = regex.exec(text)) !== null)
+            matchesFound.push(result.slice());
+        return matchesFound;
+    }
+    CoreXT.matches = matches;
+    // ------------------------------------------------------------------------------------------------------------------------
+    /** Used to strip out script source mappings. Used with 'extractSourceMapping()'. */
+    CoreXT.SCRIPT_SOURCE_MAPPING_REGEX = /^\s*(\/\/[#@])\s*([A-Za-z0-9$_]+)\s*=\s*([^;/]*)(.*)/gim;
+    /** Holds details on extract script pragmas. @See extractPragmas() */
+    var PragmaInfo = /** @class */ (function () {
+        /**
+         * @param {string} prefix The "//#" part.
+         * @param {string} name The pragma name, such as 'sourceMappingURL'.
+         * @param {string} value The part after "=" in the pragma expression.
+         * @param {string} extras Any extras on the line (like comments) that are not part of the extracted value.
+         */
+        function PragmaInfo(prefix, name, value, extras) {
+            this.prefix = prefix;
+            this.name = name;
+            this.value = value;
+            this.extras = extras;
+            this.prefix = (this.prefix || "").trim().replace("//@", "//#"); // ('@' is depreciated in favor of '#' because of conflicts with IE, so help out by making this correction automatically)
+            this.name = (this.name || "").trim();
+            this.value = (this.value || "").trim();
+            this.extras = (this.extras || "").trim();
+        }
+        /**
+         * Make a string from this source map info.
+         * @param {string} valuePrefix An optional string to insert before the value, such as a sub-directory path, or missing protocol+server+port URL parts, etc.
+         * @param {string} valueSuffix An optional string to insert after the value.
+         */
+        PragmaInfo.prototype.toString = function (valuePrefix, valueSuffix) {
+            if (valuePrefix !== void 0 && valuePrefix !== null && typeof valuePrefix != 'string')
+                valuePrefix = '' + valuePrefix;
+            if (valueSuffix !== void 0 && valuePrefix !== null && typeof valueSuffix != 'string')
+                valueSuffix = '' + valueSuffix;
+            return this.prefix + " " + this.name + "=" + (valuePrefix || "") + this.value + (valueSuffix || "") + this.extras;
+        }; // (NOTE: I space after the prefix IS REQUIRED [at least for IE])
+        PragmaInfo.prototype.valueOf = function () { return this.prefix + " " + this.name + "=" + this.value + this.extras; };
+        return PragmaInfo;
+    }());
+    CoreXT.PragmaInfo = PragmaInfo;
+    /**
+     * Extract any pragmas, such as source mapping. This is used mainly with XHR loading of scripts in order to execute them with
+     * source mapping support while being served from a CoreXT .Net Core MVC project.
+     */
+    function extractPragmas(src) {
+        var srcMapPragmas = [], result, filteredSrc = src;
+        CoreXT.SCRIPT_SOURCE_MAPPING_REGEX.lastIndex = 0;
+        while ((result = CoreXT.SCRIPT_SOURCE_MAPPING_REGEX.exec(src)) !== null) {
+            var srcMap = new PragmaInfo(result[1], result[2], result[3], result[4]);
+            srcMapPragmas.push(srcMap);
+            filteredSrc = filteredSrc.substr(0, result.index) + filteredSrc.substr(result.index + result[0].length);
+        }
+        return {
+            /** The original source given to the function. */
+            originalSource: src,
+            /** The original source minus the extracted pragmas. */
+            filteredSource: filteredSrc,
+            /** The extracted pragma information. */
+            pragmas: srcMapPragmas
+        };
+    }
+    CoreXT.extractPragmas = extractPragmas;
+    /**
+     * Returns the base path based on the resource type.
+     */
+    function basePathFromResourceType(resourceType) {
+        return (resourceType == ResourceTypes.Application_Script || resourceType == ResourceTypes.Application_ECMAScript) ? CoreXT.baseScriptsURL :
+            resourceType == ResourceTypes.Text_CSS ? CoreXT.baseCSSURL : CoreXT.baseURL;
+    }
+    CoreXT.basePathFromResourceType = basePathFromResourceType;
+    /**
+     * Converts the given value to a string and returns it.  'undefined' (void 0) and null become empty, string types are
+     * returned as is, and everything else will be converted to a string by calling 'toString()', or simply '""+value' if
+     * 'value.toString' is not a function. If for some reason a call to 'toString()' does not return a string the cycle
+     * starts over with the new value until a string is returned.
+     * Note: If no arguments are passed in (i.e. 'CoreXT.toString()'), then CoreXT.ROOT_NAMESPACE is returned, which should be the string "CoreXT".
+     */
+    function toString(value) {
+        if (arguments.length == 0)
+            return CoreXT.ROOT_NAMESPACE;
+        if (value === void 0 || value === null)
+            return "";
+        if (typeof value == 'string')
+            return value;
+        return typeof value.toString == 'function' ? toString(value.toString()) : "" + value;
+    }
+    CoreXT.toString = toString;
+    /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
+    var System;
+    (function (System) {
+        /** This namespace contains types and routines for data communication, URL handling, and page navigation. */
+        var IO;
+        (function (IO) {
+            /** Path/URL based utilities. */
+            var Path;
+            (function (Path) {
+                namespace(function () { return CoreXT.System.IO.Path; });
+                // ==========================================================================================================================
+                /** Parses the URL into 1: protocol (without '://'), 2: host, 3: port, 4: path, 5: query (without '?'), and 6: fragment (without '#'). */
+                Path.URL_PARSER_REGEX = /^[\t\f\v ]*(?:(?:(?:(\w+):\/\/|\/\/)([^#?/:~\r\n]*))(?::(\d*))?)?([^#?\r\n]+)?(?:\?([^#\r\n]*))?(?:\#(.*))?/m;
+                // (testing: https://regex101.com/r/8qnEdP/4)
+                var URLBuilder = /** @class */ (function () {
+                    function URLBuilder(
+                    /** Protocol (without '://'). */
+                    protocol, 
+                    /** A username for login. */
+                    username, 
+                    /** A password for login (not recommended!). */
+                    password, 
+                    /** URL host. */
+                    hostName, 
+                    /** Host port. */
+                    port, 
+                    /** URL path. */
+                    path, 
+                    /** Query (without '?'). */
+                    query, 
+                    /** Fragment (without '#'). */
+                    fragment) {
+                        this.protocol = protocol;
+                        this.username = username;
+                        this.password = password;
+                        this.hostName = hostName;
+                        this.port = port;
+                        this.path = path;
+                        this.query = query;
+                        this.fragment = fragment;
+                    }
+                    /** Returns only  host + port parts combined. */
+                    URLBuilder.prototype.host = function () { return "" + this.hostName + (this.port ? ":" + this.port : ""); };
+                    /** Returns only the protocol + host + port parts combined. */
+                    URLBuilder.prototype.origin = function () { return "" + (this.protocol ? this.protocol + "://" : "//") + this.host() + "/"; };
+                    /** Builds the full URL from the parts specified in this instance. */
+                    URLBuilder.prototype.toString = function () {
+                        // TODO: consider an option to auto-removed default ports based on protocols.
+                        return combine(this.origin(), this.path)
+                            + (this.query ? "?" + this.query : "")
+                            + (this.fragment ? "#" + this.fragment : "");
+                    };
+                    URLBuilder.fromLocation = function () {
+                        return new URLBuilder(location.protocol, location.username, location.password, location.hostname, location.port, location.pathname, location.search.substr(1), location.hash.substr(1));
+                    };
+                    return URLBuilder;
+                }());
+                Path.URLBuilder = URLBuilder;
+                /** Parses the URL into 1: protocol (without '://'), 2: host, 3: port, 4: path, 5: query (without '?'), and 6: fragment (without '#'). */
+                function parse(url) {
+                    if (typeof url != 'string')
+                        url = toString(url);
+                    var m = url.match(Path.URL_PARSER_REGEX);
+                    return m && new URLBuilder((m[1] || "").trim(), void 0, void 0, (m[2] || "").trim(), (+(m[3] || "").trim() || "").toString(), (m[4] || "").trim(), (m[5] || "").trim(), (m[6] || "").trim()) || // (just in case it fails somehow...)
+                        new URLBuilder(void 0, void 0, void 0, void 0, void 0, url, void 0, void 0); // (returns the url as is if this is not a proper absolute path)
+                }
+                Path.parse = parse;
+                /**
+                   * Appends 'path2' to 'path1', inserting a path separator character (/) if required.
+                   * Set 'normalizePathSeparators' to true to normalize any '\' path characters to '/' instead.
+                   */
+                function combine(path1, path2, normalizePathSeparators) {
+                    if (normalizePathSeparators === void 0) { normalizePathSeparators = false; }
+                    if (typeof path1 != 'string')
+                        path1 = toString(path1);
+                    if (typeof path2 != 'string')
+                        path2 = toString(path2);
+                    if (path2.charAt(0) == '~')
+                        path2 = path2.substr(1);
+                    if (!path2)
+                        return path1;
+                    if (!path1)
+                        return path2;
+                    if (path1.charAt(path1.length - 1) != '/' && path1.charAt(path1.length - 1) != '\\')
+                        path1 += '/';
+                    var combinedPath = path1 + ((path2.charAt(0) == '/' || path2.charAt(0) == '\\') ? path2.substr(1) : path2);
+                    return normalizePathSeparators ? combinedPath.split('\\').join('/') : combinedPath;
+                }
+                Path.combine = combine;
+                /** Returns the protocol + host + port parts of the given absolute URL. */
+                function getRoot(absoluteURL) {
+                    return (absoluteURL instanceof URLBuilder ? absoluteURL : parse(absoluteURL)).origin();
+                }
+                Path.getRoot = getRoot;
+                /**
+                   * Combines a path with either the base site path or a current alternative path. The following logic is followed for combining 'path':
+                   * 1. If it starts with '~/' or '~' is will be relative to 'baseURL'.
+                   * 2. If it starts with '/' it is relative to the server root 'protocol://server:port' (using current or base path, but with the path part ignored).
+                   * 3. If it starts without a path separator, or is empty, then it is combined as relative to 'currentResourceURL'.
+                   * Note: if 'currentResourceURL' is empty, then 'baseURL' is assumed.
+                   * @param {string} currentResourceURL An optional path that specifies a resource location to take into consideration when resolving relative paths.
+                   * If not specified, this is 'location.href' by default.
+                   * @param {string} baseURL An optional path that specifies the site's root URL.  By default this is 'CoreXT.baseURL'.
+                   */
+                function resolve(path, currentResourceURL, baseURL) {
+                    if (currentResourceURL === void 0) { currentResourceURL = location.href; }
+                    if (baseURL === void 0) { baseURL = CoreXT.baseURL; }
+                    baseURL = toString(baseURL).trim();
+                    currentResourceURL = toString(currentResourceURL).trim();
+                    path = toString(path).trim();
+                    if (!path)
+                        return currentResourceURL || baseURL;
+                    if (path.charAt(0) == '/' || path.charAt(0) == '\\') {
+                        // ... resolve to the root of the host; determine current or base, whichever is available ...
+                        var parts = currentResourceURL && parse(currentResourceURL) || null;
+                        if (parts && (parts.protocol || parts.hostName))
+                            return combine(getRoot(parts), path);
+                        else
+                            return combine(getRoot(baseURL), path);
+                    }
+                    if (path.charAt(0) == '~')
+                        return combine(baseURL, path);
+                    // ... check if path is already absolute with a protocol ...
+                    var parts = parse(path);
+                    if (parts.protocol || parts.hostName)
+                        return path; // (already absolute)
+                    return combine(currentResourceURL || baseURL, path);
+                }
+                Path.resolve = resolve;
+                // TODO: Consider 'absolute()' function to resolve '..' in paths. Resolve the URL first, then modify the final path.
+                /** Fixes a URL by splitting it apart, trimming it, then recombining it along with a trailing forward slash (/) at the end. */
+                function fix(url) {
+                    return parse(url).toString();
+                }
+                Path.fix = fix;
+                // ===================================================================================================================
+                /** Returns true if the specified extension is missing from the end of 'pathToFile'.
+                  * An exception is made if special characters are detected (such as "?" or "#"), in which case true is always returned, as the resource may be returned
+                  * indirectly via a server side script, or handled in some other special way).
+                  * @param {string} ext The extension to check for (with or without the preceding period [with preferred]).
+                  */
+                function hasFileExt(pathToFile, ext) {
+                    if (ext.length > 0 && ext.charAt(0) != '.')
+                        ext = '.' + ext;
+                    return pathToFile.lastIndexOf(ext) == pathToFile.length - ext.length || pathToFile.indexOf("?") >= 0 || pathToFile.indexOf("#") >= 0;
+                }
+                Path.hasFileExt = hasFileExt;
+                // ===================================================================================================================
+                Path.QUERY_STRING_REGEX = /[?|&][a-zA-Z0-9-._]+(?:=[^&#$]*)?/gi;
+                /** Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
+                  * pairs from a URI or 'location.search' string, and converting the object to a string results in a proper query/search string
+                  * with all values escaped and ready to be appended to a URI. */
+                var Query = /** @class */ (function (_super) {
+                    __extends(Query, _super);
+                    function Query() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    return Query;
+                }(FactoryBase()));
+                Path.Query = Query;
+                (function (Query) {
+                    var $__type = /** @class */ (function (_super) {
+                        __extends($__type, _super);
+                        function $__type() {
+                            // ----------------------------------------------------------------------------------------------------------------
+                            var _this = _super !== null && _super.apply(this, arguments) || this;
+                            _this.values = {};
+                            return _this;
+                        }
+                        // ----------------------------------------------------------------------------------------------------------------
+                        /** Use to add additional query string values. The function returns the current object to allow chaining calls.
+                            * Example: add({'name1':'value1', 'name2':'value2', ...});
+                            * Note: Use this to also change existing values.
+                            */
+                        $__type.prototype.addOrUpdate = function (newValues) {
+                            if (newValues)
+                                for (var pname in newValues)
+                                    this.values[pname] = newValues[pname];
+                            return this;
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        /** Use to rename a series of query parameter names.  The function returns the current object to allow chaining calls.
+                            * Example: rename({'oldName':'newName', 'oldname2':'newName2', ...});
+                            * Warning: If the new name already exists, it will be replaced.
+                            */
+                        $__type.prototype.rename = function (newNames) {
+                            for (var pname in this.values)
+                                for (var pexistingname in newNames)
+                                    if (pexistingname == pname && newNames[pexistingname] && newNames[pexistingname] != pname) { // (&& make sure the new name is actually different)
+                                        this.values[newNames[pexistingname]] = this.values[pexistingname];
+                                        delete this.values[pexistingname];
+                                    }
+                            return this;
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        /** Use to remove a series of query parameter names.  The function returns the current object to allow chaining calls.
+                            * Example: remove(['name1', 'name2', 'name3']);
+                            */
+                        $__type.prototype.remove = function (namesToDelete) {
+                            if (namesToDelete && namesToDelete.length)
+                                for (var i = 0, n = namesToDelete.length; i < n; ++i)
+                                    if (this.values[namesToDelete[i]])
+                                        delete this.values[namesToDelete[i]];
+                            return this;
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        /** Creates and returns a duplicate of this object. */
+                        $__type.prototype.clone = function () {
+                            var q = Path.Query.new();
+                            for (var pname in this.values)
+                                q.values[pname] = this.values[pname];
+                            return q;
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        $__type.prototype.appendTo = function (uri) {
+                            return uri.match(/^[^\?]*/g)[0] + this.toString();
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        /** Returns the specified value, or a default value if nothing was found. */
+                        $__type.prototype.getValue = function (name, defaultValueIfUndefined) {
+                            var value = this.values[name];
+                            if (value === void 0)
+                                value = defaultValueIfUndefined;
+                            return value;
+                        };
+                        /** Returns the specified value as a lowercase string, or a default value (also made lowercase) if nothing was found. */
+                        $__type.prototype.getLCValue = function (name, defaultValueIfUndefined) {
+                            var value = this.values[name];
+                            if (value === void 0)
+                                value = defaultValueIfUndefined;
+                            return ("" + value).toLowerCase();
+                        };
+                        /** Returns the specified value as an uppercase string, or a default value (also made uppercase) if nothing was found. */
+                        $__type.prototype.getUCValue = function (name, defaultValueIfUndefined) {
+                            var value = this.values[name];
+                            if (value === void 0)
+                                value = defaultValueIfUndefined;
+                            return ("" + value).toUpperCase();
+                        };
+                        /** Returns the specified value as an uppercase string, or a default value (also made uppercase) if nothing was found. */
+                        $__type.prototype.getNumber = function (name, defaultValueIfUndefined) {
+                            var value = parseFloat(this.values[name]);
+                            if (value === void 0)
+                                value = defaultValueIfUndefined;
+                            return value;
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        /** Obfuscates the specified query value (to make it harder for end users to read naturally).  This is done using Base64 encoding.
+                            * The existing value is replaced by the encoded value, and the encoded value is returned.
+                            * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
+                            */
+                        $__type.prototype.encodeValue = function (name) {
+                            var value = this.values[name], result;
+                            if (value !== void 0 && value !== null) {
+                                this.values[name] = result = System.Text.Encoding.base64Encode(value, System.Text.Encoding.Base64Modes.URI);
+                            }
+                            return result;
+                        };
+                        /** De-obfuscates the specified query value (to make it harder for end users to read naturally).  This expects Base64 encoding.
+                            * The existing value is replaced by the decoded value, and the decoded value is returned.
+                            */
+                        $__type.prototype.decodeValue = function (name) {
+                            var value = this.values[name], result;
+                            if (value !== void 0 && value !== null) {
+                                this.values[name] = result = System.Text.Encoding.base64Decode(value, System.Text.Encoding.Base64Modes.URI);
+                            }
+                            return result;
+                        };
+                        /** Encode ALL query values (see 'encodeValue()').
+                            * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
+                            */
+                        $__type.prototype.encodeAll = function () {
+                            for (var p in this.values)
+                                this.encodeValue(p);
+                        };
+                        /** Decode ALL query values (see 'encodeValue()').
+                            * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
+                            */
+                        $__type.prototype.decodeAll = function () {
+                            for (var p in this.values)
+                                this.decodeValue(p);
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        /** Converts the underlying query values to a proper search string that can be appended to a URI. */
+                        $__type.prototype.toString = function () {
+                            var qstr = "";
+                            for (var pname in this.values)
+                                if (this.values[pname] !== void 0)
+                                    qstr += (qstr ? "&" : "?") + encodeURIComponent(pname) + "=" + encodeURIComponent(this.values[pname]);
+                            return qstr;
+                        };
+                        // ---------------------------------------------------------------------------------------------------------------
+                        $__type[CoreXT.constructor] = function (factory) {
+                            factory.init = function (o, isnew, searchString, makeNamesLowercase) {
+                                if (searchString === void 0) { searchString = null; }
+                                if (makeNamesLowercase === void 0) { makeNamesLowercase = false; }
+                                if (searchString) {
+                                    var nameValuePairs = searchString.match(Path.QUERY_STRING_REGEX);
+                                    var i, n, eqIndex, nameValue;
+                                    if (nameValuePairs)
+                                        for (var i = 0, n = nameValuePairs.length; i < n; ++i) {
+                                            nameValue = nameValuePairs[i];
+                                            eqIndex = nameValue.indexOf('='); // (need to get first instance of the '=' char)
+                                            if (eqIndex == -1)
+                                                eqIndex = nameValue.length; // (whole string is the name)
+                                            if (makeNamesLowercase)
+                                                o.values[decodeURIComponent(nameValue).substring(1, eqIndex).toLowerCase()] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
+                                            else
+                                                o.values[decodeURIComponent(nameValue).substring(1, eqIndex)] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
+                                        }
+                                }
+                            };
+                        };
+                        return $__type;
+                    }(Disposable));
+                    Query.$__type = $__type;
+                    Query.$__register(Path);
+                })(Query = Path.Query || (Path.Query = {}));
+                // ==========================================================================================================================
+                //! if (pageQuery.getValue('debug', '') == 'true') Diagnostics.debug = Diagnostics.DebugModes.Debug_Run; // (only allow this on the sandbox and development servers)
+                //! var demo = demo || pageQuery.getValue('demo', '') == 'true'; // (only allow this on the sandbox and development servers)
+                function setLocation(url, includeExistingQuery, bustCache) {
+                    if (includeExistingQuery === void 0) { includeExistingQuery = false; }
+                    if (bustCache === void 0) { bustCache = false; }
+                    var query = Query.new(url);
+                    if (bustCache)
+                        query.values['_'] = new Date().getTime().toString();
+                    if (includeExistingQuery)
+                        query.addOrUpdate(Path.pageQuery.values);
+                    if (url.charAt(0) == '/')
+                        url = resolve(url);
+                    url = query.appendTo(url);
+                    query.dispose();
+                    IO.wait();
+                    setTimeout(function () { location.href = url; }, 1); // (let events finish before setting)
+                }
+                Path.setLocation = setLocation;
+                /**
+                 * Returns true if the page URL contains the given controller and action names (not case sensitive).
+                 * This only works with typical default routing of "{host}/Controller/Action/etc.".
+                 * @param action A controller action name.
+                 * @param controller A controller name (defaults to "home" if not specified)
+                 */
+                function isView(action, controller) {
+                    if (controller === void 0) { controller = "home"; }
+                    return new RegExp("^\/" + controller + "\/" + action + "(?:[\/?&#])?", "gi").test(location.pathname);
+                }
+                Path.isView = isView;
+                // ==========================================================================================================================
+                /** This is set automatically to the query for the current page. */
+                Path.pageQuery = Query.new(location.href);
+                // ==========================================================================================================================
+            })(Path = IO.Path || (IO.Path = {}));
+            // ===============================================================================================================================
+            /**
+             * Creates a new resource request object, which allows loaded resources using a "promise" style pattern (this is a custom
+             * implementation designed to work better with the CoreXT system specifically, and to support parallel loading).
+             * Note: It is advised to use 'CoreXT.Loader.loadResource()' to load resources instead of directly creating resource request objects.
+             * Inheritance note: When creating via the 'new' factory method, any already existing instance with the same URL will be returned,
+             * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
+             */
+            var ResourceRequest = /** @class */ (function (_super) {
+                __extends(ResourceRequest, _super);
+                function ResourceRequest() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                /**
+                 * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
+                 * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+                 * Each resource request instance can also have its own value set separate from the global one.
+                 * Note: CoreXT has its own caching that uses the local storage, where supported.
+                 */
+                ResourceRequest.cacheBusting = true;
+                /** See the 'cacheBusting' property. */
+                ResourceRequest.cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
+                return ResourceRequest;
+            }(FactoryBase()));
+            IO.ResourceRequest = ResourceRequest;
+            (function (ResourceRequest) {
+                var $__type = /** @class */ (function () {
+                    function $__type() {
+                        this.$__transformedData = CoreXT.noop;
+                        /** The response code from the XHR response. */
+                        this.responseCode = 0; // (the response code returned)
+                        /** The response code message from the XHR response. */
+                        this.responseMessage = ""; // (the response code message)
+                        /** The current request status. */
+                        this.status = RequestStatuses.Pending;
+                        /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
+                        this.messageLog = [];
+                        /**
+                         * If true (the default) then a '"_="+Date.now()' query item is added to make sure the browser never uses
+                         * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+                         * Note: CoreXT has its own caching that uses the local storage, where supported.
+                         */
+                        this.cacheBusting = ResourceRequest.cacheBusting;
+                        /** See the 'cacheBusting' property. */
+                        this.cacheBustingVar = ResourceRequest.cacheBustingVar;
+                        /** This is a list of all the callbacks waiting on the status of this request (such as on loaded or error).
+                        * There's also an 'on finally' which should execute on success OR failure, regardless.
+                        * For each entry, only ONE of any callback type will be set.
+                        */
+                        this._promiseChain = [];
+                        this._promiseChainIndex = 0; // (the current position in the event chain)
+                        this._parentCompletedCount = 0; // (when this equals the # of 'dependents', the all parent resources have loaded [just faster than iterating over them])
+                        this._paused = false;
+                    }
+                    Object.defineProperty($__type.prototype, "url", {
+                        /** The requested resource URL. If the URL string starts with '~/' then it becomes relative to the content type base path. */
+                        get: function () {
+                            if (typeof this._url == 'string' && this._url.charAt(0) == "~") {
+                                var _baseURL = basePathFromResourceType(this.type);
+                                return System.IO.Path.resolve(this._url, void 0, _baseURL);
+                            }
+                            return this._url;
+                        },
+                        set: function (value) { this._url = value; },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    Object.defineProperty($__type.prototype, "transformedData", {
+                        /** Set to data returned from callback handlers as the 'data' property value gets transformed.
+                          * If no transformations were made, then the value in 'data' is returned.
+                          */
+                        get: function () {
+                            return this.$__transformedData === CoreXT.noop ? this.data : this.$__transformedData;
+                        },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    Object.defineProperty($__type.prototype, "message", {
+                        /**
+                         * A progress/error message related to the status (may not be the same as the response message).
+                         * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
+                         */
+                        get: function () {
+                            return this._message;
+                        },
+                        set: function (value) {
+                            this._message = value;
+                            this.messageLog.push(this._message);
+                            if (this.status == RequestStatuses.Error)
+                                error("ResourceRequest (" + this.url + ")", this._message, this, false); // (send resource loading error messages to the console to aid debugging)
+                            else
+                                log("ResourceRequest (" + this.url + ")", this._message, LogTypes.Normal, this);
+                        },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    $__type.prototype._queueDoNext = function (data) {
+                        var _this = this;
+                        setTimeout(function () {
+                            // ... before this, fire any handlers that would execute before this ...
+                            _this._doNext();
+                        }, 0);
+                    }; // (simulate an async response, in case more handlers need to be added next)
+                    $__type.prototype._queueDoError = function () {
+                        var _this = this;
+                        setTimeout(function () { _this._doError(); }, 0);
+                    }; // (simulate an async response, in case more handlers need to be added next)
+                    $__type.prototype._requeueHandlersIfNeeded = function () {
+                        if (this.status == RequestStatuses.Error)
+                            this._queueDoError();
+                        else if (this.status >= RequestStatuses.Waiting) {
+                            this._queueDoNext(this.data);
+                        }
+                        // ... else, not needed, as the chain is still being traversed, so anything added will get run as expected ...
+                    };
+                    /** Triggers a success or error callback after the resource loads, or fails to load. */
+                    $__type.prototype.then = function (success, error) {
+                        if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
+                            throw "A handler function given is not a function.";
+                        else {
+                            this._promiseChain.push({ onLoaded: success, onError: error });
+                            this._requeueHandlersIfNeeded();
+                        }
+                        if (this.status == RequestStatuses.Waiting || this.status == RequestStatuses.Ready) {
+                            this.status = RequestStatuses.Loaded; // (back up)
+                            this.message = "New 'then' handler added.";
+                        }
+                        return this;
+                    };
+                    /** Adds another request and makes it dependent on the current 'parent' request.  When all parent requests have completed,
+                      * the dependant request fires its 'onReady' event.
+                      * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
+                      */
+                    $__type.prototype.include = function (request) {
+                        if (!request._parentRequests)
+                            request._parentRequests = [];
+                        if (!this._dependants)
+                            this._dependants = [];
+                        request._parentRequests.push(this);
+                        this._dependants.push(request);
+                        return request;
+                    };
+                    /**
+                     * Add a call-back handler for when the request completes successfully.
+                     * This event is triggered after the resource successfully loads and all callbacks in the promise chain get called.
+                     * @param handler
+                     */
+                    $__type.prototype.ready = function (handler) {
+                        if (typeof handler == 'function') {
+                            if (!this._onReady)
+                                this._onReady = [];
+                            this._onReady.push(handler);
+                            this._requeueHandlersIfNeeded();
+                        }
+                        else
+                            throw "Handler is not a function.";
+                        return this;
+                    };
+                    /** Adds a hook into the resource load progress event. */
+                    $__type.prototype.while = function (progressHandler) {
+                        if (typeof progressHandler == 'function') {
+                            if (!this._onProgress)
+                                this._onProgress = [];
+                            this._onProgress.push(progressHandler);
+                            this._requeueHandlersIfNeeded();
+                        }
+                        else
+                            throw "Handler is not a function.";
+                        return this;
+                    };
+                    /** Call this anytime while loading is in progress to terminate the request early. An error event will be triggered as well. */
+                    $__type.prototype.abort = function () {
+                        if (this._xhr.readyState > XMLHttpRequest.UNSENT && this._xhr.readyState < XMLHttpRequest.DONE) {
+                            this._xhr.abort();
+                        }
+                    };
+                    /**
+                     * Provide a handler to catch any errors from this request.
+                     */
+                    $__type.prototype.catch = function (errorHandler) {
+                        if (typeof errorHandler == 'function') {
+                            this._promiseChain.push({ onError: errorHandler });
+                            this._requeueHandlersIfNeeded();
+                        }
+                        else
+                            throw "Handler is not a function.";
+                        return this;
+                    };
+                    /**
+                     * Provide a handler which should execute on success OR failure, regardless.
+                     */
+                    $__type.prototype.finally = function (cleanupHandler) {
+                        if (typeof cleanupHandler == 'function') {
+                            this._promiseChain.push({ onFinally: cleanupHandler });
+                            this._requeueHandlersIfNeeded();
+                        }
+                        else
+                            throw "Handler is not a function.";
+                        return this;
+                    };
+                    /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
+                      * order).  Regardless of the start order, all scripts are loaded in parallel.
+                      * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
+                      */
+                    $__type.prototype.start = function () {
+                        var _this = this;
+                        if (this.async)
+                            setTimeout(function () { _this._Start(); }, 0);
+                        else
+                            this._Start();
+                        return this;
+                    };
+                    $__type.prototype._Start = function () {
+                        var _this = this;
+                        // ... start at the top most parent first, and work down ...
+                        if (this._parentRequests)
+                            for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                                this._parentRequests[i].start();
+                        if (this.status == RequestStatuses.Pending) {
+                            this.status = RequestStatuses.Loading; // (do this first to protect against any possible cyclical calls)
+                            this.message = "Loading resource ...";
+                            // ... this request has not been started yet; attempt to load the resource ...
+                            // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
+                            //    (ignore the local caching if in debug or the versions are different)
+                            if (!CoreXT.isDebugging() && typeof System.Storage !== void 0)
+                                try {
+                                    var currentAppVersion = CoreXT.getAppVersion();
+                                    var versionInLocalStorage = localStorage.getItem("version");
+                                    var appVersionInLocalStorage = localStorage.getItem("appVersion");
+                                    if (versionInLocalStorage && appVersionInLocalStorage && CoreXT.version == versionInLocalStorage && currentAppVersion == appVersionInLocalStorage) {
+                                        // ... all versions match, just pull from local storage (faster) ...
+                                        this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
+                                        if (this.data !== null && this.data !== void 0) {
+                                            this.status = RequestStatuses.Loaded;
+                                            this._doNext();
+                                            return;
+                                        }
+                                    }
+                                }
+                                catch (e) {
+                                    // ... not supported? ...
+                                }
+                            // ... 2. check web SQL for the resource ...
+                            // TODO: Consider Web SQL Database as well. (though not supported by IE yet, as usual, but could help greatly on the others) //?
+                            // ... 3. if not in web storage, try loading from a CoreXT core system, if available ...
+                            // TODO: Message CoreXT core system for resource data. // TODO: need to build the bridge class first.
+                            // ... next, create an XHR object and try to load the resource ...
+                            if (!this._xhr) {
+                                this._xhr = new XMLHttpRequest();
+                                var xhr = this._xhr;
+                                var loaded = function () {
+                                    if (xhr.status == 200 || xhr.status == 304) {
+                                        _this.data = xhr.response;
+                                        _this.status == RequestStatuses.Loaded;
+                                        _this.message = xhr.status == 304 ? "Loading completed (from browser cache)." : "Loading completed.";
+                                        // ... check if the expected mime type matches, otherwise throw an error to be safe ...
+                                        var responseType = xhr.getResponseHeader('content-type');
+                                        if (_this.type && responseType && _this.type != responseType) {
+                                            _this.setError("Resource type mismatch: expected type was '" + _this.type + "', but received '" + responseType + "' (XHR type '" + xhr.responseType + "').\r\n");
+                                        }
+                                        else {
+                                            if (!CoreXT.isDebugging() && typeof System.Storage !== void 0)
+                                                try {
+                                                    localStorage.setItem("version", CoreXT.version);
+                                                    localStorage.setItem("appVersion", CoreXT.getAppVersion());
+                                                    localStorage.setItem("resource:" + _this.url, _this.data);
+                                                    _this.message = "Resource cached in local storage.";
+                                                }
+                                                catch (e) {
+                                                    // .. failed: out of space? ...
+                                                    // TODO: consider saving to web SQL as well, or on failure (as a backup; perhaps create a storage class with this support). //?
+                                                }
+                                            else
+                                                _this.message = "Resource not cached in local storage because of debug mode. Release mode will use local storage to help survive clearing CoreXT files when temporary content files are deleted.";
+                                            _this._doNext();
+                                        }
+                                    }
+                                    else {
+                                        _this.setError("There was a problem loading the resource (status code " + xhr.status + ": " + xhr.statusText + ").\r\n");
+                                    }
+                                };
+                                // ... this script is not cached, so load it ...
+                                xhr.onreadystatechange = function () {
+                                    switch (xhr.readyState) {
+                                        case XMLHttpRequest.UNSENT: break;
+                                        case XMLHttpRequest.OPENED:
+                                            _this.message = "Opened connection ...";
+                                            break;
+                                        case XMLHttpRequest.HEADERS_RECEIVED:
+                                            _this.message = "Headers received ...";
+                                            break;
+                                        case XMLHttpRequest.LOADING: break; // (this will be handled by the progress event)
+                                        case XMLHttpRequest.DONE:
+                                            loaded();
+                                            break;
+                                    }
+                                };
+                                xhr.onerror = function (ev) { _this.setError(void 0, ev); _this._doError(); };
+                                xhr.onabort = function () { _this.setError("Request aborted."); };
+                                xhr.ontimeout = function () { _this.setError("Request timed out."); };
+                                xhr.onprogress = function (evt) {
+                                    _this.message = Math.round(evt.loaded / evt.total * 100) + "% loaded ...";
+                                    if (_this._onProgress && _this._onProgress.length)
+                                        _this._doOnProgress(evt.loaded / evt.total * 100);
+                                };
+                                // (note: all event 'on...' properties only available in IE10+)
+                            }
+                        }
+                        else { // (this request was already started)
+                            return;
+                        }
+                        if (xhr.readyState != 0)
+                            xhr.abort(); // (abort existing, just in case)
+                        var url = this.url;
+                        try {
+                            // ... check if we need to bust the cache ...
+                            if (this.cacheBusting) {
+                                var bustVar = this.cacheBustingVar || "_v_";
+                                if (bustVar.indexOf(" ") >= 0)
+                                    log("start()", "There is a space character in the cache busting query name for resource '" + url + "'.", LogTypes.Warning);
+                            }
+                            xhr.open("get", url, this.async);
+                        }
+                        catch (ex) {
+                            error("start()", "Failed to load resource from URL '" + url + "': " + (ex.message || ex), this);
+                        }
+                        try {
+                            xhr.send();
+                        }
+                        catch (ex) {
+                            error("start()", "Failed to send request to endpoint for URL '" + url + "': " + (ex.message || ex), this);
+                        }
+                        //?if (!this.async && (xhr.status)) doSuccess();
+                    };
+                    /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
+                    $__type.prototype.pause = function () {
+                        if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
+                            || this.status == RequestStatuses.Ready && this._onReady.length)
+                            this._paused = true;
+                        return this;
+                    };
+                    /** After calling 'pause()', use this function to re-queue the 'then' or 'ready' even chain for continuation.
+                      * Note: This queues on a timer with a 0 ms delay, and does not call any events before returning to the caller.
+                      */
+                    $__type.prototype.continue = function () {
+                        if (this._paused) {
+                            this._paused = false;
+                            this._requeueHandlersIfNeeded();
+                        }
+                        return this;
+                    };
+                    $__type.prototype._doOnProgress = function (percent) {
+                        // ... notify any handlers as well ...
+                        if (this._onProgress) {
+                            for (var i = 0, n = this._onProgress.length; i < n; ++i)
+                                try {
+                                    var cb = this._onProgress[i];
+                                    if (cb)
+                                        cb.call(this, this);
+                                }
+                                catch (e) {
+                                    this._onProgress[i] = null; // (won't be called again)
+                                    this.setError("'on progress' callback #" + i + " has thrown an error:", e);
+                                    // ... do nothing, not important ...
+                                }
+                        }
+                    };
+                    $__type.prototype.setError = function (message, error) {
+                        if (error) {
+                            var errMsg = getErrorMessage(error);
+                            if (errMsg) {
+                                if (message)
+                                    message += " \r\n";
+                                message += errMsg;
+                            }
+                        }
+                        this.status = RequestStatuses.Error;
+                        this.message = message; // (automatically adds to 'this.messages' and writes to the console)
+                    };
+                    $__type.prototype._doNext = function () {
+                        var _this = this;
+                        if (this.status == RequestStatuses.Error) {
+                            this._doError(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
+                            return;
+                        }
+                        if (this._onProgress && this._onProgress.length) {
+                            this._doOnProgress(100);
+                            this._onProgress.length = 0;
+                        }
+                        for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
+                            if (this._paused)
+                                return;
+                            var handlers = this._promiseChain[this._promiseChainIndex]; // (get all the handlers waiting for the result of this request)
+                            if (handlers.onLoaded) {
+                                try {
+                                    var data = handlers.onLoaded.call(this, this, this.transformedData); // (call the handler with the current data and get the resulting data, if any)
+                                }
+                                catch (e) {
+                                    this.setError("An 'onLoaded' handler failed.", e);
+                                    ++this._promiseChainIndex; // (the success callback failed, so trigger the error chain starting at next index)
+                                    this._doError();
+                                    return;
+                                }
+                                if (typeof data === 'object' && data instanceof $__type) {
+                                    // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
+                                    if (data.status == RequestStatuses.Error) {
+                                        this.setError("Rejected request returned from 'onLoaded' handler.");
+                                        ++this._promiseChainIndex;
+                                        this._doError(); // (cascade the error)
+                                        return;
+                                    }
+                                    else {
+                                        // ... get the data from the request object ...
+                                        var newResReq = data;
+                                        if (newResReq.status >= RequestStatuses.Ready) {
+                                            if (newResReq === this)
+                                                continue; // ('self' [this] was returned, so go directly to the next item)
+                                            data = newResReq.transformedData; // (the data is ready, so read now)
+                                        }
+                                        else { // (loading is started, or still in progress, so wait; we simply hook into the request object to get notified when the data is ready)
+                                            newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
+                                                .catch(function (sender) { _this.setError("Resource returned from next handler has failed to load.", sender); _this._doError(); });
+                                            return;
+                                        }
+                                    }
+                                }
+                                this.$__transformedData = data;
+                            }
+                            else if (handlers.onFinally) {
+                                try {
+                                    handlers.onFinally.call(this);
+                                }
+                                catch (e) {
+                                    this.setError("Cleanup handler failed.", e);
+                                    ++this._promiseChainIndex; // (the finally callback failed, so trigger the error chain starting at next index)
+                                    this._doError();
+                                }
+                            }
+                        }
+                        this._promiseChain.length = 0;
+                        this._promiseChainIndex = 0;
+                        // ... finished: now trigger any "ready" handlers ...
+                        if (this.status < RequestStatuses.Waiting)
+                            this.status = RequestStatuses.Waiting; // (default to this next before being 'ready')
+                        this._doReady(); // (this triggers in dependency order)
+                    };
+                    $__type.prototype._doReady = function () {
+                        if (this._paused)
+                            return;
+                        if (this.status < RequestStatuses.Waiting)
+                            return; // (the 'ready' event must only trigger after the resource loads, AND all handlers have been called)
+                        // ... check parent dependencies first ...
+                        if (this.status == RequestStatuses.Waiting)
+                            if (!this._parentRequests || !this._parentRequests.length) {
+                                this.status = RequestStatuses.Ready; // (no parent resource dependencies, so this resource is 'ready' by default)
+                                this.message = "Resource has no dependencies, and is now ready.";
+                            }
+                            else // ...need to determine if all parent (dependent) resources are completed first ...
+                             if (this._parentCompletedCount == this._parentRequests.length) {
+                                this.status = RequestStatuses.Ready; // (all parent resource dependencies are now 'ready')
+                                this.message = "*** All dependencies for resource have loaded, and are now ready. ***";
+                            }
+                            else {
+                                this.message = "Resource is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
+                                return; // (nothing more to do yet)
+                            }
+                        // ... call the local 'onReady' event, and then trigger the call on the children as required.
+                        if (this.status == RequestStatuses.Ready) {
+                            if (this._onReady && this._onReady.length) {
+                                try {
+                                    for (var i = 0, n = this._onReady.length; i < n; ++i) {
+                                        this._onReady[i].call(this, this);
+                                        if (this.status < RequestStatuses.Ready)
+                                            return; // (a callback changed state so stop at this point as we are no longer ready!)
+                                    }
+                                    if (this._paused)
+                                        return;
+                                }
+                                catch (e) {
+                                    this.setError("Error in ready handler.", e);
+                                    if (CoreXT.isDebugging() && (this.type == ResourceTypes.Application_Script || this.type == ResourceTypes.Application_ECMAScript))
+                                        throw e; // (propagate script errors to the browser for debuggers, if any)
+                                }
+                            }
+                            if (this._dependants)
+                                for (var i = 0, n = this._dependants.length; i < n; ++i) {
+                                    ++this._dependants[i]._parentCompletedCount;
+                                    this._dependants[i]._doReady(); // (notify all children that this resource is now 'ready' for use [all events have been run, as opposed to just being loaded])
+                                    if (this.status < RequestStatuses.Ready)
+                                        return; // (something changed the "Ready" state so abort!)
+                                }
+                        }
+                    };
+                    $__type.prototype._doError = function () {
+                        var _this = this;
+                        if (this._paused)
+                            return;
+                        if (this.status != RequestStatuses.Error) {
+                            this._doNext(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
+                            return;
+                        }
+                        for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
+                            if (this._paused)
+                                return;
+                            var handlers = this._promiseChain[this._promiseChainIndex];
+                            if (handlers.onError) {
+                                try {
+                                    var newData = handlers.onError.call(this, this, this.message); // (this handler should "fix" the situation and return valid data)
+                                }
+                                catch (e) {
+                                    this.setError("Error handler failed.", e);
+                                }
+                                if (typeof newData === 'object' && newData instanceof $__type) {
+                                    // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
+                                    if (newData.status == RequestStatuses.Error)
+                                        return; // (no correction made, still in error; terminate the event chain here)
+                                    else {
+                                        var newResReq = newData;
+                                        if (newResReq.status >= RequestStatuses.Ready)
+                                            newData = newResReq.transformedData;
+                                        else { // (loading is started, or still in progress, so wait)
+                                            newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
+                                                .catch(function (sender) { _this.setError("Resource returned from error handler has failed to load.", sender); _this._doError(); });
+                                            return;
+                                        }
+                                    }
+                                }
+                                // ... continue with the value from the error handler (even if none) ...
+                                this.status = RequestStatuses.Loaded;
+                                this._message = void 0; // (clear the current message [but keep history])
+                                ++this._promiseChainIndex; // (pass on to next handler in the chain)
+                                this.$__transformedData = newData;
+                                this._doNext();
+                                return;
+                            }
+                            else if (handlers.onFinally) {
+                                try {
+                                    handlers.onFinally.call(this);
+                                }
+                                catch (e) {
+                                    this.setError("Cleanup handler failed.", e);
+                                }
+                            }
+                        }
+                        // ... if this is reached, then there are no following error handlers, so throw the existing message ...
+                        if (this.status == RequestStatuses.Error) {
+                            var msgs = this.messageLog.join("\r\n· ");
+                            if (msgs)
+                                msgs = ":\r\n· " + msgs;
+                            else
+                                msgs = ".";
+                            throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
+                        }
+                    };
+                    /** Resets the current resource data, and optionally all dependencies, and restarts the whole loading process.
+                      * Note: All handlers (including the 'progress' and 'ready' handlers) are cleared and will have to be reapplied (clean slate).
+                      * @param {boolean} includeDependentResources Reload all resource dependencies as well.
+                      */
+                    $__type.prototype.reload = function (includeDependentResources) {
+                        if (includeDependentResources === void 0) { includeDependentResources = true; }
+                        if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
+                            this.data = void 0;
+                            this.status = RequestStatuses.Pending;
+                            this.responseCode = 0;
+                            this.responseMessage = "";
+                            this._message = "";
+                            this.messageLog = [];
+                            if (includeDependentResources)
+                                for (var i = 0, n = this._parentRequests.length; i < n; ++i)
+                                    this._parentRequests[i].reload(includeDependentResources);
+                            if (this._onProgress)
+                                this._onProgress.length = 0;
+                            if (this._onReady)
+                                this._onReady.length = 0;
+                            if (this._promiseChain)
+                                this._promiseChain.length = 0;
+                            this.start();
+                        }
+                        return this;
+                    };
+                    $__type[CoreXT.constructor] = function (factory) {
+                        factory.init = function (o, isnew, url, type, async) {
+                            if (async === void 0) { async = true; }
+                            if (url === void 0 || url === null)
+                                throw "A resource URL is required.";
+                            if (type === void 0)
+                                throw "The resource type is required.";
+                            if (_resourceRequestByURL[url])
+                                return _resourceRequestByURL[url]; // (abandon this new object instance in favor of the one already existing and returned it)
+                            o.url = url;
+                            o.type = type;
+                            o.async = async;
+                            o.$__index = _resourceRequests.length;
+                            _resourceRequests.push(o);
+                            _resourceRequestByURL[o.url] = o;
+                        };
+                    };
+                    return $__type;
+                }());
+                ResourceRequest.$__type = $__type;
+                ResourceRequest.$__register(IO);
+            })(ResourceRequest = IO.ResourceRequest || (IO.ResourceRequest = {}));
+            // ===============================================================================================================================
+            var _resourceRequests = []; // (requests are loaded in parallel, but executed in order of request)
+            var _resourceRequestByURL = {}; // (a quick named index lookup into '__loadRequests')
+            /** Returns a load request promise-type object for a resource loading operation. */
+            function get(url, type, asyc) {
+                if (asyc === void 0) { asyc = true; }
+                if (url === void 0 || url === null)
+                    throw "A resource URL is required.";
+                url = "" + url;
+                if (type === void 0 || type === null) {
+                    // (make sure it's a string)
+                    // ... a valid type is required, but try to detect first ...
+                    var ext = (url.match(/(\.[A-Za-z0-9]+)(?:[\?\#]|$)/i) || []).pop();
+                    type = getResourceTypeFromExtension(ext);
+                    if (!type)
+                        error("Loader.get('" + url + "', type:" + type + ")", "A resource (MIME) type is required, and no resource type could be determined (See CoreXT.Loader.ResourceTypes). If the resource type cannot be detected by a file extension then you must specify the MIME string manually.");
+                }
+                var request = _resourceRequestByURL[url]; // (try to load any already existing requests)
+                if (!request)
+                    request = ResourceRequest.new(url, type, asyc);
+                return request;
+            }
+            IO.get = get;
+            // ===============================================================================================================================
+        })(IO = System.IO || (System.IO = {}));
+    })(System = CoreXT.System || (CoreXT.System = {}));
+    /**
+     * Extracts and replaces source mapping pragmas. This is used mainly with XHR loading of scripts in order to execute them with
+     * source mapping support while being served from a CoreXT .Net Core MVC project.
+     */
+    function fixSourceMappingsPragmas(sourcePragmaInfo, scriptURL) {
+        var script = sourcePragmaInfo && sourcePragmaInfo.originalSource || "";
+        if (sourcePragmaInfo.pragmas)
+            for (var i = 0, n = +sourcePragmaInfo.pragmas.length; i < n; ++i) {
+                var pragma = sourcePragmaInfo.pragmas[i];
+                if (pragma.name.substr(0, 6) != "source")
+                    script += "\r\n" + pragma; // (not for source mapping, so leave as is)
+                else
+                    script += "\r\n" + pragma.prefix + " " + pragma.name + "="
+                        + System.IO.Path.resolve(pragma.value, CoreXT.serverWebRoot ? CoreXT.serverWebRoot : CoreXT.baseScriptsURL) + pragma.extras;
+            }
+        return script;
+    }
+    CoreXT.fixSourceMappingsPragmas = fixSourceMappingsPragmas;
+    // ========================================================================================================================================
     /**
      * Returns the base URL used by the system.  This can be configured by setting the global 'siteBaseURL' property, or if using CoreXT.JS for
      * .Net Core MVC, make sure '@RenderCoreXTJSConfigurations()' is called before all scripts in the header section of your layout view.
      * If no 'siteBaseURL' global property exists, the current page location is assumed.
      */
-    CoreXT.baseURL = (function () { var u = CoreXT.global.siteBaseURL || CoreXT.baseURL || location.origin; if (u.charAt(u.length - 1) != '/')
-        u += '/'; return u; })(); // (example: "https://calendar.google.com/")
+    CoreXT.baseURL = System.IO.Path.fix(CoreXT.global.siteBaseURL || CoreXT.baseURL || location.origin); // (example: "https://calendar.google.com/")
     /**
      * Returns the base URL used by the system for loading scripts.  This can be configured by setting the global 'scriptBaseURL' property.
      * If no 'siteBaseURL' global property exists, the current page location is assumed.
      */
-    CoreXT.baseScriptsURL = (function () { var u = CoreXT.global.scriptsBaseURL || CoreXT.baseURL; if (u.charAt(u.length - 1) != '/')
-        u += '/'; return u + "js/"; })();
+    CoreXT.baseScriptsURL = CoreXT.global.scriptsBaseURL ? System.IO.Path.fix(CoreXT.global.scriptsBaseURL || CoreXT.baseScriptsURL) : CoreXT.baseURL + "js/";
+    /**
+     * Returns the base URL used by the system for loading scripts.  This can be configured by setting the global 'scriptBaseURL' property.
+     * If no 'siteBaseURL' global property exists, the current page location is assumed.
+     */
+    CoreXT.baseCSSURL = CoreXT.global.cssBaseURL ? System.IO.Path.fix(CoreXT.global.cssBaseURL || CoreXT.baseCSSURL) : CoreXT.baseURL + "css/";
     log("CoreXT.baseURL", CoreXT.baseURL + " (If this is wrong, set a global 'siteBaseURL' variable to the correct path, or if using CoreXT.JS for .Net Core MVC, make sure '@RenderCoreXTJSConfigurations()' is called in the header section of your layout view)"); // (requires the exception object, which is the last one to be defined above; now we start the first log entry with the base URI of the site)
     log("CoreXT.baseScriptsURL", CoreXT.baseScriptsURL + " (If this is wrong, set a global 'scriptsBaseURL' variable to the correct path)");
     if (CoreXT.serverWebRoot)
@@ -1486,8 +2682,6 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
         Time.__localTimeZoneOffset = (new Date()).getTimezoneOffset() * Time.__millisecondsPerMinute; // ('getTimezoneOffset()' returns minutes, which is converted to ms for '__localTimeZoneOffset')
     })(Time = CoreXT.Time || (CoreXT.Time = {}));
     // ========================================================================================================================================
-    /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
-    var System;
     (function (System) {
         namespace("CoreXT", "System");
     })(System = CoreXT.System || (CoreXT.System = {}));
@@ -1514,757 +2708,6 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 _onSystemLoadedHandlers.push(handler);
         }
         Loader.onSystemLoaded = onSystemLoaded;
-        // ... polyfill some XHR 'readyState' constants ...
-        if (!XMLHttpRequest.DONE) {
-            XMLHttpRequest.UNSENT = 0;
-            XMLHttpRequest.OPENED = 1;
-            XMLHttpRequest.HEADERS_RECEIVED = 2;
-            XMLHttpRequest.LOADING = 3;
-            XMLHttpRequest.DONE = 4;
-        }
-        /** The most common mime types.  You can easily extend this enum with custom types, or force-cast strings to this type also. */
-        /* NOTE: The enums entries MUST be prefixed with '<any>' in order for this mapping to work with 'ResourceExtensions' as well implicitly. */
-        var ResourceTypes;
-        (function (ResourceTypes) {
-            // Application
-            ResourceTypes[ResourceTypes["Application_Script"] = "application/javascript"] = "Application_Script";
-            ResourceTypes[ResourceTypes["Application_ECMAScript"] = "application/ecmascript"] = "Application_ECMAScript";
-            ResourceTypes[ResourceTypes["Application_JSON"] = "application/json"] = "Application_JSON";
-            ResourceTypes[ResourceTypes["Application_ZIP"] = "application/zip"] = "Application_ZIP";
-            ResourceTypes[ResourceTypes["Application_GZIP"] = "application/gzip"] = "Application_GZIP";
-            ResourceTypes[ResourceTypes["Application_PDF"] = "application/pdf"] = "Application_PDF";
-            ResourceTypes[ResourceTypes["Application_DefaultFormPost"] = "application/x-www-form-urlencoded"] = "Application_DefaultFormPost";
-            ResourceTypes[ResourceTypes["Application_TTF"] = "application/x-font-ttf"] = "Application_TTF";
-            // Multipart
-            ResourceTypes[ResourceTypes["Multipart_BinaryFormPost"] = "multipart/form-data"] = "Multipart_BinaryFormPost";
-            // Audio
-            ResourceTypes[ResourceTypes["AUDIO_MP4"] = "audio/mp4"] = "AUDIO_MP4";
-            ResourceTypes[ResourceTypes["AUDIO_MPEG"] = "audio/mpeg"] = "AUDIO_MPEG";
-            ResourceTypes[ResourceTypes["AUDIO_OGG"] = "audio/ogg"] = "AUDIO_OGG";
-            ResourceTypes[ResourceTypes["AUDIO_AAC"] = "audio/x-aac"] = "AUDIO_AAC";
-            ResourceTypes[ResourceTypes["AUDIO_CAF"] = "audio/x-caf"] = "AUDIO_CAF";
-            // Image
-            ResourceTypes[ResourceTypes["Image_GIF"] = "image/gif"] = "Image_GIF";
-            ResourceTypes[ResourceTypes["Image_JPEG"] = "image/jpeg"] = "Image_JPEG";
-            ResourceTypes[ResourceTypes["Image_PNG"] = "image/png"] = "Image_PNG";
-            ResourceTypes[ResourceTypes["Image_SVG"] = "image/svg+xml"] = "Image_SVG";
-            ResourceTypes[ResourceTypes["Image_GIMP"] = "image/x-xcf"] = "Image_GIMP";
-            // Text
-            ResourceTypes[ResourceTypes["Text_CSS"] = "text/css"] = "Text_CSS";
-            ResourceTypes[ResourceTypes["Text_CSV"] = "text/csv"] = "Text_CSV";
-            ResourceTypes[ResourceTypes["Text_HTML"] = "text/html"] = "Text_HTML";
-            ResourceTypes[ResourceTypes["Text_Plain"] = "text/plain"] = "Text_Plain";
-            ResourceTypes[ResourceTypes["Text_RTF"] = "text/rtf"] = "Text_RTF";
-            ResourceTypes[ResourceTypes["Text_XML"] = "text/xml"] = "Text_XML";
-            ResourceTypes[ResourceTypes["Text_JQueryTemplate"] = "text/x-jquery-tmpl"] = "Text_JQueryTemplate";
-            ResourceTypes[ResourceTypes["Text_MarkDown"] = "text/x-markdown"] = "Text_MarkDown";
-            // Video
-            ResourceTypes[ResourceTypes["Video_AVI"] = "video/avi"] = "Video_AVI";
-            ResourceTypes[ResourceTypes["Video_MPEG"] = "video/mpeg"] = "Video_MPEG";
-            ResourceTypes[ResourceTypes["Video_MP4"] = "video/mp4"] = "Video_MP4";
-            ResourceTypes[ResourceTypes["Video_OGG"] = "video/ogg"] = "Video_OGG";
-            ResourceTypes[ResourceTypes["Video_MOV"] = "video/quicktime"] = "Video_MOV";
-            ResourceTypes[ResourceTypes["Video_WMV"] = "video/x-ms-wmv"] = "Video_WMV";
-            ResourceTypes[ResourceTypes["Video_FLV"] = "video/x-flv"] = "Video_FLV";
-        })(ResourceTypes = Loader.ResourceTypes || (Loader.ResourceTypes = {}));
-        /** A map of popular resource extensions to resource enum type names.
-          * Example 1: ResourceTypes[ResourceExtensions[ResourceExtensions.Application_Script]] === "application/javascript"
-          * Example 2: ResourceTypes[ResourceExtensions[<ResourceExtensions><any>'.JS']] === "application/javascript"
-          * Example 3: CoreXT.Loader.getResourceTypeFromExtension(ResourceExtensions.Application_Script);
-          * Example 4: CoreXT.Loader.getResourceTypeFromExtension(".js");
-          */
-        /* NOTE: The enums entries MUST be prefixed with '<any>' in order for this mapping to work with 'ResourceTypes' as well implicitly. */
-        var ResourceExtensions;
-        (function (ResourceExtensions) {
-            ResourceExtensions[ResourceExtensions["Application_Script"] = ".js"] = "Application_Script";
-            ResourceExtensions[ResourceExtensions["Application_ECMAScript"] = ".es"] = "Application_ECMAScript";
-            ResourceExtensions[ResourceExtensions["Application_JSON"] = ".json"] = "Application_JSON";
-            ResourceExtensions[ResourceExtensions["Application_ZIP"] = ".zip"] = "Application_ZIP";
-            ResourceExtensions[ResourceExtensions["Application_GZIP"] = ".gz"] = "Application_GZIP";
-            ResourceExtensions[ResourceExtensions["Application_PDF"] = ".pdf"] = "Application_PDF";
-            ResourceExtensions[ResourceExtensions["Application_TTF"] = ".ttf"] = "Application_TTF";
-            // Audio
-            ResourceExtensions[ResourceExtensions["AUDIO_MP4"] = ".mp4"] = "AUDIO_MP4";
-            ResourceExtensions[ResourceExtensions["AUDIO_MPEG"] = ".mpeg"] = "AUDIO_MPEG";
-            ResourceExtensions[ResourceExtensions["AUDIO_OGG"] = ".ogg"] = "AUDIO_OGG";
-            ResourceExtensions[ResourceExtensions["AUDIO_AAC"] = ".aac"] = "AUDIO_AAC";
-            ResourceExtensions[ResourceExtensions["AUDIO_CAF"] = ".caf"] = "AUDIO_CAF";
-            // Image
-            ResourceExtensions[ResourceExtensions["Image_GIF"] = ".gif"] = "Image_GIF";
-            ResourceExtensions[ResourceExtensions["Image_JPEG"] = ".jpeg"] = "Image_JPEG";
-            ResourceExtensions[ResourceExtensions["Image_PNG"] = ".png"] = "Image_PNG";
-            ResourceExtensions[ResourceExtensions["Image_SVG"] = ".svg"] = "Image_SVG";
-            ResourceExtensions[ResourceExtensions["Image_GIMP"] = ".xcf"] = "Image_GIMP";
-            // Text
-            ResourceExtensions[ResourceExtensions["Text_CSS"] = ".css"] = "Text_CSS";
-            ResourceExtensions[ResourceExtensions["Text_CSV"] = ".csv"] = "Text_CSV";
-            ResourceExtensions[ResourceExtensions["Text_HTML"] = ".html"] = "Text_HTML";
-            ResourceExtensions[ResourceExtensions["Text_Plain"] = ".txt"] = "Text_Plain";
-            ResourceExtensions[ResourceExtensions["Text_RTF"] = ".rtf"] = "Text_RTF";
-            ResourceExtensions[ResourceExtensions["Text_XML"] = ".xml"] = "Text_XML";
-            ResourceExtensions[ResourceExtensions["Text_JQueryTemplate"] = ".tpl.htm"] = "Text_JQueryTemplate";
-            ResourceExtensions[ResourceExtensions["Text_MarkDown"] = ".markdown"] = "Text_MarkDown";
-            // Video
-            ResourceExtensions[ResourceExtensions["Video_AVI"] = ".avi"] = "Video_AVI";
-            ResourceExtensions[ResourceExtensions["Video_MPEG"] = ".mpeg"] = "Video_MPEG";
-            ResourceExtensions[ResourceExtensions["Video_MP4"] = ".mp4"] = "Video_MP4";
-            ResourceExtensions[ResourceExtensions["Video_OGG"] = ".ogg"] = "Video_OGG";
-            ResourceExtensions[ResourceExtensions["Video_MOV"] = ".qt"] = "Video_MOV";
-            ResourceExtensions[ResourceExtensions["Video_WMV"] = ".wmv"] = "Video_WMV";
-            ResourceExtensions[ResourceExtensions["Video_FLV"] = ".flv"] = "Video_FLV";
-        })(ResourceExtensions = Loader.ResourceExtensions || (Loader.ResourceExtensions = {}));
-        ResourceExtensions['.tpl.html'] = ResourceExtensions[ResourceExtensions.Text_JQueryTemplate]; // (map to the same 'Text_JQueryTemplate' target)
-        ResourceExtensions['.tpl'] = ResourceExtensions[ResourceExtensions.Text_JQueryTemplate]; // (map to the same 'Text_JQueryTemplate' target)
-        function getResourceTypeFromExtension(ext) {
-            if (ext === void 0 || ext === null)
-                return void 0;
-            var _ext = "" + ext; // (make sure it's a string)
-            if (_ext.charAt(0) != '.')
-                _ext = '.' + _ext; // (a period is required)
-            return ResourceTypes[ResourceExtensions[ext]];
-        }
-        Loader.getResourceTypeFromExtension = getResourceTypeFromExtension;
-        var RequestStatuses;
-        (function (RequestStatuses) {
-            /** The request has not been executed yet. */
-            RequestStatuses[RequestStatuses["Pending"] = 0] = "Pending";
-            /** The resource failed to load.  Check the request object for the error details. */
-            RequestStatuses[RequestStatuses["Error"] = 1] = "Error";
-            /** The requested resource is loading. */
-            RequestStatuses[RequestStatuses["Loading"] = 2] = "Loading";
-            /** The requested resource has loaded (nothing more). */
-            RequestStatuses[RequestStatuses["Loaded"] = 3] = "Loaded";
-            /** The requested resource is waiting on parent resources to complete. */
-            RequestStatuses[RequestStatuses["Waiting"] = 4] = "Waiting";
-            /** The requested resource is ready to be used. */
-            RequestStatuses[RequestStatuses["Ready"] = 5] = "Ready";
-            /** The source is a script, and was executed (this only occurs on demand [not automatic]). */
-            RequestStatuses[RequestStatuses["Executed"] = 6] = "Executed";
-        })(RequestStatuses = Loader.RequestStatuses || (Loader.RequestStatuses = {}));
-        // ====================================================================================================================
-        /**
-         * Creates a new resource request object, which allows loaded resources using a "promise" style pattern (this is a custom
-         * implementation designed to work better with the CoreXT system specifically, and to support parallel loading).
-         * Note: It is advised to use 'CoreXT.Loader.loadResource()' to load resources instead of directly creating resource request objects.
-         * Inheritance note: When creating via the 'new' factory method, any already existing instance with the same URL will be returned,
-         * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
-         */
-        var ResourceRequest = /** @class */ (function (_super) {
-            __extends(ResourceRequest, _super);
-            function ResourceRequest() {
-                return _super !== null && _super.apply(this, arguments) || this;
-            }
-            /**
-             * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
-             * the cache. To change the variable used, set the 'cacheBustingVar' property also.
-             * Each resource request instance can also have its own value set separate from the global one.
-             * Note: CoreXT has its own caching that uses the local storage, where supported.
-             */
-            ResourceRequest.cacheBusting = true;
-            /** See the 'cacheBusting' property. */
-            ResourceRequest.cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
-            return ResourceRequest;
-        }(FactoryBase()));
-        Loader.ResourceRequest = ResourceRequest;
-        (function (ResourceRequest) {
-            var $__type = /** @class */ (function () {
-                function $__type() {
-                    this.$__transformedData = CoreXT.noop;
-                    /** The response code from the XHR response. */
-                    this.responseCode = 0; // (the response code returned)
-                    /** The response code message from the XHR response. */
-                    this.responseMessage = ""; // (the response code message)
-                    /** The current request status. */
-                    this.status = RequestStatuses.Pending;
-                    /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
-                    this.messageLog = [];
-                    /**
-                     * If true (the default) then a '"_="+Date.now()' query item is added to make sure the browser never uses
-                     * the cache. To change the variable used, set the 'cacheBustingVar' property also.
-                     * Note: CoreXT has its own caching that uses the local storage, where supported.
-                     */
-                    this.cacheBusting = ResourceRequest.cacheBusting;
-                    /** See the 'cacheBusting' property. */
-                    this.cacheBustingVar = ResourceRequest.cacheBustingVar;
-                    /** This is a list of all the callbacks waiting on the status of this request (such as on loaded or error).
-                    * There's also an 'on finally' which should execute on success OR failure, regardless.
-                    * For each entry, only ONE of any callback type will be set.
-                    */
-                    this._promiseChain = [];
-                    this._promiseChainIndex = 0; // (the current position in the event chain)
-                    this._parentCompletedCount = 0; // (when this equals the # of 'dependents', the all parent resources have loaded [just faster than iterating over them])
-                    this._paused = false;
-                }
-                Object.defineProperty($__type.prototype, "url", {
-                    get: function () {
-                        if (typeof this._url == 'string' && this._url.substr(0, 2) == "~/") {
-                            var _baseURL = this.type == ResourceTypes.Application_Script ? CoreXT.baseScriptsURL : CoreXT.baseURL;
-                            return _baseURL + this._url.substr(2);
-                        }
-                        return this._url;
-                    },
-                    set: function (value) { this._url = value; },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty($__type.prototype, "transformedData", {
-                    /** Set to data returned from callback handlers as the 'data' property value gets transformed.
-                      * If no transformations were made, then the value in 'data' is returned.
-                      */
-                    get: function () {
-                        return this.$__transformedData === CoreXT.noop ? this.data : this.$__transformedData;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty($__type.prototype, "message", {
-                    /**
-                     * A progress/error message related to the status (may not be the same as the response message).
-                     * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
-                     */
-                    get: function () {
-                        return this._message;
-                    },
-                    set: function (value) {
-                        this._message = value;
-                        this.messageLog.push(this._message);
-                        if (this.status == RequestStatuses.Error)
-                            error("ResourceRequest (" + this.url + ")", this._message, this, false); // (send resource loading error messages to the console to aid debugging)
-                        else
-                            log("ResourceRequest (" + this.url + ")", this._message, LogTypes.Normal, this);
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                $__type.prototype._queueDoNext = function (data) {
-                    var _this = this;
-                    setTimeout(function () {
-                        // ... before this, fire any handlers that would execute before this ...
-                        _this._doNext();
-                    }, 0);
-                }; // (simulate an async response, in case more handlers need to be added next)
-                $__type.prototype._queueDoError = function () {
-                    var _this = this;
-                    setTimeout(function () { _this._doError(); }, 0);
-                }; // (simulate an async response, in case more handlers need to be added next)
-                $__type.prototype._requeueHandlersIfNeeded = function () {
-                    if (this.status == RequestStatuses.Error)
-                        this._queueDoError();
-                    else if (this.status >= RequestStatuses.Waiting) {
-                        this._queueDoNext(this.data);
-                    }
-                    // ... else, not needed, as the chain is still being traversed, so anything added will get run as expected ...
-                };
-                /** Triggers a success or error callback after the resource loads, or fails to load. */
-                $__type.prototype.then = function (success, error) {
-                    if (success !== void 0 && success !== null && typeof success != 'function' || error !== void 0 && error !== null && typeof error !== 'function')
-                        throw "A handler function given is not a function.";
-                    else {
-                        this._promiseChain.push({ onLoaded: success, onError: error });
-                        this._requeueHandlersIfNeeded();
-                    }
-                    if (this.status == RequestStatuses.Waiting || this.status == RequestStatuses.Ready) {
-                        this.status = RequestStatuses.Loaded; // (back up)
-                        this.message = "New 'then' handler added.";
-                    }
-                    return this;
-                };
-                /** Adds another request and makes it dependent on the current 'parent' request.  When all parent requests have completed,
-                  * the dependant request fires its 'onReady' event.
-                  * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
-                  */
-                $__type.prototype.include = function (request) {
-                    if (!request._parentRequests)
-                        request._parentRequests = [];
-                    if (!this._dependants)
-                        this._dependants = [];
-                    request._parentRequests.push(this);
-                    this._dependants.push(request);
-                    return request;
-                };
-                /**
-                 * Add a call-back handler for when the request completes successfully.
-                 * This event is triggered after the resource successfully loads and all callbacks in the promise chain get called.
-                 * @param handler
-                 */
-                $__type.prototype.ready = function (handler) {
-                    if (typeof handler == 'function') {
-                        if (!this._onReady)
-                            this._onReady = [];
-                        this._onReady.push(handler);
-                        this._requeueHandlersIfNeeded();
-                    }
-                    else
-                        throw "Handler is not a function.";
-                    return this;
-                };
-                /** Adds a hook into the resource load progress event. */
-                $__type.prototype.while = function (progressHandler) {
-                    if (typeof progressHandler == 'function') {
-                        if (!this._onProgress)
-                            this._onProgress = [];
-                        this._onProgress.push(progressHandler);
-                        this._requeueHandlersIfNeeded();
-                    }
-                    else
-                        throw "Handler is not a function.";
-                    return this;
-                };
-                /** Call this anytime while loading is in progress to terminate the request early. An error event will be triggered as well. */
-                $__type.prototype.abort = function () {
-                    if (this._xhr.readyState > XMLHttpRequest.UNSENT && this._xhr.readyState < XMLHttpRequest.DONE) {
-                        this._xhr.abort();
-                    }
-                };
-                /**
-                 * Provide a handler to catch any errors from this request.
-                 */
-                $__type.prototype.catch = function (errorHandler) {
-                    if (typeof errorHandler == 'function') {
-                        this._promiseChain.push({ onError: errorHandler });
-                        this._requeueHandlersIfNeeded();
-                    }
-                    else
-                        throw "Handler is not a function.";
-                    return this;
-                };
-                /**
-                 * Provide a handler which should execute on success OR failure, regardless.
-                 */
-                $__type.prototype.finally = function (cleanupHandler) {
-                    if (typeof cleanupHandler == 'function') {
-                        this._promiseChain.push({ onFinally: cleanupHandler });
-                        this._requeueHandlersIfNeeded();
-                    }
-                    else
-                        throw "Handler is not a function.";
-                    return this;
-                };
-                /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
-                  * order).  Regardless of the start order, all scripts are loaded in parallel.
-                  * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
-                  */
-                $__type.prototype.start = function () {
-                    var _this = this;
-                    if (this.async)
-                        setTimeout(function () { _this._Start(); }, 0);
-                    else
-                        this._Start();
-                    return this;
-                };
-                $__type.prototype._Start = function () {
-                    var _this = this;
-                    // ... start at the top most parent first, and work down ...
-                    if (this._parentRequests)
-                        for (var i = 0, n = this._parentRequests.length; i < n; ++i)
-                            this._parentRequests[i].start();
-                    if (this.status == RequestStatuses.Pending) {
-                        this.status = RequestStatuses.Loading; // (do this first to protect against any possible cyclical calls)
-                        this.message = "Loading resource ...";
-                        // ... this request has not been started yet; attempt to load the resource ...
-                        // ... 1. see first if this file is cached in the web storage, then load it from there instead ...
-                        //    (ignore the local caching if in debug or the versions are different)
-                        if (!CoreXT.isDebugging() && typeof Storage !== void 0)
-                            try {
-                                var currentAppVersion = CoreXT.getAppVersion();
-                                var versionInLocalStorage = localStorage.getItem("version");
-                                var appVersionInLocalStorage = localStorage.getItem("appVersion");
-                                if (versionInLocalStorage && appVersionInLocalStorage && CoreXT.version == versionInLocalStorage && currentAppVersion == appVersionInLocalStorage) {
-                                    // ... all versions match, just pull from local storage (faster) ...
-                                    this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
-                                    if (this.data !== null && this.data !== void 0) {
-                                        this.status = RequestStatuses.Loaded;
-                                        this._doNext();
-                                        return;
-                                    }
-                                }
-                            }
-                            catch (e) {
-                                // ... not supported? ...
-                            }
-                        // ... 2. check web SQL for the resource ...
-                        // TODO: Consider Web SQL Database as well. (though not supported by IE yet, as usual, but could help greatly on the others) //?
-                        // ... 3. if not in web storage, try loading from a CoreXT core system, if available ...
-                        // TODO: Message CoreXT core system for resource data. // TODO: need to build the bridge class first.
-                        // ... next, create an XHR object and try to load the resource ...
-                        if (!this._xhr) {
-                            this._xhr = new XMLHttpRequest();
-                            var xhr = this._xhr;
-                            var loaded = function () {
-                                if (xhr.status == 200 || xhr.status == 304) {
-                                    _this.data = xhr.response;
-                                    _this.status == RequestStatuses.Loaded;
-                                    _this.message = xhr.status == 304 ? "Loading completed (from browser cache)." : "Loading completed.";
-                                    // ... check if the expected mime type matches, otherwise throw an error to be safe ...
-                                    var responseType = xhr.getResponseHeader('content-type');
-                                    if (_this.type && responseType && _this.type != responseType) {
-                                        _this.setError("Resource type mismatch: expected type was '" + _this.type + "', but received '" + responseType + "' (XHR type '" + xhr.responseType + "').\r\n");
-                                    }
-                                    else {
-                                        if (!CoreXT.isDebugging() && typeof Storage !== void 0)
-                                            try {
-                                                localStorage.setItem("version", CoreXT.version);
-                                                localStorage.setItem("appVersion", CoreXT.getAppVersion());
-                                                localStorage.setItem("resource:" + _this.url, _this.data);
-                                                _this.message = "Resource cached in local storage.";
-                                            }
-                                            catch (e) {
-                                                // .. failed: out of space? ...
-                                                // TODO: consider saving to web SQL as well, or on failure (as a backup; perhaps create a storage class with this support). //?
-                                            }
-                                        else
-                                            _this.message = "Resource not cached in local storage because of debug mode. Release mode will use local storage to help survive clearing CoreXT files when temporary content files are deleted.";
-                                        _this._doNext();
-                                    }
-                                }
-                                else {
-                                    _this.setError("There was a problem loading the resource (status code " + xhr.status + ": " + xhr.statusText + ").\r\n");
-                                }
-                            };
-                            // ... this script is not cached, so load it ...
-                            xhr.onreadystatechange = function () {
-                                switch (xhr.readyState) {
-                                    case XMLHttpRequest.UNSENT: break;
-                                    case XMLHttpRequest.OPENED:
-                                        _this.message = "Opened connection ...";
-                                        break;
-                                    case XMLHttpRequest.HEADERS_RECEIVED:
-                                        _this.message = "Headers received ...";
-                                        break;
-                                    case XMLHttpRequest.LOADING: break; // (this will be handled by the progress event)
-                                    case XMLHttpRequest.DONE:
-                                        loaded();
-                                        break;
-                                }
-                            };
-                            xhr.onerror = function (ev) { _this.setError(void 0, ev); _this._doError(); };
-                            xhr.onabort = function () { _this.setError("Request aborted."); };
-                            xhr.ontimeout = function () { _this.setError("Request timed out."); };
-                            xhr.onprogress = function (evt) {
-                                _this.message = Math.round(evt.loaded / evt.total * 100) + "% loaded ...";
-                                if (_this._onProgress && _this._onProgress.length)
-                                    _this._doOnProgress(evt.loaded / evt.total * 100);
-                            };
-                            // (note: all event 'on...' properties only available in IE10+)
-                        }
-                    }
-                    else { // (this request was already started)
-                        return;
-                    }
-                    if (xhr.readyState != 0)
-                        xhr.abort(); // (abort existing, just in case)
-                    var url = this.url;
-                    try {
-                        // ... check if we need to bust the cache ...
-                        if (this.cacheBusting) {
-                            var bustVar = this.cacheBustingVar || "_v_";
-                            if (bustVar.indexOf(" ") >= 0)
-                                log("start()", "There is a space character in the cache busting query name for resource '" + url + "'.", LogTypes.Warning);
-                        }
-                        xhr.open("get", url, this.async);
-                    }
-                    catch (ex) {
-                        error("start()", "Failed to load resource from URL '" + url + "': " + (ex.message || ex), this);
-                    }
-                    try {
-                        xhr.send();
-                    }
-                    catch (ex) {
-                        error("start()", "Failed to send request to endpoint for URL '" + url + "': " + (ex.message || ex), this);
-                    }
-                    //?if (!this.async && (xhr.status)) doSuccess();
-                };
-                /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
-                $__type.prototype.pause = function () {
-                    if (this.status >= RequestStatuses.Pending && this.status < RequestStatuses.Ready
-                        || this.status == RequestStatuses.Ready && this._onReady.length)
-                        this._paused = true;
-                    return this;
-                };
-                /** After calling 'pause()', use this function to re-queue the 'then' or 'ready' even chain for continuation.
-                  * Note: This queues on a timer with a 0 ms delay, and does not call any events before returning to the caller.
-                  */
-                $__type.prototype.continue = function () {
-                    if (this._paused) {
-                        this._paused = false;
-                        this._requeueHandlersIfNeeded();
-                    }
-                    return this;
-                };
-                $__type.prototype._doOnProgress = function (percent) {
-                    // ... notify any handlers as well ...
-                    if (this._onProgress) {
-                        for (var i = 0, n = this._onProgress.length; i < n; ++i)
-                            try {
-                                var cb = this._onProgress[i];
-                                if (cb)
-                                    cb.call(this, this);
-                            }
-                            catch (e) {
-                                this._onProgress[i] = null; // (won't be called again)
-                                this.setError("'on progress' callback #" + i + " has thrown an error:", e);
-                                // ... do nothing, not important ...
-                            }
-                    }
-                };
-                $__type.prototype.setError = function (message, error) {
-                    if (error) {
-                        var errMsg = getErrorMessage(error);
-                        if (errMsg) {
-                            if (message)
-                                message += " \r\n";
-                            message += errMsg;
-                        }
-                    }
-                    this.status = RequestStatuses.Error;
-                    this.message = message; // (automatically adds to 'this.messages' and writes to the console)
-                };
-                $__type.prototype._doNext = function () {
-                    var _this = this;
-                    if (this.status == RequestStatuses.Error) {
-                        this._doError(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
-                        return;
-                    }
-                    if (this._onProgress && this._onProgress.length) {
-                        this._doOnProgress(100);
-                        this._onProgress.length = 0;
-                    }
-                    for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
-                        if (this._paused)
-                            return;
-                        var handlers = this._promiseChain[this._promiseChainIndex]; // (get all the handlers waiting for the result of this request)
-                        if (handlers.onLoaded) {
-                            try {
-                                var data = handlers.onLoaded.call(this, this, this.transformedData); // (call the handler with the current data and get the resulting data, if any)
-                            }
-                            catch (e) {
-                                this.setError("An 'onLoaded' handler failed.", e);
-                                ++this._promiseChainIndex; // (the success callback failed, so trigger the error chain starting at next index)
-                                this._doError();
-                                return;
-                            }
-                            if (typeof data === 'object' && data instanceof $__type) {
-                                // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
-                                if (data.status == RequestStatuses.Error) {
-                                    this.setError("Rejected request returned from 'onLoaded' handler.");
-                                    ++this._promiseChainIndex;
-                                    this._doError(); // (cascade the error)
-                                    return;
-                                }
-                                else {
-                                    // ... get the data from the request object ...
-                                    var newResReq = data;
-                                    if (newResReq.status >= RequestStatuses.Ready) {
-                                        if (newResReq === this)
-                                            continue; // ('self' [this] was returned, so go directly to the next item)
-                                        data = newResReq.transformedData; // (the data is ready, so read now)
-                                    }
-                                    else { // (loading is started, or still in progress, so wait; we simply hook into the request object to get notified when the data is ready)
-                                        newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
-                                            .catch(function (sender) { _this.setError("Resource returned from next handler has failed to load.", sender); _this._doError(); });
-                                        return;
-                                    }
-                                }
-                            }
-                            this.$__transformedData = data;
-                        }
-                        else if (handlers.onFinally) {
-                            try {
-                                handlers.onFinally.call(this);
-                            }
-                            catch (e) {
-                                this.setError("Cleanup handler failed.", e);
-                                ++this._promiseChainIndex; // (the finally callback failed, so trigger the error chain starting at next index)
-                                this._doError();
-                            }
-                        }
-                    }
-                    this._promiseChain.length = 0;
-                    this._promiseChainIndex = 0;
-                    // ... finished: now trigger any "ready" handlers ...
-                    if (this.status < RequestStatuses.Waiting)
-                        this.status = RequestStatuses.Waiting; // (default to this next before being 'ready')
-                    this._doReady(); // (this triggers in dependency order)
-                };
-                $__type.prototype._doReady = function () {
-                    if (this._paused)
-                        return;
-                    if (this.status < RequestStatuses.Waiting)
-                        return; // (the 'ready' event must only trigger after the resource loads, AND all handlers have been called)
-                    // ... check parent dependencies first ...
-                    if (this.status == RequestStatuses.Waiting)
-                        if (!this._parentRequests || !this._parentRequests.length) {
-                            this.status = RequestStatuses.Ready; // (no parent resource dependencies, so this resource is 'ready' by default)
-                            this.message = "Resource has no dependencies, and is now ready.";
-                        }
-                        else // ...need to determine if all parent (dependent) resources are completed first ...
-                         if (this._parentCompletedCount == this._parentRequests.length) {
-                            this.status = RequestStatuses.Ready; // (all parent resource dependencies are now 'ready')
-                            this.message = "*** All dependencies for resource have loaded, and are now ready. ***";
-                        }
-                        else {
-                            this.message = "Resource is waiting on dependencies (" + this._parentCompletedCount + "/" + this._parentRequests.length + " ready so far)...";
-                            return; // (nothing more to do yet)
-                        }
-                    // ... call the local 'onReady' event, and then trigger the call on the children as required.
-                    if (this.status == RequestStatuses.Ready) {
-                        if (this._onReady && this._onReady.length) {
-                            try {
-                                for (var i = 0, n = this._onReady.length; i < n; ++i) {
-                                    this._onReady[i].call(this, this);
-                                    if (this.status < RequestStatuses.Ready)
-                                        return; // (a callback changed state so stop at this point as we are no longer ready!)
-                                }
-                                if (this._paused)
-                                    return;
-                            }
-                            catch (e) {
-                                this.setError("Error in ready handler.", e);
-                                if (CoreXT.isDebugging() && (this.type == ResourceTypes.Application_Script || this.type == ResourceTypes.Application_ECMAScript))
-                                    throw e; // (propagate script errors to the browser for debuggers, if any)
-                            }
-                        }
-                        if (this._dependants)
-                            for (var i = 0, n = this._dependants.length; i < n; ++i) {
-                                ++this._dependants[i]._parentCompletedCount;
-                                this._dependants[i]._doReady(); // (notify all children that this resource is now 'ready' for use [all events have been run, as opposed to just being loaded])
-                                if (this.status < RequestStatuses.Ready)
-                                    return; // (something changed the "Ready" state so abort!)
-                            }
-                    }
-                };
-                $__type.prototype._doError = function () {
-                    var _this = this;
-                    if (this._paused)
-                        return;
-                    if (this.status != RequestStatuses.Error) {
-                        this._doNext(); // (still in an error state, so pass on to trigger error handlers in case new ones were added)
-                        return;
-                    }
-                    for (var n = this._promiseChain.length; this._promiseChainIndex < n; ++this._promiseChainIndex) {
-                        if (this._paused)
-                            return;
-                        var handlers = this._promiseChain[this._promiseChainIndex];
-                        if (handlers.onError) {
-                            try {
-                                var newData = handlers.onError.call(this, this, this.message); // (this handler should "fix" the situation and return valid data)
-                            }
-                            catch (e) {
-                                this.setError("Error handler failed.", e);
-                            }
-                            if (typeof newData === 'object' && newData instanceof $__type) {
-                                // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
-                                if (newData.status == RequestStatuses.Error)
-                                    return; // (no correction made, still in error; terminate the event chain here)
-                                else {
-                                    var newResReq = newData;
-                                    if (newResReq.status >= RequestStatuses.Ready)
-                                        newData = newResReq.transformedData;
-                                    else { // (loading is started, or still in progress, so wait)
-                                        newResReq.ready(function (sender) { _this.$__transformedData = sender.transformedData; _this._doNext(); })
-                                            .catch(function (sender) { _this.setError("Resource returned from error handler has failed to load.", sender); _this._doError(); });
-                                        return;
-                                    }
-                                }
-                            }
-                            // ... continue with the value from the error handler (even if none) ...
-                            this.status = RequestStatuses.Loaded;
-                            this._message = void 0; // (clear the current message [but keep history])
-                            ++this._promiseChainIndex; // (pass on to next handler in the chain)
-                            this.$__transformedData = newData;
-                            this._doNext();
-                            return;
-                        }
-                        else if (handlers.onFinally) {
-                            try {
-                                handlers.onFinally.call(this);
-                            }
-                            catch (e) {
-                                this.setError("Cleanup handler failed.", e);
-                            }
-                        }
-                    }
-                    // ... if this is reached, then there are no following error handlers, so throw the existing message ...
-                    if (this.status == RequestStatuses.Error) {
-                        var msgs = this.messageLog.join("\r\n· ");
-                        if (msgs)
-                            msgs = ":\r\n· " + msgs;
-                        else
-                            msgs = ".";
-                        throw new Error("Unhandled error loading resource " + ResourceTypes[this.type] + " from '" + this.url + "'" + msgs + "\r\n");
-                    }
-                };
-                /** Resets the current resource data, and optionally all dependencies, and restarts the whole loading process.
-                  * Note: All handlers (including the 'progress' and 'ready' handlers) are cleared and will have to be reapplied (clean slate).
-                  * @param {boolean} includeDependentResources Reload all resource dependencies as well.
-                  */
-                $__type.prototype.reload = function (includeDependentResources) {
-                    if (includeDependentResources === void 0) { includeDependentResources = true; }
-                    if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
-                        this.data = void 0;
-                        this.status = RequestStatuses.Pending;
-                        this.responseCode = 0;
-                        this.responseMessage = "";
-                        this._message = "";
-                        this.messageLog = [];
-                        if (includeDependentResources)
-                            for (var i = 0, n = this._parentRequests.length; i < n; ++i)
-                                this._parentRequests[i].reload(includeDependentResources);
-                        if (this._onProgress)
-                            this._onProgress.length = 0;
-                        if (this._onReady)
-                            this._onReady.length = 0;
-                        if (this._promiseChain)
-                            this._promiseChain.length = 0;
-                        this.start();
-                    }
-                    return this;
-                };
-                $__type[CoreXT.constructor] = function (factory) {
-                    factory.init = function (o, isnew, url, type, async) {
-                        if (async === void 0) { async = true; }
-                        if (url === void 0 || url === null)
-                            throw "A resource URL is required.";
-                        if (type === void 0)
-                            throw "The resource type is required.";
-                        if (_resourceRequestByURL[url])
-                            return _resourceRequestByURL[url]; // (abandon this new object instance in favor of the one already existing and returned it)
-                        o.url = url;
-                        o.type = type;
-                        o.async = async;
-                        o.$__index = _resourceRequests.length;
-                        _resourceRequests.push(o);
-                        _resourceRequestByURL[o.url] = o;
-                    };
-                };
-                return $__type;
-            }());
-            ResourceRequest.$__type = $__type;
-            ResourceRequest.$__register(Loader);
-        })(ResourceRequest = Loader.ResourceRequest || (Loader.ResourceRequest = {}));
-        // ====================================================================================================================
-        var _resourceRequests = []; // (requests are loaded in parallel, but executed in order of request)
-        var _resourceRequestByURL = {}; // (a quick named index lookup into '__loadRequests')
-        /** Returns a load request promise-type object for a resource loading operation. */
-        function get(url, type, asyc) {
-            if (asyc === void 0) { asyc = true; }
-            if (url === void 0 || url === null)
-                throw "A resource URL is required.";
-            url = "" + url;
-            if (type === void 0 || type === null) {
-                // (make sure it's a string)
-                // ... a valid type is required, but try to detect first ...
-                var ext = (url.match(/(\.[A-Za-z0-9]+)(?:[\?\#]|$)/i) || []).pop();
-                type = getResourceTypeFromExtension(ext);
-                if (!type)
-                    error("Loader.get('" + url + "', type:" + type + ")", "A resource (MIME) type is required, and no resource type could be determined (See CoreXT.Loader.ResourceTypes). If the resource type cannot be detected by a file extension then you must specify the MIME string manually.");
-            }
-            var request = _resourceRequestByURL[url]; // (try to load any already existing requests)
-            if (!request)
-                request = ResourceRequest.new(url, type, asyc);
-            return request;
-        }
-        Loader.get = get;
         /** Used by the bootstrapper in applying system scripts as they become ready.
           * Applications should normally never use this, and instead use the 'modules' system in the 'CoreXT.Scripts' namespace for
           * script loading.
@@ -2273,15 +2716,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             try {
                 request.message = "Executing script ...";
                 var helpers = CoreXT.renderHelperVarDeclarations("p0");
-                var sourcePragmaInfo = CoreXT.extractSourceMapping(request.transformedData);
-                var script = sourcePragmaInfo.filteredSource;
-                for (var i = 0, n = sourcePragmaInfo.pragmas.length; i < n; ++i) {
-                    var pragma = sourcePragmaInfo.pragmas[i];
-                    if (CoreXT.serverWebRoot)
-                        script += "\r\n" + pragma.prefix + " " + pragma.pragma + "=" + CoreXT.serverWebRoot + "js\\CoreXT\\" + pragma.value;
-                    else
-                        script += "\r\n" + pragma.prefix + " " + pragma.pragma + "=" + CoreXT.baseScriptsURL + "CoreXT/" + pragma.value;
-                }
+                var sourcePragmaInfo = extractPragmas(request.transformedData);
+                var script = fixSourceMappingsPragmas(sourcePragmaInfo, request.url);
                 CoreXT.safeEval(helpers[0] + " var CoreXT=p1; " + script, /*p0*/ helpers[1], /*p1*/ CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
                 //x (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
                 request.status = RequestStatuses.Executed;
@@ -2296,7 +2732,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             }
         }
         Loader._SystemScript_onReady_Handler = _SystemScript_onReady_Handler;
-        Loader.BootSubPath = Loader.BootSubPath && ('' + Loader.BootSubPath) || "~/CoreXT/";
+        /** This is the root path to the boot scripts for CoreXT.JS. The default starts with '~/' in order to be relative to 'baseScriptsURL'. */
+        Loader.rootBootPath = Loader.rootBootPath && ('' + Loader.rootBootPath) || "~/CoreXT/";
         /**
          * Starts loading the CoreXT system.  To prevent this from happening automatically simply set the CoreXT debug
          * mode before the CoreXT.js file runs: "CoreXT = { debugMode: 2 };" (see CoreXT.DebugModes.Debug_Wait)
@@ -2310,18 +2747,19 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
          */
         function bootstrap() {
             // (note: the request order is the dependency order)
-            Loader.BootSubPath = ('' + Loader.BootSubPath);
-            var rbpLastChar = Loader.BootSubPath.charAt(Loader.BootSubPath.length - 1);
+            Loader.rootBootPath = ('' + Loader.rootBootPath);
+            var rbpLastChar = Loader.rootBootPath.charAt(Loader.rootBootPath.length - 1);
             if (rbpLastChar != '/' && rbpLastChar != '\\')
-                Loader.BootSubPath += '/'; // (must end with a slash)
-            log("Loader.BootSubPath", Loader.BootSubPath + " (if this path is wrong set 'CoreXT.Loader.BootSubPath' before 'Loader.bootstrap()' gets called)");
+                Loader.rootBootPath += '/'; // (must end with a slash)
+            log("Loader.BootSubPath", Loader.rootBootPath + " (if this path is wrong set 'CoreXT.Loader.BootSubPath' before 'Loader.bootstrap()' gets called)");
             var onReady = _SystemScript_onReady_Handler;
+            var get = System.IO.get;
             // ... load the base scripts first (all of these are not modules, so they have to be loaded in the correct order) ...
-            get(Loader.BootSubPath + "CoreXT.Polyfills.js").ready(onReady) // (some polyfills may be needed by the system)
-                .include(get(Loader.BootSubPath + "CoreXT.Types.js")).ready(onReady) // (common base types)
-                .include(get(Loader.BootSubPath + "CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
-                .include(get(Loader.BootSubPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values without polluting the global scope)
-                .include(get(Loader.BootSubPath + "CoreXT.Scripts.js")).ready(onReady) // (supports CoreXT-based module loading)
+            get(Loader.rootBootPath + "CoreXT.Polyfills.js").ready(onReady) // (some polyfills may be needed by the system)
+                .include(get(Loader.rootBootPath + "CoreXT.Types.js")).ready(onReady) // (common base types)
+                .include(get(Loader.rootBootPath + "CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
+                .include(get(Loader.rootBootPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values without polluting the global scope)
+                .include(get(Loader.rootBootPath + "CoreXT.Scripts.js")).ready(onReady) // (supports CoreXT-based module loading)
                 // ... load the rest of the core system next ...
                 //.include(get(BootSubPath + "System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
                 //.include(get(BootSubPath + "System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
@@ -2330,7 +2768,7 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 //.include(get(BootSubPath + "System/CoreXT.System.Exception.js").ready(onReady)) // (setup exception support)
                 //.include(get(BootSubPath + "System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
                 //.include(get(BootSubPath + "System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
-                .include(get(Loader.BootSubPath + "CoreXT.Browser.js")).ready(onReady) // (uses the event system)
+                .include(get(Loader.rootBootPath + "CoreXT.Browser.js")).ready(onReady) // (uses the event system)
                 //.include(get(BootSubPath + "System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
                 //.include(get(BootSubPath + "System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady)) // (uses events)
                 //.include(get(BootSubPath + "System/CoreXT.System.Text.js").ready(onReady)) // (utilities specific to working with texts)

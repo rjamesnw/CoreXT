@@ -9,45 +9,6 @@ declare namespace CoreXT {
     /** Returns the current user defined application version, or a default version. */
     var getAppVersion: () => string;
     var constructor: symbol;
-    enum DebugModes {
-        /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
-        Release = 0,
-        /** Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. */
-        Debug_Run = 1,
-        /**
-          * Run in debug mode, which loads all un-minified scripts, but does NOT boot the system nor run the application automatically.
-          * To manually start the CoreXT system boot process, call 'CoreXT.Loader.bootstrap()'.
-          * Once the boot process completes, the application will not start automatically. To start the application process, call 'CoreXT.Scripts.runApp()".
-          */
-        Debug_Wait = 2
-    }
-    /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values. The default is 'Debug_Run'. */
-    var debugMode: DebugModes;
-    /** Returns true if CoreXT is running in debug mode. */
-    function isDebugging(): boolean;
-    /** Returns the name of a namespace or variable reference at runtime. */
-    function nameof(selector: () => any, fullname?: boolean): string;
-    /**
-     * Returns true if the URL contains the specific action and controller names at the end of the URL path.
-     * This of course assumes typical routing patterns in the format '/controller/action' or '/area/controller/action'.
-     */
-    function isPage(action: string, controller?: string, area?: string): boolean;
-    /**
-     * Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups], where
-     * 'groups' index 0 is the full matched text, and 1 onwards are any matched groups).
-     */
-    function matches(regex: RegExp, text: string): string[][];
-    /** Used to strip out script source mappings. Used with 'extractSourceMapping()'. */
-    var SCRIPT_SOURCE_MAPPING_REGEX: RegExp;
-    /** Extract any source mapping pragmas. This is used with XHR loading of scripts in order to execute them with source mapping support. */
-    function extractSourceMapping(src: string): {
-        filteredSource: string;
-        pragmas: {
-            prefix: string;
-            pragma: string;
-            value: string;
-        }[];
-    };
 }
 /** (See 'CoreXT') */
 declare var corext: typeof CoreXT;
@@ -76,8 +37,10 @@ declare class __NonCoreXTHost__ implements IHostBridge {
 declare var $ICE: IHostBridge_ICE;
 /** An optional site root URL if the main site root path is in a virtual path. */
 declare var siteBaseURL: string;
-/** Root location of the application scripts, which be default is the {site URL}+"/js/". */
+/** Root location of the application scripts, which by default is {site URL}+"/js/". */
 declare var scriptsBaseURL: string;
+/** Root location of the CSS files, which by default is {site URL}+"/css/". */
+declare var cssBaseURL: string;
 declare namespace CoreXT {
     interface IndexedObject {
         [name: string]: any;
@@ -131,6 +94,7 @@ declare namespace CoreXT {
         CoreXT: typeof CoreXT;
         siteBaseURL: typeof siteBaseURL;
         scriptsBaseURL: typeof scriptsBaseURL;
+        cssBaseURL: typeof cssBaseURL;
     }
     type KeyOf<T> = keyof Required<T>;
     /** A reference to the host's global environment (convenient for nested TypeScript code, or when using strict mode [where this=undefined]).
@@ -162,6 +126,24 @@ declare namespace CoreXT {
         /** Represents the CoreXT server environment. */
         Server = 2
     }
+    enum DebugModes {
+        /** Run in release mode, which loads all minified module scripts, and runs the application automatically when ready. */
+        Release = 0,
+        /** Run in debug mode (default), which loads all un-minified scripts, and runs the application automatically when ready. */
+        Debug_Run = 1,
+        /**
+          * Run in debug mode, which loads all un-minified scripts, but does NOT boot the system nor run the application automatically.
+          * To manually start the CoreXT system boot process, call 'CoreXT.Loader.bootstrap()'.
+          * Once the boot process completes, the application will not start automatically. To start the application process, call 'CoreXT.Scripts.runApp()".
+          */
+        Debug_Wait = 2
+    }
+    /** Sets the debug mode. A developer should set this to one of the desired 'DebugModes' values. The default is 'Debug_Run'. */
+    var debugMode: DebugModes;
+    /** Returns true if CoreXT is running in debug mode. */
+    function isDebugging(): boolean;
+    /** Returns the name of a namespace or variable reference at runtime. */
+    function nameof(selector: () => any, fullname?: boolean): string;
     var FUNC_NAME_REGEX: RegExp;
     /** Attempts to pull the function name from the function object, and returns an empty string if none could be determined. */
     function getFunctionName(func: Function): string;
@@ -481,6 +463,533 @@ declare namespace CoreXT {
       * a formatted Exception or Error object, or 'errorSource.message' if the source is an object with a 'message' property.
       */
     function getErrorMessage(errorSource: any): string;
+    /** The most common mime types.  You can easily extend this enum with custom types, or force-cast strings to this type also. */
+    enum ResourceTypes {
+        Application_Script,
+        Application_ECMAScript,
+        Application_JSON,
+        Application_ZIP,
+        Application_GZIP,
+        Application_PDF,
+        Application_DefaultFormPost,
+        Application_TTF,
+        Multipart_BinaryFormPost,
+        AUDIO_MP4,
+        AUDIO_MPEG,
+        AUDIO_OGG,
+        AUDIO_AAC,
+        AUDIO_CAF,
+        Image_GIF,
+        Image_JPEG,
+        Image_PNG,
+        Image_SVG,
+        Image_GIMP,
+        Text_CSS,
+        Text_CSV,
+        Text_HTML,
+        Text_Plain,
+        Text_RTF,
+        Text_XML,
+        Text_JQueryTemplate,
+        Text_MarkDown,
+        Video_AVI,
+        Video_MPEG,
+        Video_MP4,
+        Video_OGG,
+        Video_MOV,
+        Video_WMV,
+        Video_FLV
+    }
+    /** A map of popular resource extensions to resource enum type names.
+      * Example 1: ResourceTypes[ResourceExtensions[ResourceExtensions.Application_Script]] === "application/javascript"
+      * Example 2: ResourceTypes[ResourceExtensions[<ResourceExtensions><any>'.JS']] === "application/javascript"
+      * Example 3: CoreXT.Loader.getResourceTypeFromExtension(ResourceExtensions.Application_Script);
+      * Example 4: CoreXT.Loader.getResourceTypeFromExtension(".js");
+      */
+    enum ResourceExtensions {
+        Application_Script,
+        Application_ECMAScript,
+        Application_JSON,
+        Application_ZIP,
+        Application_GZIP,
+        Application_PDF,
+        Application_TTF,
+        AUDIO_MP4,
+        AUDIO_MPEG,
+        AUDIO_OGG,
+        AUDIO_AAC,
+        AUDIO_CAF,
+        Image_GIF,
+        Image_JPEG,
+        Image_PNG,
+        Image_SVG,
+        Image_GIMP,
+        Text_CSS,
+        Text_CSV,
+        Text_HTML,
+        Text_Plain,
+        Text_RTF,
+        Text_XML,
+        Text_JQueryTemplate,
+        Text_MarkDown,
+        Video_AVI,
+        Video_MPEG,
+        Video_MP4,
+        Video_OGG,
+        Video_MOV,
+        Video_WMV,
+        Video_FLV
+    }
+    /** Return the resource (MIME) type of a given extension (with or without the period). */
+    function getResourceTypeFromExtension(ext: string): ResourceTypes;
+    /** Return the resource (MIME) type of a given extension type. */
+    function getResourceTypeFromExtension(ext: ResourceExtensions): ResourceTypes;
+    enum RequestStatuses {
+        /** The request has not been executed yet. */
+        Pending = 0,
+        /** The resource failed to load.  Check the request object for the error details. */
+        Error = 1,
+        /** The requested resource is loading. */
+        Loading = 2,
+        /** The requested resource has loaded (nothing more). */
+        Loaded = 3,
+        /** The requested resource is waiting on parent resources to complete. */
+        Waiting = 4,
+        /** The requested resource is ready to be used. */
+        Ready = 5,
+        /** The source is a script, and was executed (this only occurs on demand [not automatic]). */
+        Executed = 6
+    }
+    /**
+     * Returns true if the URL contains the specific action and controller names at the end of the URL path.
+     * This of course assumes typical routing patterns in the format '/controller/action' or '/area/controller/action'.
+     */
+    function isPage(action: string, controller?: string, area?: string): boolean;
+    /**
+     * Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups], where
+     * 'groups' index 0 is the full matched text, and 1 onwards are any matched groups).
+     */
+    function matches(regex: RegExp, text: string): string[][];
+    /** Used to strip out script source mappings. Used with 'extractSourceMapping()'. */
+    var SCRIPT_SOURCE_MAPPING_REGEX: RegExp;
+    /** Holds details on extract script pragmas. @See extractPragmas() */
+    class PragmaInfo {
+        prefix: string;
+        name: string;
+        value: string;
+        extras: string;
+        /**
+         * @param {string} prefix The "//#" part.
+         * @param {string} name The pragma name, such as 'sourceMappingURL'.
+         * @param {string} value The part after "=" in the pragma expression.
+         * @param {string} extras Any extras on the line (like comments) that are not part of the extracted value.
+         */
+        constructor(prefix: string, name: string, value: string, extras: string);
+        /**
+         * Make a string from this source map info.
+         * @param {string} valuePrefix An optional string to insert before the value, such as a sub-directory path, or missing protocol+server+port URL parts, etc.
+         * @param {string} valueSuffix An optional string to insert after the value.
+         */
+        toString(valuePrefix?: string, valueSuffix?: string): string;
+        valueOf(): string;
+    }
+    /** @See extractPragmas() */
+    interface IExtractedPragmaDetails {
+        /** The original source given to the function. */
+        originalSource: string;
+        /** The original source minus the extracted pragmas. */
+        filteredSource: string;
+        /** The extracted pragma information. */
+        pragmas: PragmaInfo[];
+    }
+    /**
+     * Extract any pragmas, such as source mapping. This is used mainly with XHR loading of scripts in order to execute them with
+     * source mapping support while being served from a CoreXT .Net Core MVC project.
+     */
+    function extractPragmas(src: string): IExtractedPragmaDetails;
+    /**
+     * Returns the base path based on the resource type.
+     */
+    function basePathFromResourceType(resourceType: string | ResourceTypes): string;
+    /**
+     * Converts the given value to a string and returns it.  'undefined' (void 0) and null become empty, string types are
+     * returned as is, and everything else will be converted to a string by calling 'toString()', or simply '""+value' if
+     * 'value.toString' is not a function. If for some reason a call to 'toString()' does not return a string the cycle
+     * starts over with the new value until a string is returned.
+     * Note: If no arguments are passed in (i.e. 'CoreXT.toString()'), then CoreXT.ROOT_NAMESPACE is returned, which should be the string "CoreXT".
+     */
+    function toString(value?: any): string;
+    /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
+    namespace System {
+        /** This namespace contains types and routines for data communication, URL handling, and page navigation. */
+        namespace IO {
+            /** Path/URL based utilities. */
+            namespace Path {
+                /** Parses the URL into 1: protocol (without '://'), 2: host, 3: port, 4: path, 5: query (without '?'), and 6: fragment (without '#'). */
+                var URL_PARSER_REGEX: RegExp;
+                class URLBuilder {
+                    /** Protocol (without '://'). */
+                    protocol: string;
+                    /** A username for login. */
+                    username: string;
+                    /** A password for login (not recommended!). */
+                    password: string;
+                    /** URL host. */
+                    hostName: string;
+                    /** Host port. */
+                    port: string;
+                    /** URL path. */
+                    path: string;
+                    /** Query (without '?'). */
+                    query: string;
+                    /** Fragment (without '#'). */
+                    fragment: string;
+                    constructor(
+                    /** Protocol (without '://'). */
+                    protocol: string, 
+                    /** A username for login. */
+                    username: string, 
+                    /** A password for login (not recommended!). */
+                    password: string, 
+                    /** URL host. */
+                    hostName: string, 
+                    /** Host port. */
+                    port: string, 
+                    /** URL path. */
+                    path: string, 
+                    /** Query (without '?'). */
+                    query: string, 
+                    /** Fragment (without '#'). */
+                    fragment: string);
+                    /** Returns only  host + port parts combined. */
+                    host(): string;
+                    /** Returns only the protocol + host + port parts combined. */
+                    origin(): string;
+                    /** Builds the full URL from the parts specified in this instance. */
+                    toString(): string;
+                    static fromLocation(): URLBuilder;
+                }
+                /** Parses the URL into 1: protocol (without '://'), 2: host, 3: port, 4: path, 5: query (without '?'), and 6: fragment (without '#'). */
+                function parse(url: string): URLBuilder;
+                /**
+                   * Appends 'path2' to 'path1', inserting a path separator character (/) if required.
+                   * Set 'normalizePathSeparators' to true to normalize any '\' path characters to '/' instead.
+                   */
+                function combine(path1: string, path2: string, normalizePathSeparators?: boolean): string;
+                /** Returns the protocol + host + port parts of the given absolute URL. */
+                function getRoot(absoluteURL: string | URLBuilder): string;
+                /**
+                   * Combines a path with either the base site path or a current alternative path. The following logic is followed for combining 'path':
+                   * 1. If it starts with '~/' or '~' is will be relative to 'baseURL'.
+                   * 2. If it starts with '/' it is relative to the server root 'protocol://server:port' (using current or base path, but with the path part ignored).
+                   * 3. If it starts without a path separator, or is empty, then it is combined as relative to 'currentResourceURL'.
+                   * Note: if 'currentResourceURL' is empty, then 'baseURL' is assumed.
+                   * @param {string} currentResourceURL An optional path that specifies a resource location to take into consideration when resolving relative paths.
+                   * If not specified, this is 'location.href' by default.
+                   * @param {string} baseURL An optional path that specifies the site's root URL.  By default this is 'CoreXT.baseURL'.
+                   */
+                function resolve(path: string, currentResourceURL?: string, baseURL?: string): string;
+                /** Fixes a URL by splitting it apart, trimming it, then recombining it along with a trailing forward slash (/) at the end. */
+                function fix(url: string): string;
+                /** Returns true if the specified extension is missing from the end of 'pathToFile'.
+                  * An exception is made if special characters are detected (such as "?" or "#"), in which case true is always returned, as the resource may be returned
+                  * indirectly via a server side script, or handled in some other special way).
+                  * @param {string} ext The extension to check for (with or without the preceding period [with preferred]).
+                  */
+                function hasFileExt(pathToFile: string, ext: string): boolean;
+                var QUERY_STRING_REGEX: RegExp;
+                const Query_base: {
+                    new (...args: any[]): {
+                        /** Set to true when the object is being disposed. By default this is undefined.  This is only set to true when 'dispose()' is first call to prevent cyclical calls. */
+                        $__disposing?: boolean;
+                        /** Set to true once the object is disposed. By default this is undefined, which means "not disposed".  This is only set to true when disposed, and false when reinitialized. */
+                        $__disposed?: boolean;
+                    };
+                    /** The underlying type associated with this factory type. */
+                    $__type: IType<object>;
+                    /** References the base factory. */
+                    readonly super: {};
+                    'new'?(...args: any[]): any;
+                    init?(o: object, isnew: boolean, ...args: any[]): void;
+                    /**
+                      * Called to register factory types with the internal types system (see also 'Types.__registerType()' for non-factory supported types).
+                      * Any static constructors defined will also be called at this point.
+                      *
+                      * @param {modules} namespace The parent namespace to the current type.
+                      * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
+                      * applied (using the IFunctionInfo interface).
+                     */
+                    $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
+                        $__type: TClass;
+                    }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
+                } & ObjectConstructor;
+                /** Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
+                  * pairs from a URI or 'location.search' string, and converting the object to a string results in a proper query/search string
+                  * with all values escaped and ready to be appended to a URI. */
+                class Query extends Query_base {
+                    /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
+                       * @param {string} searchString A URI or 'location.search' string.
+                       * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
+                       */
+                    static 'new': (...args: any[]) => IQuery;
+                    /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
+                       * @param {string} searchString A URI or 'location.search' string.
+                       * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
+                       */
+                    static init: (o: IQuery, isnew: boolean, searchString?: string, makeNamesLowercase?: boolean) => void;
+                }
+                namespace Query {
+                    class $__type extends Disposable {
+                        values: {
+                            [index: string]: string;
+                        };
+                        /** Use to add additional query string values. The function returns the current object to allow chaining calls.
+                            * Example: add({'name1':'value1', 'name2':'value2', ...});
+                            * Note: Use this to also change existing values.
+                            */
+                        addOrUpdate(newValues: {
+                            [index: string]: string;
+                        }): $__type;
+                        /** Use to rename a series of query parameter names.  The function returns the current object to allow chaining calls.
+                            * Example: rename({'oldName':'newName', 'oldname2':'newName2', ...});
+                            * Warning: If the new name already exists, it will be replaced.
+                            */
+                        rename(newNames: {
+                            [index: string]: string;
+                        }): $__type;
+                        /** Use to remove a series of query parameter names.  The function returns the current object to allow chaining calls.
+                            * Example: remove(['name1', 'name2', 'name3']);
+                            */
+                        remove(namesToDelete: string[]): IQuery;
+                        /** Creates and returns a duplicate of this object. */
+                        clone(): IQuery;
+                        appendTo(uri: string): string;
+                        /** Returns the specified value, or a default value if nothing was found. */
+                        getValue(name: string, defaultValueIfUndefined?: string): any;
+                        /** Returns the specified value as a lowercase string, or a default value (also made lowercase) if nothing was found. */
+                        getLCValue(name: string, defaultValueIfUndefined?: string): string;
+                        /** Returns the specified value as an uppercase string, or a default value (also made uppercase) if nothing was found. */
+                        getUCValue(name: string, defaultValueIfUndefined?: string): string;
+                        /** Returns the specified value as an uppercase string, or a default value (also made uppercase) if nothing was found. */
+                        getNumber(name: string, defaultValueIfUndefined?: number): number;
+                        /** Obfuscates the specified query value (to make it harder for end users to read naturally).  This is done using Base64 encoding.
+                            * The existing value is replaced by the encoded value, and the encoded value is returned.
+                            * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
+                            */
+                        encodeValue(name: string): string;
+                        /** De-obfuscates the specified query value (to make it harder for end users to read naturally).  This expects Base64 encoding.
+                            * The existing value is replaced by the decoded value, and the decoded value is returned.
+                            */
+                        decodeValue(name: string): string;
+                        /** Encode ALL query values (see 'encodeValue()').
+                            * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
+                            */
+                        encodeAll(): void;
+                        /** Decode ALL query values (see 'encodeValue()').
+                            * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
+                            */
+                        decodeAll(): void;
+                        /** Converts the underlying query values to a proper search string that can be appended to a URI. */
+                        toString(): string;
+                    }
+                }
+                interface IQuery extends Query.$__type {
+                }
+                function setLocation(url: string, includeExistingQuery?: boolean, bustCache?: boolean): void;
+                /**
+                 * Returns true if the page URL contains the given controller and action names (not case sensitive).
+                 * This only works with typical default routing of "{host}/Controller/Action/etc.".
+                 * @param action A controller action name.
+                 * @param controller A controller name (defaults to "home" if not specified)
+                 */
+                function isView(action: string, controller?: string): boolean;
+                /** This is set automatically to the query for the current page. */
+                var pageQuery: IQuery;
+            }
+            const ResourceRequest_base: {
+                new (...args: any[]): {
+                    /** Set to true when the object is being disposed. By default this is undefined.  This is only set to true when 'dispose()' is first call to prevent cyclical calls. */
+                    $__disposing?: boolean;
+                    /** Set to true once the object is disposed. By default this is undefined, which means "not disposed".  This is only set to true when disposed, and false when reinitialized. */
+                    $__disposed?: boolean;
+                };
+                /** The underlying type associated with this factory type. */
+                $__type: IType<object>;
+                /** References the base factory. */
+                readonly super: {};
+                'new'?(...args: any[]): any;
+                init?(o: object, isnew: boolean, ...args: any[]): void;
+                /**
+                  * Called to register factory types with the internal types system (see also 'Types.__registerType()' for non-factory supported types).
+                  * Any static constructors defined will also be called at this point.
+                  *
+                  * @param {modules} namespace The parent namespace to the current type.
+                  * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
+                  * applied (using the IFunctionInfo interface).
+                 */
+                $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
+                    $__type: TClass;
+                }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
+            } & ObjectConstructor;
+            /**
+             * Creates a new resource request object, which allows loaded resources using a "promise" style pattern (this is a custom
+             * implementation designed to work better with the CoreXT system specifically, and to support parallel loading).
+             * Note: It is advised to use 'CoreXT.Loader.loadResource()' to load resources instead of directly creating resource request objects.
+             * Inheritance note: When creating via the 'new' factory method, any already existing instance with the same URL will be returned,
+             * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
+             */
+            class ResourceRequest extends ResourceRequest_base {
+                /**
+                 * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
+                 * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+                 * Each resource request instance can also have its own value set separate from the global one.
+                 * Note: CoreXT has its own caching that uses the local storage, where supported.
+                 */
+                static cacheBusting: boolean;
+                /** See the 'cacheBusting' property. */
+                static cacheBustingVar: string;
+                /** Returns a new module object only - does not load it. */
+                static 'new': (...args: any[]) => IResourceRequest;
+                /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
+                static init: (o: IResourceRequest, isnew: boolean, url: string, type: ResourceTypes | string, async?: boolean) => void;
+            }
+            namespace ResourceRequest {
+                class $__type {
+                    private $__index;
+                    /** The requested resource URL. If the URL string starts with '~/' then it becomes relative to the content type base path. */
+                    url: string;
+                    /** The raw unresolved URL given for this resource. Use the 'url' property to resolve content roots when '~' is used. */
+                    _url: string;
+                    /** The requested resource type (to match against the server returned MIME type for data type verification). */
+                    type: ResourceTypes | string;
+                    /** The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
+                      * developers should be able to use it if necessary to further configure the request for advanced reasons.
+                      */
+                    _xhr: XMLHttpRequest;
+                    /** The raw data returned from the HTTP request.
+                      * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
+                      * the next call [see 'transformedData']).
+                      */
+                    data: any;
+                    /** Set to data returned from callback handlers as the 'data' property value gets transformed.
+                      * If no transformations were made, then the value in 'data' is returned.
+                      */
+                    readonly transformedData: any;
+                    private $__transformedData;
+                    /** The response code from the XHR response. */
+                    responseCode: number;
+                    /** The response code message from the XHR response. */
+                    responseMessage: string;
+                    /** The current request status. */
+                    status: RequestStatuses;
+                    /**
+                     * A progress/error message related to the status (may not be the same as the response message).
+                     * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
+                     */
+                    message: string;
+                    private _message;
+                    /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
+                    messageLog: string[];
+                    /**
+                     * If true (default), them this request is non-blocking, otherwise the calling script will be blocked until the request
+                     * completes loading.  Please note that no progress callbacks can occur during blocked operations (since the thread is
+                     * effectively 'paused' in this scenario).
+                     * Note: Depreciated: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests#Synchronous_request
+                     * "Starting with Gecko 30.0 (Firefox 30.0 / Thunderbird 30.0 / SeaMonkey 2.27), Blink 39.0, and Edge 13, synchronous requests on the main thread have been deprecated due to the negative effects to the user experience."
+                     */
+                    async: boolean;
+                    /**
+                     * If true (the default) then a '"_="+Date.now()' query item is added to make sure the browser never uses
+                     * the cache. To change the variable used, set the 'cacheBustingVar' property also.
+                     * Note: CoreXT has its own caching that uses the local storage, where supported.
+                     */
+                    cacheBusting: boolean;
+                    /** See the 'cacheBusting' property. */
+                    cacheBustingVar: string;
+                    private _onProgress;
+                    private _onReady;
+                    /** This is a list of all the callbacks waiting on the status of this request (such as on loaded or error).
+                    * There's also an 'on finally' which should execute on success OR failure, regardless.
+                    * For each entry, only ONE of any callback type will be set.
+                    */
+                    private _promiseChain;
+                    private _promiseChainIndex;
+                    /**
+                     * A list of parent requests that this request is depending upon.
+                     * When 'start()' is called, all parents are triggered to load first, working downwards.
+                     * Regardless of order, loading is in parallel asynchronously; however, the 'onReady' event will fire in the expected order.
+                     * */
+                    _parentRequests: IResourceRequest[];
+                    private _parentCompletedCount;
+                    _dependants: IResourceRequest[];
+                    private _paused;
+                    private _queueDoNext;
+                    private _queueDoError;
+                    private _requeueHandlersIfNeeded;
+                    /** Triggers a success or error callback after the resource loads, or fails to load. */
+                    then(success: IResultCallback<IResourceRequest>, error?: IErrorCallback<IResourceRequest>): this;
+                    /** Adds another request and makes it dependent on the current 'parent' request.  When all parent requests have completed,
+                      * the dependant request fires its 'onReady' event.
+                      * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
+                      */
+                    include<T extends IResourceRequest>(request: T): T;
+                    /**
+                     * Add a call-back handler for when the request completes successfully.
+                     * This event is triggered after the resource successfully loads and all callbacks in the promise chain get called.
+                     * @param handler
+                     */
+                    ready(handler: ICallback<IResourceRequest>): this;
+                    /** Adds a hook into the resource load progress event. */
+                    while(progressHandler: ICallback<IResourceRequest>): this;
+                    /** Call this anytime while loading is in progress to terminate the request early. An error event will be triggered as well. */
+                    abort(): void;
+                    /**
+                     * Provide a handler to catch any errors from this request.
+                     */
+                    catch(errorHandler: IErrorCallback<IResourceRequest>): this;
+                    /**
+                     * Provide a handler which should execute on success OR failure, regardless.
+                     */
+                    finally(cleanupHandler: ICallback<IResourceRequest>): this;
+                    /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
+                      * order).  Regardless of the start order, all scripts are loaded in parallel.
+                      * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
+                      */
+                    start(): this;
+                    private _Start;
+                    /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
+                    pause(): this;
+                    /** After calling 'pause()', use this function to re-queue the 'then' or 'ready' even chain for continuation.
+                      * Note: This queues on a timer with a 0 ms delay, and does not call any events before returning to the caller.
+                      */
+                    continue(): this;
+                    private _doOnProgress;
+                    setError(message: string, error?: {
+                        name?: string;
+                        message: string;
+                        stack?: string;
+                    }): void;
+                    private _doNext;
+                    private _doReady;
+                    private _doError;
+                    /** Resets the current resource data, and optionally all dependencies, and restarts the whole loading process.
+                      * Note: All handlers (including the 'progress' and 'ready' handlers) are cleared and will have to be reapplied (clean slate).
+                      * @param {boolean} includeDependentResources Reload all resource dependencies as well.
+                      */
+                    reload(includeDependentResources?: boolean): this;
+                }
+            }
+            interface IResourceRequest extends ResourceRequest.$__type {
+            }
+            /** Returns a load request promise-type object for a resource loading operation. */
+            function get(url: string, type?: ResourceTypes | string, asyc?: boolean): IResourceRequest;
+        }
+    }
+    /**
+     * Extracts and replaces source mapping pragmas. This is used mainly with XHR loading of scripts in order to execute them with
+     * source mapping support while being served from a CoreXT .Net Core MVC project.
+     */
+    function fixSourceMappingsPragmas(sourcePragmaInfo: IExtractedPragmaDetails, scriptURL: string): string;
     /**
      * Returns the base URL used by the system.  This can be configured by setting the global 'siteBaseURL' property, or if using CoreXT.JS for
      * .Net Core MVC, make sure '@RenderCoreXTJSConfigurations()' is called before all scripts in the header section of your layout view.
@@ -493,8 +1002,14 @@ declare namespace CoreXT {
      */
     var baseScriptsURL: string;
     /**
+     * Returns the base URL used by the system for loading scripts.  This can be configured by setting the global 'scriptBaseURL' property.
+     * If no 'siteBaseURL' global property exists, the current page location is assumed.
+     */
+    var baseCSSURL: string;
+    /**
      * This is set by default when '@RenderCoreXTJSConfigurations()' is called at the top of the layout page and a debugger is attached. It is
      * used to resolve source maps delivered through XHR while debugging.
+     * Typically the server side web root file path matches the same root as the http root path in 'baseURL'.
      */
     var serverWebRoot: string;
     /**
@@ -518,7 +1033,6 @@ declare namespace CoreXT {
         /** The time zone offset in milliseconds ({Date}.getTimezoneOffset() returns it in minutes). */
         var __localTimeZoneOffset: number;
     }
-    /** The System module is the based module for most developer related API operations, and is akin to the 'System' .NET namespace. */
     namespace System {
     }
     interface ICallback<TSender> {
@@ -532,7 +1046,7 @@ declare namespace CoreXT {
      * request failed, which would cascade the failure the current request as well).
      */
     interface IResultCallback<TSender> {
-        (sender?: TSender, data?: any): any | Loader.IResourceRequest;
+        (sender?: TSender, data?: any): any | System.IO.IResourceRequest;
     }
     interface IErrorCallback<TSender> {
         (sender?: TSender, error?: any): any;
@@ -555,285 +1069,13 @@ declare namespace CoreXT {
          * are dynamically loaded as needed (the CoreXT system uses the more efficient dynamic loading system).
          */
         function onSystemLoaded(handler: ISystemLoadHandler): void;
-        /** The most common mime types.  You can easily extend this enum with custom types, or force-cast strings to this type also. */
-        enum ResourceTypes {
-            Application_Script,
-            Application_ECMAScript,
-            Application_JSON,
-            Application_ZIP,
-            Application_GZIP,
-            Application_PDF,
-            Application_DefaultFormPost,
-            Application_TTF,
-            Multipart_BinaryFormPost,
-            AUDIO_MP4,
-            AUDIO_MPEG,
-            AUDIO_OGG,
-            AUDIO_AAC,
-            AUDIO_CAF,
-            Image_GIF,
-            Image_JPEG,
-            Image_PNG,
-            Image_SVG,
-            Image_GIMP,
-            Text_CSS,
-            Text_CSV,
-            Text_HTML,
-            Text_Plain,
-            Text_RTF,
-            Text_XML,
-            Text_JQueryTemplate,
-            Text_MarkDown,
-            Video_AVI,
-            Video_MPEG,
-            Video_MP4,
-            Video_OGG,
-            Video_MOV,
-            Video_WMV,
-            Video_FLV
-        }
-        /** A map of popular resource extensions to resource enum type names.
-          * Example 1: ResourceTypes[ResourceExtensions[ResourceExtensions.Application_Script]] === "application/javascript"
-          * Example 2: ResourceTypes[ResourceExtensions[<ResourceExtensions><any>'.JS']] === "application/javascript"
-          * Example 3: CoreXT.Loader.getResourceTypeFromExtension(ResourceExtensions.Application_Script);
-          * Example 4: CoreXT.Loader.getResourceTypeFromExtension(".js");
-          */
-        enum ResourceExtensions {
-            Application_Script,
-            Application_ECMAScript,
-            Application_JSON,
-            Application_ZIP,
-            Application_GZIP,
-            Application_PDF,
-            Application_TTF,
-            AUDIO_MP4,
-            AUDIO_MPEG,
-            AUDIO_OGG,
-            AUDIO_AAC,
-            AUDIO_CAF,
-            Image_GIF,
-            Image_JPEG,
-            Image_PNG,
-            Image_SVG,
-            Image_GIMP,
-            Text_CSS,
-            Text_CSV,
-            Text_HTML,
-            Text_Plain,
-            Text_RTF,
-            Text_XML,
-            Text_JQueryTemplate,
-            Text_MarkDown,
-            Video_AVI,
-            Video_MPEG,
-            Video_MP4,
-            Video_OGG,
-            Video_MOV,
-            Video_WMV,
-            Video_FLV
-        }
-        /** Return the resource (MIME) type of a given extension (with or without the period). */
-        function getResourceTypeFromExtension(ext: string): ResourceTypes;
-        /** Return the resource (MIME) type of a given extension type. */
-        function getResourceTypeFromExtension(ext: ResourceExtensions): ResourceTypes;
-        enum RequestStatuses {
-            /** The request has not been executed yet. */
-            Pending = 0,
-            /** The resource failed to load.  Check the request object for the error details. */
-            Error = 1,
-            /** The requested resource is loading. */
-            Loading = 2,
-            /** The requested resource has loaded (nothing more). */
-            Loaded = 3,
-            /** The requested resource is waiting on parent resources to complete. */
-            Waiting = 4,
-            /** The requested resource is ready to be used. */
-            Ready = 5,
-            /** The source is a script, and was executed (this only occurs on demand [not automatic]). */
-            Executed = 6
-        }
-        const ResourceRequest_base: {
-            new (...args: any[]): {
-                /** Set to true when the object is being disposed. By default this is undefined.  This is only set to true when 'dispose()' is first call to prevent cyclical calls. */
-                $__disposing?: boolean;
-                /** Set to true once the object is disposed. By default this is undefined, which means "not disposed".  This is only set to true when disposed, and false when reinitialized. */
-                $__disposed?: boolean;
-            };
-            /** The underlying type associated with this factory type. */
-            $__type: IType<object>;
-            /** References the base factory. */
-            readonly super: {};
-            'new'?(...args: any[]): any;
-            init?(o: object, isnew: boolean, ...args: any[]): void;
-            /**
-              * Called to register factory types with the internal types system (see also 'Types.__registerType()' for non-factory supported types).
-              * Any static constructors defined will also be called at this point.
-              *
-              * @param {modules} namespace The parent namespace to the current type.
-              * @param {boolean} addMemberTypeInfo If true (default), all member functions on the underlying class type will have type information
-              * applied (using the IFunctionInfo interface).
-             */
-            $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
-                $__type: TClass;
-            }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
-        /**
-         * Creates a new resource request object, which allows loaded resources using a "promise" style pattern (this is a custom
-         * implementation designed to work better with the CoreXT system specifically, and to support parallel loading).
-         * Note: It is advised to use 'CoreXT.Loader.loadResource()' to load resources instead of directly creating resource request objects.
-         * Inheritance note: When creating via the 'new' factory method, any already existing instance with the same URL will be returned,
-         * and NOT the new object instance.  For this reason, you should call 'loadResource()' instead.
-         */
-        class ResourceRequest extends ResourceRequest_base {
-            /**
-             * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
-             * the cache. To change the variable used, set the 'cacheBustingVar' property also.
-             * Each resource request instance can also have its own value set separate from the global one.
-             * Note: CoreXT has its own caching that uses the local storage, where supported.
-             */
-            static cacheBusting: boolean;
-            /** See the 'cacheBusting' property. */
-            static cacheBustingVar: string;
-            /** Returns a new module object only - does not load it. */
-            static 'new': (...args: any[]) => IResourceRequest;
-            /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
-            static init: (o: IResourceRequest, isnew: boolean, url: string, type: ResourceTypes | string, async?: boolean) => void;
-        }
-        namespace ResourceRequest {
-            class $__type {
-                private $__index;
-                /** The requested resource URL. */
-                _url: string;
-                url: string;
-                /** The requested resource type (to match against the server returned MIME type for data type verification). */
-                type: ResourceTypes | string;
-                /** The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
-                  * developers should be able to use it if necessary to further configure the request for advanced reasons.
-                  */
-                _xhr: XMLHttpRequest;
-                /** The raw data returned from the HTTP request.
-                  * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
-                  * the next call [see 'transformedData']).
-                  */
-                data: any;
-                /** Set to data returned from callback handlers as the 'data' property value gets transformed.
-                  * If no transformations were made, then the value in 'data' is returned.
-                  */
-                readonly transformedData: any;
-                private $__transformedData;
-                /** The response code from the XHR response. */
-                responseCode: number;
-                /** The response code message from the XHR response. */
-                responseMessage: string;
-                /** The current request status. */
-                status: RequestStatuses;
-                /**
-                 * A progress/error message related to the status (may not be the same as the response message).
-                 * Setting this property sets the local message and updates the local message log. Make sure to set 'this.status' first before setting a message.
-                 */
-                message: string;
-                private _message;
-                /** Includes the current message and all previous messages. Use this to trace any silenced errors in the request process. */
-                messageLog: string[];
-                /**
-                 * If true (default), them this request is non-blocking, otherwise the calling script will be blocked until the request
-                 * completes loading.  Please note that no progress callbacks can occur during blocked operations (since the thread is
-                 * effectively 'paused' in this scenario).
-                 * Note: Depreciated: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests#Synchronous_request
-                 * "Starting with Gecko 30.0 (Firefox 30.0 / Thunderbird 30.0 / SeaMonkey 2.27), Blink 39.0, and Edge 13, synchronous requests on the main thread have been deprecated due to the negative effects to the user experience."
-                 */
-                async: boolean;
-                /**
-                 * If true (the default) then a '"_="+Date.now()' query item is added to make sure the browser never uses
-                 * the cache. To change the variable used, set the 'cacheBustingVar' property also.
-                 * Note: CoreXT has its own caching that uses the local storage, where supported.
-                 */
-                cacheBusting: boolean;
-                /** See the 'cacheBusting' property. */
-                cacheBustingVar: string;
-                private _onProgress;
-                private _onReady;
-                /** This is a list of all the callbacks waiting on the status of this request (such as on loaded or error).
-                * There's also an 'on finally' which should execute on success OR failure, regardless.
-                * For each entry, only ONE of any callback type will be set.
-                */
-                private _promiseChain;
-                private _promiseChainIndex;
-                /**
-                 * A list of parent requests that this request is depending upon.
-                 * When 'start()' is called, all parents are triggered to load first, working downwards.
-                 * Regardless of order, loading is in parallel asynchronously; however, the 'onReady' event will fire in the expected order.
-                 * */
-                _parentRequests: IResourceRequest[];
-                private _parentCompletedCount;
-                _dependants: IResourceRequest[];
-                private _paused;
-                private _queueDoNext;
-                private _queueDoError;
-                private _requeueHandlersIfNeeded;
-                /** Triggers a success or error callback after the resource loads, or fails to load. */
-                then(success: IResultCallback<IResourceRequest>, error?: IErrorCallback<IResourceRequest>): this;
-                /** Adds another request and makes it dependent on the current 'parent' request.  When all parent requests have completed,
-                  * the dependant request fires its 'onReady' event.
-                  * Note: The given request is returned, and not the current context, so be sure to complete configurations before hand.
-                  */
-                include<T extends IResourceRequest>(request: T): T;
-                /**
-                 * Add a call-back handler for when the request completes successfully.
-                 * This event is triggered after the resource successfully loads and all callbacks in the promise chain get called.
-                 * @param handler
-                 */
-                ready(handler: ICallback<IResourceRequest>): this;
-                /** Adds a hook into the resource load progress event. */
-                while(progressHandler: ICallback<IResourceRequest>): this;
-                /** Call this anytime while loading is in progress to terminate the request early. An error event will be triggered as well. */
-                abort(): void;
-                /**
-                 * Provide a handler to catch any errors from this request.
-                 */
-                catch(errorHandler: IErrorCallback<IResourceRequest>): this;
-                /**
-                 * Provide a handler which should execute on success OR failure, regardless.
-                 */
-                finally(cleanupHandler: ICallback<IResourceRequest>): this;
-                /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
-                  * order).  Regardless of the start order, all scripts are loaded in parallel.
-                  * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
-                  */
-                start(): this;
-                private _Start;
-                /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
-                pause(): this;
-                /** After calling 'pause()', use this function to re-queue the 'then' or 'ready' even chain for continuation.
-                  * Note: This queues on a timer with a 0 ms delay, and does not call any events before returning to the caller.
-                  */
-                continue(): this;
-                private _doOnProgress;
-                setError(message: string, error?: {
-                    name?: string;
-                    message: string;
-                    stack?: string;
-                }): void;
-                private _doNext;
-                private _doReady;
-                private _doError;
-                /** Resets the current resource data, and optionally all dependencies, and restarts the whole loading process.
-                  * Note: All handlers (including the 'progress' and 'ready' handlers) are cleared and will have to be reapplied (clean slate).
-                  * @param {boolean} includeDependentResources Reload all resource dependencies as well.
-                  */
-                reload(includeDependentResources?: boolean): this;
-            }
-        }
-        interface IResourceRequest extends ResourceRequest.$__type {
-        }
-        /** Returns a load request promise-type object for a resource loading operation. */
-        function get(url: string, type?: ResourceTypes | string, asyc?: boolean): IResourceRequest;
         /** Used by the bootstrapper in applying system scripts as they become ready.
           * Applications should normally never use this, and instead use the 'modules' system in the 'CoreXT.Scripts' namespace for
           * script loading.
           */
-        function _SystemScript_onReady_Handler(request: IResourceRequest): void;
-        var BootSubPath: string;
+        function _SystemScript_onReady_Handler(request: System.IO.IResourceRequest): void;
+        /** This is the root path to the boot scripts for CoreXT.JS. The default starts with '~/' in order to be relative to 'baseScriptsURL'. */
+        var rootBootPath: string;
         /**
          * Starts loading the CoreXT system.  To prevent this from happening automatically simply set the CoreXT debug
          * mode before the CoreXT.js file runs: "CoreXT = { debugMode: 2 };" (see CoreXT.DebugModes.Debug_Wait)
