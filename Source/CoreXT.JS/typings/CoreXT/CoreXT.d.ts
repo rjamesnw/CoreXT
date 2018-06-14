@@ -404,7 +404,7 @@ declare namespace CoreXT {
      * @param {TBaseFactory} baseFactoryType The factory that this factory type derives from.
      * @param {TBaseType} staticBaseClass An optional base type to inherit static types from.
     */
-    function FactoryBase<TBaseFactory extends IFactory, TBaseType extends IType = typeof Object>(baseFactoryType?: TBaseFactory, staticBaseClass?: TBaseType): {
+    function FactoryBase<TBaseFactory extends IFactory, TBaseType extends IType = new () => object>(baseFactoryType?: TBaseFactory, staticBaseClass?: TBaseType): {
         new (...args: any[]): {
             /** Set to true when the object is being disposed. By default this is undefined.  This is only set to true when 'dispose()' is first call to prevent cyclical calls. */
             $__disposing?: boolean;
@@ -625,59 +625,86 @@ declare namespace CoreXT {
         namespace IO {
             /** Path/URL based utilities. */
             namespace Path {
-                /** Parses the URL into 1: protocol (without '://'), 2: host, 3: port, 4: path, 5: query (without '?'), and 6: fragment (without '#'). */
+                /** Parses the URL into 1: protocol (without '://'), 2: username, 3: password, 4: host, 5: port, 6: path, 7: query (without '?'), and 8: fragment (without '#'). */
                 var URL_PARSER_REGEX: RegExp;
-                class URLBuilder {
+                /** The result of 'Path.parse()', and also helps building URLs manually. */
+                class Uri {
                     /** Protocol (without '://'). */
-                    protocol: string;
-                    /** A username for login. */
-                    username: string;
-                    /** A password for login (not recommended!). */
-                    password: string;
+                    protocol?: string;
                     /** URL host. */
-                    hostName: string;
+                    hostName?: string;
                     /** Host port. */
-                    port: string;
+                    port?: string;
                     /** URL path. */
-                    path: string;
+                    path?: string;
                     /** Query (without '?'). */
-                    query: string;
+                    query?: string;
                     /** Fragment (without '#'). */
-                    fragment: string;
+                    fragment?: string;
+                    /** A username for login. Note: Depreciated, as stated in RFC 3986 3.2.1. */
+                    username?: string;
+                    /** A password for login (not recommended!). Note: Depreciated, as stated in RFC 3986 3.2.1. */
+                    password?: string;
                     constructor(
                     /** Protocol (without '://'). */
-                    protocol: string, 
-                    /** A username for login. */
-                    username: string, 
-                    /** A password for login (not recommended!). */
-                    password: string, 
+                    protocol?: string, 
                     /** URL host. */
-                    hostName: string, 
+                    hostName?: string, 
                     /** Host port. */
-                    port: string, 
+                    port?: string, 
                     /** URL path. */
-                    path: string, 
+                    path?: string, 
                     /** Query (without '?'). */
-                    query: string, 
+                    query?: string, 
                     /** Fragment (without '#'). */
-                    fragment: string);
+                    fragment?: string, 
+                    /** A username for login. Note: Depreciated, as stated in RFC 3986 3.2.1. */
+                    username?: string, // (see also: https://goo.gl/94ivpK)
+                    /** A password for login (not recommended!). Note: Depreciated, as stated in RFC 3986 3.2.1. */
+                    password?: string);
                     /** Returns only  host + port parts combined. */
                     host(): string;
                     /** Returns only the protocol + host + port parts combined. */
                     origin(): string;
-                    /** Builds the full URL from the parts specified in this instance. */
-                    toString(): string;
-                    static fromLocation(): URLBuilder;
+                    /**
+                       * Builds the full URL from the parts specified in this instance while also allowing to override parts.
+                       * @param {string} origin An optional origin that replaces the protocol+host+port part.
+                       * @param {string} path An optional path that replaces the current path property value on this instance.
+                       * @param {string} query An optional query that replaces the current query property value on this instance.
+                       * This value should not start with a '?', but if exists will be handled correctly.
+                       * @param {string} fragment An optional fragment that replaces the current fragment property value on this instance.
+                       * This value should not start with a '#', but if exists will be handled correctly.
+                       */
+                    toString(origin?: string, path?: string, query?: string, fragment?: string): string;
+                    /**
+                       * Assuming 'this.path' represents a path to a resource where the resource name is at the end of the path, this returns
+                       * the path to the resource (minus the resource name part).
+                       * For example, if the path is 'a/b/c' or 'a/b/c.ext' (etc.) then 'a/b/' is returned.
+                       * This is useful to help remove resource names, such as file names, from the end of a URL path.
+                       * @param {string} resourceName An optional resource name to append to the end of the resulting path.
+                       */
+                    getResourcePath(resourceName?: string): string;
+                    /**
+                       * Assuming 'this.path' represents a path to a resource where the resource name is at the end of the path, this returns
+                       * the path to the resource (minus the resource name part), and optionally appends a new 'resourceName' value.
+                       * For example, if the current Uri represents 'http://server/a/b/c?a=b#h' or 'http://server/a/b/c.ext?a=b#h' (etc.), and
+                       * 'resourceName' is "x", then 'http://server/a/b/x?a=b#h' is returned.
+                       * This is useful to help remove resource names, such as file names, from the end of a URL path.
+                       * @param {string} resourceName An optional name to append to the end of the resulting path.
+                       */
+                    getResourceURL(resourceName?: string): string;
+                    /** Returns a new Uri object that represents the 'window.location' object values. */
+                    static fromLocation(): Uri;
                 }
                 /** Parses the URL into 1: protocol (without '://'), 2: host, 3: port, 4: path, 5: query (without '?'), and 6: fragment (without '#'). */
-                function parse(url: string): URLBuilder;
+                function parse(url: string): Uri;
                 /**
                    * Appends 'path2' to 'path1', inserting a path separator character (/) if required.
                    * Set 'normalizePathSeparators' to true to normalize any '\' path characters to '/' instead.
                    */
                 function combine(path1: string, path2: string, normalizePathSeparators?: boolean): string;
                 /** Returns the protocol + host + port parts of the given absolute URL. */
-                function getRoot(absoluteURL: string | URLBuilder): string;
+                function getRoot(absoluteURL: string | Uri): string;
                 /**
                    * Combines a path with either the base site path or a current alternative path. The following logic is followed for combining 'path':
                    * 1. If it starts with '~/' or '~' is will be relative to 'baseURL'.
@@ -722,45 +749,51 @@ declare namespace CoreXT {
                     $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                         $__type: TClass;
                     }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-                } & ObjectConstructor;
-                /** Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
+                } & (new () => object);
+                /**
+                  * Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
                   * pairs from a URI or 'location.search' string, and converting the object to a string results in a proper query/search string
-                  * with all values escaped and ready to be appended to a URI. */
+                  * with all values escaped and ready to be appended to a URI.
+                  * Note: Call 'Query.new()' to create new instances.
+                  */
                 class Query extends Query_base {
                     /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
-                       * @param {string} searchString A URI or 'location.search' string.
+                       * @param {string|object} query A full URI string, a query string (such as 'location.search'), or an object to create query values from.
                        * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                        */
-                    static 'new': (...args: any[]) => IQuery;
+                    static 'new': (query?: string | object, makeNamesLowercase?: boolean) => IQuery;
                     /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
-                       * @param {string} searchString A URI or 'location.search' string.
+                       * @param {string|object} query A full URI string, a query string (such as 'location.search'), or an object to create query values from.
                        * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                        */
-                    static init: (o: IQuery, isnew: boolean, searchString?: string, makeNamesLowercase?: boolean) => void;
+                    static init: (o: IQuery, isnew: boolean, query?: string | object, makeNamesLowercase?: boolean) => void;
                 }
                 namespace Query {
                     class $__type extends Disposable {
                         values: {
                             [index: string]: string;
                         };
-                        /** Use to add additional query string values. The function returns the current object to allow chaining calls.
+                        /**
+                            * Use to add additional query string values. The function returns the current object to allow chaining calls.
                             * Example: add({'name1':'value1', 'name2':'value2', ...});
                             * Note: Use this to also change existing values.
+                            * @param {boolean} newValues An object whose properties will be added to the current query.
+                            * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                             */
-                        addOrUpdate(newValues: {
+                        addOrUpdate(newValues: object | {
                             [index: string]: string;
-                        }): $__type;
+                        }, makeNamesLowercase?: boolean): this;
                         /** Use to rename a series of query parameter names.  The function returns the current object to allow chaining calls.
                             * Example: rename({'oldName':'newName', 'oldname2':'newName2', ...});
                             * Warning: If the new name already exists, it will be replaced.
                             */
                         rename(newNames: {
                             [index: string]: string;
-                        }): $__type;
+                        }): this;
                         /** Use to remove a series of query parameter names.  The function returns the current object to allow chaining calls.
                             * Example: remove(['name1', 'name2', 'name3']);
                             */
-                        remove(namesToDelete: string[]): IQuery;
+                        remove(namesToDelete: string[]): this;
                         /** Creates and returns a duplicate of this object. */
                         clone(): IQuery;
                         appendTo(uri: string): string;
@@ -789,20 +822,31 @@ declare namespace CoreXT {
                             * Note: This is NOT encryption.  It is meant solely as a means to transmit values that may contain characters not supported for URI query values.
                             */
                         decodeAll(): void;
-                        /** Converts the underlying query values to a proper search string that can be appended to a URI. */
-                        toString(): string;
+                        /**
+                           * Converts the underlying query values to a proper search string that can be appended to a URI.
+                           * @param {boolean} addQuerySeparator If true (the default) prefixes '?' before the returned query string.
+                           */
+                        toString(addQuerySeparator?: boolean): string;
                     }
                 }
                 interface IQuery extends Query.$__type {
                 }
+                /**
+                   * Redirect the current page to another location.
+                   * @param {string} url The URL to redirect to.
+                   * @param {boolean} url If true, the current page query string is merged. The default is false,
+                   * @param {boolean} bustCache If true, the current page query string is merged. The default is false,
+                   */
                 function setLocation(url: string, includeExistingQuery?: boolean, bustCache?: boolean): void;
                 /**
-                 * Returns true if the page URL contains the given controller and action names (not case sensitive).
-                 * This only works with typical default routing of "{host}/Controller/Action/etc.".
-                 * @param action A controller action name.
-                 * @param controller A controller name (defaults to "home" if not specified)
-                 */
+                  * Returns true if the page URL contains the given controller and action names (not case sensitive).
+                  * This only works with typical default routing of "{host}/Controller/Action/etc.".
+                  * @param action A controller action name.
+                  * @param controller A controller name (defaults to "home" if not specified)
+                  */
                 function isView(action: string, controller?: string): boolean;
+                /** Subtracts the current site's base URL from the given URL and returns 'serverWebRoot' with the remained appended. */
+                function map(url: string): string;
                 /** This is set automatically to the query for the current page. */
                 var pageQuery: IQuery;
             }
@@ -830,7 +874,7 @@ declare namespace CoreXT {
                 $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                     $__type: TClass;
                 }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-            } & ObjectConstructor;
+            } & (new () => object);
             /**
              * Creates a new resource request object, which allows loaded resources using a "promise" style pattern (this is a custom
              * implementation designed to work better with the CoreXT system specifically, and to support parallel loading).
@@ -840,7 +884,7 @@ declare namespace CoreXT {
              */
             class ResourceRequest extends ResourceRequest_base {
                 /**
-                 * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
+                 * If true (the default) then a 'ResourceRequest.cacheBustingVar+"="+Date.now()' query item is added to make sure the browser never uses
                  * the cache. To change the variable used, set the 'cacheBustingVar' property also.
                  * Each resource request instance can also have its own value set separate from the global one.
                  * Note: CoreXT has its own caching that uses the local storage, where supported.
@@ -848,6 +892,7 @@ declare namespace CoreXT {
                 static cacheBusting: boolean;
                 /** See the 'cacheBusting' property. */
                 static cacheBustingVar: string;
+                private static _cacheBustingVar;
                 /** Returns a new module object only - does not load it. */
                 static 'new': (...args: any[]) => IResourceRequest;
                 /** Disposes this instance, sets all properties to 'undefined', and calls the constructor again (a complete reset). */
@@ -860,21 +905,34 @@ declare namespace CoreXT {
                     url: string;
                     /** The raw unresolved URL given for this resource. Use the 'url' property to resolve content roots when '~' is used. */
                     _url: string;
+                    /**
+                       * The HTTP request method to use, such as "GET" (the default), "POST", "PUT", "DELETE", etc.  Ignored for non-HTTP(S) URLs.
+                       *
+                       */
+                    method: string;
+                    /** Optional data to send with the request, such as for POST operations. */
+                    body: any;
+                    /** An optional username to pass to the XHR instance when opening the connecting. */
+                    username: string;
+                    /** An optional password to pass to the XHR instance when opening the connecting. */
+                    password: string;
                     /** The requested resource type (to match against the server returned MIME type for data type verification). */
                     type: ResourceTypes | string;
-                    /** The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
-                      * developers should be able to use it if necessary to further configure the request for advanced reasons.
-                      */
+                    /**
+                       * The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
+                       * developers should be able to use it if necessary to further configure the request for advanced reasons.
+                       */
                     _xhr: XMLHttpRequest;
-                    /** The raw data returned from the HTTP request.
-                      * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
-                      * the next call [see 'transformedData']).
+                    /**
+                       * The raw data returned from the HTTP request.
+                       * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
+                       * the next call [see 'transformedData']).
+                       */
+                    response: any;
+                    /** This gets set to data returned from callback handlers as the 'response' property value gets transformed.
+                      * If no transformations were made, then the value in 'response' is returned.
                       */
-                    data: any;
-                    /** Set to data returned from callback handlers as the 'data' property value gets transformed.
-                      * If no transformations were made, then the value in 'data' is returned.
-                      */
-                    readonly transformedData: any;
+                    readonly transformedResponse: any;
                     private $__transformedData;
                     /** The response code from the XHR response. */
                     responseCode: number;
@@ -951,11 +1009,16 @@ declare namespace CoreXT {
                      * Provide a handler which should execute on success OR failure, regardless.
                      */
                     finally(cleanupHandler: ICallback<IResourceRequest>): this;
-                    /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
-                      * order).  Regardless of the start order, all scripts are loaded in parallel.
-                      * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
-                      */
-                    start(): this;
+                    /**
+                       * Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
+                       * order).  Regardless of the start order, all scripts are loaded in parallel.
+                       * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
+                       * @param {string} method An optional method to override the default request method set in the 'method' property on this request instance.
+                       * @param {string} body Optional payload data to send, which overrides any value set in the 'payload' property on this request instance.
+                       * @param {string} username Optional username value, instead of storing the username in the instance.
+                       * @param {string} password Optional password value, instead of storing the password in the instance.
+                       */
+                    start(method?: string, body?: string, username?: string, password?: string): this;
                     private _Start;
                     /** Upon return, the 'then' or 'ready' event chain will pause until 'continue()' is called. */
                     pause(): this;
@@ -981,7 +1044,7 @@ declare namespace CoreXT {
             }
             interface IResourceRequest extends ResourceRequest.$__type {
             }
-            /** Returns a load request promise-type object for a resource loading operation. */
+            /** A shortcut for returning a load request promise-type object for a resource loading operation. */
             function get(url: string, type?: ResourceTypes | string, asyc?: boolean): IResourceRequest;
         }
     }

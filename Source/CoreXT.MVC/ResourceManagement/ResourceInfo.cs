@@ -297,7 +297,7 @@ namespace CoreXT.MVC.ResourceManagement
             if (ContentVersion == null || string.IsNullOrWhiteSpace(uri)) return uri;
             uri = uri.TrimEnd('?', '&');
             var delimiter = uri.Contains("?") ? "&" : "?";
-            return Strings.Append(uri, "_v_=" + GetVersion(urlHelper, uri), delimiter);
+            return Strings.Append(uri, "_v_=" + GetVersion(urlHelper, uri), delimiter); // (note: `ResourceRequest.cacheBustingVar` should be set to this as well)
         }
 
         /// <summary>

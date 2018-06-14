@@ -40,7 +40,7 @@ declare namespace CoreXT.System.Platform {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     class PropertyEventBase extends PropertyEventBase_base {
         /**
            * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
@@ -101,7 +101,7 @@ declare namespace CoreXT.System.Platform {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     class StaticProperty extends StaticProperty_base {
         /**
            * Creates a new basic GraphNode type.  A graph node is the base type for all UI related elements.  It is a logical
@@ -142,7 +142,7 @@ declare namespace CoreXT.System.Platform {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /** Represents a GraphItem instance property which holds a reference to the related static property information, and also stores the current instance value. */
     class Property extends Property_base {
         static 'new'(owner: IPropertyEventBase, staticProperty: IStaticProperty, value: any): IProperty;

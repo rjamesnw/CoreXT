@@ -23,7 +23,7 @@ declare namespace CoreXT.System.Collections {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /** Holds an array of items, and implements notification functionality for when the collection changes. */
     class ObservableCollection extends ObservableCollection_base {
         static 'new'<TOwner extends object, T>(...items: T[]): IObservableCollection<TOwner, T>;

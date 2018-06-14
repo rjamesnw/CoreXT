@@ -14,7 +14,7 @@ declare namespace CoreXT.System {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         class LogItem extends LogItem_base {
             static 'new'(parent: ILogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): ILogItem;
             static init(o: ILogItem, isnew: boolean, parent: ILogItem, title: string, message: string, type?: LogTypes, outputToConsole?: boolean): void;

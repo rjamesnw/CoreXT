@@ -11,7 +11,7 @@ declare namespace CoreXT.System {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /**
      * The Exception object is used to record information about errors that occur in an application.
      * Note: Creating an exception object automatically creates a corresponding log entry, unless the 'log' parameter is set to false.

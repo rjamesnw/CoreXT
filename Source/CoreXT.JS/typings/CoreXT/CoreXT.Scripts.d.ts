@@ -42,7 +42,7 @@ declare namespace CoreXT {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         class ScriptResource extends ScriptResource_base {
             /** Returns a new module object only - does not load it. */
             static 'new': (url: string) => IScriptResource;
@@ -80,7 +80,7 @@ declare namespace CoreXT {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /**
         * Represents a loaded manifest that describes some underlying resource (typically JavaScript).
         * 'Manifest' inherits from 'ScriptResource', providing the loaded manifests the ability to register globals for the
@@ -146,7 +146,7 @@ declare namespace CoreXT {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Contains static module properties and functions. */
         class Module extends Module_base {
             /** Returns a new module object only - does not load it. */

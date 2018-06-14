@@ -185,7 +185,7 @@ var CoreXT;
                     }
                 }
             }).ready(function (manifestRequest) {
-                var script = manifestRequest.transformedData;
+                var script = manifestRequest.transformedResponse;
                 // ... before we execute the script we need to move down any source mapping pragmas ...
                 var sourcePragmaInfo = CoreXT.extractPragmas(script);
                 script = sourcePragmaInfo.filteredSource + "\r\n" + sourcePragmaInfo.pragmas.join("\r\n");
@@ -288,11 +288,11 @@ var CoreXT;
                                 dep.execute();
                         var accessors;
                         if (useGlobalScope) {
-                            this._moduleGlobalAccessors = (CoreXT.globalEval(this.data), $__type._globalaccessors); // (use the global accessors, as the module was run in the global scope)
+                            this._moduleGlobalAccessors = (CoreXT.globalEval(this.response), $__type._globalaccessors); // (use the global accessors, as the module was run in the global scope)
                         }
                         else {
                             var tsHelpers = CoreXT.renderHelperVarDeclarations("arguments[3]");
-                            this.$__modFunc = new Function("CoreXT", "module", "exports", tsHelpers[0] + this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
+                            this.$__modFunc = new Function("CoreXT", "module", "exports", tsHelpers[0] + this.response + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
                             this._moduleGlobalAccessors = this.$__modFunc(CoreXT, this, this.exports, tsHelpers); // (note that 'this.' effectively prevents polluting the global scope in case 'this' is used)
                         }
                         this.getVar = this._moduleGlobalAccessors.get;

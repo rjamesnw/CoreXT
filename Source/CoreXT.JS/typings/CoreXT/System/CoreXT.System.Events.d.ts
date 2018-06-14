@@ -35,7 +35,7 @@ declare namespace CoreXT {
                 $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                     $__type: TClass;
                 }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-            } & ObjectConstructor;
+            } & (new () => object);
             /**
               * The EventDispatcher wraps a specific event type, and manages the triggering of "handlers" (callbacks) when that event type
               * must be dispatched. Events are usually registered as static properties first (to prevent having to create and initialize
@@ -200,7 +200,7 @@ declare namespace CoreXT {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         class EventObject extends EventObject_base {
             /**
             * Constructs a new Delegate object.

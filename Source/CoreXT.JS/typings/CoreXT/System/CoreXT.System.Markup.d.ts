@@ -29,7 +29,7 @@ declare namespace CoreXT.System {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Used to parse HTML text.
           * Performance note: Since HTML can be large, it's not efficient to scan the HTML character by character. Instead, the HTML reader uses the native
           * RegEx engine to split up the HTML into chunks of delimiter text, which makes reading it much faster.

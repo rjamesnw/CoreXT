@@ -1314,7 +1314,7 @@ namespace CoreXT { // (the core scope)
      * @param {TBaseFactory} baseFactoryType The factory that this factory type derives from.
      * @param {TBaseType} staticBaseClass An optional base type to inherit static types from.
     */
-    export function FactoryBase<TBaseFactory extends IFactory, TBaseType extends IType = typeof Object>
+    export function FactoryBase<TBaseFactory extends IFactory, TBaseType extends IType = new () => object>
         (baseFactoryType?: TBaseFactory, staticBaseClass?: TBaseType) {
 
         if (typeof staticBaseClass != 'function')
@@ -1747,54 +1747,102 @@ namespace CoreXT { // (the core scope)
                 namespace(() => CoreXT.System.IO.Path);
                 // ==========================================================================================================================
 
-                /** Parses the URL into 1: protocol (without '://'), 2: host, 3: port, 4: path, 5: query (without '?'), and 6: fragment (without '#'). */
-                export var URL_PARSER_REGEX = /^[\t\f\v ]*(?:(?:(?:(\w+):\/\/|\/\/)([^#?/:~\r\n]*))(?::(\d*))?)?([^#?\r\n]+)?(?:\?([^#\r\n]*))?(?:\#(.*))?/m;
-                // (testing: https://regex101.com/r/8qnEdP/4)
-                
-                export class URLBuilder { // TODO: Make URL builder?
+                /** Parses the URL into 1: protocol (without '://'), 2: username, 3: password, 4: host, 5: port, 6: path, 7: query (without '?'), and 8: fragment (without '#'). */
+                export var URL_PARSER_REGEX = /^[\t\f\v ]*(?:(?:(?:(\w+):\/\/|\/\/)(?:(.*?)(?::(.*?))?@)?([^#?/:~\r\n]*))(?::(\d*))?)?([^#?\r\n]+)?(?:\?([^#\r\n]*))?(?:\#(.*))?/m;
+                // (testing: https://regex101.com/r/8qnEdP/5)
+
+                /** The result of 'Path.parse()', and also helps building URLs manually. */
+                export class Uri { // TODO: Make URL builder?
                     constructor(
                         /** Protocol (without '://'). */
-                        public protocol: string,
-                        /** A username for login. */
-                        public username: string,
-                        /** A password for login (not recommended!). */
-                        public password: string,
+                        public protocol?: string,
                         /** URL host. */
-                        public hostName: string,
+                        public hostName?: string,
                         /** Host port. */
-                        public port: string,
+                        public port?: string,
                         /** URL path. */
-                        public path: string,
+                        public path?: string,
                         /** Query (without '?'). */
-                        public query: string,
+                        public query?: string,
                         /** Fragment (without '#'). */
-                        public fragment: string) {
+                        public fragment?: string,
+                        /** A username for login. Note: Depreciated, as stated in RFC 3986 3.2.1. */
+                        public username?: string, // (see also: https://goo.gl/94ivpK)
+                        /** A password for login (not recommended!). Note: Depreciated, as stated in RFC 3986 3.2.1. */
+                        public password?: string) {
+
+                        if (typeof protocol != 'string') protocol = CoreXT.toString(protocol);
+                        if (typeof hostName != 'string') hostName = CoreXT.toString(hostName);
+                        if (typeof port != 'string') port = CoreXT.toString(port);
+                        if (typeof path != 'string') path = CoreXT.toString(path);
+                        if (typeof query != 'string') query = CoreXT.toString(query);
+                        if (typeof fragment != 'string') fragment = CoreXT.toString(fragment);
+                        if (typeof username != 'string') username = CoreXT.toString(username);
+                        if (typeof password != 'string') password = CoreXT.toString(password);
                     }
 
                     /** Returns only  host + port parts combined. */
-                    host() { return "" + this.hostName + (this.port ? ":" + this.port : ""); }
+                    host() { return "" + (this.username ? this.username + (this.password ? ":" + this.password : "") + "@" : "") + (this.hostName || "") + (this.port ? ":" + this.port : ""); }
 
                     /** Returns only the protocol + host + port parts combined. */
-                    origin() { return "" + (this.protocol ? this.protocol + "://" : "//") + this.host() + "/"; }
-
-                    /** Builds the full URL from the parts specified in this instance. */
-                    toString() {
-                        // TODO: consider an option to auto-removed default ports based on protocols.
-                        return combine(this.origin(), this.path)
-                            + (this.query ? "?" + this.query : "")
-                            + (this.fragment ? "#" + this.fragment : "");
+                    origin() {
+                        var p = this.protocol ? this.protocol + ":" : "", h = this.host();
+                        return p + (h || p ? "//" + h + "/" : "");
                     }
 
+                    /**
+                       * Builds the full URL from the parts specified in this instance while also allowing to override parts.
+                       * @param {string} origin An optional origin that replaces the protocol+host+port part.
+                       * @param {string} path An optional path that replaces the current path property value on this instance.
+                       * @param {string} query An optional query that replaces the current query property value on this instance.
+                       * This value should not start with a '?', but if exists will be handled correctly.
+                       * @param {string} fragment An optional fragment that replaces the current fragment property value on this instance.
+                       * This value should not start with a '#', but if exists will be handled correctly.
+                       */
+                    toString(origin?: string, path?: string, query?: string, fragment?: string) {
+                        // TODO: consider an option to auto-removed default ports based on protocols.
+                        origin = origin && toString(origin) || this.origin();
+                        path = path && toString(path) || this.path;
+                        query = query && toString(query) || this.query;
+                        fragment = fragment && toString(fragment) || this.fragment;
+                        if (query.charAt(0) == '?') query = query.substr(1);
+                        if (fragment.charAt(0) == '#') fragment = fragment.substr(1);
+                        return combine(origin, path) + (query ? "?" + query : "") + (fragment ? "#" + fragment : "");
+                    }
+
+                    /** 
+                       * Assuming 'this.path' represents a path to a resource where the resource name is at the end of the path, this returns
+                       * the path to the resource (minus the resource name part).
+                       * For example, if the path is 'a/b/c' or 'a/b/c.ext' (etc.) then 'a/b/' is returned.
+                       * This is useful to help remove resource names, such as file names, from the end of a URL path.
+                       * @param {string} resourceName An optional resource name to append to the end of the resulting path.
+                       */
+                    getResourcePath(resourceName?: string) {
+                        var m = (this.path || "").match(/.*[\/\\]/);
+                        return (m && m[0] || "") + (resourceName !== void 0 && resourceName !== null ? toString(resourceName) : "");
+                    }
+
+                    /** 
+                       * Assuming 'this.path' represents a path to a resource where the resource name is at the end of the path, this returns
+                       * the path to the resource (minus the resource name part), and optionally appends a new 'resourceName' value.
+                       * For example, if the current Uri represents 'http://server/a/b/c?a=b#h' or 'http://server/a/b/c.ext?a=b#h' (etc.), and
+                       * 'resourceName' is "x", then 'http://server/a/b/x?a=b#h' is returned.
+                       * This is useful to help remove resource names, such as file names, from the end of a URL path.
+                       * @param {string} resourceName An optional name to append to the end of the resulting path.
+                       */
+                    getResourceURL(resourceName?: string) { return this.toString(void 0, this.getResourcePath(resourceName)); }
+
+                    /** Returns a new Uri object that represents the 'window.location' object values. */
                     static fromLocation() {
-                        return new URLBuilder(
+                        return new Uri(
                             location.protocol,
-                            (<any>location).username,
-                            (<any>location).password,
                             location.hostname,
                             location.port,
                             location.pathname,
                             location.search.substr(1),
-                            location.hash.substr(1)
+                            location.hash.substr(1),
+                            (<any>location).username,
+                            (<any>location).password
                         );
                     }
                 }
@@ -1803,16 +1851,17 @@ namespace CoreXT { // (the core scope)
                 export function parse(url: string) {
                     if (typeof url != 'string') url = toString(url);
                     var m = url.match(URL_PARSER_REGEX);
-                    return m && new URLBuilder(
+                    return m && new Uri(
                         (m[1] || "").trim(),
-                        void 0, void 0,
-                        (m[2] || "").trim(),
-                        (+(m[3] || "").trim() || "").toString(),
                         (m[4] || "").trim(),
-                        (m[5] || "").trim(),
-                        (m[6] || "").trim()
+                        (+(m[5] || "").trim() || "").toString(),
+                        (m[6] || "").trim(),
+                        (m[7] || "").trim(),
+                        (m[8] || "").trim(),
+                        (m[2] || "").trim(),
+                        (m[3] || "").trim()
                     ) || // (just in case it fails somehow...)
-                        new URLBuilder(void 0, void 0, void 0, void 0, void 0, url, void 0, void 0); // (returns the url as is if this is not a proper absolute path)
+                        new Uri(void 0, void 0, void 0, url); // (returns the url as is if this is not a proper absolute path)
                 }
 
                 /**
@@ -1831,8 +1880,8 @@ namespace CoreXT { // (the core scope)
                 }
 
                 /** Returns the protocol + host + port parts of the given absolute URL. */
-                export function getRoot(absoluteURL: string | URLBuilder) {
-                    return (absoluteURL instanceof URLBuilder ? absoluteURL : parse(absoluteURL)).origin();
+                export function getRoot(absoluteURL: string | Uri) {
+                    return (absoluteURL instanceof Uri ? absoluteURL : parse(absoluteURL)).origin();
                 }
 
                 /** 
@@ -1848,6 +1897,7 @@ namespace CoreXT { // (the core scope)
                 export function resolve(path: string, currentResourceURL = location.href, baseURL = CoreXT.baseURL) {
                     baseURL = toString(baseURL).trim();
                     currentResourceURL = toString(currentResourceURL).trim();
+                    if (currentResourceURL) currentResourceURL = parse(currentResourceURL).getResourceURL();
                     path = toString(path).trim();
                     if (!path) return currentResourceURL || baseURL;
                     if (path.charAt(0) == '/' || path.charAt(0) == '\\') {
@@ -1887,20 +1937,23 @@ namespace CoreXT { // (the core scope)
 
                 export var QUERY_STRING_REGEX: RegExp = /[?|&][a-zA-Z0-9-._]+(?:=[^&#$]*)?/gi;
 
-                /** Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
+                /** 
+                  * Helps wrap common functionality for query/search string manipulation.  An internal 'values' object stores the 'name:value'
                   * pairs from a URI or 'location.search' string, and converting the object to a string results in a proper query/search string
-                  * with all values escaped and ready to be appended to a URI. */
+                  * with all values escaped and ready to be appended to a URI.
+                  * Note: Call 'Query.new()' to create new instances.
+                  */
                 export class Query extends FactoryBase() {
                     /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
-                       * @param {string} searchString A URI or 'location.search' string.
+                       * @param {string|object} query A full URI string, a query string (such as 'location.search'), or an object to create query values from.
                        * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                        */
-                    static 'new': (...args: any[]) => IQuery;
+                    static 'new': (query?: string | object, makeNamesLowercase?: boolean) => IQuery;
                     /** Helps to build an object of 'name:value' pairs from a URI or 'location.search' string.
-                       * @param {string} searchString A URI or 'location.search' string.
+                       * @param {string|object} query A full URI string, a query string (such as 'location.search'), or an object to create query values from.
                        * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                        */
-                    static init: (o: IQuery, isnew: boolean, searchString?: string, makeNamesLowercase?: boolean) => void;
+                    static init: (o: IQuery, isnew: boolean, query?: string | object, makeNamesLowercase?: boolean) => void;
                 }
                 export namespace Query {
                     export class $__type extends Disposable {
@@ -1910,14 +1963,17 @@ namespace CoreXT { // (the core scope)
 
                         // ----------------------------------------------------------------------------------------------------------------
 
-                        /** Use to add additional query string values. The function returns the current object to allow chaining calls.
+                        /** 
+                            * Use to add additional query string values. The function returns the current object to allow chaining calls.
                             * Example: add({'name1':'value1', 'name2':'value2', ...});
                             * Note: Use this to also change existing values.
+                            * @param {boolean} newValues An object whose properties will be added to the current query.
+                            * @param {boolean} makeNamesLowercase If true, then all query names are made lower case when parsing (the default is false).
                             */
-                        addOrUpdate(newValues: { [index: string]: string }): $__type {
+                        addOrUpdate(newValues: object | { [index: string]: string }, makeNamesLowercase = false) {
                             if (newValues)
                                 for (var pname in newValues)
-                                    this.values[pname] = newValues[pname];
+                                    this.values[makeNamesLowercase ? pname.toLocaleLowerCase() : pname] = newValues[pname];
                             return this;
                         }
 
@@ -1927,7 +1983,7 @@ namespace CoreXT { // (the core scope)
                             * Example: rename({'oldName':'newName', 'oldname2':'newName2', ...});
                             * Warning: If the new name already exists, it will be replaced.
                             */
-                        rename(newNames: { [index: string]: string }): $__type {
+                        rename(newNames: { [index: string]: string }) {
                             for (var pname in this.values)
                                 for (var pexistingname in newNames)
                                     if (pexistingname == pname && newNames[pexistingname] && newNames[pexistingname] != pname) { // (&& make sure the new name is actually different)
@@ -1942,7 +1998,7 @@ namespace CoreXT { // (the core scope)
                         /** Use to remove a series of query parameter names.  The function returns the current object to allow chaining calls.
                             * Example: remove(['name1', 'name2', 'name3']);
                             */
-                        remove(namesToDelete: string[]): IQuery {
+                        remove(namesToDelete: string[]) {
                             if (namesToDelete && namesToDelete.length)
                                 for (var i = 0, n = namesToDelete.length; i < n; ++i)
                                     if (this.values[namesToDelete[i]])
@@ -2039,33 +2095,40 @@ namespace CoreXT { // (the core scope)
 
                         // ---------------------------------------------------------------------------------------------------------------
 
-                        /** Converts the underlying query values to a proper search string that can be appended to a URI. */
-                        toString(): string {
+                        /** 
+                           * Converts the underlying query values to a proper search string that can be appended to a URI.
+                           * @param {boolean} addQuerySeparator If true (the default) prefixes '?' before the returned query string.
+                           */
+                        toString(addQuerySeparator = true): string {
                             var qstr = "";
                             for (var pname in this.values)
                                 if (this.values[pname] !== void 0)
-                                    qstr += (qstr ? "&" : "?") + encodeURIComponent(pname) + "=" + encodeURIComponent(this.values[pname]);
-                            return qstr;
+                                    qstr += (qstr ? "&" : "") + encodeURIComponent(pname) + "=" + encodeURIComponent(this.values[pname]);
+                            return (addQuerySeparator ? "?" : "") + qstr;
                         }
 
                         // ---------------------------------------------------------------------------------------------------------------
 
                         private static [constructor](factory: typeof Query) {
-                            factory.init = (o, isnew, searchString = null, makeNamesLowercase = false) => {
-                                if (searchString) {
-                                    var nameValuePairs = searchString.match(QUERY_STRING_REGEX);
-                                    var i: number, n: number, eqIndex: number, nameValue: string;
-                                    if (nameValuePairs)
-                                        for (var i = 0, n = nameValuePairs.length; i < n; ++i) {
-                                            nameValue = nameValuePairs[i];
-                                            eqIndex = nameValue.indexOf('='); // (need to get first instance of the '=' char)
-                                            if (eqIndex == -1) eqIndex = nameValue.length; // (whole string is the name)
-                                            if (makeNamesLowercase)
-                                                o.values[decodeURIComponent(nameValue).substring(1, eqIndex).toLowerCase()] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
-                                            else
-                                                o.values[decodeURIComponent(nameValue).substring(1, eqIndex)] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
-                                        }
-                                }
+                            factory.init = (o, isnew, query = null, makeNamesLowercase = false) => {
+                                if (query)
+                                    if (typeof query == 'object')
+                                        o.addOrUpdate(query, makeNamesLowercase);
+                                    else {
+                                        if (typeof query != 'string') query = toString(query);
+                                        var nameValuePairs = query.match(QUERY_STRING_REGEX);
+                                        var i: number, n: number, eqIndex: number, nameValue: string;
+                                        if (nameValuePairs)
+                                            for (var i = 0, n = nameValuePairs.length; i < n; ++i) {
+                                                nameValue = nameValuePairs[i];
+                                                eqIndex = nameValue.indexOf('='); // (need to get first instance of the '=' char)
+                                                if (eqIndex == -1) eqIndex = nameValue.length; // (whole string is the name)
+                                                if (makeNamesLowercase)
+                                                    o.values[decodeURIComponent(nameValue).substring(1, eqIndex).toLowerCase()] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
+                                                else
+                                                    o.values[decodeURIComponent(nameValue).substring(1, eqIndex)] = decodeURIComponent(nameValue.substring(eqIndex + 1)); // (note: the RegEx match always includes a delimiter)
+                                            }
+                                    }
                             };
                         }
                     }
@@ -2080,27 +2143,48 @@ namespace CoreXT { // (the core scope)
                 //! if (pageQuery.getValue('debug', '') == 'true') Diagnostics.debug = Diagnostics.DebugModes.Debug_Run; // (only allow this on the sandbox and development servers)
                 //! var demo = demo || pageQuery.getValue('demo', '') == 'true'; // (only allow this on the sandbox and development servers)
 
+                /** 
+                   * Redirect the current page to another location.
+                   * @param {string} url The URL to redirect to.
+                   * @param {boolean} url If true, the current page query string is merged. The default is false,
+                   * @param {boolean} bustCache If true, the current page query string is merged. The default is false,
+                   */
                 export function setLocation(url: string, includeExistingQuery = false, bustCache = false) {
                     var query = Query.new(url);
-                    if (bustCache) query.values['_'] = new Date().getTime().toString();
+                    if (bustCache) query.values[ResourceRequest.cacheBustingVar] = Date.now().toString();
                     if (includeExistingQuery)
                         query.addOrUpdate(pageQuery.values);
                     if (url.charAt(0) == '/')
                         url = resolve(url);
                     url = query.appendTo(url);
                     query.dispose();
-                    wait();
+                    if (wait)
+                        wait();
                     setTimeout(() => { location.href = url; }, 1); // (let events finish before setting)
                 }
 
+                // ==========================================================================================================================
+
                 /**
-                 * Returns true if the page URL contains the given controller and action names (not case sensitive).
-                 * This only works with typical default routing of "{host}/Controller/Action/etc.".
-                 * @param action A controller action name.
-                 * @param controller A controller name (defaults to "home" if not specified)
-                 */
+                  * Returns true if the page URL contains the given controller and action names (not case sensitive).
+                  * This only works with typical default routing of "{host}/Controller/Action/etc.".
+                  * @param action A controller action name.
+                  * @param controller A controller name (defaults to "home" if not specified)
+                  */
                 export function isView(action: string, controller = "home"): boolean {
                     return new RegExp("^\/" + controller + "\/" + action + "(?:[\/?&#])?", "gi").test(location.pathname);
+                }
+
+                // ==========================================================================================================================
+
+                /** Subtracts the current site's base URL from the given URL and returns 'serverWebRoot' with the remained appended. */
+                export function map(url: string) {
+                    if (url.substr(0, CoreXT.baseURL.length).toLocaleLowerCase() == CoreXT.baseURL.toLocaleLowerCase()) {
+                        // TODO: Make this more robust by parsing and checked individual URL parts properly (like default vs explicit ports in the URL).
+                        var subpath = url.substr(CoreXT.baseURL.length);
+                        return combine(CoreXT.serverWebRoot, subpath);
+                    }
+                    else return parse(url).toString(CoreXT.serverWebRoot); // (the origin is not the same, so just assume everything after the URL's origin is the path)
                 }
 
                 // ==========================================================================================================================
@@ -2122,7 +2206,7 @@ namespace CoreXT { // (the core scope)
              */
             export class ResourceRequest extends FactoryBase() {
                 /** 
-                 * If true (the default) then a '"_v_="+Date.now()' query item is added to make sure the browser never uses
+                 * If true (the default) then a 'ResourceRequest.cacheBustingVar+"="+Date.now()' query item is added to make sure the browser never uses
                  * the cache. To change the variable used, set the 'cacheBustingVar' property also.
                  * Each resource request instance can also have its own value set separate from the global one.
                  * Note: CoreXT has its own caching that uses the local storage, where supported.
@@ -2130,7 +2214,9 @@ namespace CoreXT { // (the core scope)
                 static cacheBusting = true;
 
                 /** See the 'cacheBusting' property. */
-                static cacheBustingVar = '_v_'; // (note: ResourceInfo.cs uses this same default)
+                static get cacheBustingVar() { return this._cacheBustingVar || '_v_'; }; // (note: ResourceInfo.cs uses this same default)
+                static set cacheBustingVar(value) { this._cacheBustingVar = toString(value) || '_v_'; };
+                private static _cacheBustingVar = '_v_';
 
                 /** Returns a new module object only - does not load it. */
                 static 'new': (...args: any[]) => IResourceRequest;
@@ -2154,25 +2240,41 @@ namespace CoreXT { // (the core scope)
                     /** The raw unresolved URL given for this resource. Use the 'url' property to resolve content roots when '~' is used. */
                     _url: string;
 
+                    /** 
+                       * The HTTP request method to use, such as "GET" (the default), "POST", "PUT", "DELETE", etc.  Ignored for non-HTTP(S) URLs.
+                       * 
+                       */
+                    method = "GET";
+
+                    /** Optional data to send with the request, such as for POST operations. */
+                    body: any;
+
+                    /** An optional username to pass to the XHR instance when opening the connecting. */
+                    username: string;
+                    /** An optional password to pass to the XHR instance when opening the connecting. */
+                    password: string;
+
                     /** The requested resource type (to match against the server returned MIME type for data type verification). */
                     type: ResourceTypes | string;
 
-                    /** The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
-                      * developers should be able to use it if necessary to further configure the request for advanced reasons.
-                      */
+                    /**
+                       * The XMLHttpRequest object used for this request.  It's marked private to discourage access, but experienced
+                       * developers should be able to use it if necessary to further configure the request for advanced reasons.
+                       */
                     _xhr: XMLHttpRequest; // (for parallel loading, each request has its own connection)
 
-                    /** The raw data returned from the HTTP request.
-                      * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
-                      * the next call [see 'transformedData']).
-                      */
-                    data: any; // (The response entity body according to responseType, as an ArrayBuffer, Blob, Document, JavaScript object (from JSON), or string. This is null if the request is not complete or was not successful.)
+                    /**
+                       * The raw data returned from the HTTP request.
+                       * Note: This does not change with new data returned from callback handlers (new data is passed on as the first argument to
+                       * the next call [see 'transformedData']).
+                       */
+                    response: any; // (The response entity body according to responseType, as an ArrayBuffer, Blob, Document, JavaScript object (from JSON), or string. This is null if the request is not complete or was not successful.)
 
-                    /** Set to data returned from callback handlers as the 'data' property value gets transformed.
-                      * If no transformations were made, then the value in 'data' is returned.
+                    /** This gets set to data returned from callback handlers as the 'response' property value gets transformed.
+                      * If no transformations were made, then the value in 'response' is returned.
                       */
-                    get transformedData(): any {
-                        return this.$__transformedData === noop ? this.data : this.$__transformedData;
+                    get transformedResponse(): any {
+                        return this.$__transformedData === noop ? this.response : this.$__transformedData;
                     }
                     private $__transformedData: any = noop;
 
@@ -2259,7 +2361,7 @@ namespace CoreXT { // (the core scope)
                         if (this.status == RequestStatuses.Error)
                             this._queueDoError();
                         else if (this.status >= RequestStatuses.Waiting) {
-                            this._queueDoNext(this.data);
+                            this._queueDoNext(this.response);
                         }
                         // ... else, not needed, as the chain is still being traversed, so anything added will get run as expected ...
                     }
@@ -2350,13 +2452,20 @@ namespace CoreXT { // (the core scope)
                         return this;
                     }
 
-                    /** Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
-                      * order).  Regardless of the start order, all scripts are loaded in parallel.
-                      * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
-                      */
-                    start(): this { if (this.async) setTimeout(() => { this._Start(); }, 0); else this._Start(); return this; }
+                    /** 
+                       * Starts loading the current resource.  If the current resource has dependencies, they are triggered to load first (in proper
+                       * order).  Regardless of the start order, all scripts are loaded in parallel.
+                       * Note: This call queues the start request in 'async' mode, which begins only after the current script execution is completed.
+                       * @param {string} method An optional method to override the default request method set in the 'method' property on this request instance.
+                       * @param {string} body Optional payload data to send, which overrides any value set in the 'payload' property on this request instance.
+                       * @param {string} username Optional username value, instead of storing the username in the instance.
+                       * @param {string} password Optional password value, instead of storing the password in the instance.
+                       */
+                    start(method?: string, body?: string, username?: string, password?: string): this {
+                        if (this.async) setTimeout(() => { this._Start(method, body, username, password); }, 0); else this._Start(); return this;
+                    }
 
-                    private _Start() {
+                    private _Start(_method?: string, _body?: string, _username?: string, _password?: string) {
                         // ... start at the top most parent first, and work down ...
                         if (this._parentRequests)
                             for (var i = 0, n = this._parentRequests.length; i < n; ++i)
@@ -2377,8 +2486,8 @@ namespace CoreXT { // (the core scope)
                                     var appVersionInLocalStorage = localStorage.getItem("appVersion");
                                     if (versionInLocalStorage && appVersionInLocalStorage && version == versionInLocalStorage && currentAppVersion == appVersionInLocalStorage) {
                                         // ... all versions match, just pull from local storage (faster) ...
-                                        this.data = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
-                                        if (this.data !== null && this.data !== void 0) {
+                                        this.response = localStorage.getItem("resource:" + this.url); // (should return 'null' if not found)
+                                        if (this.response !== null && this.response !== void 0) {
                                             this.status = RequestStatuses.Loaded;
                                             this._doNext();
                                             return;
@@ -2405,7 +2514,7 @@ namespace CoreXT { // (the core scope)
 
                                 var loaded = () => {
                                     if (xhr.status == 200 || xhr.status == 304) {
-                                        this.data = xhr.response;
+                                        this.response = xhr.response;
                                         this.status == RequestStatuses.Loaded;
                                         this.message = xhr.status == 304 ? "Loading completed (from browser cache)." : "Loading completed.";
 
@@ -2419,7 +2528,7 @@ namespace CoreXT { // (the core scope)
                                                 try {
                                                     localStorage.setItem("version", version);
                                                     localStorage.setItem("appVersion", getAppVersion());
-                                                    localStorage.setItem("resource:" + this.url, this.data);
+                                                    localStorage.setItem("resource:" + this.url, this.response);
                                                     this.message = "Resource cached in local storage.";
                                                 } catch (e) {
                                                     // .. failed: out of space? ...
@@ -2472,18 +2581,32 @@ namespace CoreXT { // (the core scope)
                         try {
                             // ... check if we need to bust the cache ...
                             if (this.cacheBusting) {
-                                var bustVar = this.cacheBustingVar || "_v_";
+                                var bustVar = this.cacheBustingVar;
                                 if (bustVar.indexOf(" ") >= 0) log("start()", "There is a space character in the cache busting query name for resource '" + url + "'.", LogTypes.Warning);
                             }
 
-                            xhr.open("get", url, this.async);
+                            if (!_method) _method = this.method || "GET";
+                            xhr.open(_method, url, this.async, _username || this.username || void 0, _password || this.password || void 0);
                         }
                         catch (ex) {
                             error("start()", "Failed to load resource from URL '" + url + "': " + ((<Error>ex).message || ex), this);
                         }
 
                         try {
-                            xhr.send();
+                            var payload: any = _body || this.body;
+                            if (typeof payload == 'object' && payload.__proto__ == Object.prototype) {
+                                // (can't send object literals! convert to something else ...)
+                                if (_method == 'GET') {
+                                    var q = IO.Path.Query.new(payload);
+                                    payload = q.toString(false);
+                                } else {
+                                    var formData = new FormData(); // TODO: Test if "multipart/form-data" is needed.
+                                    for (var p in payload)
+                                        formData.append(p, payload[p]);
+                                    payload = formData;
+                                }
+                            }
+                            xhr.send(payload);
                         }
                         catch (ex) {
                             error("start()", "Failed to send request to endpoint for URL '" + url + "': " + ((<Error>ex).message || ex), this);
@@ -2559,7 +2682,7 @@ namespace CoreXT { // (the core scope)
 
                             if (handlers.onLoaded) {
                                 try {
-                                    var data = handlers.onLoaded.call(this, this, this.transformedData); // (call the handler with the current data and get the resulting data, if any)
+                                    var data = handlers.onLoaded.call(this, this, this.transformedResponse); // (call the handler with the current data and get the resulting data, if any)
                                 } catch (e) {
                                     this.setError("An 'onLoaded' handler failed.", e);
                                     ++this._promiseChainIndex; // (the success callback failed, so trigger the error chain starting at next index)
@@ -2578,9 +2701,9 @@ namespace CoreXT { // (the core scope)
                                         var newResReq = <IResourceRequest>data;
                                         if (newResReq.status >= RequestStatuses.Ready) {
                                             if (newResReq === this) continue; // ('self' [this] was returned, so go directly to the next item)
-                                            data = newResReq.transformedData; // (the data is ready, so read now)
+                                            data = newResReq.transformedResponse; // (the data is ready, so read now)
                                         } else { // (loading is started, or still in progress, so wait; we simply hook into the request object to get notified when the data is ready)
-                                            newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
+                                            newResReq.ready((sender) => { this.$__transformedData = sender.transformedResponse; this._doNext(); })
                                                 .catch((sender) => { this.setError("Resource returned from next handler has failed to load.", sender); this._doError(); });
                                             return;
                                         }
@@ -2683,9 +2806,9 @@ namespace CoreXT { // (the core scope)
                                     else {
                                         var newResReq = <IResourceRequest>newData;
                                         if (newResReq.status >= RequestStatuses.Ready)
-                                            newData = newResReq.transformedData;
+                                            newData = newResReq.transformedResponse;
                                         else { // (loading is started, or still in progress, so wait)
-                                            newResReq.ready((sender) => { this.$__transformedData = sender.transformedData; this._doNext(); })
+                                            newResReq.ready((sender) => { this.$__transformedData = sender.transformedResponse; this._doNext(); })
                                                 .catch((sender) => { this.setError("Resource returned from error handler has failed to load.", sender); this._doError(); });
                                             return;
                                         }
@@ -2722,7 +2845,7 @@ namespace CoreXT { // (the core scope)
                       */
                     reload(includeDependentResources: boolean = true) {
                         if (this.status == RequestStatuses.Error || this.status >= RequestStatuses.Ready) {
-                            this.data = void 0;
+                            this.response = void 0;
                             this.status = RequestStatuses.Pending;
                             this.responseCode = 0;
                             this.responseMessage = "";
@@ -2777,7 +2900,7 @@ namespace CoreXT { // (the core scope)
             var _resourceRequests: IResourceRequest[] = []; // (requests are loaded in parallel, but executed in order of request)
             var _resourceRequestByURL: { [url: string]: IResourceRequest } = {}; // (a quick named index lookup into '__loadRequests')
 
-            /** Returns a load request promise-type object for a resource loading operation. */
+            /** A shortcut for returning a load request promise-type object for a resource loading operation. */
             export function get(url: string, type?: ResourceTypes | string, asyc: boolean = true): IResourceRequest {
                 if (url === void 0 || url === null) throw "A resource URL is required.";
                 url = "" + url;
@@ -2805,14 +2928,14 @@ namespace CoreXT { // (the core scope)
      */
     export function fixSourceMappingsPragmas(sourcePragmaInfo: IExtractedPragmaDetails, scriptURL: string) {
         var script = sourcePragmaInfo && sourcePragmaInfo.originalSource || "";
-        if (sourcePragmaInfo.pragmas)
+        if (sourcePragmaInfo.pragmas && sourcePragmaInfo.pragmas.length)
             for (var i = 0, n = +sourcePragmaInfo.pragmas.length; i < n; ++i) {
                 var pragma = sourcePragmaInfo.pragmas[i];
                 if (pragma.name.substr(0, 6) != "source")
                     script += "\r\n" + pragma; // (not for source mapping, so leave as is)
                 else
                     script += "\r\n" + pragma.prefix + " " + pragma.name + "="
-                        + System.IO.Path.resolve(pragma.value, scriptURL, serverWebRoot ? serverWebRoot : baseScriptsURL) + pragma.extras;
+                        + System.IO.Path.resolve(pragma.value, System.IO.Path.map(scriptURL), serverWebRoot ? serverWebRoot : baseScriptsURL) + pragma.extras;
             }
         return script;
     }
@@ -2934,7 +3057,7 @@ namespace CoreXT { // (the core scope)
             try {
                 request.message = "Executing script ...";
                 var helpers = renderHelperVarDeclarations("p0");
-                var sourcePragmaInfo = extractPragmas(request.transformedData);
+                var sourcePragmaInfo = extractPragmas(request.transformedResponse);
                 var script = fixSourceMappingsPragmas(sourcePragmaInfo, request.url);
                 safeEval(helpers[0] + " var CoreXT=p1; " + script, /*p0*/  helpers[1], /*p1*/  CoreXT); // ('CoreXT.eval' is used for system scripts because some core scripts need initialize in the global scope [mostly due to TypeScript limitations])
                 //x (^note: MUST use global evaluation as code may contain 'var's that will get stuck within function scopes)
@@ -2942,7 +3065,7 @@ namespace CoreXT { // (the core scope)
                 request.message = "The script has been executed successfully.";
             } catch (ex) {
                 var errorMsg = getErrorMessage(ex);
-                var msg = "There was an error executing script '" + request.url + "'.  The first 255 characters of the response was \r\n\"" + request.transformedData.substr(0, 255) + "\". \r\nError message:";
+                var msg = "There was an error executing script '" + request.url + "'.  The first 255 characters of the response was \r\n\"" + request.transformedResponse.substr(0, 255) + "\". \r\nError message:";
                 request.setError(msg, ex);
                 if (isDebugging())
                     throw ex;

@@ -13,7 +13,7 @@ declare module CoreXT.System.Platform {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** A context is a container that manages a reference to a global script environment. Each new context creates a new
           * execution environment that keeps scripts from accidentally (or maliciously) populating/corrupting the host environment.
           * On the client side, this is accomplished by using IFrame objects.  On the server side, this is accomplished using
@@ -52,7 +52,7 @@ declare module CoreXT.System.Platform {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Represents the base of a CoreXT UI object of various UI types. The default implementation extends this to implement HTML elements. */
         class HTMLNode extends HTMLNode_base {
             static 'new'(parent: IGraphNode, id?: string, name?: string): IHTMLNode;
@@ -102,7 +102,7 @@ declare module CoreXT.System.Platform {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Represents an HTML node graph item that renders the content in the 'innerHTML of the default '__htmlTag' element (which is set to 'GraphItem.defaultHTMLTag' [DIV] initially).
           * This object has no element restrictions, so you can create any element you need by setting the '__htmlTag' tag before the UI element gets created.
           */
@@ -155,7 +155,7 @@ declare module CoreXT.System.Platform {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /**
           * Represents a basic text node graph item that renders plain text (no HTML). For HTML use 'HTMLText'.
           * This is inline with the standard which declares that all DOM elements with text should have text-ONLY nodes.
@@ -187,7 +187,7 @@ declare module CoreXT.System.Platform {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Represents an HTML text node graph item that renders the content in the 'innerHTML of a SPAN element. For plain text nodes use 'PlainText'.
           */
         class HTMLText extends HTMLText_base {
@@ -238,7 +238,7 @@ declare module CoreXT.System.Platform {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Represents a basic phrase node graph item that renders phrase elements (a term used by w3.org to describe adding
           * "structural information to text fragments").  This is basically just text formatting in most cases.
           * It's important to note the word "structural" here, as it is a suggestion on how to process text, but, unlike CSS,
@@ -273,7 +273,7 @@ declare module CoreXT.System.Platform {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Represents an HTML header element.
           */
         class Header extends Header_base {

@@ -204,7 +204,7 @@ namespace CoreXT {
                     }
                 }
             }).ready((manifestRequest: IManifest) => {
-                var script = manifestRequest.transformedData;
+                var script = manifestRequest.transformedResponse;
 
                 // ... before we execute the script we need to move down any source mapping pragmas ...
                 var sourcePragmaInfo = extractPragmas(script);
@@ -333,10 +333,10 @@ namespace CoreXT {
 
                         var accessors: _IModuleAccessors;
                         if (useGlobalScope) {
-                            this._moduleGlobalAccessors = (globalEval(this.data), $__type._globalaccessors); // (use the global accessors, as the module was run in the global scope)
+                            this._moduleGlobalAccessors = (globalEval(this.response), $__type._globalaccessors); // (use the global accessors, as the module was run in the global scope)
                         } else {
                             var tsHelpers = renderHelperVarDeclarations("arguments[3]");
-                            this.$__modFunc = <any>new Function("CoreXT", "module", "exports", tsHelpers[0] + this.data + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
+                            this.$__modFunc = <any>new Function("CoreXT", "module", "exports", tsHelpers[0] + this.response + ";\r\n return { get: function(varName) { return eval(varName); }, set: function(varName, val) { return eval(varName + ' = val;'); } };");
                             this._moduleGlobalAccessors = this.$__modFunc(CoreXT, this, this.exports, tsHelpers); // (note that 'this.' effectively prevents polluting the global scope in case 'this' is used)
                         }
 

@@ -11,7 +11,7 @@ declare namespace CoreXT.System.Collections {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /** Returns an ID based on the index position of the added object, or from a list of previously released object IDs (indexes).
     * There are 2 main goals of this object: 1. to help prevent ID numbers from wrapping for server apps that may be running
     * for days/weeks/months by caching an reusing IDs that are no longer needed, and 2. to maintain a global list of objects

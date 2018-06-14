@@ -14,7 +14,7 @@ declare namespace CoreXT.System.Platform {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /** A graph item represents a single node on the application graph. */
     class GraphNode extends GraphNode_base {
         /**

@@ -11,7 +11,7 @@ declare namespace CoreXT.System {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /**
      * Represents a span of time (not a date). Calculation of dates usually relies on calendar rules.  A time-span object
      * doesn't care about months and day of the month - JavaScript already has a date object for that.

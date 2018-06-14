@@ -15,7 +15,7 @@ declare namespace CoreXT {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /**
          * Application domains encapsulate applications and confine them to a root working space.  When application scripts are
          * loaded, they are isolated and run in the context of a new global scope.  This protects the main window UI, and also
@@ -106,7 +106,7 @@ declare namespace CoreXT {
             $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
                 $__type: TClass;
             }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-        } & ObjectConstructor;
+        } & (new () => object);
         /** Applications wrap window reference targets, and any specified HTML for configuration and display. There can be many
           * applications in a single AppDomain.
           */

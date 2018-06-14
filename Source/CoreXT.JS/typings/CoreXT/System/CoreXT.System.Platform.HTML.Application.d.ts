@@ -11,7 +11,7 @@ declare namespace CoreXT.System.Platform.HTML.Application {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /** An ApplicationElement object is the root object of the graph tree that relates one UIApplication instance. */
     class ApplicationElement extends ApplicationElement_base {
         static 'new'(title: string, description: string, targetElement?: NativeTypes.IHTMLElement): IApplicationElement;

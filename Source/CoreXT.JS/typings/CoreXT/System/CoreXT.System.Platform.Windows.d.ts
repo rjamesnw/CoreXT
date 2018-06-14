@@ -11,7 +11,7 @@ declare namespace CoreXT.System.Platform {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     class Window extends Window_base {
         /** Creates a new window object.  If null is passed as the root element, then a new pop-up window is created when the window is shown. */
         static 'new'(rootElement?: HTMLElement, url?: string): IWindow;

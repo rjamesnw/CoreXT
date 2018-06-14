@@ -28,7 +28,7 @@ declare namespace CoreXT.System.Platform {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /**
      * A context is a container that manages a reference to a global script environment. Each new context creates a new
      * execution environment that keeps scripts from accidentally (or maliciously) populating/corrupting the host environment.
@@ -64,7 +64,7 @@ declare namespace CoreXT.System.Platform {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /**
       * Where the Application object represents the base application properties for an AppDomain instance, the UIApplication
       * type, which inherits from Application, represents the UI side.

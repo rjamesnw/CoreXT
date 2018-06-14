@@ -14,7 +14,7 @@ declare namespace CoreXT.System {
         $__register<TClass extends IType<object>, TFactory extends IFactory<IType<object>, NewDelegate<object>, InitDelegate<object>> & IType<object>>(this: TFactory & ITypeInfo & {
             $__type: TClass;
         }, namespace: object, addMemberTypeInfo?: boolean): TFactory;
-    } & ObjectConstructor;
+    } & (new () => object);
     /**
      * Represents a function of a specific object instance.
      * Functions have no reference to any object instance when invoked statically.  This means when used as "handlers" (callbacks)
