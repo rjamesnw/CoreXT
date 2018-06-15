@@ -170,7 +170,7 @@ var CoreXT;
                     replaceWith = "" + replaceWith;
                 if (ignoreCase)
                     return source.replace(new RegExp(CoreXT.Utilities.escapeRegex(replaceWhat), 'gi'), replaceWith);
-                else if (CoreXT.Browser.type == CoreXT.Browser.BrowserTypes.Chrome)
+                else if (System.Browser.type == System.Browser.BrowserTypes.Chrome)
                     return source.split(replaceWhat).join(replaceWith); // (MUCH faster in Chrome [including Chrome mobile])
                 else
                     return source.replace(new RegExp(CoreXT.Utilities.escapeRegex(replaceWhat), 'g'), replaceWith);

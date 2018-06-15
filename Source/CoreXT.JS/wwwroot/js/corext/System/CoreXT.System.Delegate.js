@@ -105,7 +105,7 @@ var CoreXT;
                             default: return $this.func.apply(this, [$this.object].concat(arguments, this));
                         }
                     };
-                    $__type.prototype.call = ((CoreXT.Browser.type != CoreXT.Browser.BrowserTypes.IE) ?
+                    $__type.prototype.call = ((System.Browser.type != System.Browser.BrowserTypes.IE) ?
                         makeCases(0, 20, call, "$this.func", "$this.object, ", "arguments")
                         : makeCases(0, 20, call, "$this.__boundFunc", "", "arguments"));
                     var apply = function (context, argsArray) {
@@ -124,7 +124,7 @@ var CoreXT;
                         }
                     };
                     $__type.prototype.__apply = makeCases(0, 20, apply, "$this.func", "context, ", "args"); // (keep reference to the non-bound version as a fallback for user defined contexts)
-                    $__type.prototype.apply = ((CoreXT.Browser.type != CoreXT.Browser.BrowserTypes.IE) ? $__type.prototype.__apply : makeCases(0, 20, apply, "$this.__boundFunc", "", "args")); // (note: bound functions are faster in IE)
+                    $__type.prototype.apply = ((System.Browser.type != System.Browser.BrowserTypes.IE) ? $__type.prototype.__apply : makeCases(0, 20, apply, "$this.__boundFunc", "", "args")); // (note: bound functions are faster in IE)
                 };
                 Object.defineProperty($__type.prototype, "key", {
                     /** A read-only key string that uniquely identifies the combination of object instance and function in this delegate.

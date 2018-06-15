@@ -19,12 +19,8 @@ namespace CoreXT.MVC
     /// The  CoreXT implementation that locates and executes a Microsoft.AspNetCore.Mvc.ViewEngines.IView for a Microsoft.AspNetCore.Mvc.ViewResult.
     /// 
     /// </summary>
-    public class ViewResultExecutor : IActionResultExecutor<ViewResult>
+    public class ViewResultExecutor : Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor
     {
-        Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor _ViewResultExecutor;
-
-        protected ILogger Logger { get; }
-
         public ViewResultExecutor(
             IOptions<MvcViewOptions> viewOptions,
             IHttpResponseStreamWriterFactory writerFactory,
@@ -33,76 +29,51 @@ namespace CoreXT.MVC
             DiagnosticSource diagnosticSource,
             ILoggerFactory loggerFactory,
             IModelMetadataProvider modelMetadataProvider)
-            //: base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticSource, loggerFactory, modelMetadataProvider)
+            : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticSource, loggerFactory, modelMetadataProvider)
         {
-            _ViewResultExecutor = new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor(viewOptions,writerFactory,
-                viewEngine, tempDataFactory, diagnosticSource, loggerFactory, modelMetadataProvider);
-
-            Logger = loggerFactory.CreateLogger<ViewResultExecutor>();
         }
 
         /// <summary>
         /// Called by the standard MVC system to render a view.
         /// </summary>
-        /// <param name="context">The action context represented by this view.</param>
+        /// <param name="actionContext">The action context represented by this view.</param>
         /// <param name="view">The view (usually a RazorView type) that represents the view to be rendered.
         /// This value is obtained by the system upon calling the accompanying 'FindView()' method in this class.</param>
         /// <param name="result">Represents an <see cref="ActionResult"/> that renders a view to the response.</param>
         /// <returns></returns>
-        public async Task ExecuteAsync(ActionContext context, ViewResult result)
+        public override async Task ExecuteAsync(ActionContext actionContext, IView view, ViewDataDictionary viewData, ITempDataDictionary tempData, string contentType, int? statusCode)
         {
             // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            if (actionContext == null)
+                throw new ArgumentNullException(nameof(actionContext));
 
-            if (result == null)
-                throw new ArgumentNullException(nameof(result));
-
-            var stopwatch = ValueStopwatch.StartNew();
-
-            var viewEngineResult = _ViewResultExecutor.FindView(context, result);
-            viewEngineResult.EnsureSuccessful(originalLocations: null);
+            if (view == null)
+                throw new ArgumentNullException(nameof(view));
 
             // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-            IViewPageRenderEvents viewPage = (viewEngineResult.View as ViewResultProxy)?.RazorPage as IViewPageRenderEvents;
-            var renderContext = viewPage == null ? null : context.HttpContext.GetService<IViewPageRenderContext>();
+            IViewPageRenderEvents viewPage = (view as ViewResultProxy)?.RazorPage as IViewPageRenderEvents;
 
+            var renderContext = viewPage == null ? null : actionContext.HttpContext.GetService<IViewPageRenderContext>();
             if (renderContext != null)
-                renderContext.ActionContext = context;
+                renderContext.ActionContext = actionContext;
 
             viewPage?.OnViewExecuting(renderContext);
 
             try
             {
-                //await _ViewResultExecutor.ExecuteAsync(actionContext, viewResult);
                 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-                var view = viewEngineResult.View;
-                using (view as IDisposable)
-                {
-                    await _ViewResultExecutor.ExecuteAsync(
-                        context,
-                        view,
-                        result.ViewData,
-                        result.TempData,
-                        result.ContentType,
-                        result.StatusCode);
-                }
 
-                var _viewResultExecuted = LoggerMessage.Define<string, double>(
-                    LogLevel.Information,
-                    4,
-                    "Executed ViewResult - view {ViewName} executed in {ElapsedMilliseconds}ms.");
+                await base.ExecuteAsync(actionContext, view, viewData, tempData, contentType, statusCode);
 
-                _viewResultExecuted(Logger, viewEngineResult.ViewName, stopwatch.GetElapsedTime().TotalMilliseconds, null);
                 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
             }
-            catch (Exception ex) when (context.HttpContext.Response.Body.CanWrite)
+            catch (Exception ex) when (actionContext.HttpContext.Response.Body.CanWrite)
             {
                 var exceptionViewResult = viewPage?.OnRenderException(renderContext, ex);
                 if (exceptionViewResult == null) throw ex;
-                exceptionViewResult.WriteTo(context.HttpContext.Response.Body);
+                exceptionViewResult.WriteTo(actionContext.HttpContext.Response.Body);
             }
 
             // ... apply any post-processing (if a custom filter handler was supplied) ...
@@ -128,6 +99,10 @@ namespace CoreXT.MVC
 
             // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
         }
+
+        //public async Task ExecuteAsync(ActionContext context, ViewResult result)
+        //{
+        //}
 
         ///// <summary>
         ///// Called before 'ExecuteAsync()' to locate the view to be rendered.

@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <None Remove="Scripts\app.manifest.ts" />
+    <None Remove="Scripts\CoreXT\__references.ts" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3100,27 +3100,24 @@ namespace CoreXT { // (the core scope)
 
             var get = System.IO.get;
 
-            // ... load the base scripts first (all of these are not modules, so they have to be loaded in the correct order) ...
+            // ... load the base utility scripts first (all of these are not modules, so they have to be loaded in the correct order) ...
             get(rootBootPath + "CoreXT.Polyfills.js").ready(onReady) // (some polyfills may be needed by the system)
                 .include(get(rootBootPath + "CoreXT.Types.js")).ready(onReady) // (common base types)
                 .include(get(rootBootPath + "CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
-                .include(get(rootBootPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values without polluting the global scope)
+                .include(get(rootBootPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values [especially global scope callbacks required by some libraries, such as Google Maps, etc.] without polluting the global scope)
                 .include(get(rootBootPath + "CoreXT.Scripts.js")).ready(onReady) // (supports CoreXT-based module loading)
-                // ... load the rest of the core system next ...
-                //.include(get(BootSubPath + "System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
-                //.include(get(BootSubPath + "System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
-                //.include(get(BootSubPath + "System/CoreXT.System.Time.js")).ready(onReady) // (extends the time utilities and constants into a TimeSpan wrapper)
-                //.include(get(BootSubPath + "System/CoreXT.System.Storage.js").ready(onReady)) // (utilities for local storage support in CoreXT)
-                //.include(get(BootSubPath + "System/CoreXT.System.Exception.js").ready(onReady)) // (setup exception support)
-                //.include(get(BootSubPath + "System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
-                //.include(get(BootSubPath + "System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
-                .include(get(rootBootPath + "CoreXT.Browser.js")).ready(onReady) // (uses the event system)
-                //.include(get(BootSubPath + "System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
-                //.include(get(BootSubPath + "System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady)) // (uses events)
-                //.include(get(BootSubPath + "System/CoreXT.System.Text.js").ready(onReady)) // (utilities specific to working with texts)
-                //.include(get(BootSubPath + "System/CoreXT.System.Data.js").ready(onReady))
-                //.include(get(BootSubPath + "System/CoreXT.System.IO.js").ready(onReady)) // (adds URL query handling and navigation [requires 'Events.EventDispatcher'])
-                //.include(get(BootSubPath + "System/CoreXT.System.AppDomain.js").ready(onReady)) // (holds the default app domain and default application)
+                // ... load the rest of the core library system next (this is ONLY the bare required basics; everything else can optionally be loaded as needed) ...
+                .include(get(rootBootPath + "System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
+                .include(get(rootBootPath + "System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
+                .include(get(rootBootPath + "System/CoreXT.System.Time.js")).ready(onReady) // (extends the time utilities and constants into a TimeSpan wrapper)
+                .include(get(rootBootPath + "System/CoreXT.System.Exception.js").ready(onReady)) // (setup exception support)
+                .include(get(rootBootPath + "System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
+                .include(get(rootBootPath + "System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
+                .include(get(rootBootPath + "System/CoreXT.System.Browser.js")).ready(onReady) // (uses the event system)
+                .include(get(rootBootPath + "System/CoreXT.System.Text.js").ready(onReady)) // (utilities specific to working with texts)
+                .include(get(rootBootPath + "System/CoreXT.System.Data.js").ready(onReady))
+                .include(get(rootBootPath + "System/CoreXT.System.IO.js").ready(onReady)) // (adds URL query handling and navigation [requires 'Events.EventDispatcher'])
+                .include(get(rootBootPath + "System/CoreXT.System.Storage.js").ready(onReady)) // (utilities for local storage support in CoreXT)
                 .ready(() => {
                     if (_onSystemLoadedHandlers && _onSystemLoadedHandlers.length)
                         for (var i = 0, n = _onSystemLoadedHandlers.length; i < n; ++i)

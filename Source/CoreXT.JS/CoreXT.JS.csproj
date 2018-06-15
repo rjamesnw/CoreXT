@@ -51,7 +51,7 @@
     <EmbeddedResource Include="wwwroot\images\**\*.*" Exclude="wwwroot\images\**\Originals\*.*" />
     <EmbeddedResource Include="wwwroot\js\**\*.*" Exclude="wwwroot\js\**\Originals\*.*" />
     <!--Embed source for debugging purposes-->
-    <EmbeddedResource Include="Scripts\*.*" />
+    <EmbeddedResource Include="Scripts\**\*.*" />
   </ItemGroup>
   
   <ItemGroup>
@@ -99,22 +99,6 @@
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Scripts\App\app.manifest.ts" />
-    <EmbeddedResource Include="Scripts\App\app.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Browser.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Globals.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Polyfills.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Scripts.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\CoreXT.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\CoreXT.Utilities.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\HostBridge.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\HostBridge.ICE.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\manifest.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\Scripting Symanics Ideas.txt" />
-    <EmbeddedResource Include="Scripts\CoreXT\test.ts" />
-    <EmbeddedResource Include="Scripts\CoreXT\__references.ts" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoreXT.FileSystem\CoreXT.FileSystem.csproj" />

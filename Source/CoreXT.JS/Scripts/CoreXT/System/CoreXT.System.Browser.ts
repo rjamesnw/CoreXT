@@ -1,10 +1,8 @@
-﻿// #######################################################################################
+﻿// ############################################################################################################################################
 // Browser detection (for special cases).
-// #######################################################################################
+// ############################################################################################################################################
 
-// #######################################################################################
-
-namespace CoreXT {
+namespace CoreXT.System {
     // ========================================================================================================================
 
     /** Contains information on the user agent (browser) being used.
@@ -12,7 +10,7 @@ namespace CoreXT {
       * parameters based on the browser (such as 'Worker.postMessage()' using transferable objects with IE vs All Others [as usual]).
       */
     export namespace Browser {
-        namespace("CoreXT", "Browser");
+        namespace(() => CoreXT.System.Browser);
         // (Browser detection is a highly modified version of "http://www.quirksmode.org/js/detect.html".)
         // (Note: This is only required for quirk detection in special circumstances [such as IE's native JSON whitespace parsing issue], and not for object feature support)
 
@@ -275,154 +273,153 @@ namespace CoreXT {
             return elapsed || 0;
         }
 
-        // ------------------------------------------------------------------------------------------------------------------
-    }
+        // -----------------------------------------------------------------------------------------------------------------------------------
 
-    // =======================================================================================================================
-}
+        /** Contains utility functions and events related to the browser's Document Object Model (DOM). */
+        export namespace DOM {
 
-// #######################################################################################
+            /** True when the HTML has completed loading and was parsed. */
+            export var onDOMLoaded = CoreXT.System.Events.EventDispatcher.new(Loader, "onDOMLoaded", true);
+            var _domLoaded = false;
 
-namespace CoreXT.DOM {
-    //?var __id: number = null;
-    //?var __appDomain: {} = null;
+            /** True when the DOM has completed loading. */
+            export function isDOMReady(): boolean { return _domLoaded; }
+            var _domReady = false;
 
-    /** True when the HTML has completed loading and was parsed. */
-    export var onDOMLoaded = CoreXT.System.Events.EventDispatcher.new(Loader, "onDOMLoaded", true);
-    var _domLoaded = false;
+            var _pageLoaded = false;
+            export var onPageLoaded = CoreXT.System.Events.EventDispatcher.new(Loader, "onPageLoaded", true);
 
-    /** True when the DOM has completed loading. */
-    export function isDOMReady(): boolean { return _domLoaded; }
-    var _domReady = false;
+            /** Explicit user request to queue to run when ready, regardless of debug mode.
+              * Returns true if running upon return, or already running, and false if not ready and queued to run later. */
+            function onReady(): boolean { // (this is only available via the console or when forcibly executed and will not show in intellisense)
+                var log = CoreXT.System.Diagnostics.log("DOM Loading", "Page loading completed; DOM is ready.").beginCapture();
 
-    var _pageLoaded = false;
-    export var onPageLoaded = CoreXT.System.Events.EventDispatcher.new(Loader, "onPageLoaded", true);
+                //??if ($ICE != null) {
+                //    $ICE.loadLibraries(); // (load all ICE libraries after the CoreXT system is ready, but before the ICE libraries are loaded so proper error details can be displayed if required)
+                //}
+                // (any errors before this point will terminate the 'onReady()' callback)
+                // TODO: $ICE loads as a module, and should do this differently.
 
-    /** Explicit user request to queue to run when ready, regardless of debug mode.
-      * Returns true if running upon return, or already running, and false if not ready and queued to run later. */
-    function onReady(): boolean { // (this is only available via the console or when forcibly executed and will not show in intellisense)
-        var log = CoreXT.System.Diagnostics.log("DOM Loading", "Page loading completed; DOM is ready.").beginCapture();
+                //// ... some delay-loaded modules may be hooked into the window 'load' event, which will never fire at this point, so this has to be re-triggered ...
 
-        //??if ($ICE != null) {
-        //    $ICE.loadLibraries(); // (load all ICE libraries after the CoreXT system is ready, but before the ICE libraries are loaded so proper error details can be displayed if required)
-        //}
-        // (any errors before this point will terminate the 'onReady()' callback)
-        // TODO: $ICE loads as a module, and should do this differently.
+                //??var event = document.createEvent("Event");
+                //event.initEvent('load', false, false);
+                //window.dispatchEvent(event);
 
-        //// ... some delay-loaded modules may be hooked into the window 'load' event, which will never fire at this point, so this has to be re-triggered ...
+                // ... the system and all modules are loaded and ready ...
+                log.write("Dispatching DOM 'onReady event ...", CoreXT.LogTypes.Info);
+                CoreXT.Browser.onReady.autoTrigger = true;
+                CoreXT.Browser.onReady.dispatchEvent();
 
-        //??var event = document.createEvent("Event");
-        //event.initEvent('load', false, false);
-        //window.dispatchEvent(event);
+                log.write("'CoreXT.DOM.Loader' completed.", CoreXT.LogTypes.Success);
 
-        // ... the system and all modules are loaded and ready ...
-        log.write("Dispatching DOM 'onReady event ...", CoreXT.LogTypes.Info);
-        CoreXT.Browser.onReady.autoTrigger = true;
-        CoreXT.Browser.onReady.dispatchEvent();
+                log.endCapture();
 
-        log.write("'CoreXT.DOM.Loader' completed.", CoreXT.LogTypes.Success);
+                return true;
+            };
 
-        log.endCapture();
+            /** Implicit request to run only if ready, and not in debug mode. If not ready, or debug mode is set, ignore the request. (used internally) */
+            function _doReady(): void {
+                var log = CoreXT.System.Diagnostics.log("DOM Loading", "Checking if ready...").beginCapture();
+                if (_domLoaded && _pageLoaded) onReady();
+                log.endCapture();
+            };
 
-        return true;
-    };
+            /** Called first when HTML loading completes and is parsed. */
+            function _doOnDOMLoaded(): void { // (note: executed immediately on the server before this script ends)
+                if (!_domLoaded) {
+                    _domLoaded = true;
+                    var log = CoreXT.System.Diagnostics.log("DOM Loading", "HTML document was loaded and parsed. Loading any sub-resources next (CSS, JS, etc.)...", CoreXT.LogTypes.Success).beginCapture();
+                    onDOMLoaded.autoTrigger = true;
+                    onDOMLoaded.dispatchEvent();
+                    log.endCapture();
+                }
+            };
 
-    /** Implicit request to run only if ready, and not in debug mode. If not ready, or debug mode is set, ignore the request. (used internally) */
-    function _doReady(): void {
-        var log = CoreXT.System.Diagnostics.log("DOM Loading", "Checking if ready...").beginCapture();
-        if (_domLoaded && _pageLoaded) onReady();
-        log.endCapture();
-    };
+            /** Called last when page completes (all sub-resources, such as CSS, JS, etc., have finished loading). */
+            function _doOnPageLoaded(): void { // (note: executed immediately on the server before this script ends)
+                if (!_pageLoaded) {
+                    _doOnDOMLoaded(); // (just in case - the DOM load must precede the page load!)
+                    _pageLoaded = true;
+                    var log = CoreXT.System.Diagnostics.log("DOM Loading", "The document and all sub-resources have finished loading.", CoreXT.LogTypes.Success).beginCapture();
+                    onPageLoaded.autoTrigger = true;
+                    onPageLoaded.dispatchEvent();
+                    _doReady();
+                    log.endCapture();
+                }
+            };
 
-    /** Called first when HTML loading completes and is parsed. */
-    function _doOnDOMLoaded(): void { // (note: executed immediately on the server before this script ends)
-        if (!_domLoaded) {
-            _domLoaded = true;
-            var log = CoreXT.System.Diagnostics.log("DOM Loading", "HTML document was loaded and parsed. Loading any sub-resources next (CSS, JS, etc.)...", CoreXT.LogTypes.Success).beginCapture();
-            onDOMLoaded.autoTrigger = true;
-            onDOMLoaded.dispatchEvent();
-            log.endCapture();
-        }
-    };
+            // Note: $XT is initially created with limited functionality until the system is ready!
+            // If on the client side, detect when the document is ready for script downloads - this will allow the UI to show quickly, and download script while the user reads the screen.
+            // (note: this is a two phased approach - DOM ready, then PAGE ready.
 
-    /** Called last when page completes (all sub-resources, such as CSS, JS, etc., have finished loading). */
-    function _doOnPageLoaded(): void { // (note: executed immediately on the server before this script ends)
-        if (!_pageLoaded) {
-            _doOnDOMLoaded(); // (just in case - the DOM load must precede the page load!)
-            _pageLoaded = true;
-            var log = CoreXT.System.Diagnostics.log("DOM Loading", "The document and all sub-resources have finished loading.", CoreXT.LogTypes.Success).beginCapture();
-            onPageLoaded.autoTrigger = true;
-            onPageLoaded.dispatchEvent();
-            _doReady();
-            log.endCapture();
-        }
-    };
+            if (CoreXT.Environment == CoreXT.Environments.Browser) (function () {
 
-    // Note: $XT is initially created with limited functionality until the system is ready!
-    // If on the client side, detect when the document is ready for script downloads - this will allow the UI to show quickly, and download script while the user reads the screen.
-    // (note: this is a two phased approach - DOM ready, then PAGE ready.
-    
-    if (CoreXT.Environment == CoreXT.Environments.Browser) (function () {
+                var readyStateTimer: number;
 
-        var readyStateTimer: number;
+                // ... check document ready events first in case we can get more granular feedback...
 
-        // ... check document ready events first in case we can get more granular feedback...
+                if (document.addEventListener) {
+                    document.addEventListener("DOMContentLoaded", () => {
+                        if (!_domLoaded) _doOnDOMLoaded();
+                    }); // (Firefox - wait until document loads)
+                    // (this event is fired after document and inline script loading, but before everything else loads [css, images, etc.])
+                }
+                else if ((<any>document).attachEvent && document.all && !(<any>window).opera) {
+                    // (DOM loading trick for IE8-, inspired by this article: http://www.javascriptkit.com/dhtmltutors/domready.shtml)
+                    document.write('<script type="text/javascript" id="domloadedtag" defer="defer" src="javascript:void(0)"><\/script>');
+                    (<any>document.getElementById("domloadedtag")).onreadystatechange = function () {
+                        if (this.readyState == "complete" && !_domLoaded)
+                            _doOnDOMLoaded(); // (deferred script loading completes when DOM is finally read)
+                    }; // (WARNING: The 'complete' state callback may occur AFTER the page load event if done at the same time [has happened during a debug session])
+                }
+                else if (document.readyState) {
 
-        if (document.addEventListener) {
-            document.addEventListener("DOMContentLoaded", () => {
-                if (!_domLoaded) _doOnDOMLoaded();
-            }); // (Firefox - wait until document loads)
-            // (this event is fired after document and inline script loading, but before everything else loads [css, images, etc.])
-        }
-        else if ((<any>document).attachEvent && document.all && !(<any>window).opera) {
-            // (DOM loading trick for IE8-, inspired by this article: http://www.javascriptkit.com/dhtmltutors/domready.shtml)
-            document.write('<script type="text/javascript" id="domloadedtag" defer="defer" src="javascript:void(0)"><\/script>');
-            (<any>document.getElementById("domloadedtag")).onreadystatechange = function () {
-                if (this.readyState == "complete" && !_domLoaded)
-                    _doOnDOMLoaded(); // (deferred script loading completes when DOM is finally read)
-            }; // (WARNING: The 'complete' state callback may occur AFTER the page load event if done at the same time [has happened during a debug session])
-        }
-        else if (document.readyState) {
+                    // ... fallback to timer based polling ...
+                    var checkReadyState = () => {
+                        if (document.body) // (readyState states: 0 uninitialized, 1 loading, 2 loaded, 3 interactive, 4 complete)
+                            if (!_domLoaded && (document.readyState == <any>'loaded' || document.readyState == 'interactive')) { // (this event is fired after document and inline script loading, but before everything else loads [css, images, etc.])
+                                _doOnDOMLoaded();
+                            }
+                            else if (!_pageLoaded && document.readyState == 'complete') { // (this event is fired after ALL resources have loaded on the page)
+                                _doOnPageLoaded();
+                            }
 
-            // ... fallback to timer based polling ...
-            var checkReadyState = () => {
-                if (document.body) // (readyState states: 0 uninitialized, 1 loading, 2 loaded, 3 interactive, 4 complete)
-                    if (!_domLoaded && (document.readyState == <any>'loaded' || document.readyState == 'interactive')) { // (this event is fired after document and inline script loading, but before everything else loads [css, images, etc.])
-                        _doOnDOMLoaded();
-                    }
-                    else if (!_pageLoaded && document.readyState == 'complete') { // (this event is fired after ALL resources have loaded on the page)
+                        if (!_pageLoaded && !readyStateTimer)
+                            readyStateTimer = setInterval(checkReadyState, 10); // (fall back to timer based polling)
+                    };
+
+                    checkReadyState();
+                }
+                //??else throw CoreXT.exception("Unable to detect and hook into the required 'document load' events for this client browser.");
+                // (NOTE: If unable to detect and hook into the required 'document load' events for this client browser, wait for the page load event instead...)
+
+                // ... hook into window ready events next which execute when the DOM is ready (all resources have loaded, parsed, and executed))...
+
+                if (window.addEventListener)
+                    window.addEventListener("load", () => { _doOnPageLoaded(); }); // (wait until whole page has loaded)
+                else if ((<any>window).attachEvent)
+                    (<any>window).attachEvent('onload', () => { _doOnPageLoaded(); });
+                else { // (for much older browsers)
+                    var oldOnload = window.onload; // (backup any existing event)
+                    window.onload = (ev) => { // (perform a hook)
+                        oldOnload && oldOnload.call(window, ev);
                         _doOnPageLoaded();
-                    }
+                    };
+                }
 
-                if (!_pageLoaded && !readyStateTimer)
-                    readyStateTimer = setInterval(checkReadyState, 10); // (fall back to timer based polling)
-            };
-
-            checkReadyState();
-        }
-        //??else throw CoreXT.exception("Unable to detect and hook into the required 'document load' events for this client browser.");
-        // (NOTE: If unable to detect and hook into the required 'document load' events for this client browser, wait for the page load event instead...)
-
-        // ... hook into window ready events next which execute when the DOM is ready (all resources have loaded, parsed, and executed))...
-
-        if (window.addEventListener)
-            window.addEventListener("load", () => { _doOnPageLoaded(); }); // (wait until whole page has loaded)
-        else if ((<any>window).attachEvent)
-            (<any>window).attachEvent('onload', () => { _doOnPageLoaded(); });
-        else { // (for much older browsers)
-            var oldOnload = window.onload; // (backup any existing event)
-            window.onload = (ev) => { // (perform a hook)
-                oldOnload && oldOnload.call(window, ev);
-                _doOnPageLoaded();
-            };
+                // ... finally, a timeout in case things are taking too long (for example, an image is holding things up if only the 'load' event is supported ...
+                // (NOTE: If the user dynamically loads this script file, then the page DOM/load events may not be triggered in time.)
+            })();
+            else {
+                _doOnPageLoaded(); // (no UI to wait for, so do this now)
+            }
         }
 
-        // ... finally, a timeout in case things are taking too long (for example, an image is holding things up if only the 'load' event is supported ...
-        // (NOTE: If the user dynamically loads this script file, then the page DOM/load events may not be triggered in time.)
-    })();
-    else {
-        _doOnPageLoaded(); // (no UI to wait for, so do this now)
+        // -----------------------------------------------------------------------------------------------------------------------------------
     }
+
+    // =======================================================================================================================================
 }
 
-// #######################################################################################
+// ############################################################################################################################################
