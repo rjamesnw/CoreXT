@@ -1326,6 +1326,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
     namespace("CoreXT", "Types"); // ('CoreXT.Types' will become the first registered namespace)
     /** Returns the call stack for a given error object. */
     function getErrorCallStack(errorSource) {
+        if (!errorSource || !errorSource.stack)
+            return [];
         var _e = errorSource;
         if (_e.stacktrace && _e.stack)
             return _e.stacktrace.split(/\n/g); // (opera provides one already good to go) [note: can also check for 'global["opera"]']
@@ -1368,19 +1370,23 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 return errorSource.toString();
             }
             else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
-                var error = errorSource;
-                var msg = error.message;
-                if (error.name)
-                    msg = "(" + error.name + ") " + msg;
-                if (error.lineno !== undefined)
-                    error.lineNumber = error.lineno;
-                if (error.lineNumber !== undefined) {
-                    msg += "\r\non line " + error.lineNumber + ", column " + error.columnNumber;
-                    if (error.fileName !== undefined)
-                        msg += ", of file '" + error.fileName + "'";
+                var errorInfo = errorSource;
+                var error = errorSource instanceof Error ? errorSource : errorSource instanceof ErrorEvent ? errorSource.error : null;
+                var msg = CoreXT.Scripts && CoreXT.Scripts.ScriptError && (errorSource instanceof CoreXT.Scripts.ScriptError)
+                    ? errorSource.error && errorSource.error.message || errorSource.error && errorInfo.error : errorInfo.message;
+                var fname = errorInfo instanceof Function ? getTypeName(errorInfo, false) : errorInfo.functionName;
+                var sourceLocation = errorInfo.fileName || errorInfo.filename || errorInfo.url;
+                if (fname)
+                    msg = "(" + fname + ") " + msg;
+                var lineno = errorInfo.lineno !== void 0 ? errorInfo.lineno : errorInfo.lineNumber;
+                var colno = errorInfo.colno !== void 0 ? errorInfo.colno : errorInfo.columnNumber;
+                if (lineno !== void 0) {
+                    msg += "\r\non line " + lineno + ", column " + colno;
+                    if (sourceLocation !== void 0)
+                        msg += ", of file '" + sourceLocation + "'";
                 }
-                else if (error.fileName !== undefined)
-                    msg += "\r\nin file '" + error.fileName + "'";
+                else if (sourceLocation !== void 0)
+                    msg += "\r\nin file '" + sourceLocation + "'";
                 var stack = getErrorCallStack(error);
                 if (stack && stack.length)
                     msg += "\r\nStack trace:\r\n" + stack.join("\r\n") + "\r\n";
@@ -2542,7 +2548,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                                         }
                                     }
                                 }
-                                this.$__transformedData = data;
+                                if (data !== void 0)
+                                    this.$__transformedData = data;
                             }
                             else if (handlers.onFinally) {
                                 try {
@@ -2885,9 +2892,9 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
             get(Loader.rootBootPath + "CoreXT.Polyfills.js").ready(onReady) // (some polyfills may be needed by the system)
                 .include(get(Loader.rootBootPath + "CoreXT.Types.js")).ready(onReady) // (common base types)
                 .include(get(Loader.rootBootPath + "CoreXT.Utilities.js")).ready(onReady) // (a lot of items depend on time utilities [such as some utilities and logging] so this needs to be loaded first)
-                .include(get(Loader.rootBootPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values without polluting the global scope)
+                .include(get(Loader.rootBootPath + "CoreXT.Globals.js")).ready(onReady) // (a place to store global values [especially global scope callbacks required by some libraries, such as Google Maps, etc.] without polluting the global scope)
                 .include(get(Loader.rootBootPath + "CoreXT.Scripts.js")).ready(onReady) // (supports CoreXT-based module loading)
-                // ... load the rest of the core library system next ...
+                // ... load the rest of the core library system next (this is ONLY the bare required basics; everything else can optionally be loaded as needed) ...
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.js").ready(onReady)) // (any general common system properties and setups)
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.PrimitiveTypes.js").ready(onReady)) // (start the primitive object definitions required by more advanced types)
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.Time.js")).ready(onReady) // (extends the time utilities and constants into a TimeSpan wrapper)
@@ -2895,13 +2902,10 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.Diagnostics.js")).ready(onReady) // (setup diagnostic support)
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.Events.js").ready(onReady)) // (advanced event handling)
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.Browser.js")).ready(onReady) // (uses the event system)
-                .include(get(Loader.rootBootPath + "System/CoreXT.System.Collections.IndexedObjectCollection.js").ready(onReady))
-                .include(get(Loader.rootBootPath + "System/CoreXT.System.Collections.ObservableCollection.js").ready(onReady)) // (uses events)
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.Text.js").ready(onReady)) // (utilities specific to working with texts)
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.Data.js").ready(onReady))
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.IO.js").ready(onReady)) // (adds URL query handling and navigation [requires 'Events.EventDispatcher'])
                 .include(get(Loader.rootBootPath + "System/CoreXT.System.Storage.js").ready(onReady)) // (utilities for local storage support in CoreXT)
-                //.include(get(BootSubPath + "System/CoreXT.System.AppDomain.js").ready(onReady)) // (holds the default app domain and default application)
                 .ready(function () {
                 if (_onSystemLoadedHandlers && _onSystemLoadedHandlers.length)
                     for (var i = 0, n = _onSystemLoadedHandlers.length; i < n; ++i)

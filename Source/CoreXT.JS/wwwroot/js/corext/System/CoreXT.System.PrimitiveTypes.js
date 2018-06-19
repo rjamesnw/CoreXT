@@ -148,7 +148,6 @@ var CoreXT;
                         type.prototype[p] = Object.prototype[p];
             return type;
         }
-        // =======================================================================================================================
         /* Note: This is a CoreXT system string object, and not the native JavaScript object. */
         /** Allows manipulation and formatting of text strings, including the determination and location of substrings within strings. */
         var String = /** @class */ (function (_super) {
@@ -193,8 +192,8 @@ var CoreXT;
                     leftPadChar = "";
                 if (rightPadChar === void 0 || rightPadChar === null)
                     rightPadChar = "";
-                var s = "" + str, targetLength = fixedLength || 0, remainder = targetLength - s.length, lchar = "" + leftPadChar, rchar = "" + rightPadChar, i, n, llen, rlen, lpad = "", rpad = "";
-                if (remainder == 0 || (!lchar && !rchar))
+                var s = "" + str, targetLength = fixedLength > 0 ? fixedLength : 0, remainder = targetLength - s.length, lchar = "" + leftPadChar, rchar = "" + rightPadChar, llen, rlen, lpad = "", rpad = "";
+                if (remainder <= 0 || (!lchar && !rchar))
                     return str;
                 if (lchar && rchar) {
                     llen = Math.floor(remainder / 2);
@@ -204,10 +203,8 @@ var CoreXT;
                     llen = remainder;
                 else if (rchar)
                     rlen = remainder;
-                for (i = 0; i < llen; ++i)
-                    lpad += lchar;
-                for (i = 0; i < rlen; ++i)
-                    rpad += rchar;
+                lpad = CoreXT.global.Array(llen).join(lchar); // (https://stackoverflow.com/a/24398129/1236397)
+                rpad = CoreXT.global.Array(rlen).join(rchar);
                 return lpad + s + rpad;
             };
             /** Appends the suffix string to the end of the source string, optionally using a delimiter if the source is not empty.
@@ -245,6 +242,28 @@ var CoreXT;
             /** Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups]). */
             String.matches = function (regex, text) {
                 return CoreXT.matches(regex, this.toString());
+            };
+            /** Splits the lines of the text (delimited by '\r\n', '\r', or '\n') into an array of strings. */
+            String.getLines = function (text) {
+                var txt = typeof text == 'string' ? text : '' + text;
+                return txt.split(/\r\n|\n|\r/gm);
+            };
+            /** Adds a line number margin to the given text and returns the result. This is useful when display script errors.
+             * @param {string} text The text to add line numbers to.
+             * @param {Function} lineFilter An optional function to run on every line that should return new line text, or undefined to skip a line.
+             */
+            String.addLineNumbersToText = function (text, lineFilter) {
+                var lines = String.getLines(text);
+                var marginSize = lines.length.toString().length + 1; // (used to find the max padding length; +1 for the period [i.e. '  1.'])
+                if (lineFilter && typeof lineFilter != 'function')
+                    lineFilter = null;
+                for (var i = 0, n = lines.length, line, _line; i < n; ++i) {
+                    line = lines[i];
+                    var lineNumStr = (1 + i) + '.';
+                    var paddedLineNumStr = String.pad(lineNumStr, marginSize, ' ');
+                    lines[i] = lineFilter && (_line = lineFilter(1 + i, marginSize, paddedLineNumStr, line)) !== void 0 && _line !== null && _line || paddedLineNumStr + " " + line;
+                }
+                return lines.join("\r\n");
             };
             return String;
         }(CoreXT.FactoryBase(void 0, CoreXT.global.String)));

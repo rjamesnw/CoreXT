@@ -162,6 +162,76 @@ namespace CoreXT {
         var _manifests: IManifest[] = []; // (holds a list of all 
         var _manifestsByURL: { [url: string]: IManifest; } = {};
 
+        /** Stores script parse and execution errors, and includes functions for formatting source based on errors. */
+        export class ScriptError implements Pick<ErrorEvent, "error" | "filename" | "message" | "lineno" | "colno"> {
+            public get message() { return getErrorMessage(this); }
+
+            constructor(public source: string,
+                public error: any,
+                public filename: string,
+                public functionName: string,
+                public lineno: number,
+                public colno: number,
+                public stack: string) {
+                if (error instanceof ErrorEvent) {
+                    if (filename === void 0) this.filename = error.filename;
+                    if (lineno === void 0) this.lineno = error.lineno;
+                    if (colno === void 0) this.colno = error.colno;
+                }
+                else if (error instanceof Error && error.stack && (functionName === void 0 || lineno === void 0 || colno === void 0)) {
+                    var info = ScriptError.getFirstStackEntry(error.stack);
+                    if (info) {
+                        if (functionName === void 0) this.functionName = info[0];
+                        if (lineno === void 0) this.lineno = info[1];
+                        if (colno === void 0) this.colno = info[2];
+                    }
+                }
+            }
+
+            /** Returns the first function name, line number, and column number found in the given stack string. */
+            static getFirstStackEntry(stack: string): [string, number, number] {
+                var matches = stack.match(/(?:\s*at\b)?\s*(?:(.*(?=@debugger)|(?:.(?!\())*|<\w+>|eval code)).*:(\d+):(\d+)/mi); // (https://regex101.com/r/D02917/2)
+                return matches && [matches[1], +matches[2], +matches[3]] || null;
+            }
+
+            static fromError(error: Error, source?: string, filelocation?: string) {
+                return new ScriptError(source, error, filelocation, void 0, void 0, void 0, error.stack);
+            }
+
+            /** Adds line numbers to the script source that produced the error and puts a simple arrow '=> ' mark on the line where
+             * the error is and highlights the column. 
+             * @param {string} source The script source code.
+             * @param {Function} lineFilter See 'System.String.addLineNumbersToText()'.
+             */
+            public getFormatedSource(lineFilter?: System.IAddLineNumbersFilter) {
+                var scriptWithLines = System.String.addLineNumbersToText(this.source, lineFilter || ((lineNumber, marginSize, paddedLineNumber, line) => {
+                    if (lineNumber == this.lineno) return "\u25BA " + paddedLineNumber + " " + line.substr(0, this.colno) + " \xBB " + line.substr(this.colno);
+                }));
+                return scriptWithLines;
+            }
+        }
+
+        /// <summary> Validates if the script can be parsed for execution.  If not, then a 'ScriptError' instance is returned, otherwise 'null' is returned. </summary>
+        /// <param name="script"> The script to validate. </param>
+        /// <returns> A ScriptError instance if there are any parse errors, and null otherwise. </returns>
+        export function validateScript(script: string, url?: string): ScriptError {
+            if (window) {
+                var oldWinError = window.onerror, err: string | Event, lineNumber: number, column: number;
+                window.onerror = (errEventOrMsg, u, ln, col) => { err = errEventOrMsg; url = u || url; lineNumber = ln; column = col; };
+                var s = document.createElement('script');
+                s.appendChild(document.createTextNode("(function () {\n" + script + "\n})"));
+                document.body.appendChild(s);
+                document.body.removeChild(s);
+                window.onerror = oldWinError;
+            } else try {
+                Function(script); // (not in the DOM?  use a fallback)
+            } catch (ex) {
+                return ScriptError.fromError(ex, script, url);
+            }
+            if (err) return new ScriptError(script, err, url || void 0, void 0, lineNumber, column, null);
+            else return null;
+        }
+
         /** Returns a resource loader for loading a specified manifest file from a given path (the manifest file name itself is not required).
           * To load a custom manifest file, the filename should end in either ".manifest" or ".manifest.js".
           * Call 'start()' on the returned instance to begin the loading process.
@@ -210,8 +280,18 @@ namespace CoreXT {
                 var sourcePragmaInfo = extractPragmas(script);
                 script = sourcePragmaInfo.filteredSource + "\r\n" + sourcePragmaInfo.pragmas.join("\r\n");
 
-                var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
-                func.call(this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
+                var errorResult = validateScript(script, manifestRequest.url);
+                if (errorResult)
+                    error("getManifest(" + path + ")", "Error parsing script: " + errorResult.message + "\r\nScript: \r\n" + errorResult.getFormatedSource(), manifestRequest);
+
+                try {
+                    var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
+                    func.call(this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
+                }
+                catch (ex) {
+                    errorResult = ScriptError.fromError(ex, func && func.toString() || script, nameof(() => CoreXT.Scripts.getManifest, true) + "() while executing " + manifestRequest.url);
+                    error("getManifest(" + path + ")", "Error executing script: " + errorResult.message + "\r\nScript: \r\n" + errorResult.getFormatedSource(), manifestRequest);
+                }
                 manifestRequest.status = RequestStatuses.Executed;
                 manifestRequest.message = "The manifest script has been executed.";
             });

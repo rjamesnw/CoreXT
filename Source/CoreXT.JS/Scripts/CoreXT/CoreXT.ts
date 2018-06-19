@@ -1417,17 +1417,23 @@ namespace CoreXT { // (the core scope)
 
     interface _IError {
         name: string;
+        functionName: string; // (CoreXT: Scripts.ScriptError)
         message: string;
         stack: string; // (in opera, this is a call stack only [no source and line details], and includes function names and args)
         stacktrace: string; // (opera - includes source and line info)
         lineNumber: number; // (Firefox)
         lineno: number; // (Firefox)
         columnNumber: number; // (Firefox)
+        colno: number; // (ErrorEvent)
         fileName: string; // (Firefox)
+        filename: string; // (ErrorEvent)
+        url: string; // (just in case)
+        error: string | Error; // (ErrorEvent)
     }
 
     /** Returns the call stack for a given error object. */
     export function getErrorCallStack(errorSource: { stack?: string }): string[] {
+        if (!errorSource || !errorSource.stack) return [];
         var _e: _IError = <any>errorSource;
         if (_e.stacktrace && _e.stack) return _e.stacktrace.split(/\n/g); // (opera provides one already good to go) [note: can also check for 'global["opera"]']
         var callstack: string[] = [];
@@ -1469,17 +1475,21 @@ namespace CoreXT { // (the core scope)
             if (System && System.Diagnostics && System.Diagnostics.LogItem && errorSource instanceof System.Diagnostics.LogItem.$__type) {
                 return errorSource.toString();
             } else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
-                var error: _IError = errorSource;
-                var msg = error.message;
-                if (error.name) msg = "(" + error.name + ") " + msg;
-                if (error.lineno !== undefined)
-                    error.lineNumber = error.lineno;
-                if (error.lineNumber !== undefined) {
-                    msg += "\r\non line " + error.lineNumber + ", column " + error.columnNumber;
-                    if (error.fileName !== undefined)
-                        msg += ", of file '" + error.fileName + "'";
-                } else if (error.fileName !== undefined)
-                    msg += "\r\nin file '" + error.fileName + "'";
+                var errorInfo: _IError = errorSource;
+                var error: Error = errorSource instanceof Error ? errorSource : errorSource instanceof ErrorEvent ? errorSource.error : null;
+                var msg = Scripts && Scripts.ScriptError && (errorSource instanceof Scripts.ScriptError)
+                    ? errorSource.error && errorSource.error.message || errorSource.error && errorInfo.error : errorInfo.message;
+                var fname = errorInfo instanceof Function ? getTypeName(errorInfo, false) : errorInfo.functionName;
+                var sourceLocation = errorInfo.fileName || errorInfo.filename || errorInfo.url;
+                if (fname) msg = "(" + fname + ") " + msg;
+                var lineno = errorInfo.lineno !== void 0 ? errorInfo.lineno : errorInfo.lineNumber;
+                var colno = errorInfo.colno !== void 0 ? errorInfo.colno : errorInfo.columnNumber;
+                if (lineno !== void 0) {
+                    msg += "\r\non line " + lineno + ", column " + colno;
+                    if (sourceLocation !== void 0)
+                        msg += ", of file '" + sourceLocation + "'";
+                } else if (sourceLocation !== void 0)
+                    msg += "\r\nin file '" + sourceLocation + "'";
                 var stack = getErrorCallStack(error);
                 if (stack && stack.length)
                     msg += "\r\nStack trace:\r\n" + stack.join("\r\n") + "\r\n";
@@ -2689,6 +2699,7 @@ namespace CoreXT { // (the core scope)
                                     this._doError();
                                     return;
                                 }
+
                                 if (typeof data === 'object' && data instanceof $__type) {
                                     // ... a 'LoadRequest' was returned (see end of post http://goo.gl/9HeBrN#20715224, and also http://goo.gl/qKpcR3), so check it's status ...
                                     if ((<IResourceRequest>data).status == RequestStatuses.Error) {
@@ -2709,7 +2720,10 @@ namespace CoreXT { // (the core scope)
                                         }
                                     }
                                 }
-                                this.$__transformedData = data;
+
+                                if (data !== void 0)
+                                    this.$__transformedData = data;
+
                             } else if (handlers.onFinally) {
                                 try {
                                     handlers.onFinally.call(this);

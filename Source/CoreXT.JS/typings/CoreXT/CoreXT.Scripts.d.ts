@@ -111,6 +111,28 @@ declare namespace CoreXT {
         }
         interface IManifest extends Manifest.$__type {
         }
+        /** Stores script parse and execution errors, and includes functions for formatting source based on errors. */
+        class ScriptError implements Pick<ErrorEvent, "error" | "filename" | "message" | "lineno" | "colno"> {
+            source: string;
+            error: any;
+            filename: string;
+            functionName: string;
+            lineno: number;
+            colno: number;
+            stack: string;
+            readonly message: string;
+            constructor(source: string, error: any, filename: string, functionName: string, lineno: number, colno: number, stack: string);
+            /** Returns the first function name, line number, and column number found in the given stack string. */
+            static getFirstStackEntry(stack: string): [string, number, number];
+            static fromError(error: Error, source?: string, filelocation?: string): ScriptError;
+            /** Adds line numbers to the script source that produced the error and puts a simple arrow '=> ' mark on the line where
+             * the error is and highlights the column.
+             * @param {string} source The script source code.
+             * @param {Function} lineFilter See 'System.String.addLineNumbersToText()'.
+             */
+            getFormatedSource(lineFilter?: System.IAddLineNumbersFilter): string;
+        }
+        function validateScript(script: string, url?: string): ScriptError;
         /** Returns a resource loader for loading a specified manifest file from a given path (the manifest file name itself is not required).
           * To load a custom manifest file, the filename should end in either ".manifest" or ".manifest.js".
           * Call 'start()' on the returned instance to begin the loading process.
