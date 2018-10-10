@@ -69,6 +69,9 @@ declare namespace CoreXT {
         }
         interface IObject extends Object.$__type {
         }
+        interface IAddLineNumbersFilter {
+            (lineNumber: number, marginSize: number, paddedLineNumber: string, line: string): string;
+        }
         const String_base: {
             new (...args: any[]): {
                 $__disposing?: boolean;
@@ -119,6 +122,13 @@ declare namespace CoreXT {
             static prepend(source: string, prefix?: string, delimiter?: string): string;
             /** Returns an array of all matches of 'regex' in 'text', grouped into sub-arrays (string[matches][groups]). */
             static matches(regex: RegExp, text: string): string[][];
+            /** Splits the lines of the text (delimited by '\r\n', '\r', or '\n') into an array of strings. */
+            static getLines(text: string): string[];
+            /** Adds a line number margin to the given text and returns the result. This is useful when display script errors.
+             * @param {string} text The text to add line numbers to.
+             * @param {Function} lineFilter An optional function to run on every line that should return new line text, or undefined to skip a line.
+             */
+            static addLineNumbersToText(text: string, lineFilter?: IAddLineNumbersFilter): string;
         }
         namespace String {
             const $__type_base_1: {

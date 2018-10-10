@@ -140,6 +140,91 @@ var CoreXT;
         // ====================================================================================================================
         var _manifests = []; // (holds a list of all 
         var _manifestsByURL = {};
+        /** Stores script parse and execution errors, and includes functions for formatting source based on errors. */
+        var ScriptError = /** @class */ (function () {
+            function ScriptError(source, error, filename, functionName, lineno, colno, stack) {
+                this.source = source;
+                this.error = error;
+                this.filename = filename;
+                this.functionName = functionName;
+                this.lineno = lineno;
+                this.colno = colno;
+                this.stack = stack;
+                if (error instanceof ErrorEvent) {
+                    if (filename === void 0)
+                        this.filename = error.filename;
+                    if (lineno === void 0)
+                        this.lineno = error.lineno;
+                    if (colno === void 0)
+                        this.colno = error.colno;
+                }
+                else if (error instanceof Error && error.stack && (functionName === void 0 || lineno === void 0 || colno === void 0)) {
+                    var info = ScriptError.getFirstStackEntry(error.stack);
+                    if (info) {
+                        if (functionName === void 0)
+                            this.functionName = info[0];
+                        if (lineno === void 0)
+                            this.lineno = info[1];
+                        if (colno === void 0)
+                            this.colno = info[2];
+                    }
+                }
+            }
+            Object.defineProperty(ScriptError.prototype, "message", {
+                get: function () { return CoreXT.getErrorMessage(this); },
+                enumerable: true,
+                configurable: true
+            });
+            /** Returns the first function name, line number, and column number found in the given stack string. */
+            ScriptError.getFirstStackEntry = function (stack) {
+                var matches = stack.match(/(?:\s*at\b)?\s*(?:(.*(?=@debugger)|(?:.(?!\())*|<\w+>|eval code)).*:(\d+):(\d+)/mi); // (https://regex101.com/r/D02917/2)
+                return matches && [matches[1], +matches[2], +matches[3]] || null;
+            };
+            ScriptError.fromError = function (error, source, filelocation) {
+                return new ScriptError(source, error, filelocation, void 0, void 0, void 0, error.stack);
+            };
+            /** Adds line numbers to the script source that produced the error and puts a simple arrow '=> ' mark on the line where
+             * the error is and highlights the column.
+             * @param {string} source The script source code.
+             * @param {Function} lineFilter See 'System.String.addLineNumbersToText()'.
+             */
+            ScriptError.prototype.getFormatedSource = function (lineFilter) {
+                var _this = this;
+                var scriptWithLines = CoreXT.System.String.addLineNumbersToText(this.source, lineFilter || (function (lineNumber, marginSize, paddedLineNumber, line) {
+                    if (lineNumber == _this.lineno)
+                        return "\u25BA " + paddedLineNumber + " " + line.substr(0, _this.colno) + " \xBB " + line.substr(_this.colno);
+                }));
+                return scriptWithLines;
+            };
+            return ScriptError;
+        }());
+        Scripts.ScriptError = ScriptError;
+        /// <summary> Validates if the script can be parsed for execution.  If not, then a 'ScriptError' instance is returned, otherwise 'null' is returned. </summary>
+        /// <param name="script"> The script to validate. </param>
+        /// <returns> A ScriptError instance if there are any parse errors, and null otherwise. </returns>
+        function validateScript(script, url) {
+            if (window) {
+                var oldWinError = window.onerror, err, lineNumber, column;
+                window.onerror = function (errEventOrMsg, u, ln, col) { err = errEventOrMsg; url = u || url; lineNumber = ln; column = col; };
+                var s = document.createElement('script');
+                s.appendChild(document.createTextNode("(function () {\n" + script + "\n})"));
+                document.body.appendChild(s);
+                document.body.removeChild(s);
+                window.onerror = oldWinError;
+            }
+            else
+                try {
+                    Function(script); // (not in the DOM?  use a fallback)
+                }
+                catch (ex) {
+                    return ScriptError.fromError(ex, script, url);
+                }
+            if (err)
+                return new ScriptError(script, err, url || void 0, void 0, lineNumber, column, null);
+            else
+                return null;
+        }
+        Scripts.validateScript = validateScript;
         /** Returns a resource loader for loading a specified manifest file from a given path (the manifest file name itself is not required).
           * To load a custom manifest file, the filename should end in either ".manifest" or ".manifest.js".
           * Call 'start()' on the returned instance to begin the loading process.
@@ -189,8 +274,17 @@ var CoreXT;
                 // ... before we execute the script we need to move down any source mapping pragmas ...
                 var sourcePragmaInfo = CoreXT.extractPragmas(script);
                 script = sourcePragmaInfo.filteredSource + "\r\n" + sourcePragmaInfo.pragmas.join("\r\n");
-                var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
-                func.call(_this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
+                var errorResult = validateScript(script, manifestRequest.url);
+                if (errorResult)
+                    CoreXT.error("getManifest(" + path + ")", "Error parsing script: " + errorResult.message + "\r\nScript: \r\n" + errorResult.getFormatedSource(), manifestRequest);
+                try {
+                    var func = Function("manifest", "CoreXT", script); // (create a manifest wrapper function to isolate the execution context)
+                    func.call(_this, manifestRequest, CoreXT); // (make sure 'this' is supplied, just in case, to help protect the global scope somewhat [instead of forcing 'strict' mode])
+                }
+                catch (ex) {
+                    errorResult = ScriptError.fromError(ex, func && func.toString() || script, CoreXT.nameof(function () { return CoreXT.Scripts.getManifest; }, true) + "() while executing " + manifestRequest.url);
+                    CoreXT.error("getManifest(" + path + ")", "Error executing script: " + errorResult.message + "\r\nScript: \r\n" + errorResult.getFormatedSource(), manifestRequest);
+                }
                 manifestRequest.status = CoreXT.RequestStatuses.Executed;
                 manifestRequest.message = "The manifest script has been executed.";
             });

@@ -1326,6 +1326,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
     namespace("CoreXT", "Types"); // ('CoreXT.Types' will become the first registered namespace)
     /** Returns the call stack for a given error object. */
     function getErrorCallStack(errorSource) {
+        if (!errorSource || !errorSource.stack)
+            return [];
         var _e = errorSource;
         if (_e.stacktrace && _e.stack)
             return _e.stacktrace.split(/\n/g); // (opera provides one already good to go) [note: can also check for 'global["opera"]']
@@ -1368,19 +1370,23 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                 return errorSource.toString();
             }
             else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
-                var error = errorSource;
-                var msg = error.message;
-                if (error.name)
-                    msg = "(" + error.name + ") " + msg;
-                if (error.lineno !== undefined)
-                    error.lineNumber = error.lineno;
-                if (error.lineNumber !== undefined) {
-                    msg += "\r\non line " + error.lineNumber + ", column " + error.columnNumber;
-                    if (error.fileName !== undefined)
-                        msg += ", of file '" + error.fileName + "'";
+                var errorInfo = errorSource;
+                var error = errorSource instanceof Error ? errorSource : errorSource instanceof ErrorEvent ? errorSource.error : null;
+                var msg = CoreXT.Scripts && CoreXT.Scripts.ScriptError && (errorSource instanceof CoreXT.Scripts.ScriptError)
+                    ? errorSource.error && errorSource.error.message || errorSource.error && errorInfo.error : errorInfo.message;
+                var fname = errorInfo instanceof Function ? getTypeName(errorInfo, false) : errorInfo.functionName;
+                var sourceLocation = errorInfo.fileName || errorInfo.filename || errorInfo.url;
+                if (fname)
+                    msg = "(" + fname + ") " + msg;
+                var lineno = errorInfo.lineno !== void 0 ? errorInfo.lineno : errorInfo.lineNumber;
+                var colno = errorInfo.colno !== void 0 ? errorInfo.colno : errorInfo.columnNumber;
+                if (lineno !== void 0) {
+                    msg += "\r\non line " + lineno + ", column " + colno;
+                    if (sourceLocation !== void 0)
+                        msg += ", of file '" + sourceLocation + "'";
                 }
-                else if (error.fileName !== undefined)
-                    msg += "\r\nin file '" + error.fileName + "'";
+                else if (sourceLocation !== void 0)
+                    msg += "\r\nin file '" + sourceLocation + "'";
                 var stack = getErrorCallStack(error);
                 if (stack && stack.length)
                     msg += "\r\nStack trace:\r\n" + stack.join("\r\n") + "\r\n";
@@ -2542,7 +2548,8 @@ CoreXT.globalEval = function (exp) { return (0, eval)(exp); };
                                         }
                                     }
                                 }
-                                this.$__transformedData = data;
+                                if (data !== void 0)
+                                    this.$__transformedData = data;
                             }
                             else if (handlers.onFinally) {
                                 try {
