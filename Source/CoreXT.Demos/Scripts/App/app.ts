@@ -6,12 +6,12 @@
             alert("The DOM is now loaded!");
         }
 
-        if (CoreXT.DOM.isDOMReady)
+        if (CoreXT.System.Browser.DOM.isDOMReady)
             alert("CoreXT system is loaded and ready!");
         else
             alert("CoreXT system is loaded and ready! Just waiting on the browser ...");
 
-        CoreXT.DOM.onDOMLoaded.attach(main); // (all events fire immediately when the DOM is already loaded)
+        CoreXT.System.Browser.DOM.onDOMLoaded.attach(main); // (all events fire immediately when the DOM is already loaded)
     }
 };
 
