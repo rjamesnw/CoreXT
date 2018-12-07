@@ -1419,6 +1419,8 @@ namespace CoreXT { // (the core scope)
         name: string;
         functionName: string; // (CoreXT: Scripts.ScriptError)
         message: string;
+        reason: string; // (for promises)
+        type: string; // (for basic error events inheriting from the base Error type)
         stack: string; // (in opera, this is a call stack only [no source and line details], and includes function names and args)
         stacktrace: string; // (opera - includes source and line info)
         lineNumber: number; // (Firefox)
@@ -1477,8 +1479,8 @@ namespace CoreXT { // (the core scope)
             } else if ('message' in errorSource) { // (this should support both 'Exception' AND 'Error' objects)
                 var errorInfo: _IError = errorSource;
                 var error: Error = errorSource instanceof Error ? errorSource : errorSource instanceof ErrorEvent ? errorSource.error : null;
-                var msg = Scripts && Scripts.ScriptError && (errorSource instanceof Scripts.ScriptError)
-                    ? errorSource.error && errorSource.error.message || errorSource.error && errorInfo.error : errorInfo.message;
+                var msg = '' + (Scripts && Scripts.ScriptError && (errorSource instanceof Scripts.ScriptError)
+                    ? errorSource.error && errorSource.error.message || errorSource.error && errorInfo.error : (errorInfo.message || errorInfo.reason || errorInfo.type));
                 var fname = errorInfo instanceof Function ? getTypeName(errorInfo, false) : errorInfo.functionName;
                 var sourceLocation = errorInfo.fileName || errorInfo.filename || errorInfo.url;
                 if (fname) msg = "(" + fname + ") " + msg;
@@ -2566,7 +2568,7 @@ namespace CoreXT { // (the core scope)
                                     }
                                 };
 
-                                xhr.onerror = (ev: ErrorEvent) => { this.setError(void 0, ev); this._doError(); };
+                                xhr.onerror = (ev: ProgressEvent) => { this.setError(void 0, ev); this._doError(); };
                                 xhr.onabort = () => { this.setError("Request aborted."); };
                                 xhr.ontimeout = () => { this.setError("Request timed out."); };
                                 xhr.onprogress = (evt: ProgressEvent) => {
@@ -2604,7 +2606,7 @@ namespace CoreXT { // (the core scope)
 
                         try {
                             var payload: any = _body || this.body;
-                            if (typeof payload == 'object' && payload.__proto__ == Object.prototype) {
+                            if (typeof payload == 'object' && payload.__proto__ == CoreObject.prototype) {
                                 // (can't send object literals! convert to something else ...)
                                 if (_method == 'GET') {
                                     var q = IO.Path.Query.new(payload);
@@ -2660,7 +2662,7 @@ namespace CoreXT { // (the core scope)
                         }
                     }
 
-                    setError(message: string, error?: { name?: string; message: string; stack?: string }): void { // TODO: Make this better, perhaps with a class to handle error objects (see 'Error' AND 'ErrorEvent'). //?
+                    setError(message: string, error?: { name?: string; reason?: string; message?: string; type?: any; stack?: string }): void { // TODO: Make this better, perhaps with a class to handle error objects (see 'Error' AND 'ErrorEvent'). //?
 
                         if (error) {
                             var errMsg = getErrorMessage(error);

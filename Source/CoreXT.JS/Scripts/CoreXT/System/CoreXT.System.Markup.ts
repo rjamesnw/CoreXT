@@ -33,7 +33,7 @@ namespace CoreXT.System {
           * Performance note: Since HTML can be large, it's not efficient to scan the HTML character by character. Instead, the HTML reader uses the native
           * RegEx engine to split up the HTML into chunks of delimiter text, which makes reading it much faster.
           */
-        export class HTMLReader extends FactoryBase(Object) {
+        export class HTMLReader extends FactoryBase(CoreObject) {
             /**
                  * Create a new HTMLReader instance to parse the given HTML text.
                  * @param html The HTML text to parse.
@@ -43,7 +43,7 @@ namespace CoreXT.System {
             static init(o: IHTMLReader, isnew: boolean, html: string) { }
         }
         export namespace HTMLReader {
-            export class $__type extends FactoryType(Object) {
+            export class $__type extends FactoryType(CoreObject) {
                 // -------------------------------------------------------------------------------------------------------------------
 
                 private static __splitRegEx: RegExp = /<!(?:--[\S\s]*?--)?[\S\s]*?>|<script\b[\S\s]*?<\/script[\S\s]*?>|<style\b[\S\s]*?<\/style[\S\s]*?>|<\![A-Z0-9]+|<\/[A-Z0-9]+|<[A-Z0-9]+|\/?>|&[A-Z]+;?|&#[0-9]+;?|&#x[A-F0-9]+;?|(?:'[^<>]*?'|"[^<>]*?")|=|\s+|\{\{[^\{\}]*?\}\}/gi;

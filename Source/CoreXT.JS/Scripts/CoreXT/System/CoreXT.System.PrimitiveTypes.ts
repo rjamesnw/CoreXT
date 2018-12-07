@@ -11,7 +11,7 @@ namespace CoreXT {
         // =======================================================================================================================
 
         /** The base type for many CoreXT classes. */
-        export class Object extends FactoryBase(void 0, global.Object) { // (FACTORY)
+        export class CoreObject extends FactoryBase(void 0, global.Object) { // (FACTORY)
             /**
             * Create a new basic object type.
             * @param value If specified, the value will be wrapped in the created object.
@@ -24,7 +24,7 @@ namespace CoreXT {
             static init: (o: IObject, isnew: boolean, value?: any, makeValuePrivate?: boolean) => void;
             static s = 3;
         }
-        export namespace Object {
+        export namespace CoreObject {
             export class $__type extends DisposableFromBase(global.Object) implements ISerializable {
                 // -------------------------------------------------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ namespace CoreXT {
 
                 // -------------------------------------------------------------------------------------------------------------------
                 // This part uses the CoreXT factory pattern
-                private static [constructor](factory: typeof Object) {
+                private static [constructor](factory: typeof CoreObject) {
                     factory.init = (o, isnew, value, makeValuePrivate = false) => {
                         if (!isnew)
                             o.$__reset();
@@ -142,19 +142,19 @@ namespace CoreXT {
                 }
                 // -------------------------------------------------------------------------------------------------------------------
             }
-            Object.$__register(System);
+            CoreObject.$__register(System);
         }
 
-        export interface IObject extends Object.$__type { }
+        export interface IObject extends CoreObject.$__type { }
 
         // =======================================================================================================================
 
         /** Copies over prototype properties from the $Object type to other base primitive types. */
         function _addObjectPrototypeProperties<T extends { new(...args: any[]): any }>(type: T): T & IObject {
-            for (var p in Object.prototype)
-                if (Object.prototype.hasOwnProperty.call(Object.prototype, p) && p.charAt(0) != "$" && p.charAt(0) != "_")
+            for (var p in CoreObject.prototype)
+                if (CoreObject.prototype.hasOwnProperty.call(CoreObject.prototype, p) && p.charAt(0) != "$" && p.charAt(0) != "_")
                     if (!(p in type.prototype))
-                        type.prototype[p] = Object.prototype[p];
+                        type.prototype[p] = CoreObject.prototype[p];
             return <any>type;
         }
 
@@ -393,7 +393,7 @@ namespace CoreXT {
         // ====================================================================================================================================
 
         /** Represents an object that can have a parent object. */
-        export abstract class DependentObject extends Object.$__type {
+        export abstract class DependentObject extends CoreObject.$__type {
             get parent() { return this.__parent; }
             protected __parent: DependentObject; // (note: EvenDispatcher expects '__parent' chains also)
         }

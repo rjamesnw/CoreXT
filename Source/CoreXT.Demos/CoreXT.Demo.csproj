@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <TypeScriptToolsVersion>2.9</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.1</TypeScriptToolsVersion>
     <DefineConstants>$(DefineConstants);DOTNETCORE</DefineConstants>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>CoreXT.Demos</AssemblyName>

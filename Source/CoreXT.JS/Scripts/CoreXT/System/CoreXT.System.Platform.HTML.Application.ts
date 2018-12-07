@@ -134,8 +134,8 @@ namespace CoreXT.System.Platform.HTML.Application {
                         // ... use AJAX ...
                         var request = new XMLHttpRequest();
                         request.open("get", htmlFileURI + "!", false);
-                        request.onerror = (ev: ErrorEvent) => {
-                            Diagnostics.log("Application.loadTemplate()", ev.message, LogTypes.Error);
+                        request.onerror = (ev: ProgressEvent) => {
+                            Diagnostics.log("Application.loadTemplate()", getErrorMessage(ev), LogTypes.Error);
                         };
                         request.onreadystatechange = () => {
                             if (request.readyState == (XMLHttpRequest.DONE || 4)) {

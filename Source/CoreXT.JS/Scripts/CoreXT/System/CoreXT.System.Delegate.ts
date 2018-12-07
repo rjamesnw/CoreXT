@@ -17,10 +17,10 @@ namespace CoreXT.System {
      * serialized.
      * Note: If the target object is undefined, then 'null' is assumed and passed in as 'this'.
      */
-    export class Delegate extends FactoryBase(Object) {
+    export class Delegate extends FactoryBase(CoreObject) {
         /**
          * Constructs a new Delegate object.
-         * @param {Object} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
+         * @param {CoreObject} object The instance on which the associated function will be called.  This should be undefined/null for static functions.
          * @param {Function} func The function to be called on the associated object.
          */
         static 'new': <TObj extends object, TFunc extends DelegateFunction>(object: TObj, func: TFunc) => IDelegate<TObj, TFunc>;
@@ -66,7 +66,7 @@ namespace CoreXT.System {
         }
     }
     export namespace Delegate {
-        export class $__type<TObj extends object, TFunc extends DelegateFunction> extends FactoryType(Object) {
+        export class $__type<TObj extends object, TFunc extends DelegateFunction> extends FactoryType(CoreObject) {
             //? static readonly $Type = $Delegate;
 
             private [constructor](): void {
@@ -165,7 +165,7 @@ namespace CoreXT.System {
                     Exception.error("Delegate", "The function value is not a function:\r\n {Delegate}.func = " + this.func, this.func);
                 if (this.func.bind)
                     this.__boundFunc = this.func.bind(this, this.object); // (this can be faster in some cases [i.e. IE])
-                if (this.object instanceof Object.$__type)
+                if (this.object instanceof CoreObject.$__type)
                     this.__key = Delegate.getKey(<any>this.object, this.func); // (this also validates the properties first)
                 else
                     this.__key = void 0;

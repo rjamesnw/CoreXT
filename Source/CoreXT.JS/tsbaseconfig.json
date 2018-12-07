@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "module": "none",
     "experimentalDecorators": true,
     "suppressImplicitAnyIndexErrors": true,
     "traceResolution": true,
