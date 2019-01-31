@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <AssemblyName>CoreXT.ASPNet</AssemblyName>
     <PackageId>CoreXT.ASPNet</PackageId>
     <!--<NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>-->
@@ -13,7 +14,7 @@
     <Authors>Catmedis</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Copyright>Catmedis</Copyright>
-    <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
+    <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0</PackageLicenseUrl>
     <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC</PackageTags>
@@ -30,14 +31,28 @@ This package holds some utility methods mainly around the ASP side of .Net Core 
     <ProjectReference Include="..\CoreXT\CoreXT.csproj" />
   </ItemGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461'">
+    <DefineConstants>NETFULL;NET461</DefineConstants>
+  </PropertyGroup>
+
+  <!--<ItemGroup Condition=" '$(TargetFramework)' == 'net461'">
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.7" />
+  </ItemGroup>-->
+
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.1.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.0" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

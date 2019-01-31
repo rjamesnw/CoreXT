@@ -1,11 +1,6 @@
-﻿#if (NETSTANDARD1_6 || NETSTANDARD2_0 || NETCOREAPP1_0 || NETCOREAPP2_0 || DNXCORE50 || NETCORE45  || NETCORE451 || NETCORE50)
-#define DOTNETCORE
-#endif
-// (see more framework monikers here: https://docs.microsoft.com/en-us/nuget/schema/target-frameworks)
+﻿using System;
 
-using System;
-
-#if DOTNETCORE // (DNXCORE50: https://channel9.msdn.com/Events/dotnetConf/2015/ASPNET-5-Deep-Dive; 0:36)
+#if NETCORE // (DNXCORE50: https://channel9.msdn.com/Events/dotnetConf/2015/ASPNET-5-Deep-Dive; 0:36)
 #else
 using System.Web;
 using System.Data;

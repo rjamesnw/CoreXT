@@ -1,9 +1,4 @@
-﻿#if (NETSTANDARD1_6 || NETSTANDARD2_0 || NETCOREAPP1_0 || NETCOREAPP2_0 || DNXCORE50 || NETCORE45  || NETCORE451 || NETCORE50)
-#define DOTNETCORE
-#endif
-// (see more framework monikers here: https://docs.microsoft.com/en-us/nuget/schema/target-frameworks)
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,7 +13,7 @@ using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using CoreXT.CollectionsAndLists;
 
-#if DOTNETCORE // (DNXCORE50: https://channel9.msdn.com/Events/dotnetConf/2015/ASPNET-5-Deep-Dive; 0:36)
+#if NETCORE // (DNXCORE50: https://channel9.msdn.com/Events/dotnetConf/2015/ASPNET-5-Deep-Dive; 0:36)
 using System.Net;
 #else
 using System.Web;
@@ -29,7 +24,7 @@ namespace CoreXT
 {
     internal static class _ExtensionMethods
     {
-#if !DOTNETCORE
+#if !NETCORE
         public static Type GetTypeInfo(this Type type) { return type; }
 
         public static MethodInfo GetMethodInfo(this Delegate del) { return del?.Method; }
@@ -37,7 +32,7 @@ namespace CoreXT
 
         public static Delegate CreateDelegate(this Delegate del, Type type, object instance = null)
         {
-#if DOTNETCORE
+#if NETCORE
             return del.GetMethodInfo().CreateDelegate(type, instance);
 #else
             return del.CreateDelegate(type, instance);
@@ -46,7 +41,7 @@ namespace CoreXT
 
         public static Delegate CreateDelegate(this MethodInfo m, Type type, object instance = null)
         {
-#if DOTNETCORE
+#if NETCORE
             return m.CreateDelegate(type, instance);
 #else
             return Delegate.CreateDelegate(type, instance, m);
@@ -674,19 +669,6 @@ namespace CoreXT
         }
 
         // ---------------------------------------------------------------------------------------------------------------------
-
-        public static string StripHTMLTags(string text)
-        {
-            return
-#if DOTNETCORE
-                WebUtility.
-#else
-                HttpUtility.
-#endif
-                HtmlDecode(Regex.Replace(text, @"(<[^>]+>)", "")); //Regex.Replace(, @"&[^;]+?;", " ");
-        }
-
-        // ---------------------------------------------------------------------------------------------------------------------
     }
 
     // =========================================================================================================================
@@ -813,7 +795,7 @@ namespace CoreXT
 
         // ---------------------------------------------------------------------------------------------------------------------
 
-#if !SILVERLIGHT && !DOTNETCORE
+#if !SILVERLIGHT && !NETCORE
         /// <summary>
         /// Creates a new data column for a table.
         /// </summary>

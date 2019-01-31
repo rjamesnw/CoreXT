@@ -1,8 +1,4 @@
-﻿#if (NETSTANDARD1_6 || NETSTANDARD2_0 || NETCOREAPP1_0 || NETCOREAPP2_0 || DNXCORE50 || NETCORE45  || NETCORE451 || NETCORE50)
-#define DOTNETCORE
-#endif
-
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 
 namespace CoreXT.Data

@@ -1,7 +1,3 @@
-#if (NETSTANDARD1_6 || NETSTANDARD2_0 || NETCOREAPP1_0 || NETCOREAPP2_0 || DNXCORE50 || NETCORE45  || NETCORE451 || NETCORE50)
-#define DOTNETCORE
-#endif
-
 // Base off ZipStorer, by Jaime Olivares
 // Website: zipstorer.codeplex.com (http://zipstorer.codeplex.com/ or https://github.com/jaime-olivares/zipstorer)
 // Version: 2.35 (March 14, 2010)

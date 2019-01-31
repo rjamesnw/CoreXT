@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <AssemblyName>CoreXT.Email</AssemblyName>
     <PackageId>CoreXT.Email</PackageId>
     <!--<NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>-->
@@ -26,10 +27,18 @@ This package provides support for creating and sending emails.</Description>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461'">
+    <DefineConstants>NETFULL;NET461</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
-    <PackageReference Include="MailKit" Version="2.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
+    <PackageReference Include="MailKit" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
   </ItemGroup>
 
   <Target Name="PushPackage" AfterTargets="Pack">

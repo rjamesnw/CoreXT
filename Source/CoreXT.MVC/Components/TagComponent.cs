@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -473,17 +474,17 @@ namespace CoreXT.MVC.Components
         /// <summary> Decodes an HTML tag attribute. </summary>
         /// <param name="value"> The value. </param>
         /// <returns> A string. </returns>
-        public static string DecodeAttribute(string value) => HttpUtility.HtmlDecode(value);
+        public static string DecodeAttribute(string value) => WebUtility.HtmlDecode(value);
 
         /// <summary> Encodes HTML text. </summary>
         /// <param name="value"> The value. </param>
         /// <returns> A string. </returns>
-        public static string EncodeHTML(string value) => HttpUtility.HtmlEncode(value);
+        public static string EncodeHTML(string value) => WebUtility.HtmlEncode(value);
 
         /// <summary> Decodes HTML encoded text. </summary>
         /// <param name="value"> The value. </param>
         /// <returns> A string. </returns>
-        public static string DecodeHTML(string value) => HttpUtility.HtmlDecode(value);
+        public static string DecodeHTML(string value) => WebUtility.HtmlDecode(value);
 
         /// <summary> Parses a URL query string using the default UTF8 encoding. </summary>
         /// <param name="value"> The value. </param>
@@ -676,11 +677,13 @@ namespace CoreXT.MVC.Components
 
         internal _TempViewPage(ActionContext context)
         {
-            ViewContext = new ViewContext();
-            ViewContext.ActionDescriptor = context.ActionDescriptor;
-            ViewContext.RouteData = context.RouteData;
-            ViewContext.View = new _TempView();
-            ViewContext.FormContext = new FormContext();
+            ViewContext = new ViewContext
+            {
+                ActionDescriptor = context.ActionDescriptor,
+                RouteData = context.RouteData,
+                View = new _TempView(),
+                FormContext = new FormContext()
+            };
             ConfigureRequiredServices(context.HttpContext);
             //? ViewContext.Writer = new StreamWriter(context.Response.Body);
         }

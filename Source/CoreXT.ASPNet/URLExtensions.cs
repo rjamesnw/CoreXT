@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Text;
-using System.Web;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 
 namespace CoreXT.ASPNet
 {
@@ -69,9 +71,9 @@ namespace CoreXT.ASPNet
         /// </summary>
         /// <param name="uriBuilder"></param>
         /// <returns></returns>
-        public static NameValueCollection GetQueryParameters(this UriBuilder uriBuilder)
+        public static Dictionary<string, StringValues> GetQueryParameters(this UriBuilder uriBuilder)
         {
-            return HttpUtility.ParseQueryString(uriBuilder.Query ?? "");
+            return QueryHelpers.ParseQuery(uriBuilder.Query ?? "");
         }
 
         /// <summary>
@@ -113,8 +115,9 @@ namespace CoreXT.ASPNet
         public static UriBuilder MergeQueryParameters(this UriBuilder uriBuilder, string queryString)
         {
             var nameValues = uriBuilder.GetQueryParameters();
-            var newValues = HttpUtility.ParseQueryString(queryString ?? "");
-            nameValues.Add(newValues);
+            var newValues = QueryHelpers.ParseQuery(queryString ?? "");
+            foreach (var newitem in newValues)
+                nameValues.Add(newitem.Key, newitem.Value);
             uriBuilder.Query = nameValues.ToString();
             return uriBuilder;
         }
@@ -125,10 +128,11 @@ namespace CoreXT.ASPNet
         /// <param name="uriBuilder"></param>
         /// <param name="items"></param>
         /// <returns></returns>
-        public static UriBuilder MergeQueryParameters(this UriBuilder uriBuilder, NameValueCollection items)
+        public static UriBuilder MergeQueryParameters(this UriBuilder uriBuilder, IEnumerable<KeyValuePair<string, StringValues>> items)
         {
             var nameValues = uriBuilder.GetQueryParameters();
-            nameValues.Add(items);
+            foreach (var item in items)
+                nameValues.Add(item.Key, item.Value);
             uriBuilder.Query = nameValues.ToString();
             return uriBuilder;
         }

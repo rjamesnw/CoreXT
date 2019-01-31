@@ -1,13 +1,11 @@
-#if (NETSTANDARD1_6 || NETSTANDARD2_0 || NETCOREAPP1_0 || NETCOREAPP2_0 || DNXCORE50 || NETCORE45  || NETCORE451 || NETCORE50)
-#define DOTNETCORE
-#endif
-
 using System;
 using System.IO;
 
-#if !DOTNETCORE
-using System.Management; // System.Management.dll
-#else
+#if !NETCORE
+using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using System.Management; // nuget: System.Management
 #endif
 
 namespace CoreXT
@@ -354,7 +352,7 @@ namespace CoreXT
             System.Diagnostics.Process[] processes = System.Diagnostics.Process.GetProcessesByName(name);
             foreach (System.Diagnostics.Process process in processes)
             {
-#if !DOTNETCORE
+#if !NETCORE
                 if (!process.CloseMainWindow()) // (try to close the window gracefully first)
 #endif
                 {
@@ -369,7 +367,7 @@ namespace CoreXT
         {
             System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById(procid);
             if (process != null)
-#if !DOTNETCORE
+#if !NETCORE
                 if (!process.CloseMainWindow()) // (try to close the window gracefully first)
 #endif
             {
@@ -379,7 +377,7 @@ namespace CoreXT
             return "";
         }
 
-#if !DOTNETCORE
+#if !NETCORE
         public static void KillProcessByOwner(string procName, string owner)
         {
             SelectQuery selectQuery = new SelectQuery("select * from Win32_Process where name='" + procName + "'");
@@ -439,7 +437,7 @@ namespace CoreXT
 
     public static class Currencies
     {
-#if !DOTNETCORE
+#if !NETCORE
         // -----------------------------------------------------------------------------------------------------------
         // (http://msdn.microsoft.com/en-us/goglobal/bb964664.aspx - LCID codes, if ever there's a need to port this client side [i.e. Silverlight])
 
@@ -483,7 +481,7 @@ namespace CoreXT
 
     public static partial class ExtentionMethods
     {
-#if !DOTNETCORE
+#if !NETCORE
         public static bool SetIfExists(this DataRow row, string columnName, object value)
         {
             if (row != null)
