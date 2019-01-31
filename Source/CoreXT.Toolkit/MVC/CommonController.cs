@@ -1,5 +1,5 @@
 ﻿using CoreXT.MVC;
-using CoreXT.MVC.Components.Old;
+using CoreXT.MVC.Components;
 using CoreXT.Services.DI;
 using System;
 
@@ -42,14 +42,14 @@ namespace CoreXT.Toolkit.MVC
             ServiceProvider = services;
         }
 
-        /// <summary>
-        /// Get a control with a dummy view context in order to be rendered directly from a controller.
-        /// </summary>
-        /// <typeparam name="T">The type of control to create.</typeparam>
-        protected T GetControl<T>() where T : class, IWebViewComponent
-        {
-            return ComponentBaseExtensions.GetComponent<T>(this);
-        }
+        ///// <summary>
+        ///// Get a control with a dummy view context in order to be rendered directly from a controller.
+        ///// </summary>
+        ///// <typeparam name="T">The type of control to create.</typeparam>
+        //protected T GetControl<T>() where T : class, IWebComponent
+        //{
+        //    return ComponentBaseExtensions.GetComponent<T>(this);
+        //}
 
         /// <summary>
         /// Parses a JavaScript ISO date and returns a CLR DateTimeOffset.

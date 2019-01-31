@@ -115,6 +115,44 @@ namespace CoreXT.Toolkit.Components
 
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary> Configures the action link. </summary>
+        /// <param name="content">        The content. </param>
+        /// <param name="actionName">     Name of the action. </param>
+        /// <param name="controllerName"> (Optional) Name of the controller. </param>
+        /// <param name="areaName">       (Optional) Name of the area. </param>
+        /// <param name="fragment">       (Optional) The fragment. </param>
+        /// <param name="routeName">      (Optional) Name of the route. </param>
+        /// <returns> An ActionLink. </returns>
+        public ActionLink Configure(RazorTemplateDelegate<object> content, string actionName, string controllerName = null, string areaName = null,
+            string fragment = null, string routeName = null)
+        {
+            Fragment = fragment;
+            ContentTemplate = content;
+
+            SetRoute(actionName, controllerName, areaName, routeName);
+
+            return this;
+        }
+
+        /// <summary> Configures the action link. </summary>
+        /// <param name="text">           The text. </param>
+        /// <param name="actionName">     Name of the action. </param>
+        /// <param name="controllerName"> (Optional) Name of the controller. </param>
+        /// <param name="areaName">       (Optional) Name of the area. </param>
+        /// <param name="fragment">       (Optional) The fragment. </param>
+        /// <param name="routeName">      (Optional) Name of the route. </param>
+        /// <returns> An ActionLink. </returns>
+        public ActionLink Configure(string text, string actionName, string controllerName = null, string areaName = null,
+            string fragment = null, string routeName = null)
+        {
+            Fragment = fragment;
+            ContentTemplate = item => text;
+
+            SetRoute(actionName, controllerName, areaName, routeName);
+
+            return this;
+        }
+
 
         /// <summary>
         /// Set a route value for this link.

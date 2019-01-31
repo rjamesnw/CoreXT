@@ -82,7 +82,9 @@
 
   <ItemGroup>
     <!--Default to remove all as context and set all to no action-->
+    <Compile Remove="Components-Old\**" />
     <Content Remove="**\*.*" />
+    <Content Remove="Components-Old\**" />
     <None Include="Scripts\cds\**\*.*" />
     <!--<None Include="tsconfig.json" />
     <None Include="typings.json" />-->
@@ -104,7 +106,6 @@
     <EmbeddedResource Include="wwwroot\js\**\*.*" Exclude="wwwroot\js\**\Originals\*.*" />
     <EmbeddedResource Include="Scripts\*.*" />
     <!--<EmbeddedResource Include="Components\**\*.cs" />-->
-    <EmbeddedResource Include="Components-Old\**\*.cshtml" />
     <EmbeddedResource Include="Components\**\*.cshtml" />
     <!--Include content using wildcards-->
     <!--<None Include="Components\OrganizationUserApplicationMembershipTable\Display.cshtml" />-->
@@ -117,6 +118,11 @@
     <Content Include="typings\**\*.d.ts">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Components-Old\**" />
+    <None Remove="Components-Old\**" />
   </ItemGroup>
 
   <ItemGroup>

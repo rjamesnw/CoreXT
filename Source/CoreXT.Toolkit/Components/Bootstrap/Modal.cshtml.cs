@@ -44,6 +44,15 @@ namespace CoreXT.Toolkit.Components.Bootstrap
 
         // --------------------------------------------------------------------------------------------------------------------
 
+        public Modal Configure(bool allowClose = true)
+        {
+            EnableAutomaticID = true;
+            AllowClose = allowClose;
+            return this;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary> Asynchronously processes the component and renders output. </summary>
         /// <returns> An asynchronous result. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.TagComponent.ProcessAsync()"/>

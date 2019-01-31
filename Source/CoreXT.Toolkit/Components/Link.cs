@@ -2,6 +2,7 @@
 using CoreXT.Services.DI;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using System;
 using System.Threading.Tasks;
 
 namespace CoreXT.Toolkit.Components
@@ -22,6 +23,25 @@ namespace CoreXT.Toolkit.Components
 
         /// <summary> Something to render immediately before the end tag. </summary>
         public string Postfix { get; set; }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Creates a link control for rendering on a web view page.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="href"></param>
+        public Link Configure(string text, string href)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                throw new ArgumentException("Value cannot be null, empty, or whitespace.", "text");
+
+            Content = text;
+
+            Href = Url.Content(href);
+
+            return this;
+        }
 
         // --------------------------------------------------------------------------------------------------------------------
 

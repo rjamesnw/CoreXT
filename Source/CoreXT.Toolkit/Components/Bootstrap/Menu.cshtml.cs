@@ -46,6 +46,22 @@ namespace CoreXT.Toolkit.Components.Bootstrap
 
         // --------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Creates a menu control (usually for the layout page).
+        /// </summary>
+        /// <param name="caption">The menu title.</param>
+        /// <param name="actionName">The action for when the menu title is clicked.</param>
+        /// <param name="controllerName">The action for when the menu title is clicked.</param>
+        /// <param name="areaName">The area for when the menu title is clicked.</param>
+        public Menu Configure(string caption, string actionName = null, string controllerName = null, string areaName = null)
+        {
+            base.Configure(caption, actionName, controllerName, areaName);
+            Caption = caption;
+            return this;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
         /// <summary> Asynchronously processes the component and renders output. </summary>
         /// <returns> An asynchronous result. </returns>
         /// <seealso cref="M:CoreXT.Toolkit.TagComponents.TagComponent.ProcessAsync()"/>

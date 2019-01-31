@@ -71,5 +71,30 @@ namespace CoreXT.Toolkit.Components.Bootstrap
         }
 
         // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary> Configures a button control for rendering on a web view page. </summary>
+        /// <param name="content">    The button content. </param>
+        /// <param name="buttonStyle"> (Optional) Style of the button. </param>
+        /// <param name="buttonType"> (Optional) Type of the button. </param>
+        /// <returns> The button instance. </returns>
+        public Button Configure(RazorTemplateDelegate<object> content, ButtonStyles buttonStyle = ButtonStyles.Primary, ButtonTypes buttonType = ButtonTypes.Button)
+        {
+            ContentTemplate = content;
+            ButtonStyle = buttonStyle;
+            ButtonType = buttonType;
+            return this;
+        }
+
+        /// <summary> Configures a button control for rendering on a web view page. </summary>
+        /// <param name="content">    The button content. </param>
+        /// <param name="buttonStyle"> (Optional) Style of the button. </param>
+        /// <param name="buttonType"> (Optional) Type of the button. </param>
+        /// <returns> The button instance. </returns>
+        public Button Configure(string content, ButtonStyles buttonStyle = ButtonStyles.Primary, ButtonTypes buttonType = ButtonTypes.Button)
+        {
+            return Configure(item => content, buttonStyle, buttonType); // (NOTICE: This is a RAZOR template delegate pattern to return content, which is a string in this case)
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
     }
 }

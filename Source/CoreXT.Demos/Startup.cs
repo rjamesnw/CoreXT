@@ -33,6 +33,12 @@ namespace CoreXT.Demos
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) // (note: 'env.EnvironmentName' above can also be used in "Configure{0}Services")
         {
+            services.AddLogging(logging =>
+            {
+                logging.AddConsole();
+                logging.AddDebug();
+            });
+
             //services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             // ... register the CDS based application settings ...
@@ -76,10 +82,10 @@ namespace CoreXT.Demos
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory) // (note: 'env.EnvironmentName' above can also be used in "Configure{0}")
+        public void Configure(IApplicationBuilder app) // (note: 'env.EnvironmentName' above can also be used in "Configure{0}")
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            //logBuilder.AddConsole(); //? {ILoggerFactory}.AddConsole(Configuration.GetSection("Logging"))
+            //logBuilder.AddDebug();
 
             if (HostingEnvironment.IsDevelopment())
             {

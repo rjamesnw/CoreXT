@@ -1,6 +1,6 @@
 ﻿using CoreXT.Entities;
 using CoreXT.FileSystem;
-using CoreXT.MVC.Components.Old;
+using CoreXT.MVC.Components;
 using CoreXT.Services.DI;
 using CoreXT.Toolkit.Components;
 using Microsoft.AspNetCore.Session;

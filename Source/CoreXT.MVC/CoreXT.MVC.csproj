@@ -36,6 +36,12 @@ This package is the real meat of the whole system.  It injects it's own types in
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Components-Old\**" />
+    <EmbeddedResource Remove="Components-Old\**" />
+    <None Remove="Components-Old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CoreXT.ASPNet\CoreXT.ASPNet.csproj" />
     <ProjectReference Include="..\CoreXT.Validation\CoreXT.Validation.csproj" />
     <ProjectReference Include="..\CoreXT\CoreXT.csproj" />

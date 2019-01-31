@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -469,7 +471,7 @@ namespace CoreXT.MVC.Components
         /// <summary> Encodes an HTML tag attribute. </summary>
         /// <param name="value"> The value. </param>
         /// <returns> A string. </returns>
-        public static string EncodeAttribute(string value) => HttpUtility.HtmlAttributeEncode(value);
+        public static string EncodeAttribute(string value) => WebUtility.HtmlEncode(value);
 
         /// <summary> Decodes an HTML tag attribute. </summary>
         /// <param name="value"> The value. </param>
@@ -489,23 +491,22 @@ namespace CoreXT.MVC.Components
         /// <summary> Parses a URL query string using the default UTF8 encoding. </summary>
         /// <param name="value"> The value. </param>
         /// <returns> A string. </returns>
-        public static NameValueCollection ParseQueryString(string value) => HttpUtility.ParseQueryString(value);
+        public static Dictionary<string, StringValues> ParseQueryString(string value) => QueryHelpers.ParseQuery(value);
 
         /// <summary> Escapes a string for use within JavaScript code. </summary>
         /// <param name="value"> The string value to escape. </param>
-        /// <param name="addDoubleQuotes"> (Optional) True to add double quotes around the encoded JavaScript string. </param>
         /// <returns> A string. </returns>
-        public static string EscapeJSString(string value, bool addDoubleQuotes = false) => HttpUtility.JavaScriptStringEncode(value, addDoubleQuotes);
+        public static string EscapeJSString(string value) => JavaScriptEncoder.Default.Encode(value);
 
         /// <summary> Encodes a string for use with URLs (typically for setting query parameters). </summary>
         /// <param name="value"> Text to encode. </param>
         /// <returns> The encoded string. </returns>
-        public static string URLEncode(string value) => HttpUtility.UrlEncode(value);
+        public static string URLEncode(string value) => WebUtility.UrlEncode(value);
 
         /// <summary> Decodes a string for use with URLs (typically for decoding query parameter values). </summary>
         /// <param name="value"> Text to decode. </param>
         /// <returns> The decoded string. </returns>
-        public static string URLDecode(string value) => HttpUtility.UrlDecode(value);
+        public static string URLDecode(string value) => WebUtility.UrlDecode(value);
 
         // --------------------------------------------------------------------------------------------------------------------
     }
