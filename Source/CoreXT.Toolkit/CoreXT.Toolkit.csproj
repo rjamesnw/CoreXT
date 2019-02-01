@@ -28,8 +28,8 @@
 
       This package consists of various extensible types and controls for no-nonsense rapid ASP.Net Core MVC website development.
     </Description>
-    <Copyright>Catmedis</Copyright>
-    <Authors>Catmedis</Authors>
+    <Copyright>Inossis</Copyright>
+    <Authors>Inossis</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
@@ -41,11 +41,11 @@
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
     <DefineConstants>NETFULL;NET461</DefineConstants>
   </PropertyGroup>
 
@@ -176,7 +176,7 @@
     <Exec Command="if &quot;$(SolutionName)&quot;==&quot;CDS with CoreXT&quot; goto :EOF&#xD;&#xA;set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
   </Target>
 
-  <Target Name="PrecompileRazorViews" AfterTargets="Build" DependsOnTargets="MvcRazorPrecompile" />
+  <Target Name="PrecompileRazorViews" AfterTargets="Build" DependsOnTargets="MvcRazorPrecompile" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />

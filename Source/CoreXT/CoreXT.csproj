@@ -11,10 +11,10 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Authors>Catmedis</Authors>
+    <Authors>Inossis</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Copyright>Catmedis</Copyright>
+    <Copyright>Inossis</Copyright>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0</PackageLicenseUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC</PackageTags>

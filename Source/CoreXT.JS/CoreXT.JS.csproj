@@ -23,7 +23,7 @@
       REM "C:\Program Files (x86)\Microsoft SDKs\TypeScript\$(TypeScriptToolsVersion)\tsc" -d --sourcemap -t ES5 --outFile "$(SolutionDir)Source\CoreXT.JS\wwwroot\js\manifest.js"
     </PreBuildEvent>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Copyright>Catmedis</Copyright>
+    <Copyright>Inossis</Copyright>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-sa/4.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>

@@ -7,7 +7,7 @@
     <DefineConstants>$(DefineConstants);DOTNETCORE</DefineConstants>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>CoreXT.Demos</AssemblyName>
-    <PackageId>OneCMS</PackageId>
+    <PackageId>CoreXT Demo</PackageId>
     <RootNamespace>CoreXT.Demos</RootNamespace>
     <Version>1.0.7.47</Version>
     <ApplicationIcon />
