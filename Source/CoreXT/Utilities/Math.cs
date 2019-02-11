@@ -50,6 +50,43 @@ namespace CoreXT
         }
 
         // ---------------------------------------------------------------------------------------------------------------------
+
+        public static class UID64
+        {
+            public static DateTime Epoch = new DateTime(2019, 1, 1);
+            static ushort _UIDCounter = 0;
+
+            /// <summary> Creates a unique 64-bit identifier from the given 20-bit session ID. </summary>
+            /// <param name="session20ID"> A 20-bit identifier/hash for the session. </param>
+            /// <returns> A new 64-bit unique ID. </returns>
+            public static ulong UID(uint session20ID)
+            {
+                // ... 5 words for session ID ...
+
+                var _sessionID = ((ulong)session20ID & 0xFFFFF) << (64 - 5 * 4);
+
+                // ... 8 words for date+time ....
+
+                var spanInSeconds = (((ulong)(DateTime.UtcNow - Epoch).TotalSeconds) & 0xFFFFFFFF) << (3 * 4);
+
+                // ... 3 words for a counter value ...
+
+                var counter = (ulong)(_UIDCounter++ & 0xFFF);
+
+                // ... return 5 word session + 8 word date and time + 3 word counter ...
+
+                return _sessionID | spanInSeconds | counter;
+            }
+
+            /// <summary>
+            ///     Creates a unique 64-bit identifier from the given A 64-bit session ID that was originally creating using
+            ///     <see cref="UID(uint)"/> or <see cref="UID(ulong)"/>. This is done by extracting most of the seconds value and the lowest
+            ///     byte of the counter value to create a 20-bit session hash.
+            /// </summary>
+            /// <param name="sessionID">    A 64-bit session key ID value. </param>
+            /// <returns>   A new 64-bit unique ID. </returns>
+            public static ulong UID(ulong sessionID) => UID(((sessionID & 0xFFF000) >> 4) | (sessionID & 0xFF));
+        }
     }
 
     // =========================================================================================================================

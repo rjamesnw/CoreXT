@@ -304,15 +304,16 @@ namespace CoreXT.Entities
     /// <typeparam name="TMapItem">The mapping class type for the many-to-many relationship..</typeparam>
     /// <typeparam name="TOther">The other entity type that maps to the owning entity.</typeparam>
     public class EntityMap<TThis, TMapItem, TOther> : ICollection<TOther>
-    where TThis : class
-    where TMapItem : class, new()
-    where TOther : class
+        where TThis : class
+        where TMapItem : class, new()
+        where TOther : class
     {
-        public int Count => _Collection.Count;
+        public int Count => _MapCollection.Count;
 
-        public bool IsReadOnly => _Collection.IsReadOnly;
+        public bool IsReadOnly => _MapCollection.IsReadOnly;
 
-        ICollection<TMapItem> _Collection;
+        public ICollection<TMapItem> Maps => _MapCollection;
+        ICollection<TMapItem> _MapCollection;
 
         TThis _Owner;
         PropertyInfo _ThisKey; // (pulls the current key value for "this" entity)
@@ -333,9 +334,23 @@ namespace CoreXT.Entities
         public EntityMap(TThis owner, ICollection<TMapItem> collection, Action<TMapItem> onAdded = null, string rightSideFKName = null, string leftSideFKName = null)
         {
             _Owner = owner ?? throw new ArgumentNullException("owner");
-            _Collection = collection ?? throw new ArgumentNullException("collection", "Did you forget to set your mapping collection of type '" + typeof(TMapItem).Name + "' to a 'HashSet<T>' instance in your '" + typeof(TThis).Name + "' entity's default constructor?"); //? ImmutableHashSet<TMapItem>.Empty;
+            _MapCollection = collection ?? throw new ArgumentNullException("collection", "Did you forget to set your mapping collection of type '" + typeof(TMapItem).Name + "' to a 'HashSet<T>' instance in your '" + typeof(TThis).Name + "' entity's default constructor?"); //? ImmutableHashSet<TMapItem>.Empty;
             _DoReflect(leftSideFKName, rightSideFKName);
         }
+
+        // *** CANNOT WORK since the collection must be virtual on the target objects so that the DBContext instance can manage the relationships ...
+        ///// <summary>
+        ///// Create a new EntityMap instance for collections with a many-to-many relationship.
+        ///// This constructor auto-generates the map entity collection internally.
+        ///// </summary>
+        ///// <param name="owner">The instance this object is created on.</param>
+        ///// <param name="onAdded">An optional callback when new items are added.</param>
+        ///// <param name="rightSideFKName">If there are multiple right-side mapping foreign keys representing navigational properties of the same type, a specific foreign key must be named here. This is usually null in the most basic cases.</param>
+        ///// <param name="leftSideFKName">If there are multiple left-side mapping foreign keys representing navigational properties of the same type, a specific foreign key must be named here. This is usually null in the most basic cases.</param>
+        //public EntityMap(TThis owner, Action<TMapItem> onAdded = null, string rightSideFKName = null, string leftSideFKName = null)
+        //    : this(owner, new HashSet<TMapItem>(), onAdded, rightSideFKName, leftSideFKName)
+        //{
+        //}
 
         /// <summary>
         /// Process the types and connect the relationships.
@@ -444,38 +459,38 @@ namespace CoreXT.Entities
             var otherID = _OtherKey.GetValue(item);
             _Map_OtherFK.SetValue(map, otherID);
             if (Contains(item)) throw new InvalidOperationException("Duplicate error: Another '" + item.GetType().Name + "' entity with ID " + otherID + " already exists.");
-            _Collection.Add(map);
+            _MapCollection.Add(map);
         }
 
         public void Clear()
         {
-            _Collection.Clear();
+            _MapCollection.Clear();
         }
 
         public bool Remove(TOther item)
         {
-            var maps = _Collection.Where(i => _Map_OtherFK.GetValue(i) == _OtherKey.GetValue(item));
+            var maps = _MapCollection.Where(i => _Map_OtherFK.GetValue(i) == _OtherKey.GetValue(item));
             var removed = false;
             foreach (var map in maps)
-                if (_Collection.Remove(map))
+                if (_MapCollection.Remove(map))
                     removed = true;
             return removed;
         }
 
         public bool Contains(TOther item)
         {
-            return _Collection.Any(i => _Map_OtherFK.GetValue(i) == _OtherKey.GetValue(item));
+            return _MapCollection.Any(i => _Map_OtherFK.GetValue(i) == _OtherKey.GetValue(item));
         }
 
         public void CopyTo(TOther[] array, int arrayIndex)
         {
-            foreach (var item in _Collection)
+            foreach (var item in _MapCollection)
                 array[arrayIndex++] = (TOther)_Map_OtherNavProp.GetValue(item);
         }
 
         public IEnumerator<TOther> GetEnumerator()
         {
-            return _Collection.Select(item => (TOther)_Map_OtherNavProp.GetValue(item)).GetEnumerator();
+            return _MapCollection.Select(item => (TOther)_Map_OtherNavProp.GetValue(item)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

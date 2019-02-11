@@ -14,7 +14,7 @@
   "compileOnSave": true,
   "include": [
     "Typings/index.d.ts",
-    "Scripts/**/*.ts"
+    "Scripts/**/*.ts", "../../../CDS/Source/BotPal.API/Models/Maps/Word_Timeline_Map.cs", "../../../CDS/Source/BotPal.API/Models/Maps/Word_Timeline_Mapcs", "../../../CDS/Source/BotPal.API/Models/Word_Timeline_Mapcs", "../../../CDS/Source/BotPal.API/Models/Maps/Word_IntentPattern_Map.cs", "../../../CDS/Source/BotPal.API/Models/Word_IntentPattern_Map.cs"
   ],
   "exclude": [
     "node_modules",
