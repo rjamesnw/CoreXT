@@ -54,38 +54,53 @@ namespace CoreXT
         public static class UID64
         {
             public static DateTime Epoch = new DateTime(2019, 1, 1);
-            static ushort _UIDCounter = 0;
+            static volatile ushort _UIDCounter = 0;
 
-            /// <summary> Creates a unique 64-bit identifier from the given 20-bit session ID. </summary>
-            /// <param name="session20ID"> A 20-bit identifier/hash for the session. </param>
+            /// <summary>
+            ///     Creates a unique 64-bit identifier based on a 14-bit shard (single server instance) ID, a 100ms interval, and an
+            ///     internal static counter that wraps at 14 bits (every 16383 [handles ~163830 requests per second without
+            ///     collisions]). Since most server operations are delayed slightly due to various operations (such as database reads
+            ///     and/or writes), this counter is usually more than enough.
+            ///     <para>Why use this method?  This method allows the inserting of records without needing auto-number IDs on the
+            ///     database side. The server is free to populate </para>
+            ///     <para>The key returned will be encoded with the shared ID which can allow coordinated queries between server
+            ///     instances. These keys are valid up to 217 years from <see cref="Epoch"/>. </para>
+            ///     <para>Warning: The key returned is not a GUID (globally unique ID) by default.  How "global" depends on the value
+            ///     used for the shared ID. By using server instance IDs (or similar) the values are at least unique within the server
+            ///     cluster scope. If you use an organization ID it could be unique on a per-site/customer basis.</para>
+            /// </summary>
+            /// <param name="shardID">
+            ///     A 14-bit identifier (0-16383) that represents a shard (server) instance. It is important to configure each server
+            ///     with a dedicated ID for the database it also services.
+            /// </param>
             /// <returns> A new 64-bit unique ID. </returns>
-            public static ulong UID(uint session20ID)
+            public static ulong UID(ushort shardID)
             {
-                // ... 5 words for session ID ...
+                // ... 14 bits for session ID ...
 
-                var _sessionID = ((ulong)session20ID & 0xFFFFF) << (64 - 5 * 4);
+                var _sessionID = ((ulong)shardID & 0x3FFF) << (64 - (3 * 4 + 2));
 
-                // ... 8 words for date+time ....
+                // ... 36 bits for time (1/10 ms) ....
 
-                var spanInSeconds = (((ulong)(DateTime.UtcNow - Epoch).TotalSeconds) & 0xFFFFFFFF) << (3 * 4);
+                var spanInSeconds = (((ulong)(DateTime.UtcNow - Epoch).TotalMilliseconds / 10) & 0xFFFFFFFFF) << (3 * 4 + 2);
 
-                // ... 3 words for a counter value ...
+                // ... 14 bits for a counter value ...
 
-                var counter = (ulong)(_UIDCounter++ & 0xFFF);
+                var counter = (ulong)(_UIDCounter++ & 0x3FFF);
 
-                // ... return 5 word session + 8 word date and time + 3 word counter ...
+                // ... return session | time | counter ... 
 
                 return _sessionID | spanInSeconds | counter;
             }
 
-            /// <summary>
-            ///     Creates a unique 64-bit identifier from the given A 64-bit session ID that was originally creating using
-            ///     <see cref="UID(uint)"/> or <see cref="UID(ulong)"/>. This is done by extracting most of the seconds value and the lowest
-            ///     byte of the counter value to create a 20-bit session hash.
-            /// </summary>
-            /// <param name="sessionID">    A 64-bit session key ID value. </param>
-            /// <returns>   A new 64-bit unique ID. </returns>
-            public static ulong UID(ulong sessionID) => UID(((sessionID & 0xFFF000) >> 4) | (sessionID & 0xFF));
+            ///// <summary>
+            /////     Creates a unique 64-bit identifier from the given A 64-bit shard ID that was originally creating using
+            /////     <see cref="UID(uint)"/> or <see cref="UID(ulong)"/>. This is done by extracting most of the seconds value and the lowest
+            /////     byte of the counter value to create a 20-bit session hash.
+            ///// </summary>
+            ///// <param name="shardID">    A 64-bit session key ID value. </param>
+            ///// <returns>   A new 64-bit unique ID. </returns>
+            //? public static ulong UID(ulong shardID) => UID(((shardID & 0xFFF000) >> 4) | (shardID & 0xFF));
         }
     }
 

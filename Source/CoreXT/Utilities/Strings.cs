@@ -18,7 +18,7 @@ namespace CoreXT
         /// <summary>
         /// Returns true if the given object is null, or its string conversion results in an empty/null string.
         /// </summary>
-        public static bool IsNullOrEmpty(object value) { return (value == null || string.IsNullOrEmpty(value.ToString())); }
+        public static bool IsNullOrEmpty(this object value) { return (value == null || string.IsNullOrEmpty(value.ToString())); }
 
         /// <summary>
         /// Returns true if the string value is null or contains white space (contains all characters less than or equal Unicode value 32).
@@ -52,7 +52,7 @@ namespace CoreXT
         /// <summary>
         /// Convert a list of objects into strings and return the concatenated result.
         /// </summary>
-        public static string Join(string separator, object[] objects)
+        public static string Join(this string separator, object[] objects)
         {
             string s = "";
             foreach (object o in objects)
@@ -69,7 +69,7 @@ namespace CoreXT
         /// <summary>
         /// Join two strings arrays into one big array. The new array is returned.
         /// </summary>
-        public static string[] Join(string[] sa1, string[] sa2)
+        public static string[] Join(this string[] sa1, string[] sa2)
         {
             string[] strings = new string[sa1.Length + sa2.Length];
             CopyTo(sa1, strings, 0);
@@ -85,7 +85,7 @@ namespace CoreXT
         /// <param name="src">The array to copy.</param>
         /// <param name="dest">The target of the copy.</param>
         /// <param name="destIndex">The array index into the destination in which copy starts.</param>
-        public static string[] CopyTo(string[] src, string[] dest, int destIndex)
+        public static string[] CopyTo(this string[] src, string[] dest, int destIndex)
         {
             for (int i = 0; i < src.Length; i++)
                 dest[destIndex + i] = src[i];
@@ -97,7 +97,7 @@ namespace CoreXT
         /// <summary>
         /// Copies the given string and string array to a new array. The new array is returned.
         /// </summary>
-        public static string[] Add(string s, string[] strings)
+        public static string[] Add(this string s, string[] strings)
         {
             string[] newStringArray = new string[strings.Length + 1];
             CopyTo(strings, newStringArray, 0);
@@ -111,7 +111,7 @@ namespace CoreXT
         /// <param name="n"> An int to format. </param>
         /// <param name="format"> Describes the format to use. </param>
         /// <returns> The formatted number. </returns>
-        public static string FormatNumber(int n, string format)
+        public static string FormatNumber(this int n, string format)
         {
             return n.ToString(format);
         }
@@ -120,7 +120,7 @@ namespace CoreXT
         /// <param name="n"> A double to format. </param>
         /// <param name="format"> Describes the format to use. </param>
         /// <returns> The formatted number. </returns>
-        public static string FormatNumber(double n, string format)
+        public static string FormatNumber(this double n, string format)
         {
             return n.ToString(format);
         }
@@ -137,7 +137,7 @@ namespace CoreXT
         ///     The number format, if any (optional). See <see cref="FormatNumber(int, string)"/>.
         /// </param>
         /// <returns> A string. </returns>
-        public static string S(int value, string word, string prewordIfSingular = null, string suffixIfPlural = "s", string prewordIfPlural = null, string numberFormatting = null)
+        public static string S(this int value, string word, string prewordIfSingular = null, string suffixIfPlural = "s", string prewordIfPlural = null, string numberFormatting = null)
         {
             var formattedValue = numberFormatting != null ? FormatNumber(value, numberFormatting) : value.ToString();
             if (value != 1) { word += suffixIfPlural; if (!string.IsNullOrWhiteSpace(prewordIfPlural)) word = prewordIfSingular + " " + word; }
@@ -155,7 +155,7 @@ namespace CoreXT
         ///     The number format, if any (optional). See <see cref="FormatNumber(double, string)"/>.
         /// </param>
         /// <returns> A string. </returns>
-        public static string S(double value, string word, string prewordIfSingular = null, string suffixIfPlural = "s", string prewordIfPlural = null, string numberFormatting = null)
+        public static string S(this double value, string word, string prewordIfSingular = null, string suffixIfPlural = "s", string prewordIfPlural = null, string numberFormatting = null)
         {
             var formattedValue = numberFormatting != null ? FormatNumber(value, numberFormatting) : value.ToString();
             if (value != 1) { word += suffixIfPlural; if (!string.IsNullOrWhiteSpace(prewordIfPlural)) word = prewordIfSingular + " " + word; }
@@ -173,7 +173,7 @@ namespace CoreXT
         /// <param name="source">The string to append.</param>
         /// <param name="delimiter">If specified, the delimiter is placed between the target and source if the target is NOT empty.</param>
         /// <returns>The new string.</returns>
-        public static string Append(string target, string source, string delimiter)
+        public static string Append(this string target, string source, string delimiter)
         {
             if (string.IsNullOrEmpty(target)) return source;
             if (string.IsNullOrEmpty(source)) return target;
@@ -200,7 +200,7 @@ namespace CoreXT
         /// </summary>
         /// <param name="str">The string to look in.</param>
         /// <param name="chr">The character to count.</param>
-        public static int CharCount(string str, char chr)
+        public static int CharCount(this string str, char chr)
         {
             int count = 0;
             if (!string.IsNullOrEmpty(str))
@@ -216,18 +216,29 @@ namespace CoreXT
         /// </summary>
         /// <param name="strA">The first string to compare.</param>
         /// <param name="strB">The second string to compare.</param>
-        public static bool TextEqual(string strA, string strB)
+        public static bool TextEqual(this string strA, string strB)
         {
             return string.Compare(strA, strB, StringComparison.CurrentCultureIgnoreCase) == 0;
         }
 
         // ---------------------------------------------------------------------------------------------------------------------
 
-        public static int GetChecksum(string str)
+        /// <summary> A string extension method that calculates a simple checksum. </summary>
+        /// <param name="str"> The String to get a checksum for. </param>
+        /// <param name="ignoreOffsets">
+        ///     (Optional) If false (the default) the offset position is multiplied against the character position (making "AB" and
+        ///     "BA" different). If this is true then char codes added from "AB" and "BA" produce the same checksum.
+        /// </param>
+        /// <returns> The checksum. </returns>
+        public static int GetChecksum(this string str, bool ignoreOffsets = false)
         {
             int checksum = 0;
-            for (int i = 0; i < str.Length; i++)
-                checksum += str[i];
+            if (ignoreOffsets)
+                for (int i = 0; i < str.Length; i++)
+                    checksum += str[i];
+            else
+                for (int i = 0; i < str.Length; i++)
+                    checksum += str[i] * (1 + i);
             return checksum;
         }
 
@@ -237,20 +248,20 @@ namespace CoreXT
         /// Returns the given string up to a maximum of 'maxlength' characters.
         /// If more than 'maxlength' characters exist, an ellipse character is appended to the returned substring.
         /// </summary>
-        public static string Limit(string text, uint maxLength, bool includeElipseInMaxLength)
+        public static string Limit(this string text, uint maxLength, bool includeElipseInMaxLength)
         {
             if (maxLength == 0) return "";
             if (text.Length <= maxLength) return text;
             return text.Substring(0, (int)maxLength - (includeElipseInMaxLength ? 1 : 0)) + "…";
         }
-        public static string Limit(string text, uint maxLength) { return Limit(text, maxLength, false); }
+        public static string Limit(this string text, uint maxLength) { return Limit(text, maxLength, false); }
 
         // ---------------------------------------------------------------------------------------------------------------------
 
         /// <summary> Fixes words with 2 or more letters, making them all lowercase except for the first letter. </summary>
         /// <param name="text"> The string to change. </param>
         /// <returns> The result. </returns>
-        public static string Propertize(string text)
+        public static string Propertize(this string text)
         {
             string propertizedText = "";
 
