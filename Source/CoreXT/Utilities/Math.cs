@@ -61,8 +61,10 @@ namespace CoreXT
             ///     internal static counter that wraps at 14 bits (every 16383 [handles ~163830 requests per second without
             ///     collisions]). Since most server operations are delayed slightly due to various operations (such as database reads
             ///     and/or writes), this counter is usually more than enough.
-            ///     <para>Why use this method?  This method allows the inserting of records without needing auto-number IDs on the
-            ///     database side. The server is free to populate </para>
+            ///     <para>Why use this method?  This method allows the inserting of records without needing to add auto-number IDs on
+            ///     tables. The server is free to populate one or more entities quickly and insert them into the database without the
+            ///     need to read the results and updated entity keys. Not only is this more efficient, but it also allows ID references
+            ///     and replications across database instances or shards.</para>
             ///     <para>The key returned will be encoded with the shared ID which can allow coordinated queries between server
             ///     instances. These keys are valid up to 217 years from <see cref="Epoch"/>. </para>
             ///     <para>Warning: The key returned is not a GUID (globally unique ID) by default.  How "global" depends on the value

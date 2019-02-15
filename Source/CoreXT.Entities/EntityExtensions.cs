@@ -186,6 +186,20 @@ namespace CoreXT.Entities
         // --------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        ///     An ICollection&lt;T&gt; extension method that returns a new <see cref="HashSet{T}"/> collection if the referenced
+        ///     value is null. This is simply a convenience method to ensure a collection is not null, and returns a new one if it
+        ///     is. <see cref="HashSet{T}"/> is the default type used with the Entity Framework, which is usually placed within
+        ///     constructors. <para>Note that collections are usually generated automatically by the EF system when reading from the
+        ///     database (instead of manually generating entity instances).</para>
+        /// </summary>
+        /// <typeparam name="T"> Generic type parameter. </typeparam>
+        /// <param name="collection"> The collection to act on for this extension method. </param>
+        /// <returns> The default entity collection. </returns>
+        public static ICollection<T> EnsureEntityCollection<T>(this ICollection<T> collection) => collection ?? new HashSet<T>();
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// A fix that checks for the 'Table' attribute on a class. If not found, the class name is assumed.
         /// </summary>
         /// <param name="entityType">The entity type to check for a table attribute.</param>
@@ -294,6 +308,37 @@ namespace CoreXT.Entities
 
     // ########################################################################################################################
 
+    public static class EntityMap
+    {
+        /// <summary>
+        ///     An extension method that is a shortcut to creating an <see cref="EntityMap{TThis, TMapItem, TOther}"/> instance. It
+        ///     simply returns the underlying 'this' reference, or a new instance if the reference is null. The extension method
+        ///     also helps prevent the need to specify all the type parameters again just to create a new instance for the given
+        ///     reference.
+        /// </summary>
+        /// <typeparam name="TThis"> Type of this. </typeparam>
+        /// <typeparam name="TMapItem"> Type of the map item. </typeparam>
+        /// <typeparam name="TOther"> Type of the other. </typeparam>
+        /// <param name="map"> [in,out] The map to act on for this extension method. </param>
+        /// <param name="owner"> The instance this object is created on. </param>
+        /// <param name="collection"> The entity map collection this EntityMap will manage. </param>
+        /// <param name="onAdded"> (Optional) An optional callback when new items are added. </param>
+        /// <param name="rightSideFKName">
+        ///     (Optional) If there are multiple right-side mapping foreign keys representing navigational properties of the same
+        ///     type, a specific foreign key must be named here. This is usually null in the most basic cases.
+        /// </param>
+        /// <param name="leftSideFKName">
+        ///     (Optional) If there are multiple left-side mapping foreign keys representing navigational properties of the same
+        ///     type, a specific foreign key must be named here. This is usually null in the most basic cases.
+        /// </param>
+        /// <returns> An EntityMap&lt;TThis,TMapItem,TOther&gt; </returns>
+        public static EntityMap<TThis, TMapItem, TOther> Get<TThis, TMapItem, TOther>(ref EntityMap<TThis, TMapItem, TOther> map, TThis owner, ICollection<TMapItem> collection, Action<TMapItem> onAdded = null, string rightSideFKName = null, string leftSideFKName = null)
+            where TThis : class
+            where TMapItem : class, new()
+            where TOther : class
+            => map ?? new EntityMap<TThis, TMapItem, TOther>(owner, collection, onAdded, rightSideFKName, leftSideFKName);
+    }
+
     /// <summary>
     /// This class helps to manage the entity map collections in entity classes that have many-to-many relationships.
     /// It also supports enumerating over the target entity instances on the referenced map collection.
@@ -323,18 +368,23 @@ namespace CoreXT.Entities
         PropertyInfo _Map_ThisNavProp; // (used to get "this" entity related navigational property reference when enumerating the map items)
         PropertyInfo _Map_OtherNavProp; // (used to get the "other" navigational property reference when enumerating the map items)
 
-        /// <summary>
-        /// Create a new EntityMap instance for collections with a many-to-many relationship.
-        /// </summary>
-        /// <param name="owner">The instance this object is created on.</param>
-        /// <param name="collection">The entity map collection this EntityMap will manage.</param>
-        /// <param name="onAdded">An optional callback when new items are added.</param>
-        /// <param name="rightSideFKName">If there are multiple right-side mapping foreign keys representing navigational properties of the same type, a specific foreign key must be named here. This is usually null in the most basic cases.</param>
-        /// <param name="leftSideFKName">If there are multiple left-side mapping foreign keys representing navigational properties of the same type, a specific foreign key must be named here. This is usually null in the most basic cases.</param>
+        /// <summary> Create a new EntityMap instance for collections with a many-to-many relationship. </summary>
+        /// <exception cref="ArgumentNullException"> Thrown when one or more required arguments are null. </exception>
+        /// <param name="owner"> The instance this object is created on. </param>
+        /// <param name="collection"> The entity map collection this EntityMap will manage. </param>
+        /// <param name="onAdded"> (Optional) An optional callback when new items are added. </param>
+        /// <param name="rightSideFKName">
+        ///     (Optional) If there are multiple right-side mapping foreign keys representing navigational properties of the same
+        ///     type, a specific foreign key must be named here. This is usually null in the most basic cases.
+        /// </param>
+        /// <param name="leftSideFKName">
+        ///     (Optional) If there are multiple left-side mapping foreign keys representing navigational properties of the same
+        ///     type, a specific foreign key must be named here. This is usually null in the most basic cases.
+        /// </param>
         public EntityMap(TThis owner, ICollection<TMapItem> collection, Action<TMapItem> onAdded = null, string rightSideFKName = null, string leftSideFKName = null)
         {
             _Owner = owner ?? throw new ArgumentNullException("owner");
-            _MapCollection = collection ?? throw new ArgumentNullException("collection", "Did you forget to set your mapping collection of type '" + typeof(TMapItem).Name + "' to a 'HashSet<T>' instance in your '" + typeof(TThis).Name + "' entity's default constructor?"); //? ImmutableHashSet<TMapItem>.Empty;
+            _MapCollection = collection ?? throw new ArgumentNullException("collection", "Did you forget to set your mapping collection of type '" + typeof(TMapItem).Name + "' to a 'HashSet<T>' during instance construction?"); //? ImmutableHashSet<TMapItem>.Empty;
             _DoReflect(leftSideFKName, rightSideFKName);
         }
 

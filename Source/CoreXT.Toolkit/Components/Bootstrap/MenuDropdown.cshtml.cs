@@ -26,7 +26,7 @@ namespace CoreXT.Toolkit.Components.Bootstrap
 
         /// <summary> Gets or sets the menu items. </summary>
         /// <value> The items. </value>
-        new public List<object> Items { get => _Items ?? (_Items = new List<object>()); set => _Items = value; }
+        new public List<object> Items { get => EntityMap.Get(ref _Items, ); set => _Items = value; }
         List<object> _Items;
 
         /// <summary> The menu title name. </summary>
