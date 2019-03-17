@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -24,9 +25,9 @@
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 This package holds various basic utilities and extension methods for convenience.  For example, adds a '.Value(key, defaultValue)' method to easily pull out values from dictionaries, or '{string}.ND(defaultValue)' (null to default) for string values, async Task extensions, ObservableDictionary, WeakReferenceList, basic encryption, basic zip file support,, text parser,  'GetFullErrorMessage()' for writing out exceptions for debugging, and much more.</Description>
-    <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.165</FileVersion>
-    <AssemblyVersion>1.0.7.165</AssemblyVersion>
+    <Version>1.0.8</Version>
+    <FileVersion>1.0.8.5</FileVersion>
+    <AssemblyVersion>1.0.8.5</AssemblyVersion>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
@@ -42,7 +43,6 @@ This package holds various basic utilities and extension methods for convenience
   <!-- see more framework monikers here: https://docs.microsoft.com/en-us/nuget/schema/target-frameworks -->
 
   <ItemGroup>
-    <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="System.Management" Version="4.5.0" />
@@ -59,5 +59,7 @@ This package holds various basic utilities and extension methods for convenience
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;if exist &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot; del /q &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)\CoreXT.*.nupkg&quot;&#xD;&#xA;" />
   </Target>
+
+  <ProjectExtensions><VisualStudio><UserProperties BuildVersion_StartDate="2000/1/1" /></VisualStudio></ProjectExtensions>
 
 </Project>

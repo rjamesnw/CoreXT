@@ -9,10 +9,12 @@
     <AssemblyName>CoreXT.Demos</AssemblyName>
     <PackageId>CoreXT Demo</PackageId>
     <RootNamespace>CoreXT.Demos</RootNamespace>
-    <Version>1.0.7.47</Version>
+    <Version>1.0.8.0</Version>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
     <StartupObject />
+    <AssemblyVersion>1.0.8.7</AssemblyVersion>
+    <FileVersion>1.0.8.7</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -77,7 +79,6 @@
     <ProjectReference Include="..\CoreXT.Email\CoreXT.Email.csproj" />
     <ProjectReference Include="..\CoreXT.Entities\CoreXT.Entities.csproj" />
     <ProjectReference Include="..\CoreXT.FileSystem\CoreXT.FileSystem.csproj" />
-    <ProjectReference Include="..\CoreXT.JS\CoreXT.JS.csproj" />
     <ProjectReference Include="..\CoreXT.MVC\CoreXT.MVC.csproj" />
     <ProjectReference Include="..\CoreXT.Routing\CoreXT.Routing.csproj" />
     <ProjectReference Include="..\CoreXT.Toolkit\CoreXT.Toolkit.csproj" />
@@ -97,6 +98,8 @@
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="xcopy /s /y /d &quot;$(ProjectDir)..\CoreXT.JS\Typings\CoreXT\*.*&quot; &quot;$(ProjectDir)Typings\CoreXT\&quot;&#xD;&#xA;REM xcopy /s /y /d &quot;$(ProjectDir)..\CoreXT.JS\wwwroot\js\*.js.map&quot; &quot;$(ProjectDir)wwwroot\js\corextjs\&quot;&#xD;&#xA;" />
   </Target>
+
+  <ProjectExtensions><VisualStudio><UserProperties BuildVersion_StartDate="2000/1/1" /></VisualStudio></ProjectExtensions>
 
   <!--<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />

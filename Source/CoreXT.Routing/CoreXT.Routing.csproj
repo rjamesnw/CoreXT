@@ -22,9 +22,9 @@
 
 Used by some other CoreXT packages to help deal with various routing aspects.</Description>
     <IncludeContentInPack>false</IncludeContentInPack>
-    <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.163</FileVersion>
-    <AssemblyVersion>1.0.7.163</AssemblyVersion>
+    <Version>1.0.8</Version>
+    <FileVersion>1.0.8.5</FileVersion>
+    <AssemblyVersion>1.0.8.5</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
@@ -36,7 +36,6 @@ Used by some other CoreXT packages to help deal with various routing aspects.</D
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.2.0" />
   </ItemGroup>
@@ -52,5 +51,7 @@ Used by some other CoreXT packages to help deal with various routing aspects.</D
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />
   </Target>
+
+  <ProjectExtensions><VisualStudio><UserProperties BuildVersion_StartDate="2000/1/1" /></VisualStudio></ProjectExtensions>
 
 </Project>

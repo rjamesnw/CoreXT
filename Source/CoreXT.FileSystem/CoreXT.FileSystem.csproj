@@ -21,9 +21,9 @@
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 This package will contain some additional file systems, such as a virtual memory file system.</Description>
-    <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.175</FileVersion>
-    <AssemblyVersion>1.0.7.175</AssemblyVersion>
+    <Version>1.0.8</Version>
+    <FileVersion>1.0.8.6</FileVersion>
+    <AssemblyVersion>1.0.8.6</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
@@ -36,7 +36,6 @@ This package will contain some additional file systems, such as a virtual memory
     <PackageReference Include="Microsoft.Extensions.FileProviders.Composite" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="2.2.0" />
-    <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
@@ -61,5 +60,7 @@ This package will contain some additional file systems, such as a virtual memory
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />
   </Target>
+
+  <ProjectExtensions><VisualStudio><UserProperties BuildVersion_StartDate="2000/1/1" /></VisualStudio></ProjectExtensions>
 
 </Project>

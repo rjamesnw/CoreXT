@@ -21,9 +21,9 @@
     <Description>Various framework elements and components to help make the development of .Net Standard applications and ASP.Net Core MVC websites that much easier to deal with for the ASP.Net Core .Net cross-platform) environment. To see all assemblies in the framework, click the 'CoreXT' tag.
 
 This package is the real meat of the whole system.  It injects it's own types into the core ASP.Net MVC system in order to "hook" into various processes in order to make it easier for people to extend existing types - such as the ability to inherit from the ViewPage type and hook into before and after a view renders (one could use this for post processing), or before a view gets activated, and much more.</Description>
-    <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.175</FileVersion>
-    <AssemblyVersion>1.0.7.175</AssemblyVersion>
+    <Version>1.0.8</Version>
+    <FileVersion>1.0.8.6</FileVersion>
+    <AssemblyVersion>1.0.8.6</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
 
@@ -50,7 +50,6 @@ This package is the real meat of the whole system.  It injects it's own types in
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.ApiExplorer" Version="2.2.0" />
@@ -75,5 +74,7 @@ This package is the real meat of the whole system.  It injects it's own types in
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />
   </Target>
+
+  <ProjectExtensions><VisualStudio><UserProperties BuildVersion_StartDate="2000/1/1" /></VisualStudio></ProjectExtensions>
 
 </Project>

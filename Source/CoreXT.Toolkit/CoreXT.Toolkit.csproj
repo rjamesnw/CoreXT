@@ -1,10 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputType>Library</OutputType>
+    <Version>1.0.1</Version>
   </PropertyGroup>
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
@@ -35,25 +33,22 @@
     <PackageProjectUrl>https://www.nuget.org</PackageProjectUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>CoreXT AspNet WebApi MVC Toolkit</PackageTags>
-    <Version>1.0.7-beta</Version>
-    <FileVersion>1.0.7.219</FileVersion>
-    <AssemblyVersion>1.0.7.219</AssemblyVersion>
+    <Version>1.0.8</Version>
+    <FileVersion>1.0.8.9</FileVersion>
+    <AssemblyVersion>1.0.8.9</AssemblyVersion>
     <IncludeContentInPack>false</IncludeContentInPack>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
     <DefineConstants>NETFULL;NET461</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netstandard2.0\CoreXT.Toolkit.xml</DocumentationFile>
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="Controls\BeginForm.cs" />
     <Compile Remove="Controls\CheckBox.cs" />
@@ -79,7 +74,6 @@
     <Compile Remove="Components\TagViewRenderer - Copy.cs" />
     <Compile Remove="Utility\MarkdownHelper.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <!--Default to remove all as context and set all to no action-->
     <Compile Remove="Components-Old\**" />
@@ -119,21 +113,17 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>-->
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Remove="Components-Old\**" />
     <None Remove="Components-Old\**" />
   </ItemGroup>
-
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Typings\datatables.net\typings.json" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="tsconfig.json" />
     <Content Include="typings.json" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\CoreXT.Entities\CoreXT.Entities.csproj" />
     <ProjectReference Include="..\CoreXT.FileSystem\CoreXT.FileSystem.csproj" />
@@ -145,10 +135,8 @@
     <ProjectReference Include="..\CoreXT.Routing\CoreXT.Routing.csproj" />
     <ProjectReference Include="..\CoreXT.Validation\CoreXT.Validation.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.2.0" />
-    <!--<PackageReference Include="MSBump" Version="2.3.2" PrivateAssets="All" />-->
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
@@ -159,7 +147,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.ViewCompilation" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
   </ItemGroup>
-
   <ItemGroup>
     <TypeScriptCompile Include="Typings\bootstrap\index.d.ts" />
     <TypeScriptCompile Include="Typings\datatables.net\index.d.ts" />
@@ -167,19 +154,15 @@
     <TypeScriptCompile Include="Typings\jquery\index.d.ts" />
     <TypeScriptCompile Include="Typings\selectize\selectize.d.ts" />
   </ItemGroup>
-
   <Target Name="PushPackage" AfterTargets="Pack">
     <Exec Command="dotnet nuget push &quot;$(MSBuildProjectDirectory)\bin\$(Configuration)\$(AssemblyName).$(Version).nupkg&quot; -s &quot;C:\Data\Visual Studio\Nuget Server\$(Configuration)&quot;" />
   </Target>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="if &quot;$(SolutionName)&quot;==&quot;CDS with CoreXT&quot; goto :EOF&#xD;&#xA;set dirpath=&quot;C:\Users\%USERNAME%\.nuget\packages\$(TargetName)&quot;&#xD;&#xA;if exist %dirpath% rd /S /Q %dirpath%" />
   </Target>
-
   <Target Name="PrecompileRazorViews" AfterTargets="Build" DependsOnTargets="MvcRazorPrecompile" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del /s /q /f &quot;$(ProjectDir)bin\*.nupkg&quot;&#xD;&#xA;" />
   </Target>
-
+  <ProjectExtensions><VisualStudio><UserProperties BuildVersion_StartDate="2000/1/1" /></VisualStudio></ProjectExtensions>
 </Project>

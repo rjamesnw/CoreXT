@@ -131,7 +131,7 @@ namespace CoreXT {
         var _guidSeed = (function () { // (used in 'createGUID()')
             var text = navigator.userAgent + location.href; // TODO: This may need fixing on the server side.
             for (var i = 0, n = text.length, randseed = 0; i < n; ++i)
-                randseed += navigator.userAgent.charCodeAt(i);
+                randseed += text.charCodeAt(i);
             return randseed;
         })();
 
